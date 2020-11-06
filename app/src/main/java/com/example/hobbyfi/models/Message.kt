@@ -1,11 +1,13 @@
 package com.example.hobbyfi.models
 
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity
 data class Message(
-    override val id: Int,
+    @PrimaryKey
+    val id: Int,
     val message: String,
     val createTime: String // iso string?
-) : Model(id) {
+) : Model() {
 }

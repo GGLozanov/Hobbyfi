@@ -1,9 +1,11 @@
 package com.example.hobbyfi.models
 
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 // TODO: Room embed fields & typeconverters for saving tag lists in user entity
 @Entity
 data class Chatroom(
-    override val id: Int
-) : Model(id)
+    @PrimaryKey
+    val id: Int
+) : Model()

@@ -8,8 +8,6 @@ import android.widget.TextView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.Message
 
-import com.example.hobbyfi.ui.chatroom.dummy.DummyContent.DummyItem
-
 /**
  * [RecyclerView.Adapter] that can display a [DummyItem].
  * TODO: Replace the implementation with code for your data type.

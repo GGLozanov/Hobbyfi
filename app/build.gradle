@@ -14,8 +14,10 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        resValue "string", "MAPS_API_KEY", projectHobbyfiGoogleMapsAPIKey
     }
 
     buildTypes {
@@ -23,8 +25,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
-            resValue "integer", "FB_APP_ID", projectHobbyfiFacebookAppID
-            resValue "integer", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
+            resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
+            resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
             resValue "string", "MAPS_API_KEY", projectHobbyfiGoogleMapsAPIKey
         }
 
@@ -32,8 +34,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
-            resValue "integer", "FB_APP_ID", projectHobbyfiFacebookAppID
-            resValue "integer", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
+            resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
+            resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
             resValue "string", "MAPS_API_KEY", projectHobbyfiGoogleMapsAPIKey
         }
     }
@@ -61,6 +63,9 @@ dependencies {
     def room_version = "2.3.0-alpha03"
     def paging_version = "2.1.2"
     def nav_version = "2.3.1"
+
+    // MultiDex
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:26.0.0')

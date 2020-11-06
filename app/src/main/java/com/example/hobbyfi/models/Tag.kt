@@ -1,6 +1,7 @@
 package com.example.hobbyfi.models
 
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 // in-memory db for predefined tags
 // users can create their own tags (name + colour)
@@ -11,5 +12,6 @@ import androidx.room.Entity
 // once user goes to see other chatrooms/users, they'll see their custom tags from the API fetch from the backend
 @Entity
 data class Tag(
-  override val id: Int
-) : Model(id)
+  @PrimaryKey
+  val id: Int
+) : Model()
