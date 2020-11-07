@@ -4,7 +4,7 @@ import com.example.hobbyfi.responses.TokenResponse
 
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
-sealed class TokenState {
+sealed class TokenState : State {
     object Idle : TokenState()
     object Loading : TokenState()
 

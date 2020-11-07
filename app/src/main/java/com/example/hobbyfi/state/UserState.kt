@@ -1,11 +1,17 @@
 package com.example.hobbyfi.state
 
+import androidx.paging.PagingData
 import com.example.hobbyfi.models.User
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
-sealed class UserState {
+sealed class UserState : State {
     object Idle : UserState()
     object Loading : UserState()
+
+    sealed class OnData : UserState() {
+        data class UserResult(val user: User) : OnData()
+        data class UsersResult(val users: PagingData<User>) : OnData() // TODO: if fetch from network the map<String, User> will be converted to a flat list and processed by pagination
+    }
 
     // TODO: Find a way to Swift-ify this and pass the eventId only in OnNotification and have the inner classes access it
     sealed class OnNotification : UserState() {

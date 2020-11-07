@@ -15,6 +15,9 @@ class ChatroomUserListFragment : ChatroomFragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_chatroom_user_list, container, false)
 
+        // TODO: On right navdrawer press (through activity listener), check if users last fetch time is too long
+        // TODO: If it is, invalidate users data source in viewmodel and fetch new users (triggers REFRESH loadstate in Mediator => doesn't delete old users if no connection)
+
         return view
     }
 

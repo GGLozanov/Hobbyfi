@@ -61,7 +61,7 @@ dependencies {
 
     def lifecycle_version = "2.2.0"
     def room_version = "2.3.0-alpha03"
-    def paging_version = "2.1.2"
+    def paging_version = "3.0.0-alpha07"
     def nav_version = "2.3.1"
 
     // MultiDex
@@ -144,6 +144,12 @@ dependencies {
     runtimeOnly('io.jsonwebtoken:jjwt-orgjson:0.11.2') {
         exclude group: 'org.json', module: 'json' // provided by Android natively
     }
+
+    // CircleImageView
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    // Colour Picker
+    implementation "com.github.skydoves:colorpickerpreference:2.0.4"
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

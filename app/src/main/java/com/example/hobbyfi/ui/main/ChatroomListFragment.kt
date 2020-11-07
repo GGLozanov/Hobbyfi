@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import com.example.hobbyfi.R
 
 class ChatroomListFragment : MainFragment() {
+    // TODO: Refresh chatroom callback
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

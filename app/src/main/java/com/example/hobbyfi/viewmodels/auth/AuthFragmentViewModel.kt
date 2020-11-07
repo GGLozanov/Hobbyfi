@@ -1,13 +1,19 @@
 package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
-import android.provider.Contacts.PresenceColumns.IDLE
+import androidx.lifecycle.viewModelScope
+import androidx.multidex.MultiDexApplication
+import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
+import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-abstract class AuthFragmentViewModel(application: Application) : BaseViewModel(application) {
-    @ExperimentalCoroutinesApi
-    private val tokenState: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
+@ExperimentalCoroutinesApi
+abstract class AuthFragmentViewModel(application: MultiDexApplication) : StateIntentViewModel<TokenState, TokenIntent>(application) {
+
 }

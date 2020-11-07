@@ -10,8 +10,9 @@ import androidx.room.PrimaryKey
 // if not, insert and make connections with chatroom/user
 // if yes, don't insert and make connections
 // once user goes to see other chatrooms/users, they'll see their custom tags from the API fetch from the backend
-@Entity
+// TODO: Save only custom tags for relevant users & chatrooms here
+@Entity(tableName = "tags")
 data class Tag(
   @PrimaryKey
   val id: Int
-) : Model()
+) : Model

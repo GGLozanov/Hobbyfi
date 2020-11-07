@@ -11,4 +11,6 @@
         android:layout_height="match_parent"
         android:text="@string/hello_blank_fragment" />
 
+    <!--TODO: invisible Facebook suggestion layout for 3-4 interests toggled w/ databinding-->
+
 </FrameLayout>
