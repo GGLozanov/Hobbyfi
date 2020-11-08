@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
 ))
 data class Message(
     @PrimaryKey
-    val id: Int,
+    override val id: Int,
     @ColumnInfo(name = "message")
     val message: String,
     @ColumnInfo(name = "createTime")

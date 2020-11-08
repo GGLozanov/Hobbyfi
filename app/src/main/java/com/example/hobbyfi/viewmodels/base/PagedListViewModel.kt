@@ -9,6 +9,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
 abstract class PagedListViewModel<T: State, E: Intent, R: Model, N: BaseDao<R>>(application: MultiDexApplication) : StateIntentViewModel<T, E>(application) {
-    // private val chatroomList: LiveData<PagedList<R>>
+
+    // private val list: LiveData<PagedList<R>>
     // abstract dao init by Kodein?
 }

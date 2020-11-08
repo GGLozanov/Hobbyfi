@@ -1,21 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/swiperefresh"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel" />
+    </data>
 
-    <androidx.recyclerview.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/list"
-        android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        app:layoutManager="LinearLayoutManager"
-        tools:context=".ui.main.ChatroomListFragment"
-        tools:listitem="@layout/chatroom_card" />
+        android:layout_height="match_parent">
 
-    <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        <!--TODO: Inflate one chatroom card here or recyclerview depending on viewmodel user whether his chatroomId is null or not - Databinding-->
+
+        <androidx.recyclerview.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/list"
+            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            app:layoutManager="LinearLayoutManager"
+            tools:context=".ui.main.ChatroomListFragment"
+            tools:listitem="@layout/chatroom_card" />
+
+        <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</layout>

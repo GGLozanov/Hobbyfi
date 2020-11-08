@@ -10,8 +10,8 @@ import androidx.room.PrimaryKey
 ))
 data class User(
     @PrimaryKey
-    val id: Int,
+    override val id: Int,
 
     @ColumnInfo(name = "chatroomId")
-    val chatroomId: Int?
+    var chatroomId: Int?
 ) : Model

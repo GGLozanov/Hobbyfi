@@ -19,9 +19,9 @@ abstract class StateIntentViewModel<T: State, E: Intent>(application: MultiDexAp
     protected abstract val _state: MutableStateFlow<T>
 
     val state: StateFlow<T>
-        get() = state
+        get() = _state
 
-    protected val authIntent: Channel<E> = Channel(Channel.UNLIMITED)
+    protected val intent: Channel<E> = Channel(Channel.UNLIMITED)
 
     protected abstract fun handleIntent()
 }

@@ -40,7 +40,7 @@
     </fragment>
     <dialog
         android:id="@+id/tagSelectionDialogFragment"
-        android:name="com.example.hobbyfi.ui.auth.TagSelectionDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
         android:label="fragment_tag_selection_dialog"
         tools:layout="@layout/fragment_tag_selection_dialog" >
         <action
@@ -49,7 +49,7 @@
     </dialog>
     <dialog
         android:id="@+id/customTagCreateDialogFragment"
-        android:name="com.example.hobbyfi.ui.auth.CustomTagCreateDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
         android:label="fragment_custom_tag_create_dialog"
         tools:layout="@layout/fragment_custom_tag_create_dialog" />
     <include app:graph="@navigation/main_nav_graph" />

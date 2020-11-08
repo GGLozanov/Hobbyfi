@@ -7,6 +7,7 @@ import com.example.hobbyfi.ui.base.BaseActivity
 
 class MainActivity : BaseActivity() {
     // TODO: Viewpager 2 & bottomnav setup
+    // TODO: Fetch viewmodel by delegation *everywhere*
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

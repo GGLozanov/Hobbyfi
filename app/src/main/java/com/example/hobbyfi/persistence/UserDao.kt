@@ -9,4 +9,7 @@ import com.example.hobbyfi.models.User
 interface UserDao : BaseDao<User> {
     @Query("SELECT * from users")
     fun getUsers() : PagingSource<Int, User>
+
+    @Query("UPDATE users SET chatroomId = :chatroomId WHERE id = :userId")
+    fun updateUserChatroomId(userId: Int, chatroomId: Int)
 }

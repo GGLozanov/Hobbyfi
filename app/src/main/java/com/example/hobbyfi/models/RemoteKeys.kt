@@ -8,7 +8,7 @@ import com.example.hobbyfi.shared.RemoteKeyType
 @Entity(tableName = "remoteKeys")
 data class RemoteKeys(
     @PrimaryKey
-    val id: Int,
+    override val id: Int,
     val nextKey: Int?,
     val previousKey: Int?,
     val modelType: RemoteKeyType // user, tag, or message -> used for filtering; MUST be between these three

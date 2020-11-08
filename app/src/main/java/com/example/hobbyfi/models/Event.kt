@@ -6,5 +6,5 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "events")
 data class Event(
     @PrimaryKey
-    val id: Int
+    override val id: Int
 ) : Model

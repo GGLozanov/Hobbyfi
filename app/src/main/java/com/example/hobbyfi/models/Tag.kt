@@ -14,5 +14,5 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "tags")
 data class Tag(
   @PrimaryKey
-  val id: Int
+  override val id: Int
 ) : Model

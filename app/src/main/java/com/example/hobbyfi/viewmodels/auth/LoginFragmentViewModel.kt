@@ -5,8 +5,10 @@ import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 
+@ExperimentalCoroutinesApi
 class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentViewModel(application) {
     override val _state: MutableStateFlow<TokenState>
         get() = TODO("Not yet implemented")

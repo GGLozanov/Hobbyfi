@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
 ))
 data class Chatroom(
     @PrimaryKey
-    val id: Int,
+    override val id: Int,
 
     @ColumnInfo(name = "ownerId")
     val ownerId: Int

@@ -20,5 +20,6 @@ class MessageMediator(
     ): MediatorResult {
         TODO("Not yet implemented")
         // insert new page numbers (remote keys) after using cached page number to fetch new one
+        // if REFRESH LoadType => try to fetch new
     }
 }

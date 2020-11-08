@@ -5,6 +5,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.auth.SplashScreenFragment">
 
+    <!--TODO: Convert to MotionLayout-->
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
