@@ -21,10 +21,6 @@ class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragment
     override fun handleIntent() {
         TODO("Not yet implemented")
     }
-
-    @delegate:Transient
-    private val callBacks: PropertyChangeRegistry by lazy { PropertyChangeRegistry() }
-
     // TODO: Check encapsulation principles for exposing MutableLiveData for two-way databinding
     @Bindable
     val email: MutableLiveData<String> = MutableLiveData()
@@ -46,7 +42,5 @@ class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragment
 
     }
 
-    override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.add(callback)
 
-    override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.remove(callback)
 }

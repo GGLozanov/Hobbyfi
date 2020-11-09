@@ -1,6 +1,8 @@
 package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
+import androidx.databinding.Bindable
+import androidx.lifecycle.MutableLiveData
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.state.TokenState
@@ -17,4 +19,10 @@ class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentVie
         TODO("Not yet implemented")
     }
     // TODO: Implement the ViewModel
+
+    @Bindable
+    val email: MutableLiveData<String> = MutableLiveData()
+
+    @Bindable
+    val password: MutableLiveData<String> = MutableLiveData()
 }

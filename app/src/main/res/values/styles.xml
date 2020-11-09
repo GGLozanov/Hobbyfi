@@ -1,10 +1,59 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnBackground">@color/colorBackground</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:buttonStyle">@style/ButtonColor</item>
+
+        <item name="actionBarTabTextStyle">@style/TabTextStyle</item>
+        <item name="textAppearanceButton">@style/ButtonColor</item>
+        <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
+
+
+    <style name="TabTextStyle" parent="Widget.AppCompat.ActionBar.TabText">
+        <item name="android:textAppearance">@android:style/TextAppearance.Medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="ButtonColor" parent="TextAppearance.MaterialComponents.Button">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+        <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.TextInputLayout</item>
+        <item name="android:textColorHint">@android:color/white</item>
+        <item name="startIconTint">@android:color/white</item>
+    </style>
+
+    <style name="ThemeOverlay.App.TextInputLayout" parent="">
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.App.Subtitle1</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.App.Caption</item>
+    </style>
+
+    <style name="TextAppearance.App.Subtitle1" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="fontFamily">@font/rubik</item>
+        <item name="android:fontFamily">@font/rubik</item>
+        <item name="android:color">@android:color/white</item>
+    </style>
+
+    <style name="TextAppearance.App.Caption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="fontFamily">@font/rubik</item>
+        <item name="android:fontFamily">@font/rubik</item>
+        <item name="android:color">@android:color/white</item>
+    </style>
+
+    <style name="TextAppearance.App.EditText" parent="Widget.AppCompat.EditText">
+        <item name="fontFamily">@font/rubik</item>
+        <item name="android:fontFamily">@font/rubik</item>
+    </style>
+
 
 </resources>

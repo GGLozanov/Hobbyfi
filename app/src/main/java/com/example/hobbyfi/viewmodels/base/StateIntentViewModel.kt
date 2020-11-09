@@ -24,4 +24,8 @@ abstract class StateIntentViewModel<T: State, E: Intent>(application: MultiDexAp
     protected val intent: Channel<E> = Channel(Channel.UNLIMITED)
 
     protected abstract fun handleIntent()
+
+    suspend fun sendIntent(i: E) {
+        intent.send(i)
+    }
 }

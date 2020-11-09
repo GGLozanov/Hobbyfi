@@ -16,6 +16,8 @@ class CustomTagCreateDialogFragmentViewModel(application: MultiDexApplication) :
     @Bindable
     val name: MutableLiveData<String> = MutableLiveData()
 
+    // TODO: Color hex livedata?
+
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.add(callback)
 
     override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.remove(callback)
