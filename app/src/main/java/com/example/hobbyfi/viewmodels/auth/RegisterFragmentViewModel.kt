@@ -7,20 +7,32 @@ import androidx.databinding.PropertyChangeRegistry
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
+import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragmentViewModel(application), Observable {
     override val _state: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
 
     override fun handleIntent() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            intent.consumeAsFlow().collect {
+                when(it) {
+                    is TokenIntent.FetchRegisterToken -> fetchRegisterToken()
+                }
+            }
+        }
     }
+
     // TODO: Check encapsulation principles for exposing MutableLiveData for two-way databinding
     @Bindable
     val email: MutableLiveData<String> = MutableLiveData()

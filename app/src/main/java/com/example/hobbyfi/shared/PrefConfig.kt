@@ -46,15 +46,23 @@ class PrefConfig(private val context: Context) {
     }
 
     fun writeLastChatroomFetchTimeNow() {
-
+        val editor = sharedPreferences.edit()
+        editor.putInt(
+            context.getString(R.string.pref_last_chatroom_fetch_time), System.currentTimeMillis()
+                .toInt() / 1000
+        ).apply()
     }
 
     fun resetLastChatroomFetchTime() {
-
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_last_chatroom_fetch_time)).apply()
     }
 
-    fun readLastChatroomFetchTime() {
-
+    fun readLastChatroomFetchTime() : Long {
+        return sharedPreferences.getInt(
+            context.getString(R.string.pref_last_chatroom_fetch_time),
+            System.currentTimeMillis().toInt()
+        ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
     }
 
 
@@ -93,7 +101,7 @@ class PrefConfig(private val context: Context) {
         editor.remove(context.getString(R.string.pref_last_user_fetch_time)).apply()
     }
 
-    fun readLastUserFetchTime(): Long {
+    fun readLastUserFetchTime() : Long {
         return sharedPreferences.getInt(
             context.getString(R.string.pref_last_user_fetch_time),
             System.currentTimeMillis().toInt()

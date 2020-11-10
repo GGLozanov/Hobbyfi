@@ -17,5 +17,9 @@
     <fragment
         android:id="@+id/chatroomListFragment"
         android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
-        android:label="ChatroomListFragment" />
+        android:label="ChatroomListFragment" >
+        <action
+            android:id="@+id/action_chatroomListFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
 </navigation>

@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/chatroom_nav_graph">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chatroom_nav_graph"
+    app:startDestination="@id/chatroomMessageListFragment">
 
+    <fragment
+        android:id="@+id/chatroomMessageListFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
+        android:label="ChatroomMessageListFragment" >
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditDialogFragment"
+            app:destination="@id/chatroomEditDialogFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_eventEditDialogFragment"
+            app:destination="@id/eventEditDialogFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/chatroomEditDialogFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomEditDialogFragment"
+        android:label="fragment_chatroom_edit_dialog"
+        tools:layout="@layout/fragment_chatroom_edit_dialog" />
+    <dialog
+        android:id="@+id/eventEditDialogFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.EventEditDialogFragment"
+        android:label="fragment_event_edit_dialog"
+        tools:layout="@layout/fragment_event_edit_dialog" />
 </navigation>

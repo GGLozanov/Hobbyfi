@@ -23,8 +23,8 @@
             android:id="@+id/action_loginFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
         <action
-            android:id="@+id/action_loginFragment_to_main_nav_graph"
-            app:destination="@id/main_nav_graph" />
+            android:id="@+id/action_loginFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
@@ -35,8 +35,8 @@
             android:id="@+id/action_registerFragment_to_tagSelectionDialogFragment"
             app:destination="@id/tagSelectionDialogFragment" />
         <action
-            android:id="@+id/action_registerFragment_to_main_nav_graph"
-            app:destination="@id/main_nav_graph" />
+            android:id="@+id/action_registerFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
     </fragment>
     <dialog
         android:id="@+id/tagSelectionDialogFragment"
@@ -52,5 +52,9 @@
         android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
         android:label="fragment_custom_tag_create_dialog"
         tools:layout="@layout/fragment_custom_tag_create_dialog" />
-    <include app:graph="@navigation/main_nav_graph" />
+    <activity
+        android:id="@+id/mainActivity"
+        android:name="com.example.hobbyfi.ui.main.MainActivity"
+        android:label="activity_main"
+        tools:layout="@layout/activity_main" />
 </navigation>

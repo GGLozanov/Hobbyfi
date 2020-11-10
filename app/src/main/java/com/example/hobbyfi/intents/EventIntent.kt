@@ -7,7 +7,7 @@ import com.example.hobbyfi.models.Event
 sealed class EventIntent : Intent {
     sealed class FetchLastEventIntent(val chatroomId: Int) : EventIntent()
 
-    sealed class CreateEvent : EventIntent() // event information received by event create form in viewModel + EventCreateMapsActivity callback for lat/long
+    object CreateEvent : EventIntent() // event information received by event create form in viewModel + EventCreateMapsActivity callback for lat/long
     sealed class DeleteEvent(val eventId: Int) : EventIntent()
     sealed class UpdateEvent(val eventUpdateFields: Map<String, String>) : EventIntent()
 }

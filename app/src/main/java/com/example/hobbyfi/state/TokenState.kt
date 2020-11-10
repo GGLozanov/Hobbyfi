@@ -8,7 +8,7 @@ sealed class TokenState : State {
     object Idle : TokenState()
     object Loading : TokenState()
 
-    data class OnTokenReceived(val token: TokenResponse)
+    data class OnTokenReceived(val token: TokenResponse) : TokenState()
 
     data class Error(val error: String?) : TokenState()
 }
