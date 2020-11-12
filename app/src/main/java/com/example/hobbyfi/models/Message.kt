@@ -5,10 +5,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "messages", foreignKeys = arrayOf(
+@Entity(tableName = "messages", foreignKeys = [
     ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomSentId"), onDelete = ForeignKey.CASCADE),
-    ForeignKey(entity = User::class, parentColumns = arrayOf("id"), childColumns = arrayOf("userSentId"), onDelete = ForeignKey.CASCADE)
-))
+    ForeignKey(entity = User::class, parentColumns = arrayOf("id"), childColumns = arrayOf("userSentId"), onDelete = ForeignKey.CASCADE)]
+)
 data class Message(
     @PrimaryKey
     override val id: Int,

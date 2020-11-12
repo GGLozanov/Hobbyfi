@@ -7,11 +7,11 @@ import androidx.paging.RemoteMediator
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.persistence.HobbyfiDatabase
+import com.example.hobbyfi.repositories.ChatroomRepository
 
 @ExperimentalPagingApi
 class ChatroomMediator(
-    private val hobbyfiAPI: HobbyfiAPI,
-    private val hobbyfiDatabase: HobbyfiDatabase
+    private val chatroomRepository: ChatroomRepository
 ) : RemoteMediator<Int, Chatroom>() {
 
     override suspend fun load(

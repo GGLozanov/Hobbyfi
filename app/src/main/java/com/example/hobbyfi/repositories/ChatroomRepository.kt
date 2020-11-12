@@ -11,8 +11,10 @@ import com.example.hobbyfi.paging.sources.ChatroomPagingSource
 import com.example.hobbyfi.persistence.ChatroomDao
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
+import com.example.hobbyfi.shared.PrefConfig
 
-class ChatroomRepository(hobbyfiDatabase: HobbyfiDatabase) : CacheRepository(hobbyfiDatabase) {
+class ChatroomRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase)
+    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase) {
     // return livedata of pagedlist for chatrooms
     fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig()): LiveData<PagingData<Chatroom>> {
 //        return Pager(

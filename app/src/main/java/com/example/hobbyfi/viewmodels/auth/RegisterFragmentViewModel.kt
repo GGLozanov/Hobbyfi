@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,8 +52,19 @@ class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragment
     // and sends its livedata instance through the fragment-dialog listener, which will be set to this instance
 
     private fun fetchRegisterToken() {
-
+        viewModelScope.launch {
+            _state.value = TokenState.Loading
+            _state.value = try {
+                TokenState.OnTokenReceived(tokenRepository.getRegisterToken(
+                    email.value!!,
+                    password.value!!,
+                    username.value!!,
+                    description.value!!,
+                    tags?.value!!
+                ))
+            } catch (e: Exception) {
+                TokenState.Error(e.localizedMessage) // TODO: More specific error handling w/ custom exceptions
+            }
+        }
     }
-
-
 }

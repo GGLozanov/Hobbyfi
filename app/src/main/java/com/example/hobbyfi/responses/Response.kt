@@ -1,4 +1,5 @@
 package com.example.hobbyfi.responses
 
-abstract class Response {
-}
+open class Response(
+    open val response: String?
+)

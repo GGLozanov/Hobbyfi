@@ -1,20 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/swiperefresh"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list"
-        android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        app:layoutManager="LinearLayoutManager"
-        tools:context=".ui.chatroom.ChatroomMessageListFragment"
-        tools:listitem="@layout/message_card" />
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!--TODO: Add input layout at the bottom here-->
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    <data>
+
+    </data>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swiperefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/message_list"
+            android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            app:layoutManager="LinearLayoutManager"
+            tools:context=".ui.chatroom.ChatroomMessageListFragment"
+            tools:listitem="@layout/message_card" />
+
+        <!--TODO: Add input layout at the bottom here-->
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</layout>

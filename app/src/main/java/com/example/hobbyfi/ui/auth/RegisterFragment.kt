@@ -15,6 +15,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import kotlinx.android.synthetic.main.register_fragment.*
@@ -62,7 +63,18 @@ class RegisterFragment : AuthFragment() {
             ) // start activity and await result
         }
 
+        tag_select_button.setOnClickListener {
+
+        }
+
         register_account_button.setOnClickListener {
+            if(FieldUtils.isTextFieldInvalid(text_input_email) ||
+                FieldUtils.isTextFieldInvalid(text_input_password) ||
+                FieldUtils.isTextFieldInvalid(text_input_username) ||
+                    FieldUtils.isTextFieldInvalid(text_input_description)) {
+                return@setOnClickListener
+            }
+
             lifecycleScope.launch {
                 viewModel.sendIntent(TokenIntent.FetchRegisterToken)
             }

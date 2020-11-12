@@ -7,13 +7,16 @@ import androidx.paging.RemoteMediator
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.persistence.HobbyfiDatabase
+import com.example.hobbyfi.repositories.MessageRepository
+import com.example.hobbyfi.shared.PrefConfig
 
 @ExperimentalPagingApi
 class MessageMediator(
-    private val hobbyfiAPI: HobbyfiAPI,
-    private val hobbyfiDatabase: HobbyfiDatabase,
-    private val chatroomId: Int
+    private val messageRepository: MessageRepository,
+    private val prefConfig: PrefConfig
 ) : RemoteMediator<Int, Chatroom>() {
+
+    // TODO: get user token, get cached auth user from id, check his chatroom id and make request based on that
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, Chatroom>

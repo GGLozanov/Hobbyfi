@@ -10,11 +10,16 @@
         <item name="android:textColor">@android:color/white</item>
         <item name="android:buttonStyle">@style/ButtonColor</item>
 
+        <item name="actionBarStyle">@style/ActionBarStyle</item>
         <item name="actionBarTabTextStyle">@style/TabTextStyle</item>
         <item name="textAppearanceButton">@style/ButtonColor</item>
         <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
 
+
+    <style name="ActionBarStyle" parent="Widget.MaterialComponents.ActionBar.Primary">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
 
     <style name="TabTextStyle" parent="Widget.AppCompat.ActionBar.TabText">
         <item name="android:textAppearance">@android:style/TextAppearance.Medium</item>

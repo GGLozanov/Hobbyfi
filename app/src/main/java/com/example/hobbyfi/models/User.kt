@@ -11,7 +11,11 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey
     override val id: Int,
-
+    override val name: String,
+    override val description: String,
+    override val hasImage: Boolean,
+    val email: String,
+    val tags: List<Tag>,
     @ColumnInfo(name = "chatroomId")
     var chatroomId: Int?
-) : Model
+) : ExpandedModel

@@ -1,4 +1,7 @@
 package com.example.hobbyfi.responses
 
-class TokenResponse {
-}
+data class TokenResponse(
+    override val response: String?,
+    val jwt: String?,
+    val refreshJwt: String?
+) : Response(response)

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <variable
+            name="tag"
+            type="com.example.hobbyfi.models.Tag" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!--TODO: Add invisible text to the right which is enabled upon facebook interest through databinding in adapter-->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
