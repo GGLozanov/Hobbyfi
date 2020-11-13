@@ -10,7 +10,24 @@ object Constants {
     val emailInputError: String = "Enter a non-empty valid e-mail address!"
 
     // TODO: Put in-memory tags here
-    val predefinedTags: List<Tag> = listOf()
+    val predefinedTags: List<Tag> = listOf(
+        Tag(
+            "Skating",
+            "#dd9612"
+        ),
+        Tag(
+            "Skiing",
+            "#57f429"
+        ),
+        Tag(
+            "Writing",
+            "#ed3ae5"
+        ),
+        Tag(
+            "Art",
+            "#8f7edf"
+        )
+    )
 
     fun getDefaultPageConfig(): PagingConfig { // used in pager init
         return PagingConfig(pageSize = 5, enablePlaceholders = false)

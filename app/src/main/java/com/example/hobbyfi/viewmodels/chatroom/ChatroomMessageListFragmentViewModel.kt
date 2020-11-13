@@ -1,6 +1,8 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import androidx.databinding.Bindable
+import androidx.lifecycle.MutableLiveData
 import androidx.multidex.MultiDexApplication
 import androidx.paging.PagingSource
 import com.example.hobbyfi.intents.MessageIntent
@@ -19,8 +21,10 @@ class ChatroomMessageListFragmentViewModel(application: MultiDexApplication) : P
     // TODO: Kodein data source instance
     override val pagingSource: PagingSource<Int, Message> by instance()
 
-    override val _state: MutableStateFlow<MessageState>
-        get() = TODO("Not yet implemented")
+    @Bindable
+    val message: MutableLiveData<String> = MutableLiveData()
+
+    override val _state: MutableStateFlow<MessageState> = MutableStateFlow(MessageState.Idle)
 
     override fun handleIntent() {
         TODO("Not yet implemented")

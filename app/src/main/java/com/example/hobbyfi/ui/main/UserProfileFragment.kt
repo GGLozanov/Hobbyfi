@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.example.hobbyfi.R
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
@@ -14,7 +15,7 @@ class UserProfileFragment : MainFragment() {
         fun newInstance() = UserProfileFragment()
     }
 
-    private lateinit var viewModel: UserProfileFragmentViewModel
+    private val viewModel: UserProfileFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,7 +26,6 @@ class UserProfileFragment : MainFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity()).get(UserProfileFragmentViewModel::class.java)
         // TODO: Use the ViewModel
     }
 

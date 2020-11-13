@@ -12,4 +12,6 @@ data class Event(
     val startDate: String, // converted to Date format in back-end
     val date: String,
     val hasImage: Boolean,
+    val latitude: Double,
+    val longitude: Double
 ) : Model

@@ -8,4 +8,5 @@
     <color name="colorSecondaryShade">#cc7840</color>
     <color name="colorSecondaryVariant">#F9D786</color>
     <color name="colorBackground">#4E558C</color>
+    <color name="colorGrey">#9a9a9a</color>
 </resources>

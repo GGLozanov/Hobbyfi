@@ -24,7 +24,7 @@
             android:layout_marginRight="16dp"
             app:layoutManager="LinearLayoutManager"
             tools:context=".ui.main.ChatroomListFragment"
-            tools:listitem="@layout/chatroom_card" />
+            tools:listitem="@layout/message_card_send" />
 
         <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

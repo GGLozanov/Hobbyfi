@@ -12,12 +12,9 @@ import androidx.room.PrimaryKey
 data class Message(
     @PrimaryKey
     override val id: Int,
-    @ColumnInfo(name = "message")
     val message: String,
-    @ColumnInfo(name = "createTime")
     val createTime: String, // iso string?
-    @ColumnInfo(name = "userSentId")
     val userSentId: Int,
-    @ColumnInfo(name = "chatroomSentId")
-    val chatroomSentId: Int
+    val chatroomSentId: Int,
+    val isTimeline: Boolean = false // is a timeline notification (set to true if received from notification broadcastreceiver)
 ) : Model

@@ -7,9 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import com.example.hobbyfi.R
+import com.example.hobbyfi.ui.base.BaseDialogFragment
 
 
-class EventEditDialogFragment : DialogFragment() {
+class EventEditDialogFragment : BaseDialogFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

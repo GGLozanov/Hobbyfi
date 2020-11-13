@@ -6,6 +6,9 @@ import androidx.databinding.PropertyChangeRegistry
 import androidx.lifecycle.MutableLiveData
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
+import com.skydoves.colorpickerview.ColorPickerView
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
+import kotlinx.android.synthetic.main.fragment_custom_tag_create_dialog.*
 
 class CustomTagCreateDialogFragmentViewModel(application: MultiDexApplication) : BaseViewModel(application), Observable {
     // two-way db & color picker view from 3rd party library
@@ -16,7 +19,13 @@ class CustomTagCreateDialogFragmentViewModel(application: MultiDexApplication) :
     @Bindable
     val name: MutableLiveData<String> = MutableLiveData()
 
-    // TODO: Color hex livedata?
+    val colour: MutableLiveData<String> = MutableLiveData()
+
+    fun setOnColourChangedListener(colourPickerView: ColorPickerView) {
+        colourPickerView.setColorListener(ColorEnvelopeListener { colorEnvelope, fromUser ->
+            colour.value = "#" + colorEnvelope.hexCode
+        })
+    }
 
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.add(callback)
 

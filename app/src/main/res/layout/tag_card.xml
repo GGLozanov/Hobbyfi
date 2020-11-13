@@ -1,17 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="isSelected"
+            type="boolean" />
         <variable
             name="tag"
             type="com.example.hobbyfi.models.Tag" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/tag_card"
+        android:layout_width="250dp"
+        android:layout_height="100dp"
+        app:cardBackgroundColor="@{isSelected ? tag.colour : @color/colorGrey}">
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/tag_card_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tag_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="marquee"
+                android:maxWidth="125dp"
+                android:singleLine="false"
+                android:text="@{tag.name}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tag_facebook_header"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            </com.google.android.material.textview.MaterialTextView>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tag_facebook_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:visibility="@{tag.isFacebookInterest ? View.VISIBLE : View.GONE}"
+                android:text="Interest from\nFacebook"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            </com.google.android.material.textview.MaterialTextView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
         <!--TODO: Add invisible text to the right which is enabled upon facebook interest through databinding in adapter-->
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
 </layout>

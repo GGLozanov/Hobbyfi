@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.RegisterFragmentBinding
 import com.example.hobbyfi.intents.TokenIntent
+import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
@@ -64,7 +65,11 @@ class RegisterFragment : AuthFragment() {
         }
 
         tag_select_button.setOnClickListener {
-
+            val action = RegisterFragmentDirections.actionRegisterFragmentToTagSelectionDialogFragment(
+                viewModel.tags.value?.toTypedArray(),
+                Constants.predefinedTags.toTypedArray()
+            )
+            navController.navigate(action)
         }
 
         register_account_button.setOnClickListener {
@@ -93,10 +98,15 @@ class RegisterFragment : AuthFragment() {
 
                     }
                     is TokenState.OnTokenReceived -> {
-
+                        prefConfig.writeToken(it.token?.jwt)
+                        prefConfig.writeRefreshToken(it.token?.refreshJwt)
                     }
                 }
             }
+        }
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>("selectedTags")?.observe(viewLifecycleOwner) {
+            viewModel.tags.value = it
         }
 
         return view

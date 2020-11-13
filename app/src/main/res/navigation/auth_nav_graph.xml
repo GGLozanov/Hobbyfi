@@ -46,6 +46,13 @@
         <action
             android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment2"
             app:destination="@id/customTagCreateDialogFragment" />
+        <argument
+            android:name="selectedTags"
+            app:argType="com.example.hobbyfi.models.Tag[]"
+            app:nullable="true" />
+        <argument
+            android:name="tags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
     </dialog>
     <dialog
         android:id="@+id/customTagCreateDialogFragment"
@@ -56,5 +63,9 @@
         android:id="@+id/mainActivity"
         android:name="com.example.hobbyfi.ui.main.MainActivity"
         android:label="activity_main"
-        tools:layout="@layout/activity_main" />
+        tools:layout="@layout/activity_main" >
+        <argument
+            android:name="user"
+            app:argType="com.example.hobbyfi.models.User" />
+    </activity>
 </navigation>

@@ -12,6 +12,7 @@ import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,7 +48,7 @@ class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragment
     @Bindable
     val description: MutableLiveData<String> = MutableLiveData()
 
-    var tags: LiveData<List<Tag>>? = null
+    val tags: MutableLiveData<List<Tag>> = MutableLiveData(Constants.predefinedTags)
     // this livedata instance will be initialised once the tag selection dialog fragment finishes its workTag
     // and sends its livedata instance through the fragment-dialog listener, which will be set to this instance
 

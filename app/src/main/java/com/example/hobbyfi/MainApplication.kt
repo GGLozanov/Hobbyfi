@@ -7,7 +7,11 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
+import androidx.paging.PagingSource
 import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.paging.mediators.UserMediator
@@ -21,6 +25,7 @@ import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
+import org.kodein.di.generic.provider
 import org.kodein.di.generic.singleton
 
 // TODO: DI, Notification channel, etc. setup
@@ -44,12 +49,14 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "userRepository") from singleton { UserRepository(
+                instance(tag = "userPagingSource") as PagingSource<Int, User>,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase
             )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
+                instance(tag = "chatroomPagingSource") as PagingSource<Int, Chatroom>,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase
@@ -62,6 +69,7 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "messageRepository") from singleton { MessageRepository(
+                instance(tag = "messagePagingSource") as PagingSource<Int, Message>,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase
@@ -80,6 +88,17 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "userRepository") as UserRepository,
                 instance(tag = "prefConfig") as PrefConfig
             )
+        }
+        // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
+        // OR TODO: Might need to keep these as singletons. Heck if I know
+        bind(tag = "chatroomPagingSource") from provider {
+            (instance(tag = "database") as HobbyfiDatabase).chatroomDao().getChatrooms()
+        }
+        bind(tag = "messagePagingSource") from provider {
+            (instance(tag = "database") as HobbyfiDatabase).messageDao().getMessages()
+        }
+        bind(tag = "userPagingSource") from provider {
+            (instance(tag = "database") as HobbyfiDatabase).userDao().getUsers()
         }
     }
 
