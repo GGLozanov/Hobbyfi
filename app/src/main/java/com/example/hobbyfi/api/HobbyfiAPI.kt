@@ -39,10 +39,11 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun fetchRegistrationToken(
         @Field(Constants.EMAIL) email: String?,
-        @Field(Constants.USERNAME) username: String?,
+        @Field(Constants.USERNAME) username: String,
         @Field(Constants.PASSWORD) password: String?,
         @Field(Constants.DESCRIPTION) description: String?,
-        @Field(Constants.TAGS) tags: List<Tag>?
+        @Field(Constants.IMAGE) image: String?,
+        @Field(Constants.TAGS + "[]") tags: List<Tag>?
     ): TokenResponse?
 
     /**
@@ -53,8 +54,8 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/user/authenticate")
     suspend fun fetchLoginToken(
-        @Query(Constants.EMAIL) email: String?,
-        @Query(Constants.PASSWORD) password: String?
+        @Query(Constants.EMAIL) email: String,
+        @Query(Constants.PASSWORD) password: String
     ): TokenResponse?
 
     /**
@@ -64,7 +65,7 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/user/refresh_token")
     suspend fun fetchRefreshToken(
-        @Header(Constants.AUTH_HEADER) refreshJWT: String?
+        @Header(Constants.AUTH_HEADER) refreshJWT: String
     ): TokenResponse?
 
     /**
@@ -74,7 +75,7 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/user/read")
     suspend fun fetchUser(
-        @Header(Constants.AUTH_HEADER) token: String? // username inside token for DB query; token inside auth header
+        @Header(Constants.AUTH_HEADER) token: String // id inside token for DB query; token inside auth header
     ): UserResponse?
 
 
@@ -85,7 +86,7 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/users/read")
     fun fetchChatroomUsers(
-        @Header(Constants.AUTH_HEADER) token: String?
+        @Header(Constants.AUTH_HEADER) token: String
     ): Map<String?, UserResponse?>?
 
     /**
@@ -97,13 +98,13 @@ interface HobbyfiAPI {
     @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now) FIXME potentially in backend
     @FormUrlEncoded
     fun editUser(
-        @Header(Constants.AUTH_HEADER) token: String?,
-        @FieldMap body: Map<String?, String?>? // variable body parameters (which is why a map is used)
+        @Header(Constants.AUTH_HEADER) token: String,
+        @FieldMap body: Map<String?, String?> // variable body parameters (which is why a map is used)
     ): Response?
 
     @DELETE("api/v1.0/user/delete")
     fun deleteUser(
-        @Header(Constants.AUTH_HEADER) token: String?
+        @Header(Constants.AUTH_HEADER) token: String
     ): Response?
 
     companion object {

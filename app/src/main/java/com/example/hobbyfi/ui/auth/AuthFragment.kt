@@ -12,5 +12,4 @@ import com.google.android.material.textfield.TextInputEditText
 import kotlinx.android.synthetic.main.login_fragment.*
 
 abstract class AuthFragment : BaseFragment() {
-    abstract protected fun initTextFieldValidators()
 }

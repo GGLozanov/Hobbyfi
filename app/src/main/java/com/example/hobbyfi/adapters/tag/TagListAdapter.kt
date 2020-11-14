@@ -49,7 +49,7 @@ class TagListAdapter(
 
 
         fun bind(tag: Tag?) {
-            // todo: databinding init here & handle image as
+            binding.tag = tag
         }
     }
 

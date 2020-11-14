@@ -1,6 +1,7 @@
 package com.example.hobbyfi.models
 
 import android.os.Parcelable
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.android.parcel.Parcelize
@@ -14,6 +15,7 @@ import kotlinx.android.parcel.Parcelize
 // once user goes to see other chatrooms/users, they'll see their custom tags from the API fetch from the backend
 // TODO: Save only custom tags for relevant users & chatrooms here
 @Entity(tableName = "tags")
+@Keep
 @Parcelize
 data class Tag(
   val name: String,
@@ -21,5 +23,5 @@ data class Tag(
   val isFacebookInterest: Boolean = false
 ) : Model, Parcelable {
   @PrimaryKey(autoGenerate = true)
-  override val id: Int = 0
+  override val id: Long = 0
 }

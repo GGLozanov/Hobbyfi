@@ -8,6 +8,7 @@ object Constants {
     val usernameInputError: String = "Enter a non-empty valid username!"
     val passwordInputError: String = "Enter a non-empty or shorter password!"
     val emailInputError: String = "Enter a non-empty valid e-mail address!"
+    val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -40,6 +41,8 @@ object Constants {
     const val FAILED_RESPONSE = "failed"
     const val IMAGE_UPLOAD_SUCCESS_RESPONSE = "Image Uploaded"
     const val IMAGE_UPLOAD_FAILED_RESPONSE = "Image Upload Failed"
+    const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Error with fetching your Facebook email! Stopping login!"
+    const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
     const val EXISTS_RESPONSE = "exists"
     const val REAUTH_FLAG = "Reauth"
     const val FAILED_FLAG = "Failed: "
@@ -51,6 +54,7 @@ object Constants {
     const val PASSWORD = "password"
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
+    const val IMAGE = "image"
     const val TAGS = "tags"
 
     const val PHOTO_URL = "photo_url"

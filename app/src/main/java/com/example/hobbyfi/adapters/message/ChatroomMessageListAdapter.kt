@@ -23,6 +23,7 @@ class ChatroomMessageListAdapter : PagingDataAdapter<Message, RecyclerView.ViewH
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = getItem(position)
+
         // TODO:
         // (holder as? ChatroomSendMessageViewHolder)?.bind(message)
 //        holder.idView.text = item.id

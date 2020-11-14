@@ -7,7 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.hobbyfi.R
 
-class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
+class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -16,7 +17,6 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         // Inflate the layout for this fragment
         // TODO: Handle expired token error & logout
 
-        return inflater.inflate(R.layout.fragment_change_email_dialog, container, false)
+        return inflater.inflate(R.layout.fragment_change_password_dialog, container, false)
     }
-
 }

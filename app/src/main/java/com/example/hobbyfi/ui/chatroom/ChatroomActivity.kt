@@ -17,14 +17,20 @@ class ChatroomActivity : BaseActivity() {
 
     // TODO: research into integrating nav drawer different icons with navcomponent
     // TODO: need to integrate action bar menu and have drawable from there trigger right navigationview
+
+    // TODO: Have this be the deeplink activity. Register it and handle intent extras and facebook/default user
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chatroom)
         val appBarConfiguration = AppBarConfiguration(navController.graph, drawer_layout)
-        nav_view_chatroom.setupWithNavController(navController)
 
+        nav_view_chatroom.setupWithNavController(navController)
         // TODO: if(user_is_admin) - viewmodel & databinding
         nav_view_admin.setupWithNavController(navController)
 
+        // if not deeplink: fire off 3 requests/load from db here -> event, messages, user
+        // if deeplink: also fire off request/load from db here -> chatroom info
+
+        // TODO: Ask for permission upon event card press for access to location
     }
 }

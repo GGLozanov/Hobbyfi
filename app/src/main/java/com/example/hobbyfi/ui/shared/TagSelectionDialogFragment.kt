@@ -1,21 +1,15 @@
 package com.example.hobbyfi.ui.shared
 
-import android.content.Context
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
@@ -33,12 +27,12 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_tag_selection_dialog, container, false)
 
-        viewModel.setTags(args.tags.toMutableList())
+        viewModel.setInitialTags(args.tags.toMutableList())
 
         adapter = TagListAdapter(viewModel.tags.value!!)
         adapter.setOnItemPressed(object : TagListAdapter.OnItemPressed {
             override fun onItemPress(tag: Tag, wasSelected: Boolean) {
-                if(wasSelected == false) {
+                if(!wasSelected) {
                     viewModel.removeTagFromSelected(tag)
                 } else {
                     viewModel.addTagToSelected(tag)
@@ -52,6 +46,8 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         })
 
         cancel_button.setOnClickListener {
+            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", viewModel.getInitialTags())
+
             dismiss()
         }
 
@@ -72,7 +68,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Tag>("tag")?.observe(viewLifecycleOwner) {
             viewModel.addTag(it)
-            viewModel.customTagCreateCounter++
+            viewModel.incrementCustomTagCounter()
         }
 
         return view

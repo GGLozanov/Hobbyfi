@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
 )
 data class Message(
     @PrimaryKey
-    override val id: Int,
+    override val id: Long,
     val message: String,
     val createTime: String, // iso string?
     val userSentId: Int,

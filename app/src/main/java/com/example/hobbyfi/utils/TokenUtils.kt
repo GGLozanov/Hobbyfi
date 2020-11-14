@@ -50,8 +50,7 @@ object TokenUtils {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getTokenUserIdFromStoredTokens(prefConfig: PrefConfig): Int { // TODO: rename; absolutely horrid name
-        val authId: Int
-        authId = try {
+        return try {
             getTokenUserIdFromPayload(prefConfig.readToken())
         } catch (e: ExpiredJwtException) {
             Log.w(
@@ -94,6 +93,5 @@ object TokenUtils {
                 return 0
             }
         }
-        return authId
     }
 }

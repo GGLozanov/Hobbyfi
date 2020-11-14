@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.auth
 
+import android.content.Intent
 import android.os.Bundle
 import com.example.hobbyfi.R
 import com.example.hobbyfi.ui.base.BaseActivity
@@ -14,5 +15,9 @@ class AuthActivity : BaseActivity() {
                     .replace(R.id.container, LoginFragment.newInstance())
                     .commitNow()
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
     }
 }

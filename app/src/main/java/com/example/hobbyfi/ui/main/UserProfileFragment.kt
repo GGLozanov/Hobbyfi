@@ -16,11 +16,17 @@ class UserProfileFragment : MainFragment() {
     }
 
     private val viewModel: UserProfileFragmentViewModel by viewModels()
+    private lateinit var args: UserProfileFragmentArgs
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        args = UserProfileFragmentArgs.fromBundle(requireActivity().intent?.extras!!)
+
+        // TODO: Handle expired token error & logout
+
         return inflater.inflate(R.layout.user_profile_fragment, container, false)
     }
 

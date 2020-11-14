@@ -16,6 +16,8 @@ class ChatroomEditDialogFragment : BaseDialogFragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+        // TODO: Handle expired token error & logout
+
         return inflater.inflate(R.layout.fragment_chatroom_edit_dialog, container, false)
     }
 

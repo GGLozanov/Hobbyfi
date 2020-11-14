@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.example.hobbyfi.R
 import com.example.hobbyfi.ui.base.BaseFragment
+import com.facebook.AccessToken
 
 class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs (probably...) so it can stay Fragment() and not BaseFragment()
 
@@ -31,7 +32,14 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
         activity.supportActionBar?.hide()
 
         view?.postDelayed({
-            navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
+            if(prefConfig.readLoginStatus()) {
+                navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
+            } else {
+                val action = SplashScreenFragmentDirections.actionSplashScreenFragmentToMainActivity(
+                    null
+                )
+                navController.navigate(action)
+            }
 
             activity.supportActionBar?.show()
         }, 3000)

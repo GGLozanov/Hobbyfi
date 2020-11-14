@@ -11,6 +11,8 @@ class TagSelectionDialogFragmentViewModel(application: MultiDexApplication) : Ba
     private val _tags: MutableLiveData<MutableList<Tag>> = MutableLiveData()
     val tags: LiveData<MutableList<Tag>> get() = _tags
 
+    private var initialSelectedTags: MutableList<Tag>? = null
+
     // TODO: Probably convert this to primitive list without livedata wrapping around it
     private val _selectedTags: MutableLiveData<MutableList<Tag>> = MutableLiveData(mutableListOf())
     val selectedTags: LiveData<MutableList<Tag>> get() = _selectedTags
@@ -19,8 +21,9 @@ class TagSelectionDialogFragmentViewModel(application: MultiDexApplication) : Ba
     // TODO: Change to List<Int> for tag ids?
     // respond to recyclerview clicks here and update tags list
 
-    fun setTags(tags: MutableList<Tag>) {
+    fun setInitialTags(tags: MutableList<Tag>) {
         _tags.value = tags
+        initialSelectedTags = tags
     }
 
     fun setSelectedTags(tags: MutableList<Tag>) {
@@ -37,5 +40,13 @@ class TagSelectionDialogFragmentViewModel(application: MultiDexApplication) : Ba
 
     fun removeTagFromSelected(tag: Tag) {
         _selectedTags.value?.remove(tag)
+    }
+    
+    fun incrementCustomTagCounter() {
+        customTagCreateCounter++
+    }
+
+    fun getInitialTags() : MutableList<Tag> {
+        return initialSelectedTags!!
     }
 }

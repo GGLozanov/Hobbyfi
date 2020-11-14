@@ -12,8 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 @ExperimentalCoroutinesApi
 abstract class AuthChatroomHolderViewModel(application: MultiDexApplication) : AuthUserHolderViewModel(application) {
-
-    protected val _authChatroom : Chatroom? = null
+    protected var _authChatroom : Chatroom? = null
 
     protected val _chatroomState : MutableStateFlow<ChatroomState>
             = MutableStateFlow(ChatroomState.Idle)

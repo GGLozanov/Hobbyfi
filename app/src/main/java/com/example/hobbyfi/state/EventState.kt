@@ -8,7 +8,7 @@ sealed class EventState : State {
     object Idle : EventState()
     object Loading : EventState()
 
-    data class OnData(val event: Event)
+    data class OnEventReceived(val event: Event)
 
     // TODO: Find a way to Swift-ify this and pass the eventId only in OnNotification and have the inner classes access it
     sealed class OnNotification : EventState() {

@@ -2,9 +2,12 @@ package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.util.Patterns
 import android.view.*
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -13,10 +16,14 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.RegisterFragmentBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
+import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import kotlinx.android.synthetic.main.register_fragment.*
@@ -26,7 +33,7 @@ import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class RegisterFragment : AuthFragment() {
+class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         fun newInstance() = RegisterFragment()
@@ -37,6 +44,7 @@ class RegisterFragment : AuthFragment() {
     private var imageRequestCode: Int = 777
     private var bitmap: Bitmap? = null
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -52,6 +60,7 @@ class RegisterFragment : AuthFragment() {
         initTextFieldValidators()
 
         profile_image.setOnClickListener {
+            // TODO: Ask for Read storage permission here
             val selectImageIntent = Intent()
             selectImageIntent.type = "image/*" // set MIME data type to all images
 
@@ -66,7 +75,7 @@ class RegisterFragment : AuthFragment() {
 
         tag_select_button.setOnClickListener {
             val action = RegisterFragmentDirections.actionRegisterFragmentToTagSelectionDialogFragment(
-                viewModel.tags.value?.toTypedArray(),
+                viewModel.selectedTags.value?.toTypedArray(),
                 Constants.predefinedTags.toTypedArray()
             )
             navController.navigate(action)
@@ -89,24 +98,38 @@ class RegisterFragment : AuthFragment() {
             viewModel.state.collect {
                 when(it) {
                     is TokenState.Idle -> {
-
                     }
                     is TokenState.Error -> {
-
+                        Toast.makeText(context, it.error, Toast.LENGTH_LONG)
+                            .show()
                     }
                     is TokenState.Loading -> {
-
+                        // TODO: Show a progress indicator or something
                     }
                     is TokenState.OnTokenReceived -> {
                         prefConfig.writeToken(it.token?.jwt)
                         prefConfig.writeRefreshToken(it.token?.refreshJwt)
+                        prefConfig.writeLoginStatus(true)
+
+                        val action = RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
+                            User(
+                                TokenUtils.getTokenUserIdFromPayload(it.token?.jwt).toLong(),
+                                viewModel.email.value!!,
+                                viewModel.username.value!!,
+                                viewModel.description.value,
+                                viewModel.getProfileImageBase64() != null,
+                                viewModel.selectedTags.value,
+                                null
+                            )
+                        )
+                        navController.navigate(action)
                     }
                 }
             }
         }
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>("selectedTags")?.observe(viewLifecycleOwner) {
-            viewModel.tags.value = it
+            viewModel.setSelectedTags(it)
         }
 
         return view
@@ -150,6 +173,7 @@ class RegisterFragment : AuthFragment() {
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(Callbacks.getBitmapFromImageOnActivityResult(
@@ -161,11 +185,23 @@ class RegisterFragment : AuthFragment() {
             profile_image.setImageBitmap(
                 bitmap
             ) // set the new image resource to be decoded from the bitmap
+            viewModel.setProfileImageBase64(
+                ImageUtils.encodeImage(bitmap!!)
+            )
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.register_appbar_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+        if(item.itemId == R.id.action_login) {
+            navController.navigate(R.id.action_registerFragment_to_loginFragment)
+        }
+
+        return true
     }
 }

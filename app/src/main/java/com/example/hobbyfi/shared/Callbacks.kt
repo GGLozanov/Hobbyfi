@@ -8,7 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.utils.ImageUtils
+import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
+import kotlin.jvm.Throws
 
 
 object Callbacks {
@@ -19,30 +24,26 @@ object Callbacks {
     ): Bitmap? {
         if (requestCode == requiredRequestCode &&
             resultCode == Activity.RESULT_OK && data != null && data.data != null) {
-            val contentResolver = activity
-                .contentResolver // provides access to content model (class used to interface and access the data)
+
             try {
-                return if (Build.VERSION.SDK_INT < 28) {
-                    MediaStore.Images.Media.getBitmap(
-                        contentResolver,
-                        data.data!!
-                    )
-                } else {
-                    ImageDecoder.decodeBitmap(
-                        ImageDecoder.createSource(
-                            contentResolver,
-                            data.data!!
-                        )
-                    )
-                }
-            } catch (e: IOException) {
+                return ImageUtils.getBitmapFromUri(activity, data.data!!)
+            } catch(ex: IOException) {
                 Log.e(
                     "Callbacks.imageCallback", "onActivityResult (image retrieval) " +
-                            "with required request code " + requiredRequestCode + " —> " + e.toString()
+                            "with required request code " + requiredRequestCode + " —> " + ex.toString()
                 )
             }
+
         }
         return null
     }
 
+    // "returns" a response when in reality it always throws an exception
+    fun dissectRepositoryExceptionAndThrow(ex: Exception) {
+        when(ex) {
+            is HobbyfiAPI.NoConnectivityException -> throw Exception("Couldn't register! Please check your connection!")
+            is HttpException -> throw Exception(ex.message().toString() + " ; code: " + ex.code())
+            else -> throw Exception("Unknown error! Please check your connection or contact a developer!")
+        }
+    }
 }

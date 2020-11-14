@@ -9,6 +9,7 @@ sealed class TokenState : State {
     object Loading : TokenState()
 
     data class OnTokenReceived(val token: TokenResponse?) : TokenState()
+    object OnFacebookRegisterTokenSuccess : TokenState()
 
     data class Error(val error: String?) : TokenState()
 }
