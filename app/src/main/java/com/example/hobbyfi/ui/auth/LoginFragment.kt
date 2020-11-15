@@ -98,7 +98,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         val profile = Profile.getCurrentProfile()
                         val action = LoginFragmentDirections.actionLoginFragmentToMainActivity(
                             User(
-                                Integer.parseInt(Profile.getCurrentProfile().id).toLong(), // this will freaking die if Facebook changes their ID schema
+                                Integer.parseInt(Profile.getCurrentProfile().id)
+                                    .toLong(), // this will freaking die if Facebook changes their ID schema
                                 viewModel.email.value,
                                 profile.name,
                                 null,
@@ -168,6 +169,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
                 viewModel.sendIntent(
                     TokenIntent.FetchFacebookRegisterToken(
+                        AccessToken.getCurrentAccessToken().token,
                         profile.name,
                         image,
                     )

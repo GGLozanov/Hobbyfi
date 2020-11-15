@@ -14,9 +14,14 @@ import org.json.JSONException
 import retrofit2.HttpException
 
 class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Repository(prefConfig, hobbyfiAPI) {
-    suspend fun getRegisterToken(email: String?, password: String?, username: String, description: String?, base64Image: String?, tags: List<Tag>?) : TokenResponse? {
+    suspend fun getRegisterToken(
+        facebookToken: String?,
+            email: String?, password: String?, username: String, description: String?,
+            base64Image: String?, tags: List<Tag>?) : TokenResponse? {
+
         try {
             val tokenResponse = hobbyfiAPI.fetchRegistrationToken(
+                facebookToken,
                 email,
                 username,
                 password,

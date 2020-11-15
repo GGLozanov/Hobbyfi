@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import com.example.hobbyfi.R
 
 class ChatroomMessageListFragment : ChatroomFragment() {
-    // TODO: Init adapter, loader, refresh callback
+    // TODO: Init adapter, loader
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

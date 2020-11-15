@@ -34,7 +34,7 @@ class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentVie
                         fetchLoginToken()
                     }
                     is TokenIntent.FetchFacebookRegisterToken -> {
-                        fetchRegisterTokenFacebook(it.username, email.value, it.image, selectedTags.value)
+                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image, selectedTags.value)
                     }
                 }
             }
@@ -98,11 +98,12 @@ class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentVie
     // TODO: Save facebook user picture on own back-end? Useless but easier?
     // ...if the Facebook user changes their profile picture, it won't be synced in the app...
     // Too bad!
-    private fun fetchRegisterTokenFacebook(username: String, email: String?, image: String, tags: List<Tag>?) {
+    private fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, image: String, tags: List<Tag>?) {
         viewModelScope.launch {
             _state.value = TokenState.Loading
             _state.value = try {
                 TokenState.OnTokenReceived(tokenRepository.getRegisterToken(
+                    facebookToken,
                     email,
                     null,
                     username,

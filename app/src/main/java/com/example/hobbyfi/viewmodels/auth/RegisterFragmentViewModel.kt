@@ -49,6 +49,7 @@ class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragment
             _state.value = TokenState.Loading
             _state.value = try {
                 TokenState.OnTokenReceived(tokenRepository.getRegisterToken(
+                    null,
                     email.value!!,
                     password.value!!,
                     username.value!!,

@@ -38,6 +38,7 @@ interface HobbyfiAPI {
     @POST("api/v1.0/user/create")
     @FormUrlEncoded
     suspend fun fetchRegistrationToken(
+        @Header(Constants.AUTH_HEADER) facebookToken: String?, // potential fb token sent to validate fb create request
         @Field(Constants.EMAIL) email: String?,
         @Field(Constants.USERNAME) username: String,
         @Field(Constants.PASSWORD) password: String?,
