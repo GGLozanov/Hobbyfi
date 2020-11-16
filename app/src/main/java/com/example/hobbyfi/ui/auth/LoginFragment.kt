@@ -10,9 +10,10 @@ import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
-import com.example.hobbyfi.databinding.LoginFragmentBinding
+import com.example.hobbyfi.databinding.FragmentLoginBinding
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
@@ -20,6 +21,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -27,37 +29,44 @@ import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.facebook.*
 import com.facebook.login.LoginResult
-import kotlinx.android.synthetic.main.login_fragment.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
+class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
 
     companion object {
         fun newInstance() = LoginFragment()
     }
 
-    private val viewModel: LoginFragmentViewModel by viewModels()
+    private val viewModel: LoginFragmentViewModel by viewModels(factoryProducer = {
+        ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
+    })
+    private lateinit var binding: FragmentLoginBinding
+
     private val callbackManager: CallbackManager = CallbackManager.Factory.create()
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val binding: LoginFragmentBinding =
-            DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false)
+        binding =
+            DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
         binding.viewModel = viewModel
 
         val view: View = binding.root
 
-        login_button.setOnClickListener {
-            if(FieldUtils.isTextFieldInvalid(text_input_email) ||
-                FieldUtils.isTextFieldInvalid(text_input_password)) {
+        binding.loginButton.setOnClickListener {
+            if(FieldUtils.isTextFieldInvalid(binding.textInputEmail) ||
+                FieldUtils.isTextFieldInvalid(binding.textInputPassword)) {
                 return@setOnClickListener
             }
 
@@ -65,6 +74,13 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 viewModel.sendIntent(TokenIntent.FetchLoginToken)
             }
         }
+
+        return view
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
         initFacebookLogin()
 
@@ -112,8 +128,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                 }
             }
-
-
 
             viewModel.facebookState.collect {
                 when(it) {
@@ -176,24 +190,21 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 )
             }
         }
-
-        return view
     }
 
-
     override fun initTextFieldValidators() {
-        text_input_email.addTextChangedListener(
+        binding.textInputEmail.addTextChangedListener(
             PredicateTextWatcher(
-                text_input_email,
+                binding.textInputEmail,
                 Constants.emailInputError,
                 Predicate {
                     return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
                 })
         )
 
-        text_input_password.addTextChangedListener(
+        binding.textInputPassword.addTextChangedListener(
             PredicateTextWatcher(
-                text_input_password,
+                binding.textInputPassword,
                 Constants.passwordInputError,
                 Predicate {
                     return@Predicate it.isEmpty() || it.length >= 15
@@ -204,9 +215,9 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     fun initFacebookLogin() {
         val shouldRegister: Boolean = AccessToken.getCurrentAccessToken() == null && Profile.getCurrentProfile() == null
 
-        facebook_button.setPermissions(listOf("email", "user_likes"))
-        facebook_button.fragment = this
-        facebook_button.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
+        binding.facebookButton.setPermissions(listOf("email", "user_likes"))
+        binding.facebookButton.fragment = this
+        binding.facebookButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
             override fun onSuccess(loginResult: LoginResult?) {
                 // TODO: Should request for tags be intent or not since user doesn't know about it?
 
@@ -235,8 +246,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.login_appbar_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

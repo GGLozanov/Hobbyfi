@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.main
 
+import android.app.Application
 import androidx.lifecycle.MutableLiveData
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.UserIntent
@@ -12,6 +13,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @ExperimentalCoroutinesApi
-class MainActivityViewModel(application: MultiDexApplication) : AuthUserHolderViewModel(application) {
+class MainActivityViewModel(application: Application) : AuthUserHolderViewModel(application) {
 
 }

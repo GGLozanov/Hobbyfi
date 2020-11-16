@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.base
 
+import android.app.Application
 import androidx.databinding.Observable
 import androidx.databinding.PropertyChangeRegistry
 import androidx.multidex.MultiDexApplication
@@ -12,7 +13,7 @@ import com.example.hobbyfi.state.State
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
-abstract class PagedListViewModel<T: State, E: Intent, R: Model, N: BaseDao<R>>(application: MultiDexApplication)
+abstract class PagedListViewModel<T: State, E: Intent, R: Model, N: BaseDao<R>>(application: Application)
     : StateIntentViewModel<T, E>(application), Observable {
     protected abstract val pagingSource: PagingSource<Int, Message>
 

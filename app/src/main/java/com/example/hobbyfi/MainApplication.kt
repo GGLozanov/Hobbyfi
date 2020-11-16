@@ -2,6 +2,7 @@ package com.example.hobbyfi
 
 import android.app.Application
 import android.content.Context
+import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -31,7 +32,6 @@ import org.kodein.di.generic.singleton
 // TODO: DI, Notification channel, etc. setup
 @ExperimentalPagingApi
 class MainApplication : MultiDexApplication(), KodeinAware {
-    // register prefconfig, appdb, repositories, datasources, remotemediators & maybe even fragments (?) as singletons
     @RequiresApi(Build.VERSION_CODES.N)
     override val kodein: Kodein = Kodein.lazy {
         import(androidXModule(this@MainApplication))
@@ -39,6 +39,9 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         // todo: put these strings in constants obj
         bind(tag = "connectivityManager") from singleton { applicationContext!!.getSystemService(
             Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        }
+        bind(tag = "locationManager") from singleton { applicationContext!!.getSystemService(
+            Context.LOCATION_SERVICE) as LocationManager
         }
         bind(tag = "api") from singleton { HobbyfiAPI.invoke(instance(tag = "connectivityManager")) }
         bind(tag = "database") from singleton { HobbyfiDatabase.getInstance(context = applicationContext) }

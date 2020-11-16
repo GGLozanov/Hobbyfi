@@ -4,10 +4,8 @@
 
     <data>
         <import type="android.view.View"/>
+        <import type="android.graphics.Color"/>
 
-        <variable
-            name="isSelected"
-            type="boolean" />
         <variable
             name="tag"
             type="com.example.hobbyfi.models.Tag" />
@@ -16,8 +14,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/tag_card"
         android:layout_width="250dp"
-        android:layout_height="100dp"
-        app:cardBackgroundColor="@{isSelected ? tag.colour : @color/colorGrey}">
+        android:layout_height="100dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/tag_card_layout"
@@ -28,12 +25,12 @@
                 android:id="@+id/tag_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
                 android:ellipsize="marquee"
                 android:maxWidth="125dp"
                 android:singleLine="false"
-                android:text="@{tag.name}"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/tag_facebook_header"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 

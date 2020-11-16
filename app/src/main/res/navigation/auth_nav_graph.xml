@@ -21,7 +21,7 @@
         android:id="@+id/loginFragment"
         android:name="com.example.hobbyfi.ui.auth.LoginFragment"
         android:label="Login"
-        tools:layout="@layout/login_fragment">
+        tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_loginFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
@@ -36,7 +36,7 @@
         android:id="@+id/registerFragment"
         android:name="com.example.hobbyfi.ui.auth.RegisterFragment"
         android:label="Register"
-        tools:layout="@layout/register_fragment">
+        tools:layout="@layout/fragment_register">
         <action
             android:id="@+id/action_registerFragment_to_tagSelectionDialogFragment"
             app:destination="@id/tagSelectionDialogFragment" />

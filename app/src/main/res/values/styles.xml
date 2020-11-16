@@ -32,7 +32,7 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
-        <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
         <item name="materialThemeOverlay">@style/ThemeOverlay.App.TextInputLayout</item>
         <item name="android:textColorHint">@android:color/white</item>
         <item name="startIconTint">@android:color/white</item>

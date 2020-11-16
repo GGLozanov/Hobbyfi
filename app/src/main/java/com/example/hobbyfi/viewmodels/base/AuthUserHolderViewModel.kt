@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.base
 
+import android.app.Application
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.User
@@ -8,7 +9,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: MultiDexApplication) : StateIntentViewModel<UserState, UserIntent>(application) {
+abstract class AuthUserHolderViewModel(application: Application) : StateIntentViewModel<UserState, UserIntent>(application) {
     protected var _authUser: User? = null
     // mainactivity observes state, ProfileFragment sends intent & this fetches, lifecycle-aware stateflow receives state update & triggers UI update
 

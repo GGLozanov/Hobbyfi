@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.base
 
+import android.app.Application
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
@@ -11,10 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @ExperimentalCoroutinesApi
-abstract class StateIntentViewModel<T: State, E: Intent>(application: MultiDexApplication) : BaseViewModel(application) {
-    init {
-        handleIntent()
-    }
+abstract class StateIntentViewModel<T: State, E: Intent>(application: Application) : BaseViewModel(application) {
 
     protected abstract val _state: MutableStateFlow<T>
 

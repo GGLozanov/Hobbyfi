@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.shared
 
+import android.app.Application
 import androidx.databinding.Bindable
 import androidx.databinding.Observable
 import androidx.databinding.PropertyChangeRegistry
@@ -10,7 +11,7 @@ import com.skydoves.colorpickerview.ColorPickerView
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import kotlinx.android.synthetic.main.fragment_custom_tag_create_dialog.*
 
-class CustomTagCreateDialogFragmentViewModel(application: MultiDexApplication) : BaseViewModel(application), Observable {
+class CustomTagCreateDialogFragmentViewModel(application: Application) : BaseViewModel(application), Observable {
     // two-way db & color picker view from 3rd party library
 
     @delegate:Transient

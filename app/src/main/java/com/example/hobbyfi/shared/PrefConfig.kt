@@ -108,7 +108,6 @@ class PrefConfig(private val context: Context) {
         ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
     }
 
-
     fun displayToast(message: String?) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }

@@ -78,7 +78,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tag_name_input_field"
             app:palette="@drawable/color_palette"
-            app:selector_size="32dp">
+            app:selector_size="10dp">
 
         </com.skydoves.colorpickerview.ColorPickerView>
 

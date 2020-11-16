@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.auth
 
+import android.app.Application
 import androidx.databinding.Bindable
 import androidx.databinding.Observable
 import androidx.databinding.PropertyChangeRegistry
@@ -15,7 +16,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthFragmentViewModel(application: MultiDexApplication) : StateIntentViewModel<TokenState, TokenIntent>(application), Observable {
+abstract class AuthFragmentViewModel(application: Application) : StateIntentViewModel<TokenState, TokenIntent>(application), Observable {
 
     protected val tokenRepository: TokenRepository by instance()
 
@@ -32,7 +33,6 @@ abstract class AuthFragmentViewModel(application: MultiDexApplication) : StateIn
     fun setSelectedTags(tags: List<Tag>?) {
         this._selectedTags.value = tags
     }
-
 
     @delegate:Transient
     private val callBacks: PropertyChangeRegistry by lazy { PropertyChangeRegistry() }

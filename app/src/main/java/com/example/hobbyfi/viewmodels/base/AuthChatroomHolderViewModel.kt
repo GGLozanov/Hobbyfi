@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.base
 
+import android.app.Application
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Chatroom
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @ExperimentalCoroutinesApi
-abstract class AuthChatroomHolderViewModel(application: MultiDexApplication) : AuthUserHolderViewModel(application) {
+abstract class AuthChatroomHolderViewModel(application: Application) : AuthUserHolderViewModel(application) {
     protected var _authChatroom : Chatroom? = null
 
     protected val _chatroomState : MutableStateFlow<ChatroomState>

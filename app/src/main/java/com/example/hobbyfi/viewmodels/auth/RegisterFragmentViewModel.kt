@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.auth
 
+import android.app.Application
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -14,7 +15,11 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class RegisterFragmentViewModel(application: MultiDexApplication) : AuthFragmentViewModel(application) {
+class RegisterFragmentViewModel(application: Application) : AuthFragmentViewModel(application) {
+    init {
+        handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
+    }
+
     override val _state: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
 
     override fun handleIntent() {

@@ -1,5 +1,7 @@
 package com.example.hobbyfi.adapters.tag
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,14 +29,24 @@ class TagListAdapter(
 
     override fun onBindViewHolder(holder: TagViewHolder, position: Int) {
         holder.bind(tags[position])
-        holder.card.setOnClickListener {
-            holder.binding.isSelected = !holder.binding.isSelected
-            onItemPressed.onItemPress(tags[position], holder.binding.isSelected)
+        holder.binding.tagCard.setOnClickListener {
+            holder.isSelected = !holder.isSelected
+            if(holder.isSelected) {
+                holder.binding.tagCard.setCardBackgroundColor(
+                    Color.parseColor(tags[position].colour)
+                )
+            } else {
+                holder.binding.tagCard.setCardBackgroundColor(
+                   0x9a9a9a
+                )
+            }
+
+            onItemPressed.onItemPress(tags[position], holder.isSelected)
         }
     }
 
     class TagViewHolder(val binding: TagCardBinding, itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val card: CardView = itemView.findViewById(R.id.tag_card)
+        var isSelected: Boolean = false
 
         companion object {
             //get instance of the ViewHolder

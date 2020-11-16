@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.auth
 
+import android.app.Application
 import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.FacebookIntent
@@ -16,7 +17,11 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentViewModel(application) {
+class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(application) {
+    init {
+        handleIntent()
+    }
+
     override val _state: MutableStateFlow<TokenState>
             = MutableStateFlow(TokenState.Idle)
 
@@ -102,7 +107,7 @@ class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentVie
         viewModelScope.launch {
             _state.value = TokenState.Loading
             _state.value = try {
-                TokenState.OnTokenReceived(tokenRepository.getRegisterToken(
+                tokenRepository.getRegisterToken(
                     facebookToken,
                     email,
                     null,
@@ -110,7 +115,8 @@ class LoginFragmentViewModel(application: MultiDexApplication) : AuthFragmentVie
                     null,
                     image,
                     tags
-                ))
+                )
+                TokenState.OnFacebookRegisterTokenSuccess
             } catch(ex: Exception) {
                 TokenState.Error(ex.localizedMessage)
             }

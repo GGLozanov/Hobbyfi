@@ -17,6 +17,7 @@ data class Chatroom(
     val description: String,
     override val hasImage: Boolean,
     val tags: List<Tag>,
+    @ColumnInfo(name = "ownerId", index = true)
     val ownerId: Int,
     val lastEventId: Int
 ) : ExpandedModel

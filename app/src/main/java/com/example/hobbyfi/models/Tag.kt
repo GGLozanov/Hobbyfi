@@ -20,8 +20,7 @@ import kotlinx.android.parcel.Parcelize
 data class Tag(
   val name: String,
   val colour: String,
-  val isFacebookInterest: Boolean = false
-) : Model, Parcelable {
+  val isFacebookInterest: Boolean = false,
   @PrimaryKey(autoGenerate = true)
   override val id: Long = 0
-}
+) : Model, Parcelable

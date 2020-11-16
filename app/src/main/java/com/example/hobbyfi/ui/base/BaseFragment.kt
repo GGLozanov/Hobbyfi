@@ -13,7 +13,8 @@ import org.kodein.di.generic.instance
 abstract class BaseFragment : Fragment(), KodeinAware {
     override val kodein: Kodein by kodein()
 
-    protected val prefConfig: PrefConfig by instance() // no need for weakreference this time because PrefConfig will use appContext!
+    protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
+        // no need for weakreference this time because PrefConfig will use appContext!
 
     protected lateinit var navController: NavController
 

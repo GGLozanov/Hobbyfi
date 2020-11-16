@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.shared
 
+import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.multidex.MultiDexApplication
@@ -7,7 +8,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 
-class TagSelectionDialogFragmentViewModel(application: MultiDexApplication) : BaseViewModel(application) {
+class TagSelectionDialogFragmentViewModel(application: Application) : BaseViewModel(application) {
     private val _tags: MutableLiveData<MutableList<Tag>> = MutableLiveData()
     val tags: LiveData<MutableList<Tag>> get() = _tags
 

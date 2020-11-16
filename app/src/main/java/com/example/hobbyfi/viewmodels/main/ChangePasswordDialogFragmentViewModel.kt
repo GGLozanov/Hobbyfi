@@ -1,7 +1,8 @@
 package com.example.hobbyfi.viewmodels.main
 
+import android.app.Application
 import androidx.multidex.MultiDexApplication
 
-class ChangePasswordDialogFragmentViewModel(application: MultiDexApplication) : AuthChangeDialogFragmentViewModel(application) {
+class ChangePasswordDialogFragmentViewModel(application: Application) : AuthChangeDialogFragmentViewModel(application) {
     // two-way databinding
 }

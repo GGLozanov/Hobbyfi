@@ -1,5 +1,6 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
+import android.app.Application
 import androidx.multidex.MultiDexApplication
 import androidx.paging.PagingSource
 import com.example.hobbyfi.intents.UserIntent
@@ -13,9 +14,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class ChatroomUserListFragmentViewModel(application: MultiDexApplication) : PagedListViewModel<UserState, UserIntent, User, UserDao>(application) {
+class ChatroomUserListFragmentViewModel(application: Application) : PagedListViewModel<UserState, UserIntent, User, UserDao>(application) {
     // TODO: Upon fetching pagingdata, set the UserState to onData and pass in the pagingdata in order to trigger observer in view
     // TODO: Kodein data source instance
+    init {
+        handleIntent()
+    }
 
     override val pagingSource: PagingSource<Int, Message> by instance()
 
