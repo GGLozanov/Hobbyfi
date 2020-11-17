@@ -2,6 +2,7 @@ package com.example.hobbyfi.adapters.tag
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,40 +15,50 @@ import com.example.hobbyfi.databinding.TagCardBinding
 import com.example.hobbyfi.models.Tag
 
 class TagListAdapter(
-    private var tags: List<Tag>,
+    private var tags: MutableList<Tag>,
+    private var selectedTags: MutableList<Tag>
 ) : RecyclerView.Adapter<TagListAdapter.TagViewHolder>() {
     
-    interface OnItemPressed {
-        fun onItemPress(tag: Tag, wasSelected: Boolean)
-    }
 
-    private lateinit var onItemPressed: OnItemPressed
-    
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagViewHolder {
         return TagViewHolder.getInstance(parent)
     }
 
     override fun onBindViewHolder(holder: TagViewHolder, position: Int) {
-        holder.bind(tags[position])
+        val tag = tags[position]
+        holder.bind(tag)
+
+        Log.i("SelectedTags", selectedTags.toString())
+        Log.i("Tags", tags.toString())
+
+        if(selectedTags.contains(tag)) { // TODO: Code dup
+            holder.binding.tagCard.setCardBackgroundColor(
+                Color.parseColor(tag.colour)
+            )
+        } else {
+            holder.binding.tagCard.setCardBackgroundColor(
+                0x9a9a9a
+            )
+        }
+
         holder.binding.tagCard.setOnClickListener {
-            holder.isSelected = !holder.isSelected
-            if(holder.isSelected) {
+            val isSelected = !selectedTags.contains(tag)
+
+            if(isSelected) {
+                selectedTags.add(tag)
                 holder.binding.tagCard.setCardBackgroundColor(
-                    Color.parseColor(tags[position].colour)
+                    Color.parseColor(tag.colour)
                 )
             } else {
+                selectedTags.remove(tag)
                 holder.binding.tagCard.setCardBackgroundColor(
-                   0x9a9a9a
+                    0x9a9a9a
                 )
             }
-
-            onItemPressed.onItemPress(tags[position], holder.isSelected)
         }
     }
 
     class TagViewHolder(val binding: TagCardBinding, itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var isSelected: Boolean = false
-
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): TagViewHolder {
@@ -65,16 +76,17 @@ class TagListAdapter(
         }
     }
 
-    fun setItems(tags: List<Tag>) {
+    fun setTags(tags: MutableList<Tag>) {
         this.tags = tags
         notifyDataSetChanged()
     }
 
-    override fun getItemCount(): Int {
-        return tags.size
+    fun addTag(tag: Tag) {
+        this.tags.add(tag)
+        notifyDataSetChanged()
     }
 
-    fun setOnItemPressed(onItemPressed: OnItemPressed) {
-        this.onItemPressed = onItemPressed
-    }
+    override fun getItemCount(): Int = tags.size
+
+    fun getSelectedTags(): MutableList<Tag> = selectedTags
 }

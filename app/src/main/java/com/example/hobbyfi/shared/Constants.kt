@@ -2,6 +2,7 @@ package com.example.hobbyfi.shared
 
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 
 object Constants {
     val descriptionInputError: String = "Enter a shorter description!"

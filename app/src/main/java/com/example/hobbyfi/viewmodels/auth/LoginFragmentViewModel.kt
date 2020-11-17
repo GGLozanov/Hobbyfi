@@ -39,7 +39,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                         fetchLoginToken()
                     }
                     is TokenIntent.FetchFacebookRegisterToken -> {
-                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image, selectedTags.value)
+                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image, selectedTags)
                     }
                 }
             }

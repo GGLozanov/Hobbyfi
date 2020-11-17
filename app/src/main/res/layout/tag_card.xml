@@ -4,7 +4,6 @@
 
     <data>
         <import type="android.view.View"/>
-        <import type="android.graphics.Color"/>
 
         <variable
             name="tag"

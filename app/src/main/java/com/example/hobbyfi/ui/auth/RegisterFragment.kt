@@ -98,8 +98,8 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
         super.onActivityCreated(savedInstanceState)
         binding.tagSelectButton.setOnClickListener {
             val action = RegisterFragmentDirections.actionRegisterFragmentToTagSelectionDialogFragment(
-                viewModel.selectedTags.value?.toTypedArray(),
-                Constants.predefinedTags.toTypedArray()
+                viewModel.selectedTags.toTypedArray(),
+                viewModel.tags.toTypedArray()
             )
             navController.navigate(action)
         }
@@ -128,7 +128,7 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                                 viewModel.username.value!!,
                                 viewModel.description.value,
                                 viewModel.getProfileImageBase64() != null,
-                                viewModel.selectedTags.value,
+                                viewModel.selectedTags, // TODO: User has null tags or just an empty list?
                                 null
                             )
                         )
@@ -139,6 +139,11 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
         }
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>("selectedTags")?.observe(viewLifecycleOwner) {
+            it.forEach {
+                if(!viewModel.tags.contains(it)) {
+                    viewModel.addTag(it)
+                }
+            }
             viewModel.setSelectedTags(it)
         }
     }

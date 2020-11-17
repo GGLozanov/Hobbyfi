@@ -57,8 +57,7 @@
             app:destination="@id/customTagCreateDialogFragment" />
         <argument
             android:name="selectedTags"
-            app:argType="com.example.hobbyfi.models.Tag[]"
-            app:nullable="true" />
+            app:argType="com.example.hobbyfi.models.Tag[]" />
         <argument
             android:name="tags"
             app:argType="com.example.hobbyfi.models.Tag[]" />

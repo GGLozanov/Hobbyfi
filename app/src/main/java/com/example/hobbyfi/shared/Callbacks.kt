@@ -42,7 +42,15 @@ object Callbacks {
     fun dissectRepositoryExceptionAndThrow(ex: Exception) {
         when(ex) {
             is HobbyfiAPI.NoConnectivityException -> throw Exception("Couldn't register! Please check your connection!")
-            is HttpException -> throw Exception(ex.message().toString() + " ; code: " + ex.code())
+            is HttpException -> {
+//                val apiResponse = ex.response()?.body() as com.example.hobbyfi.responses.Response
+//
+//                if(apiResponse.response.equals(Constants.EXISTS_RESPONSE)) {
+//                    throw Exception("This user/thing already exists!") // FIXME: Generify response for future endpoints with "exist" as response, idfk
+//                } TODO: Might use if responses from API are too generic. Will make them not be!
+
+                throw Exception(ex.message().toString() + " ; code: " + ex.code())
+            }
             else -> throw Exception("Unknown error! Please check your connection or contact a developer!")
         }
     }

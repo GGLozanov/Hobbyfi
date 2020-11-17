@@ -19,8 +19,8 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
             email: String?, password: String?, username: String, description: String?,
             base64Image: String?, tags: List<Tag>?) : TokenResponse? {
 
-        try {
-            val tokenResponse = hobbyfiAPI.fetchRegistrationToken(
+        return try {
+            hobbyfiAPI.fetchRegistrationToken(
                 facebookToken,
                 email,
                 username,
@@ -29,15 +29,9 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 base64Image,
                 tags
             )
-
-            if(tokenResponse?.response == Constants.EXISTS_RESPONSE) {
-                throw Exception("The account you're trying to register already exists! Please try again!")
-            }
-
-            return tokenResponse
         } catch(ex: Exception) {
             Callbacks.dissectRepositoryExceptionAndThrow(ex)
-            return null
+            null
         }
     }
 

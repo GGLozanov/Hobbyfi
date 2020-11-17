@@ -36,18 +36,14 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         _binding =
             FragmentTagSelectionDialogBinding.inflate(inflater, container, false)
 
-        viewModel.setInitialTags(args.tags.toMutableList())
+        val initialSelectedTags = args.selectedTags.toMutableList()
+        viewModel.setInitialSelectedTags(initialSelectedTags)
 
-        adapter = TagListAdapter(viewModel.tags.value!!)
-        adapter.setOnItemPressed(object : TagListAdapter.OnItemPressed {
-            override fun onItemPress(tag: Tag, wasSelected: Boolean) {
-                if(!wasSelected) {
-                    viewModel.removeTagFromSelected(tag)
-                } else {
-                    viewModel.addTagToSelected(tag)
-                }
-            }
-        })
+        adapter = TagListAdapter(
+            args.tags.toMutableList(),
+            initialSelectedTags
+        )
+
         binding.tagList.addItemDecoration(VerticalSpaceItemDecoration(5))
         binding.tagList.adapter = adapter
 
@@ -58,22 +54,19 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         super.onActivityCreated(savedInstanceState)
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Tag>("tag")?.observe(viewLifecycleOwner) {
-            viewModel.addTag(it)
+            adapter.addTag(it)
             viewModel.incrementCustomTagCounter()
         }
 
-        viewModel.tags.observe(this, {
-            adapter.setItems(it)
-        })
 
         binding.cancelButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", viewModel.getInitialTags())
+            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", viewModel.getInitialSelectedTags())
 
             dismiss()
         }
 
         binding.confirmTagsButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", viewModel.selectedTags.value)
+            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", adapter.getSelectedTags())
 
             dismiss()
         }

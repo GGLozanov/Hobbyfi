@@ -10,6 +10,7 @@ import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.TokenRepository
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,9 +21,11 @@ abstract class AuthFragmentViewModel(application: Application) : StateIntentView
 
     protected val tokenRepository: TokenRepository by instance()
 
-    protected val _selectedTags: MutableLiveData<List<Tag>> = MutableLiveData(emptyList())
+    protected val _tags: MutableList<Tag> = Constants.predefinedTags.toMutableList()
+    val tags: List<Tag> get() = _tags
+    protected var _selectedTags: List<Tag> = emptyList()
     // this livedata instance will have its value updated once the tag selection dialog fragment finishes its workTag
-    val selectedTags: LiveData<List<Tag>> get() = _selectedTags
+    val selectedTags: List<Tag> get() = _selectedTags
 
     @Bindable
     val email: MutableLiveData<String> = MutableLiveData()
@@ -30,8 +33,12 @@ abstract class AuthFragmentViewModel(application: Application) : StateIntentView
     @Bindable
     val password: MutableLiveData<String> = MutableLiveData()
 
-    fun setSelectedTags(tags: List<Tag>?) {
-        this._selectedTags.value = tags
+    fun setSelectedTags(tags: List<Tag>) {
+        this._selectedTags = tags
+    }
+
+    fun addTag(tag: Tag) {
+        _tags.add(tag)
     }
 
     @delegate:Transient

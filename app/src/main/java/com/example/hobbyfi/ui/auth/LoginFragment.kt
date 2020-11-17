@@ -120,7 +120,7 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                                 profile.name,
                                 null,
                                 true,
-                                viewModel.selectedTags.value,
+                                viewModel.selectedTags, // TODO: User with empty tags list or just null?
                                 null
                             )
                         )
@@ -147,8 +147,9 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                             }
                             is FacebookState.OnData.OnTagsReceived -> { // if user cancels tags, just don't register them with tags
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagSelectionDialogFragment(
-                                    viewModel.selectedTags.value?.toTypedArray(),
-                                    Constants.predefinedTags.toTypedArray() + it.tags
+                                    viewModel.selectedTags.toTypedArray(),
+                                    viewModel.tags
+                                        .toTypedArray() + it.tags
                                 )
                                 navController.navigate(action)
                             }
@@ -158,8 +159,9 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                     is FacebookState.Error -> {
                         if(it.equals(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)) {
                             val action = LoginFragmentDirections.actionLoginFragmentToTagSelectionDialogFragment(
-                                viewModel.selectedTags.value?.toTypedArray(),
-                                Constants.predefinedTags.toTypedArray()
+                                viewModel.selectedTags.toTypedArray(),
+                                viewModel.tags
+                                    .toTypedArray()
                             )
                             navController.navigate(action)
                         }

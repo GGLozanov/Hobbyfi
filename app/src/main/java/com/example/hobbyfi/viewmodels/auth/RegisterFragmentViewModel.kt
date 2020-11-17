@@ -60,7 +60,7 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
                     username.value!!,
                     description.value!!,
                     base64Image,
-                    _selectedTags.value
+                    _selectedTags
                 ))
             } catch (e: Exception) {
                 TokenState.Error(e.localizedMessage) // TODO: More specific error handling w/ custom exceptions
