@@ -38,7 +38,7 @@ object Constants {
     const val CACHE_TIMEOUT = 60 * 30 // 30 minutes
         .toLong()
 
-    const val SUCCESS_RESPONSE = "ok"
+    const val SUCCESS_RESPONSE = "Ok"
     const val FAILED_RESPONSE = "failed"
     const val IMAGE_UPLOAD_SUCCESS_RESPONSE = "Image Uploaded"
     const val IMAGE_UPLOAD_FAILED_RESPONSE = "Image Upload Failed"
@@ -61,4 +61,7 @@ object Constants {
     const val PHOTO_URL = "photo_url"
 
     const val AUTH_HEADER = "Authorization"
+
+    const val tagsKey = "tag"
+    const val selectedTagsKey = "selectedTags"
 }

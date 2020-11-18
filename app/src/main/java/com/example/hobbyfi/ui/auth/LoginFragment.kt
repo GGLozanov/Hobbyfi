@@ -175,7 +175,7 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
         }
 
         // FIXME: Possible shared manipulaton of "selectedTags" saveStateHandle from Register and Login fragment?
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>("selectedTags")?.observe(viewLifecycleOwner) {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(viewLifecycleOwner) {
             viewModel.setSelectedTags(it)
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()

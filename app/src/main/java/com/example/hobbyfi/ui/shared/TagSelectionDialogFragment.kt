@@ -12,6 +12,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
@@ -60,13 +61,13 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
 
         binding.cancelButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", viewModel.getInitialSelectedTags())
+            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, viewModel.getInitialSelectedTags())
 
             dismiss()
         }
 
         binding.confirmTagsButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set("selectedTags", adapter.getSelectedTags())
+            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, adapter.getSelectedTags())
 
             dismiss()
         }

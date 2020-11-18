@@ -60,7 +60,7 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
             }
 
             navController.previousBackStackEntry?.savedStateHandle?.set(
-                "tag", Tag(
+                Constants.tagsKey, Tag(
                     viewModel.name.value!!,
                     viewModel.colour.value!!
                 )

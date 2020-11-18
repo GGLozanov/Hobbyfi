@@ -138,13 +138,14 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
             }
         }
 
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>("selectedTags")?.observe(viewLifecycleOwner) {
-            it.forEach {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
+            ?.observe(viewLifecycleOwner) { selectedTags ->
+            selectedTags.forEach {
                 if(!viewModel.tags.contains(it)) {
                     viewModel.addTag(it)
                 }
             }
-            viewModel.setSelectedTags(it)
+            viewModel.setSelectedTags(selectedTags)
         }
     }
 
