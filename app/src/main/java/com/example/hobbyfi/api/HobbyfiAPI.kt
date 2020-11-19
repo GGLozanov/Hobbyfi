@@ -10,10 +10,7 @@ import com.example.hobbyfi.adapters.message.MessageResponseTypeAdapter
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.adapters.user.UserResponseTypeAdapter
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.responses.ChatroomResponse
-import com.example.hobbyfi.responses.Response
-import com.example.hobbyfi.responses.TokenResponse
-import com.example.hobbyfi.responses.UserResponse
+import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.GsonBuilder
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
@@ -125,7 +122,6 @@ interface HobbyfiAPI {
 
                 val headers = it.request().headers()
                     .newBuilder()
-                    .add("accept", "application/json")
                     .add("content-type", "application/json")
                     .build()
 
@@ -159,11 +155,11 @@ interface HobbyfiAPI {
                                 ChatroomResponseTypeAdapter()
                             )
                             .registerTypeAdapter(
-                                MessageResponseTypeAdapter::class.java,
+                                MessageResponse::class.java,
                                 MessageResponseTypeAdapter()
                             )
                             .registerTypeAdapter(
-                                TagTypeAdapter::class.java,
+                                Tag::class.java,
                                 TagTypeAdapter()
                             )
                             .create()

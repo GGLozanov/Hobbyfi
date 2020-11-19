@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.*
 import android.widget.Toast
@@ -82,6 +83,8 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                 FieldUtils.isTextFieldInvalid(binding.textInputPassword) ||
                 FieldUtils.isTextFieldInvalid(binding.textInputUsername) ||
                     FieldUtils.isTextFieldInvalid(binding.textInputDescription)) {
+                Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
+                    .show() // TODO: Extract into separate error text
                 return@setOnClickListener
             }
 
@@ -123,7 +126,7 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
 
                         val action = RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
                             User(
-                                TokenUtils.getTokenUserIdFromPayload(it.token?.jwt).toLong(),
+                                TokenUtils.getTokenUserIdFromPayload(it.token?.jwt),
                                 viewModel.email.value!!,
                                 viewModel.username.value!!,
                                 viewModel.description.value,
@@ -164,7 +167,7 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                 binding.textInputPassword,
                 Constants.passwordInputError,
                 Predicate {
-                    return@Predicate it.isEmpty() || it.length >= 15
+                    return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
                 })
         )
 

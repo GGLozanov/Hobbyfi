@@ -26,7 +26,7 @@ object TokenUtils {
      */
     @RequiresApi(Build.VERSION_CODES.O)
     @Throws(ExpiredJwtException::class, MalformedJwtException::class)
-    fun getTokenUserIdFromPayload(jwtToken: String?): Int {
+    fun getTokenUserIdFromPayload(jwtToken: String?): Long {
         val rsaPublicKey: RSAPublicKey
         rsaPublicKey = try {
             val decodedPublicKey: ByteArray =
@@ -36,20 +36,21 @@ object TokenUtils {
                 KeyFactory.getInstance("RSA") // key factory for generating RSA keys
             keyFactory.generatePublic(keySpecX509) as RSAPublicKey
         } catch (e: NoSuchAlgorithmException) {
-            throw RuntimeException("Bad key parsing")
+            throw Exception("Bad key parsing! No such algorithm!")
         } catch (e: InvalidKeySpecException) {
-            throw RuntimeException("Bad key parsing")
+            throw Exception("Invalid key parsing!")
         }
         val parser: JwtParser = Jwts.parserBuilder()
             .setSigningKey(rsaPublicKey)
             .build()
         return parser.parseClaimsJws(jwtToken)
             .body
-            .get("userId", Int::class.java)
+            .get("userId", Date::class.java) // has to be Date object because the ID is too big for JWT...
+            .time
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getTokenUserIdFromStoredTokens(prefConfig: PrefConfig): Int { // TODO: rename; absolutely horrid name
+    fun getTokenUserIdFromStoredTokens(prefConfig: PrefConfig): Long? { // TODO: rename; absolutely horrid name
         return try {
             getTokenUserIdFromPayload(prefConfig.readToken())
         } catch (e: ExpiredJwtException) {
@@ -64,13 +65,13 @@ object TokenUtils {
                     "UserRepository", "getUsers —> User needs to reauth. " +
                             "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
                 )
-                return 0
+                return null
             } catch (x: MalformedJwtException) {
                 Log.w(
                     "UserRepository", "getUsers —> User needs to reauth. " +
                             "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
                 )
-                return 0
+                return null
             }
         } catch (e: MalformedJwtException) {
             Log.w(
@@ -84,13 +85,13 @@ object TokenUtils {
                     "UserRepository", "getUsers —> User needs to reauth. " +
                             "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
                 )
-                return 0
+                return null
             } catch (x: MalformedJwtException) {
                 Log.w(
                     "UserRepository", "getUsers —> User needs to reauth. " +
                             "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
                 )
-                return 0
+                return null
             }
         }
     }

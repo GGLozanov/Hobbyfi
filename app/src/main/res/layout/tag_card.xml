@@ -12,6 +12,7 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/tag_card"
+        app:cardBackgroundColor="@color/colorGrey"
         android:layout_width="250dp"
         android:layout_height="100dp">
 
@@ -26,6 +27,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginLeft="16dp"
+                android:text="@{tag.name}"
                 android:ellipsize="marquee"
                 android:maxWidth="125dp"
                 android:singleLine="false"

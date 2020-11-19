@@ -39,7 +39,8 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                         fetchLoginToken()
                     }
                     is TokenIntent.FetchFacebookRegisterToken -> {
-                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image, selectedTags)
+                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image,
+                            selectedTags) // fixme: repeated unnecessary checks
                     }
                 }
             }
@@ -69,6 +70,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                     password.value!!
                 ))
             } catch(ex: Exception) {
+                ex.printStackTrace()
                 TokenState.Error(ex.localizedMessage)
             }
         }
@@ -103,7 +105,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
     // TODO: Save facebook user picture on own back-end? Useless but easier?
     // ...if the Facebook user changes their profile picture, it won't be synced in the app...
     // Too bad!
-    private fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, image: String, tags: List<Tag>?) {
+    private fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, image: String, tags: List<Tag>) {
         viewModelScope.launch {
             _state.value = TokenState.Loading
             _state.value = try {
@@ -118,7 +120,8 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                 )
                 TokenState.OnFacebookRegisterTokenSuccess
             } catch(ex: Exception) {
-                TokenState.Error(ex.localizedMessage)
+                ex.printStackTrace()
+                TokenState.Error(ex.message)
             }
         }
     }

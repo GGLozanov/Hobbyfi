@@ -33,7 +33,7 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
         activity.supportActionBar?.hide()
 
         view?.postDelayed({
-            if(!prefConfig.readLoginStatus()) {
+            if(!prefConfig.readLoginStatus()) {  // TODO: Also check token expiry here? and Facebook
                 Log.i("SplashScreen", "Not authenticated. Moving to login fragment")
                 navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
             } else {

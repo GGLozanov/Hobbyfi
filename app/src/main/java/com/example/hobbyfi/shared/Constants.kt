@@ -7,7 +7,7 @@ import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 object Constants {
     val descriptionInputError: String = "Enter a shorter description!"
     val usernameInputError: String = "Enter a non-empty valid username!"
-    val passwordInputError: String = "Enter a non-empty or shorter password!"
+    val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
     val emailInputError: String = "Enter a non-empty valid e-mail address!"
     val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
 

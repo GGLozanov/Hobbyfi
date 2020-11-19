@@ -19,7 +19,7 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class AuthFragmentViewModel(application: Application) : StateIntentViewModel<TokenState, TokenIntent>(application), Observable {
 
-    protected val tokenRepository: TokenRepository by instance()
+    protected val tokenRepository: TokenRepository by instance(tag = "tokenRepository")
 
     protected val _tags: MutableList<Tag> = Constants.predefinedTags.toMutableList()
     val tags: List<Tag> get() = _tags

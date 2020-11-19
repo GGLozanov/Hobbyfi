@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
@@ -31,15 +32,10 @@ class TagListAdapter(
         Log.i("SelectedTags", selectedTags.toString())
         Log.i("Tags", tags.toString())
 
-        if(selectedTags.contains(tag)) { // TODO: Code dup
-            holder.binding.tagCard.setCardBackgroundColor(
-                Color.parseColor(tag.colour)
-            )
-        } else {
-            holder.binding.tagCard.setCardBackgroundColor(
-                0x9a9a9a
-            )
-        }
+        holder.binding.tagCard.setCardBackgroundColor(
+            if(selectedTags.contains(tag)) Color.parseColor(tag.colour)
+            else ContextCompat.getColor(holder.binding.root.context, R.color.colorGrey)
+        )
 
         holder.binding.tagCard.setOnClickListener {
             val isSelected = !selectedTags.contains(tag)
@@ -52,7 +48,7 @@ class TagListAdapter(
             } else {
                 selectedTags.remove(tag)
                 holder.binding.tagCard.setCardBackgroundColor(
-                    0x9a9a9a
+                    ContextCompat.getColor(holder.binding.root.context, R.color.colorGrey)
                 )
             }
         }

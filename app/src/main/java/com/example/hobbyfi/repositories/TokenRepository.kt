@@ -1,5 +1,6 @@
 package com.example.hobbyfi.repositories
 
+import android.util.Log
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
@@ -17,8 +18,10 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     suspend fun getRegisterToken(
         facebookToken: String?,
             email: String?, password: String?, username: String, description: String?,
-            base64Image: String?, tags: List<Tag>?) : TokenResponse? {
+            base64Image: String?, tags: List<Tag>) : TokenResponse? {
 
+        Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
+                + email + "; username:" + username + "; description: " + description + "; image: " + base64Image + "; tags: " + tags + "\n register token")
         return try {
             hobbyfiAPI.fetchRegistrationToken(
                 facebookToken,
@@ -27,7 +30,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 password,
                 description,
                 base64Image,
-                tags
+                if(tags.isEmpty()) null else tags
             )
         } catch(ex: Exception) {
             Callbacks.dissectRepositoryExceptionAndThrow(ex)

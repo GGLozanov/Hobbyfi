@@ -43,11 +43,10 @@ object Callbacks {
         when(ex) {
             is HobbyfiAPI.NoConnectivityException -> throw Exception("Couldn't register! Please check your connection!")
             is HttpException -> {
-//                val apiResponse = ex.response()?.body() as com.example.hobbyfi.responses.Response
-//
-//                if(apiResponse.response.equals(Constants.EXISTS_RESPONSE)) {
-//                    throw Exception("This user/thing already exists!") // FIXME: Generify response for future endpoints with "exist" as response, idfk
-//                } TODO: Might use if responses from API are too generic. Will make them not be!
+
+                if(ex.code() == 409) { // conflict
+                    throw Exception("This user/thing already exists!") // FIXME: Generify response for future endpoints with "exist" as response, idfk
+                } // TODO: Might use if responses from API are too generic. Will make them not be!
 
                 throw Exception(ex.message().toString() + " ; code: " + ex.code())
             }

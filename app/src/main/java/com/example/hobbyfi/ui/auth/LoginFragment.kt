@@ -64,6 +64,10 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
 
         val view: View = binding.root
 
+        binding.switchToRegisterSubtitle.setOnClickListener {
+            navController.navigate(R.id.action_loginFragment_to_registerFragment)
+        }
+
         binding.loginButton.setOnClickListener {
             if(FieldUtils.isTextFieldInvalid(binding.textInputEmail) ||
                 FieldUtils.isTextFieldInvalid(binding.textInputPassword)) {
@@ -238,11 +242,13 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
             }
 
             override fun onCancel() {
-                // TODO:
+                Toast.makeText(context, "Facebook login cancelled!", Toast.LENGTH_LONG)
+                    .show()
             }
 
             override fun onError(exception: FacebookException) {
-                // TODO:
+                Toast.makeText(context, "Facebook login error!", Toast.LENGTH_LONG)
+                    .show()
             }
         })
     }

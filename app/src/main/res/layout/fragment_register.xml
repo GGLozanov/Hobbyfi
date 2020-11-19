@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background_secondary_gradient"
-        android:fillViewport="false"
+        android:fillViewport="true"
         android:visibility="visible"
         tools:visibility="visible">
 
@@ -22,8 +22,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="75dp"
             android:layout_marginBottom="75dp"
-            android:background="@drawable/rounded_container"
-            android:elevation="8dp"
+            android:background="@drawable/layout_shadow"
             android:padding="50dp"
             android:paddingLeft="40dp"
             android:paddingRight="40dp"

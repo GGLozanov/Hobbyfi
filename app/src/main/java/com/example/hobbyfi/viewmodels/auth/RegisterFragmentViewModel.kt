@@ -1,10 +1,10 @@
 package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
+import android.util.Log
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.state.TokenState
@@ -50,20 +50,22 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
     }
 
     private fun fetchRegisterToken() {
+        Log.i("RegisterFragmentVM", "fetchRegisterToken called")
         viewModelScope.launch {
             _state.value = TokenState.Loading
             _state.value = try {
                 TokenState.OnTokenReceived(tokenRepository.getRegisterToken(
                     null,
-                    email.value!!,
-                    password.value!!,
+                    email.value,
+                    password.value,
                     username.value!!,
-                    description.value!!,
+                    description.value,
                     base64Image,
-                    _selectedTags
+                    selectedTags
                 ))
             } catch (e: Exception) {
-                TokenState.Error(e.localizedMessage) // TODO: More specific error handling w/ custom exceptions
+                e.printStackTrace()
+                TokenState.Error(e.message) // TODO: More specific error handling w/ custom exceptions
             }
         }
     }

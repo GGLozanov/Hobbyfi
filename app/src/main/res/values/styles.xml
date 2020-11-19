@@ -6,6 +6,9 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorBackgroundFloating">@android:color/white</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
         <item name="colorOnBackground">@color/colorBackground</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:buttonStyle">@style/ButtonColor</item>
@@ -32,10 +35,33 @@
         <item name="android:textColor">@android:color/white</item>
     </style>
 
-        <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+    <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
         <item name="materialThemeOverlay">@style/ThemeOverlay.App.TextInputLayout</item>
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="colorControlHighlight">#B3ACAC</item>
+        <item name="colorControlActivated">#B3ACAC</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorOnBackground">#B3ACAC</item>
+
         <item name="android:textColorHint">@android:color/white</item>
+        <item name="android:textColor">@android:color/white</item>
+
+        <item name="hintTextAppearance">@style/AppTheme.TextFloatLabelAppearance</item>
+        <item name="errorTextAppearance">@style/AppTheme.TextErrorAppearance</item>
         <item name="startIconTint">@android:color/white</item>
+    </style>
+
+    <style name="AppTheme.TextFloatLabelAppearance" parent="TextAppearance.Design.Hint">
+        <!-- Floating label appearance here -->
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="AppTheme.TextErrorAppearance" parent="TextAppearance.Design.Error">
+        <!-- Error message appearance here -->
+        <item name="android:textColor">#ff0000</item>
+        <item name="android:textSize">13sp</item>
     </style>
 
     <style name="ThemeOverlay.App.TextInputLayout" parent="">
