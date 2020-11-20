@@ -1,5 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/auth_nav_graph">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/auth_nav_graph"
+    app:startDestination="@id/splashScreenFragment">
 
+    <fragment
+        android:id="@+id/splashScreenFragment"
+        android:name="com.example.hobbyfi.ui.auth.SplashScreenFragment"
+        android:label="Hobbyfi"
+        tools:layout="@layout/splash_screen_fragment">
+        <action
+            android:id="@+id/action_splashScreenFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_splashScreenFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.hobbyfi.ui.auth.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
+        <action
+            android:id="@+id/action_loginFragment_to_tagSelectionDialogFragment"
+            app:destination="@id/tagSelectionDialogFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.hobbyfi.ui.auth.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_registerFragment_to_tagSelectionDialogFragment"
+            app:destination="@id/tagSelectionDialogFragment" />
+        <action
+            android:id="@+id/action_registerFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
+        <action
+            android:id="@+id/action_registerFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/tagSelectionDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
+        android:label="Select Tags"
+        tools:layout="@layout/fragment_tag_selection_dialog">
+        <action
+            android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment2"
+            app:destination="@id/customTagCreateDialogFragment" />
+        <argument
+            android:name="selectedTags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
+        <argument
+            android:name="tags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
+    </dialog>
+    <dialog
+        android:id="@+id/customTagCreateDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
+        android:label="Create Tag"
+        tools:layout="@layout/fragment_custom_tag_create_dialog" />
+    <activity
+        android:id="@+id/mainActivity"
+        android:name="com.example.hobbyfi.ui.main.MainActivity"
+        android:label="MainActivity"
+        tools:layout="@layout/activity_main">
+        <argument
+            android:name="user"
+            app:argType="com.example.hobbyfi.models.User"
+            app:nullable="true" />
+    </activity>
 </navigation>

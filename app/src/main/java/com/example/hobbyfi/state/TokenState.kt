@@ -4,11 +4,12 @@ import com.example.hobbyfi.responses.TokenResponse
 
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
-sealed class TokenState {
+sealed class TokenState : State {
     object Idle : TokenState()
     object Loading : TokenState()
 
-    data class OnTokenReceived(val token: TokenResponse)
+    data class OnTokenReceived(val token: TokenResponse?) : TokenState()
+    object OnFacebookRegisterTokenSuccess : TokenState()
 
     data class Error(val error: String?) : TokenState()
 }

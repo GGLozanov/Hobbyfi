@@ -1,0 +1,16 @@
+package com.example.hobbyfi.state
+
+import com.example.hobbyfi.models.Tag
+
+// TODO: Fix this redeclaration of States and find a way to create a generic responseState
+sealed class FacebookState : State {
+    object Idle : FacebookState()
+    object Loading : FacebookState()
+
+    sealed class OnData : FacebookState() {
+        data class OnTagsReceived(val tags: List<Tag>) : FacebookState()
+        data class OnEmailReceived(val email: String?) : FacebookState()
+    }
+
+    data class Error(val error: String?) : FacebookState()
+}

@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"  android:layout_height="match_parent">
-    <androidx.recyclerview.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/list"
-        android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        app:layoutManager="LinearLayoutManager"
-        tools:context=".ui.main.ChatroomListFragment"
-        tools:listitem="@layout/chatroom_card" />
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel" />
+    </data>
 
-    <!--Todo: include chatroom_create_suggest_header-->
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swiperefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!--TODO: Inflate one chatroom card here or recyclerview depending on viewmodel user whether his chatroomId is null or not - Databinding-->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chatroom_list"
+            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            app:layoutManager="LinearLayoutManager"
+            tools:context=".ui.main.ChatroomListFragment"
+            tools:listitem="@layout/message_card_send" />
+
+        <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</layout>

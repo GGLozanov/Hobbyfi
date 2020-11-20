@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: "androidx.navigation.safeargs.kotlin"
 
 android {
     compileSdkVersion 30
@@ -22,8 +23,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
             resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
             resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
@@ -33,6 +35,7 @@ android {
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
             resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
             resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
@@ -61,7 +64,7 @@ dependencies {
 
     def lifecycle_version = "2.2.0"
     def room_version = "2.3.0-alpha03"
-    def paging_version = "2.1.2"
+    def paging_version = "3.0.0-alpha07"
     def nav_version = "2.3.1"
 
     // MultiDex
@@ -145,9 +148,20 @@ dependencies {
         exclude group: 'org.json', module: 'json' // provided by Android natively
     }
 
+    // CircleImageView
+    implementation 'de.hdodenhof:circleimageview:3.1.0'
+
+    // Colour Picker
+    implementation "com.github.skydoves:colorpickerpreference:2.0.4"
+
+    // EasyPermissions
+    implementation 'pub.devrel:easypermissions:3.0.0'
+
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'androidx.fragment:fragment-ktx:1.2.5'
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     testImplementation 'junit:junit:4.12'

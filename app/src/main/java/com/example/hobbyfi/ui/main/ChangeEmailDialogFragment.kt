@@ -14,6 +14,8 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+        // TODO: Handle expired token error & logout
+
         return inflater.inflate(R.layout.fragment_change_email_dialog, container, false)
     }
 

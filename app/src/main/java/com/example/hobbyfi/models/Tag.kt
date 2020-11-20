@@ -1,7 +1,10 @@
 package com.example.hobbyfi.models
 
+import android.os.Parcelable
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.android.parcel.Parcelize
 
 // in-memory db for predefined tags
 // users can create their own tags (name + colour)
@@ -10,8 +13,14 @@ import androidx.room.PrimaryKey
 // if not, insert and make connections with chatroom/user
 // if yes, don't insert and make connections
 // once user goes to see other chatrooms/users, they'll see their custom tags from the API fetch from the backend
-@Entity
+// TODO: Save only custom tags for relevant users & chatrooms here
+@Entity(tableName = "tags")
+@Keep
+@Parcelize
 data class Tag(
-  @PrimaryKey
-  val id: Int
-) : Model()
+  val name: String,
+  val colour: String,
+  val isFacebookInterest: Boolean = false,
+  @PrimaryKey(autoGenerate = true)
+  override val id: Long = 0
+) : Model, Parcelable

@@ -1,4 +1,9 @@
 package com.example.hobbyfi.repositories
 
-class EventRepository {
+import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.persistence.HobbyfiDatabase
+import com.example.hobbyfi.shared.PrefConfig
+
+class EventRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase)
+    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase) {
 }

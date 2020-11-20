@@ -2,10 +2,11 @@
 <resources>
     <!--TODO: Change colours!-->
 
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorPrimaryDarker">#00574B</color>
-    <color name="colorBackground">#003029</color>
-    <color name="colorAccent">#D81B60</color>
-    <color name="white">#FFFFFF</color>
+    <color name="colorPrimary">#C25A60</color>
+    <color name="colorPrimaryDark">#74363A</color>
+    <color name="colorSecondary">#FF9750</color>
+    <color name="colorSecondaryShade">#cc7840</color>
+    <color name="colorSecondaryVariant">#F9D786</color>
+    <color name="colorBackground">#4E558C</color>
+    <color name="colorGrey">#9a9a9a</color>
 </resources>
