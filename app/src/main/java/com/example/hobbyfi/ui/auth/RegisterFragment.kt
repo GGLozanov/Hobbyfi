@@ -14,6 +14,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
@@ -77,11 +78,11 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
             ) // start activity and await result
         }
 
-
         binding.registerAccountButton.setOnClickListener {
             if(FieldUtils.isTextFieldInvalid(binding.textInputEmail) ||
                 FieldUtils.isTextFieldInvalid(binding.textInputPassword) ||
                 FieldUtils.isTextFieldInvalid(binding.textInputUsername) ||
+                FieldUtils.isTextFieldInvalid(binding.textInputConfirmPassword) ||
                     FieldUtils.isTextFieldInvalid(binding.textInputDescription)) {
                 Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
                     .show() // TODO: Extract into separate error text
@@ -124,13 +125,15 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                         prefConfig.writeRefreshToken(it.token?.refreshJwt)
                         prefConfig.writeLoginStatus(true)
 
+                        val id =TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
+
                         val action = RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
                             User(
-                                TokenUtils.getTokenUserIdFromPayload(it.token?.jwt),
+                                id,
                                 viewModel.email.value!!,
                                 viewModel.username.value!!,
                                 viewModel.description.value,
-                                viewModel.getProfileImageBase64() != null,
+                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
                                 viewModel.selectedTags, // TODO: User has null tags or just an empty list?
                                 null
                             )
@@ -169,6 +172,16 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                 Predicate {
                     return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
                 })
+        )
+
+        binding.textInputConfirmPassword.addTextChangedListener(
+            PredicateTextWatcher(
+                binding.textInputConfirmPassword,
+                Constants.confirmPasswordInputError,
+                Predicate {
+                    return@Predicate it.isEmpty() || it != viewModel.password.value
+                }
+            )
         )
 
         binding.textInputUsername.addTextChangedListener(

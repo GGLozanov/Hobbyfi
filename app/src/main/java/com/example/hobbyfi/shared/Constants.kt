@@ -5,11 +5,12 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 
 object Constants {
-    val descriptionInputError: String = "Enter a shorter description!"
-    val usernameInputError: String = "Enter a non-empty valid username!"
-    val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
-    val emailInputError: String = "Enter a non-empty valid e-mail address!"
-    val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
+    const val descriptionInputError: String = "Enter a shorter description!"
+    const val usernameInputError: String = "Enter a non-empty valid username!"
+    const val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
+    const val confirmPasswordInputError: String = "Enter the same password!"
+    const val emailInputError: String = "Enter a non-empty valid e-mail address!"
+    const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -55,8 +56,10 @@ object Constants {
     const val PASSWORD = "password"
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
+    const val CHATROOM_ID: String = "chatroom_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
+    const val PAGE = "page"
 
     const val PHOTO_URL = "photo_url"
 
@@ -64,4 +67,12 @@ object Constants {
 
     const val tagsKey = "tag"
     const val selectedTagsKey = "selectedTags"
+
+    const val name = "name"
+    const val colour = "colour"
+
+    const val profileImageWidth = 175
+    const val profileImageHeight = 135
+
+    const val userProfileImageDir = "user_pfps"
 }

@@ -13,11 +13,14 @@ import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
+import com.example.hobbyfi.viewmodels.base.TwoWayBindable
+import com.example.hobbyfi.viewmodels.base.TwoWayBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthFragmentViewModel(application: Application) : StateIntentViewModel<TokenState, TokenIntent>(application), Observable {
+abstract class AuthFragmentViewModel(application: Application)
+    : StateIntentViewModel<TokenState, TokenIntent>(application), TwoWayBindable by TwoWayBindableViewModel() {
 
     protected val tokenRepository: TokenRepository by instance(tag = "tokenRepository")
 
@@ -40,12 +43,5 @@ abstract class AuthFragmentViewModel(application: Application) : StateIntentView
     fun addTag(tag: Tag) {
         _tags.add(tag)
     }
-
-    @delegate:Transient
-    private val callBacks: PropertyChangeRegistry by lazy { PropertyChangeRegistry() }
-
-    override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.add(callback)
-
-    override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.remove(callback)
 
 }

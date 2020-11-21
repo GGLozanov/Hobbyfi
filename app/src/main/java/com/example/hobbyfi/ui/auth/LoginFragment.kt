@@ -12,6 +12,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
 import com.example.hobbyfi.intents.FacebookIntent
@@ -123,8 +124,8 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                                 viewModel.email.value,
                                 profile.name,
                                 null,
-                                true,
-                                viewModel.selectedTags, // TODO: User with empty tags list or just null?
+                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                viewModel.selectedTags,
                                 null
                             )
                         )
@@ -184,7 +185,8 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()
                 val image = ImageUtils.encodeImage(
-                    ImageUtils.getBitmapFromUri(requireActivity(), profile.getProfilePictureUri(175, 135))
+                    ImageUtils.getBitmapFromUri(requireActivity(), profile.getProfilePictureUri(
+                        Constants.profileImageWidth, Constants.profileImageHeight))
                 ) // FIXME: Might not be correct sizes
 
                 viewModel.sendIntent(

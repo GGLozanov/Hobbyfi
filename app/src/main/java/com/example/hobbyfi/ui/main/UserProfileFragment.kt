@@ -9,9 +9,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
 
-class UserProfileFragment : MainFragment() {
+class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
         ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
@@ -36,4 +37,7 @@ class UserProfileFragment : MainFragment() {
         // TODO: Use the ViewModel
     }
 
+    override fun initTextFieldValidators() {
+        TODO("Not yet implemented")
+    }
 }

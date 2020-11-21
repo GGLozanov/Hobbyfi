@@ -5,10 +5,10 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.hobbyfi.BuildConfig
-import com.example.hobbyfi.adapters.chatroom.ChatroomResponseTypeAdapter
-import com.example.hobbyfi.adapters.message.MessageResponseTypeAdapter
+import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
+import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
-import com.example.hobbyfi.adapters.user.UserResponseTypeAdapter
+import com.example.hobbyfi.adapters.user.UserResponseDeserializer
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
@@ -84,8 +84,9 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/users/read")
     fun fetchChatroomUsers(
-        @Header(Constants.AUTH_HEADER) token: String
-    ): Map<String?, UserResponse?>?
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.PAGE) page: Int
+    ): Map<String?, UserResponse?>? // FIXME: Modify to List<UserResponse> for new API
 
     /**
      * POST request to update a given user with the params specified in the body
@@ -148,20 +149,20 @@ interface HobbyfiAPI {
                             .serializeNulls()
                             .registerTypeAdapter(
                                 UserResponse::class.java,
-                                UserResponseTypeAdapter()
+                                UserResponseDeserializer()
                             )
                             .registerTypeAdapter(
                                 ChatroomResponse::class.java,
-                                ChatroomResponseTypeAdapter()
+                                ChatroomResponseDeserializer()
                             )
                             .registerTypeAdapter(
                                 MessageResponse::class.java,
-                                MessageResponseTypeAdapter()
+                                MessageResponseDeserializer()
                             )
                             .registerTypeAdapter(
                                 Tag::class.java,
                                 TagTypeAdapter()
-                            )
+                            ) // FIXME: unnecessary registration since this is only used in other type adapters?
                             .create()
                     )
                 )

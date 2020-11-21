@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Chatroom
@@ -10,6 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 abstract class AuthChatroomHolderViewModel(application: Application) : AuthUserHolderViewModel(application) {
@@ -27,5 +29,11 @@ abstract class AuthChatroomHolderViewModel(application: Application) : AuthUserH
 
     suspend fun sendChatroomIntent(i: ChatroomIntent) {
         chatroomIntent.send(i)
+    }
+
+    private fun fetchChatroom() {
+        viewModelScope.launch {
+
+        }
     }
 }

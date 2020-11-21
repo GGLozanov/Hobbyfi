@@ -1,26 +1,54 @@
 package com.example.hobbyfi.adapters.tag
 
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
+import java.lang.Exception
 import java.lang.reflect.Type
 
-class TagTypeAdapter : JsonSerializer<Tag> {
-    override fun serialize(
-        src: Tag?,
-        typeOfSrc: Type?,
-        context: JsonSerializationContext?
-    ): JsonElement? {
-        if(src == null) {
-            return null
+class TagTypeAdapter : TypeAdapter<Tag>() {
+
+    override fun write(out: JsonWriter?, value: Tag?) {
+        if (value == null || out == null) {
+            return
         }
 
-        val tagJsonObject = JsonObject()
-        val tagPropertiesJson = JsonArray()
-        val tagColourJson = JsonObject()
+        out.beginObject()
+        out.name(Constants.name)
+        out.value(value.name)
+        out.name(Constants.colour)
+        out.value(value.colour)
+        out.endObject()
+    }
 
-        tagColourJson.addProperty("colour", src.colour)
-        tagPropertiesJson.add(tagColourJson)
-        tagJsonObject.add(src.name, tagPropertiesJson)
-        return tagJsonObject
+    override fun read(reader: JsonReader?): Tag {
+        if(reader == null) {
+            throw Exception("Empty Json Reader in Tag Type Adapter!")
+        }
+
+        reader.beginObject()
+        var tagName: String? = null
+        var tagColour: String? = null
+
+        while(reader.hasNext()) {
+            var token = reader.peek()
+
+            if(token == JsonToken.NAME) {
+                val name = reader.nextName()
+                token = reader.peek() // if ugly response peek might might not be apt since there won't be either colour or name field
+                if(name == Constants.colour) {
+                    tagColour = reader.nextString()
+                } else if(name == Constants.name) {
+                    tagName = reader.nextString()
+                }
+            }
+        }
+
+        reader.endObject()
+
+        return Tag(tagName!!, tagColour!!)
     }
 }

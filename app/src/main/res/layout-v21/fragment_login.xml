@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background_secondary_gradient"
-        android:fillViewport="true"
+        android:fillViewport="false"
         android:visibility="visible"
         tools:visibility="visible">
 
@@ -21,6 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/rounded_container"
             tools:context=".ui.auth.LoginFragment">
 
@@ -28,6 +29,7 @@
                 android:id="@+id/main_login_form"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 android:background="@drawable/layout_shadow"
                 android:elevation="20dp"
                 android:padding="20dp"
@@ -73,6 +75,7 @@
                         android:layout_height="wrap_content"
                         android:includeFontPadding="true"
                         android:inputType="textEmailAddress"
+                        android:lines="2"
                         android:singleLine="true"
                         android:text="@={viewModel.email}"
                         tools:layout_conversion_absoluteHeight="45dp"

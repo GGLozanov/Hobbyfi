@@ -14,15 +14,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
 abstract class PagedListViewModel<T: State, E: Intent, R: Model, N: BaseDao<R>>(application: Application)
-    : StateIntentViewModel<T, E>(application), Observable {
+    : StateIntentViewModel<T, E>(application), TwoWayBindable by TwoWayBindableViewModel() {
     protected abstract val pagingSource: PagingSource<Int, Message>
 
-    @delegate:Transient
-    private val callBacks: PropertyChangeRegistry by lazy { PropertyChangeRegistry() }
-
-    override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.add(callback)
-
-    override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.remove(callback)
 
     // abstract dao init by Kodein?
 }

@@ -1,15 +1,18 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.state.UserState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application) : StateIntentViewModel<UserState, UserIntent>(application) {
+abstract class AuthUserHolderViewModel(application: Application)
+    : StateIntentViewModel<UserState, UserIntent>(application), TwoWayBindable by TwoWayBindableViewModel() {
     protected var _authUser: User? = null
     // mainactivity observes state, ProfileFragment sends intent & this fetches, lifecycle-aware stateflow receives state update & triggers UI update
 
@@ -19,13 +22,19 @@ abstract class AuthUserHolderViewModel(application: Application) : StateIntentVi
         TODO("Not yet implemented")
     }
 
-    fun setUser(user: User) {
+    fun setUser(user: User?) {
         _authUser = user
-        _state.value = UserState.OnData.UserResult(user)
+        if(user != null) {
+            _state.value = UserState.OnData.UserResult(user)
+        } else {
+            fetchUser()
+        }
     }
 
-    fun fetchUser() {
-        _state.value = UserState.Loading
+    private fun fetchUser() {
+        viewModelScope.launch {
+            _state.value = UserState.Loading
 
+        }
     }
 }
