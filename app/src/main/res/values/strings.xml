@@ -60,4 +60,5 @@
     <string name="tag_name_hint">Enter a tag name</string>
     <string name="create_custom_tag_header">Create your tag</string>
     <string name="message_hint">Enter a message</string>
+    <string name="profile">Your Profile</string>
 </resources>
