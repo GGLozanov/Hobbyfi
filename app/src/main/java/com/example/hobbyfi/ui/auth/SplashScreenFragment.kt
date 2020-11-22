@@ -28,9 +28,6 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val activity = (activity as AppCompatActivity)
-
-        activity.supportActionBar?.hide()
 
         view?.postDelayed({
             if(!prefConfig.readLoginStatus()) {  // TODO: Also check token expiry here? and Facebook
@@ -44,8 +41,6 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
                 )
                 navController.navigate(action)
             }
-
-            activity.supportActionBar?.show()
         }, 3000)
     }
 }

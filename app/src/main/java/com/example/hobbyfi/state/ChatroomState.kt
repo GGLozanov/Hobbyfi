@@ -19,5 +19,5 @@ sealed class ChatroomState : State {
         data class OnUpdateChatroomNotification(val chatroomId: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom update for all users
     }
 
-    data class Error(val error: String?) : ChatroomState()
+    data class Error(val error: String?, val shouldReauth: Boolean = false) : ChatroomState()
 }

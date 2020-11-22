@@ -17,5 +17,5 @@ sealed class EventState : State {
         data class OnUpdateEventNotification(val eventId: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom update for all users
     }
 
-    data class Error(val error: String?) : EventState()
+    data class Error(val error: String?, val shouldReauth: Boolean = false) : EventState()
 }

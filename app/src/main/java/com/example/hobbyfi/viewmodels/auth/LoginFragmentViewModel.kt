@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.FacebookIntent
+import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.state.FacebookState
@@ -42,6 +43,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                         fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image,
                             selectedTags) // fixme: repeated unnecessary checks
                     }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
             facebookIntent.consumeAsFlow().collect {
@@ -52,6 +54,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                     is FacebookIntent.FetchFacebookUserEmail -> {
                         fetchFacebookEmail()
                     }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }

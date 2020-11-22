@@ -12,6 +12,8 @@ object Constants {
     const val emailInputError: String = "Enter a non-empty valid e-mail address!"
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
 
+    const val reauthError: String = "Logging out! Your session may have expired!"
+
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
         Tag(

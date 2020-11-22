@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import com.example.hobbyfi.R
+import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,7 +33,18 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             viewModel.state.collect {
                 when(it) {
+                    is UserState.Idle -> {
 
+                    }
+                    is UserState.Loading -> {
+
+                    }
+                    is UserState.OnData -> {
+
+                    }
+                    is UserState.Error -> {
+
+                    }
                 }
             }
         }

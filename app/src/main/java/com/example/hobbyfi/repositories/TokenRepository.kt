@@ -11,6 +11,8 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.ColourUtils
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONException
 import retrofit2.HttpException
 
@@ -20,37 +22,44 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
             email: String?, password: String?, username: String, description: String?,
             base64Image: String?, tags: List<Tag>) : TokenResponse? {
 
-        Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
-                + email + "; username:" + username + "; description: " + description + "; image: " + base64Image + "; tags: " + tags + "\n register token")
-        return try {
-            hobbyfiAPI.fetchRegistrationToken(
-                facebookToken,
-                email,
-                username,
-                password,
-                description,
-                base64Image,
-                if(tags.isEmpty()) null else tags
-            )
-        } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
-            null
+        return withContext(Dispatchers.IO) {
+            Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
+                    + email + "; username:" + username + "; description: " + description + "; image: " + base64Image + "; tags: " + tags + "\n register token")
+            return@withContext try {
+                hobbyfiAPI.fetchRegistrationToken(
+                    facebookToken,
+                    email,
+                    username,
+                    password,
+                    description,
+                    base64Image,
+                    if(tags.isEmpty()) null else tags
+                )
+            } catch(ex: Exception) {
+                Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            }
         }
     }
 
     suspend fun getLoginToken(email: String, password: String) : TokenResponse? {
-        return try {
-            hobbyfiAPI.fetchLoginToken(
-                email,
-                password
-            )
-        } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
-            null
+        return withContext(Dispatchers.IO) {
+            Log.i("TokenRepository", "getLoginToken -> getting user w/ email:"
+                    + email + "\n login token")
+
+            return@withContext try {
+                hobbyfiAPI.fetchLoginToken(
+                    email,
+                    password
+                )
+            } catch(ex: Exception) {
+                Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            }
         }
     }
 
     suspend fun getFacebookUserEmail() : String? {
+        Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
+
         val response = GraphRequest.executeAndWait(
             GraphRequest(
                 AccessToken.getCurrentAccessToken(),
@@ -66,6 +75,8 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     }
 
     suspend fun getFacebookUserPageTitlesAsTags() : List<Tag> {
+        Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user page titles as tags")
+
         val response = GraphRequest.executeAndWait(
             GraphRequest(
                 AccessToken.getCurrentAccessToken(),

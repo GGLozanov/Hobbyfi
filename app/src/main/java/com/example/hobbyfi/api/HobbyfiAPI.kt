@@ -62,7 +62,7 @@ interface HobbyfiAPI {
      * @return - a Token model containing a new JWT on success and a failed response from the server on failure
      */
     @GET("api/v1.0/user/refresh_token")
-    suspend fun fetchRefreshToken(
+    suspend fun fetchNewTokenWithRefresh(
         @Header(Constants.AUTH_HEADER) refreshJWT: String
     ): TokenResponse?
 

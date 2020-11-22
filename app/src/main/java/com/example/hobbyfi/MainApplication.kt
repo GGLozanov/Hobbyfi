@@ -94,15 +94,15 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         }
         // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
         // OR TODO: Might need to keep these as singletons. Heck if I know
-        bind(tag = "chatroomPagingSource") from provider {
-            (instance(tag = "database") as HobbyfiDatabase).chatroomDao().getChatrooms()
-        }
-        bind(tag = "messagePagingSource") from provider {
-            (instance(tag = "database") as HobbyfiDatabase).messageDao().getMessages()
-        }
-        bind(tag = "userPagingSource") from provider {
-            (instance(tag = "database") as HobbyfiDatabase).userDao().getUsers()
-        }
+//        bind(tag = "chatroomPagingSource") from provider {
+//            (instance(tag = "database") as HobbyfiDatabase).chatroomDao().getChatrooms()
+//        }
+//        bind(tag = "messagePagingSource") from provider {
+//            (instance(tag = "database") as HobbyfiDatabase).messageDao().getMessages()
+//        }
+//        bind(tag = "userPagingSource") from provider {
+//            (instance(tag = "database") as HobbyfiDatabase).userDao().getUsers()
+//        }
     }
 
     override fun onCreate() {

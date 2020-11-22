@@ -11,7 +11,9 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {

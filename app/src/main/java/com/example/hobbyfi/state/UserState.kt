@@ -2,8 +2,10 @@ package com.example.hobbyfi.state
 
 import androidx.paging.PagingData
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.responses.Response
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
+// TODO: Fix coupling of mixed states
 sealed class UserState : State {
     object Idle : UserState()
     object Loading : UserState()
@@ -22,5 +24,5 @@ sealed class UserState : State {
         data class OnUpdateUserNotification(val userid: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom update for all users
     }
 
-    data class Error(val error: String?) : UserState()
+    data class Error(val error: String?, val shouldReauth: Boolean = false) : UserState()
 }

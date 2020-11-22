@@ -121,11 +121,11 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                         // TODO: Show a progress indicator or something
                     }
                     is TokenState.OnTokenReceived -> {
-                        prefConfig.writeToken(it.token?.jwt)
-                        prefConfig.writeRefreshToken(it.token?.refreshJwt)
+                        prefConfig.writeToken(it.token?.jwt!!)
+                        prefConfig.writeRefreshToken(it.token.refreshJwt!!)
                         prefConfig.writeLoginStatus(true)
 
-                        val id =TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
+                        val id =TokenUtils.getTokenUserIdFromPayload(it.token.jwt)
 
                         val action = RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
                             User(

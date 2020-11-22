@@ -23,7 +23,7 @@ class PrefConfig(private val context: Context) {
         return sharedPreferences.getBoolean(context.getString(R.string.pref_login_status), false)
     }
 
-    fun writeToken(token: String?) {
+    fun writeToken(token: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_token), token).apply()
     }
@@ -32,8 +32,7 @@ class PrefConfig(private val context: Context) {
         return sharedPreferences.getString(context.getString(R.string.pref_token), "invalid")
     }
 
-
-    fun writeRefreshToken(refreshToken: String?) {
+    fun writeRefreshToken(refreshToken: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_refresh_token), refreshToken).apply()
     }

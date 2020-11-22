@@ -7,5 +7,4 @@ import com.example.hobbyfi.shared.PrefConfig
 
 abstract class CacheRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, protected val database: HobbyfiDatabase)
     : Repository(prefConfig, hobbyfiAPI) {
-
 }

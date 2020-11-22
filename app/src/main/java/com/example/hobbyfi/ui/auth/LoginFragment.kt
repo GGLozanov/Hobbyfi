@@ -103,8 +103,8 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                             .show()
                     }
                     is TokenState.OnTokenReceived -> {
-                        prefConfig.writeToken(it.token?.jwt)
-                        prefConfig.writeRefreshToken(it.token?.refreshJwt)
+                        prefConfig.writeToken(it.token?.jwt!!)
+                        prefConfig.writeRefreshToken(it.token.refreshJwt!!)
                         prefConfig.writeLoginStatus(true)
 
                         // TODO: Fix code repetition

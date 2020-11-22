@@ -32,5 +32,11 @@ class ChatroomActivity : BaseActivity() {
         // if deeplink: also fire off request/load from db here -> chatroom info
 
         // TODO: Ask for permission upon event card press for access to location
+        // TODO: Google Services availability https://firebase.google.com/docs/cloud-messaging/android/client#sample-play
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // TODO: Google Services availability https://firebase.google.com/docs/cloud-messaging/android/client#sample-play
     }
 }
