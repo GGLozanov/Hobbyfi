@@ -8,8 +8,8 @@ sealed class FacebookState : State {
     object Loading : FacebookState()
 
     sealed class OnData : FacebookState() {
-        data class OnTagsReceived(val tags: List<Tag>) : FacebookState()
-        data class OnEmailReceived(val email: String?) : FacebookState()
+        data class TagsReceived(val tags: List<Tag>) : FacebookState()
+        data class EmailReceived(val email: String?) : FacebookState()
     }
 
     data class Error(val error: String?) : FacebookState()

@@ -3,7 +3,7 @@ package com.example.hobbyfi.viewmodels.base
 import androidx.databinding.Observable
 import androidx.databinding.PropertyChangeRegistry
 
-interface TwoWayBindable : Observable {
+interface TwoWayDataBindable : Observable {
     val callBacks: PropertyChangeRegistry
 
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) = callBacks.add(callback)

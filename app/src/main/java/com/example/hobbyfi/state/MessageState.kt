@@ -15,9 +15,9 @@ sealed class MessageState : State {
 
     // TODO: Find a way to Swift-ify this and pass the eventId only in OnNotification and have the inner classes access it
     sealed class OnNotification : MessageState() {
-        data class OnNewMessageNotification(val message: Message) // triggered by broadcastreceiver in activity/fragment from FCM notifications => live message creation for all users
-        data class OnDeleteMessageNotification(val messageId: Int) // triggered by broadcastreceiver in activity/fragment from FCM notifications => live message delete for all users
-        data class OnUpdateMessageNotification(val messageId: Int) // triggered by broadcastreceiver in activity/fragment from FCM notifications => live message update for all users
+        data class NewMessageNotification(val message: Message) // triggered by broadcastreceiver in activity/fragment from FCM notifications => live message creation for all users
+        data class DeleteMessageNotification(val messageId: Int) // triggered by broadcastreceiver in activity/fragment from FCM notifications => live message delete for all users
+        data class UpdateMessageNotification(val messageId: Int) // triggered by broadcastreceiver in activity/fragment from FCM notifications => live message update for all users
     }
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : MessageState()

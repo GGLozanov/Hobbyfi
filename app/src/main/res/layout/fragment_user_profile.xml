@@ -120,6 +120,7 @@
                     app:layout_constraintTop_toBottomOf="@id/description_input_field">
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/email_change_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="5dp"
@@ -128,6 +129,7 @@
                     </com.google.android.material.button.MaterialButton>
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/password_change_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
 
@@ -138,13 +140,13 @@
                     android:id="@+id/settings_button_bar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/confirm_button"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/auth_button_bar">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/tag_select_button"
+                        android:id="@+id/delete_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="5dp"
@@ -153,12 +155,23 @@
                     </com.google.android.material.button.MaterialButton>
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/confirm_button"
+                        android:id="@+id/tag_select_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
 
                     </com.google.android.material.button.MaterialButton>
                 </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/confirm_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/settings_button_bar"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                </com.google.android.material.button.MaterialButton>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </ScrollView>
     </RelativeLayout>

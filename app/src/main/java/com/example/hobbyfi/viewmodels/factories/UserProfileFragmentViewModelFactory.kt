@@ -1,4 +1,20 @@
 package com.example.hobbyfi.viewmodels.factories
 
-class UserProfileFragmentViewModelFactory {
+import android.app.Application
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.ui.shared.TagSelectionDialogFragment
+import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
+import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+
+class UserProfileFragmentViewModelFactory(val application: Application, val initialTags: List<Tag>) : ViewModelProvider.Factory {
+    @ExperimentalCoroutinesApi
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        if(modelClass.isAssignableFrom(UserProfileFragmentViewModel::class.java)) {
+            return UserProfileFragmentViewModel(application, initialTags) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }

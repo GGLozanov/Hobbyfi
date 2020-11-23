@@ -44,10 +44,6 @@ class UserRepository(
                 override suspend fun fetchFromNetwork(): UserResponse {
                     TODO("Not yet implemented")
                 }
-
-                override fun isNetworkResponseInvalid(response: UserResponse): Boolean {
-                    TODO("Not yet implemented")
-                }
             }.asFlow()
         }
     }
@@ -100,4 +96,6 @@ class UserRepository(
             throw Exception() // stub
         }
     }
+
+    suspend fun saveUser(user: User) = withContext(Dispatchers.IO) { database.userDao().insert(user) }
 }

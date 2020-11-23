@@ -2,18 +2,14 @@ package com.example.hobbyfi.viewmodels.shared
 
 import android.app.Application
 import androidx.databinding.Bindable
-import androidx.databinding.Observable
-import androidx.databinding.PropertyChangeRegistry
 import androidx.lifecycle.MutableLiveData
-import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
-import com.example.hobbyfi.viewmodels.base.TwoWayBindable
-import com.example.hobbyfi.viewmodels.base.TwoWayBindableViewModel
+import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
+import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
 import com.skydoves.colorpickerview.ColorPickerView
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
-import kotlinx.android.synthetic.main.fragment_custom_tag_create_dialog.*
 
-class CustomTagCreateDialogFragmentViewModel(application: Application) : BaseViewModel(application), TwoWayBindable by TwoWayBindableViewModel() {
+class CustomTagCreateDialogFragmentViewModel(application: Application) : BaseViewModel(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     // two-way db & color picker view from 3rd party library
 
     @Bindable
@@ -22,7 +18,7 @@ class CustomTagCreateDialogFragmentViewModel(application: Application) : BaseVie
     val colour: MutableLiveData<String> = MutableLiveData()
 
     fun setOnColourChangedListener(colourPickerView: ColorPickerView) {
-        colourPickerView.setColorListener(ColorEnvelopeListener { colorEnvelope, fromUser ->
+        colourPickerView.setColorListener(ColorEnvelopeListener { colorEnvelope, _ ->
             colour.value = "#" + colorEnvelope.hexCode
         })
     }

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.*
 import android.widget.Toast
@@ -12,7 +11,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
@@ -22,8 +20,8 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -36,10 +34,8 @@ import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
-    private val viewModel: RegisterFragmentViewModel by viewModels(factoryProducer = {
-        ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-    })
+class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
+    private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
     private var imageRequestCode: Int = 777
@@ -120,37 +116,33 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                     is TokenState.Loading -> {
                         // TODO: Show a progress indicator or something
                     }
-                    is TokenState.OnTokenReceived -> {
+                    is TokenState.TokenReceived -> {
                         prefConfig.writeToken(it.token?.jwt!!)
                         prefConfig.writeRefreshToken(it.token.refreshJwt!!)
-                        prefConfig.writeLoginStatus(true)
 
-                        val id =TokenUtils.getTokenUserIdFromPayload(it.token.jwt)
+                        val id = TokenUtils.getTokenUserIdFromPayload(it.token.jwt)
 
-                        val action = RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
+                        login(
                             User(
                                 id,
                                 viewModel.email.value!!,
                                 viewModel.username.value!!,
                                 viewModel.description.value,
-                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
+                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                        + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
                                 viewModel.selectedTags, // TODO: User has null tags or just an empty list?
                                 null
                             )
                         )
-                        navController.navigate(action)
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
-            selectedTags.forEach {
-                if(!viewModel.tags.contains(it)) {
-                    viewModel.addTag(it)
-                }
-            }
+            viewModel.appendNewSelectedTagsToTags(selectedTags)
             viewModel.setSelectedTags(selectedTags)
         }
     }
@@ -180,8 +172,7 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                 Constants.confirmPasswordInputError,
                 Predicate {
                     return@Predicate it.isEmpty() || it != viewModel.password.value
-                }
-            )
+                })
         )
 
         binding.textInputUsername.addTextChangedListener(

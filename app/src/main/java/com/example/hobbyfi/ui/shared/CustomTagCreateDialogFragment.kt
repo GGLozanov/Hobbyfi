@@ -23,9 +23,7 @@ import com.skydoves.colorpickerview.flag.FlagMode
 
 class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValidationOnus {
 
-    private val viewModel: CustomTagCreateDialogFragmentViewModel by viewModels(factoryProducer = {
-        ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-    })
+    private val viewModel: CustomTagCreateDialogFragmentViewModel by viewModels()
     private lateinit var binding: FragmentCustomTagCreateDialogBinding
 
     override fun onCreateView(

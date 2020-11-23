@@ -14,6 +14,7 @@ import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseDialogFragment
+import com.example.hobbyfi.viewmodels.factories.TagSelectionDialogFragmentViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
@@ -21,10 +22,11 @@ import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
 class TagSelectionDialogFragment : BaseDialogFragment() {
 
     private lateinit var adapter: TagListAdapter
-    private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
-        ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-    })
     private val args: TagSelectionDialogFragmentArgs by navArgs()
+
+    private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
+        TagSelectionDialogFragmentViewModelFactory(requireActivity().application, args.selectedTags.toMutableList())
+    })
 
     private var _binding: FragmentTagSelectionDialogBinding? = null
     private val binding get() = _binding!!
@@ -37,12 +39,9 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         _binding =
             FragmentTagSelectionDialogBinding.inflate(inflater, container, false)
 
-        val initialSelectedTags = args.selectedTags.toMutableList()
-        viewModel.setInitialSelectedTags(initialSelectedTags)
-
         adapter = TagListAdapter(
             args.tags.toMutableList(),
-            initialSelectedTags
+            viewModel.initialSelectedTags
         )
 
         binding.tagList.addItemDecoration(VerticalSpaceItemDecoration(5))
@@ -54,14 +53,14 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Tag>("tag")?.observe(viewLifecycleOwner) {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Tag>(Constants.tagsKey)?.observe(viewLifecycleOwner) {
             adapter.addTag(it)
             viewModel.incrementCustomTagCounter()
         }
 
 
         binding.cancelButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, viewModel.getInitialSelectedTags())
+            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, viewModel.initialSelectedTags)
 
             dismiss()
         }
@@ -72,6 +71,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
             dismiss()
         }
 
+        // TODO: Disable button if user profile fragment (check navigation backstack)
         binding.customTagCreateButton.setOnClickListener {
             if(viewModel.customTagCreateCounter >= 3) {
                 Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)

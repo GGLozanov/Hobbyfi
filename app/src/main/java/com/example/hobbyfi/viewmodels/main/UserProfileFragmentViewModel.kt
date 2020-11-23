@@ -2,57 +2,31 @@ package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
 import androidx.databinding.Bindable
-import androidx.databinding.Observable
-import androidx.databinding.PropertyChangeRegistry
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
-import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.repositories.Repository
-import com.example.hobbyfi.repositories.TokenRepository
+import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.UserRepository
-import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.state.ResponseState
-import com.example.hobbyfi.state.UserState
-import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
-import com.example.hobbyfi.viewmodels.base.TwoWayBindable
-import com.example.hobbyfi.viewmodels.base.TwoWayBindableViewModel
+import com.example.hobbyfi.viewmodels.base.BaseViewModel
+import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
+import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
+// TODO: Fix code dup with AuthFragmentViewModel through fake mixins or something
 @ExperimentalCoroutinesApi
-class UserProfileFragmentViewModel(application: Application)
-    : StateIntentViewModel<ResponseState<Response>, UserIntent>(application), TwoWayBindable by TwoWayBindableViewModel() {
-    private val userRepository: UserRepository by instance(tag = "userRepository")
+class UserProfileFragmentViewModel(application: Application, initialTags: List<Tag>)
+    : BaseViewModel(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
+    // FIXME: Code dup >:(
+    private val _tags: MutableList<Tag> = (Constants.predefinedTags + initialTags).toMutableList()
+    val tags: List<Tag> get() = _tags
+    private var _selectedTags: List<Tag> = initialTags
+    // this livedata instance will have its value updated once the tag selection dialog fragment finishes its workTag
+    val selectedTags: List<Tag> get() = _selectedTags
 
-    init {
-        handleIntent()
-    }
+    private var base64Image: String? = null
 
-    override val _state: MutableStateFlow<ResponseState<Response>>
-        = MutableStateFlow(ResponseState.Idle)
-
-    override fun handleIntent() {
-        viewModelScope.launch {
-            intent.consumeAsFlow().collect {
-                when(it) {
-                    is UserIntent.UpdateUser -> {
-                        updateUser(it.userUpdateFields)
-                    }
-                    is UserIntent.DeleteUser -> {
-                        deleteUser()
-                    }
-                    else -> throw Intent.InvalidIntentException()
-                }
-            }
-        }
+    fun setProfileImageBase64(base64Image: String) {
+        this.base64Image = base64Image
     }
 
     @Bindable
@@ -61,45 +35,16 @@ class UserProfileFragmentViewModel(application: Application)
     @Bindable
     val description: MutableLiveData<String?> = MutableLiveData()
 
-    private fun updateUser(userFields: Map<String?, String?>) {
-        viewModelScope.launch {
-            _state.value = ResponseState.Loading
-
-            _state.value = try {
-                ResponseState.OnData(
-                    userRepository.editUser(userFields)
-                )
-            } catch(reauthEx: Repository.ReauthenticationException) {
-                ResponseState.Error(
-                    Constants.reauthError,
-                    shouldReauth = true
-                )
-            } catch(ex: Exception) {
-                ResponseState.Error(
-                    ex.message
-                )
+    // FIXME: Code dup with RegisterFragmentViewModel. . .
+    fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
+        selectedTags.forEach {
+            if(!_tags.contains(it)) {
+                _tags.add(it)
             }
         }
     }
 
-    private fun deleteUser() {
-        viewModelScope.launch {
-            _state.value = ResponseState.Loading
-
-            _state.value = try {
-                ResponseState.OnData(
-                    userRepository.deleteUser()
-                )
-            } catch(reauthEx: Repository.ReauthenticationException) {
-                ResponseState.Error(
-                    Constants.reauthError,
-                    shouldReauth = true
-                )
-            } catch(ex: Exception) {
-                ResponseState.Error(
-                    ex.message
-                )
-            }
-        }
+    fun setSelectedTags(selectedTags: List<Tag>) {
+        _selectedTags = selectedTags
     }
 }

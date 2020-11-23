@@ -10,7 +10,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
@@ -22,7 +21,6 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -36,15 +34,13 @@ import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
+class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         fun newInstance() = LoginFragment()
     }
 
-    private val viewModel: LoginFragmentViewModel by viewModels(factoryProducer = {
-        ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-    })
+    private val viewModel: LoginFragmentViewModel by viewModels()
     private lateinit var binding: FragmentLoginBinding
 
     private val callbackManager: CallbackManager = CallbackManager.Factory.create()
@@ -102,22 +98,16 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
                             .show()
                     }
-                    is TokenState.OnTokenReceived -> {
-                        prefConfig.writeToken(it.token?.jwt!!)
-                        prefConfig.writeRefreshToken(it.token.refreshJwt!!)
-                        prefConfig.writeLoginStatus(true)
-
-                        // TODO: Fix code repetition
-                        val action = LoginFragmentDirections.actionLoginFragmentToMainActivity(
-                            null
+                    is TokenState.TokenReceived -> {
+                        login(
+                            null,
+                            it.token?.jwt,
+                            it.token?.refreshJwt
                         )
-                        navController.navigate(action)
                     }
-                    is TokenState.OnFacebookRegisterTokenSuccess -> {
-                        prefConfig.writeLoginStatus(true)
-
+                    is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
-                        val action = LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                        login(
                             User(
                                 Integer.parseInt(Profile.getCurrentProfile().id)
                                     .toLong(), // this will freaking die if Facebook changes their ID schema
@@ -129,7 +119,6 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                                 null
                             )
                         )
-                        navController.navigate(action)
                     }
                 }
             }
@@ -142,24 +131,19 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                     is FacebookState.Loading -> {
                         // TODO: Progressbar
                     }
-                    is FacebookState.OnData -> {
-                        when(it) {
-                            is FacebookState.OnData.OnEmailReceived -> {
-                                viewModel.email.value = it.email
-                                lifecycleScope.launch {
-                                    viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
-                                }
-                            }
-                            is FacebookState.OnData.OnTagsReceived -> { // if user cancels tags, just don't register them with tags
-                                val action = LoginFragmentDirections.actionLoginFragmentToTagSelectionDialogFragment(
-                                    viewModel.selectedTags.toTypedArray(),
-                                    viewModel.tags
-                                        .toTypedArray() + it.tags
-                                )
-                                navController.navigate(action)
-                            }
+                    is FacebookState.OnData.EmailReceived -> {
+                        viewModel.email.value = it.email
+                        lifecycleScope.launch {
+                            viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
                         }
-
+                    }
+                    is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
+                        val action = LoginFragmentDirections.actionLoginFragmentToTagSelectionDialogFragment(
+                            viewModel.selectedTags.toTypedArray(),
+                            viewModel.tags
+                                .toTypedArray() + it.tags
+                        )
+                        navController.navigate(action)
                     }
                     is FacebookState.Error -> {
                         if(it.equals(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)) {
@@ -235,11 +219,9 @@ class LoginFragment : BaseFragment(), TextFieldInputValidationOnus {
                     }
                 } else {
                     // TODO: repetition
-                    prefConfig.writeLoginStatus(true)
-                    val action = LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                    login(
                         null
                     )
-                    navController.navigate(action)
                 }
             }
 

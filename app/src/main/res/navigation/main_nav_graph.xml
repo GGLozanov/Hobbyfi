@@ -17,6 +17,18 @@
             android:name="user"
             app:argType="com.example.hobbyfi.models.User"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_tagSelectionDialogFragment2"
+            app:destination="@id/tagSelectionDialogFragment2" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_changeEmailDialogFragment"
+            app:destination="@id/changeEmailDialogFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_tagSelectionDialogFragment"
+            app:destination="@id/tagSelectionDialogFragment" />
+        <action
+            android:id="@+id/action_userProfileFragment_to_changePasswordDialogFragment"
+            app:destination="@id/changePasswordDialogFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatroomListFragment"
@@ -34,4 +46,31 @@
         android:name="com.example.hobbyfi.ui.create.ChatroomCreateActivity"
         android:label="Create Chatroom"
         tools:layout="@layout/activity_chatroom_create" />
+    <fragment
+        android:id="@+id/tagSelectionDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
+        android:label="fragment_tag_selection_dialog"
+        tools:layout="@layout/fragment_tag_selection_dialog" >
+        <action
+            android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment"
+            app:destination="@id/customTagCreateDialogFragment" />
+        <argument
+            android:name="selectedTags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
+        <argument
+            android:name="tags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
+    </fragment>
+    <fragment
+        android:id="@+id/customTagCreateDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
+        android:label="CustomTagCreateDialogFragment" />
+    <fragment
+        android:id="@+id/changeEmailDialogFragment"
+        android:name="com.example.hobbyfi.ui.main.ChangeEmailDialogFragment"
+        android:label="ChangeEmailDialogFragment" />
+    <fragment
+        android:id="@+id/changePasswordDialogFragment"
+        android:name="com.example.hobbyfi.ui.main.ChangePasswordDialogFragment"
+        android:label="ChangePasswordDialogFragment" />
 </navigation>

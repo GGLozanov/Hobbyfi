@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
+import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.state.TokenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +55,7 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         viewModelScope.launch {
             _state.value = TokenState.Loading
             _state.value = try {
-                TokenState.OnTokenReceived(tokenRepository.getRegisterToken(
+                TokenState.TokenReceived(tokenRepository.getRegisterToken(
                     null,
                     email.value,
                     password.value,
@@ -70,4 +71,11 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         }
     }
 
+    fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
+        selectedTags.forEach {
+            if(!_tags.contains(it)) {
+                _tags.add(it)
+            }
+        }
+    }
 }

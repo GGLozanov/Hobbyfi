@@ -1,11 +1,11 @@
-package com.example.hobbyfi.ui.base
+package com.example.hobbyfi.ui.auth
 
-import com.example.hobbyfi.R
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.ui.auth.LoginFragmentDirections
+import com.example.hobbyfi.ui.base.BaseFragment
+import com.example.hobbyfi.ui.base.OnAuthStateChanged
 
-abstract class AuthFragment : BaseFragment() {
-    protected fun login(user: User?, token: String? = null, refreshToken: String? = null) {
+abstract class AuthFragment : BaseFragment(), OnAuthStateChanged {
+    override fun login(user: User?, token: String?, refreshToken: String?) {
         prefConfig.writeToken(token)
         prefConfig.writeRefreshToken(refreshToken)
         prefConfig.writeLoginStatus(true)
@@ -13,12 +13,5 @@ abstract class AuthFragment : BaseFragment() {
             user
         )
         navController.navigate(action)
-    }
-
-    protected fun logout() {
-        prefConfig.writeLoginStatus(false)
-        prefConfig.writeToken(null)
-        prefConfig.writeRefreshToken(null)
-        navController.popBackStack(R.id.registerFragment, false)
     }
 }

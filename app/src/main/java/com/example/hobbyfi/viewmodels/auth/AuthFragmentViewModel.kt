@@ -2,28 +2,25 @@ package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
 import androidx.databinding.Bindable
-import androidx.databinding.Observable
-import androidx.databinding.PropertyChangeRegistry
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
-import com.example.hobbyfi.viewmodels.base.TwoWayBindable
-import com.example.hobbyfi.viewmodels.base.TwoWayBindableViewModel
+import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
+import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 abstract class AuthFragmentViewModel(application: Application)
-    : StateIntentViewModel<TokenState, TokenIntent>(application), TwoWayBindable by TwoWayBindableViewModel() {
+    : StateIntentViewModel<TokenState, TokenIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
 
     protected val tokenRepository: TokenRepository by instance(tag = "tokenRepository")
 
+    // TODO: Extract tag functionality into interface+class delegate
     protected val _tags: MutableList<Tag> = Constants.predefinedTags.toMutableList()
     val tags: List<Tag> get() = _tags
     protected var _selectedTags: List<Tag> = emptyList()
@@ -37,11 +34,6 @@ abstract class AuthFragmentViewModel(application: Application)
     val password: MutableLiveData<String> = MutableLiveData()
 
     fun setSelectedTags(tags: List<Tag>) {
-        this._selectedTags = tags
+        _selectedTags = tags
     }
-
-    fun addTag(tag: Tag) {
-        _tags.add(tag)
-    }
-
 }

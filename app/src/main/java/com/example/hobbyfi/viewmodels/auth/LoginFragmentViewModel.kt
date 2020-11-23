@@ -2,7 +2,6 @@ package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
@@ -68,7 +67,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         viewModelScope.launch {
             _state.value = TokenState.Loading
             _state.value = try {
-                TokenState.OnTokenReceived(tokenRepository.getLoginToken(
+                TokenState.TokenReceived(tokenRepository.getLoginToken(
                     email.value!!,
                     password.value!!
                 ))
@@ -83,7 +82,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         viewModelScope.launch {
             _facebookState.value = FacebookState.Loading
             _facebookState.value = try {
-                FacebookState.OnData.OnTagsReceived(
+                FacebookState.OnData.TagsReceived(
                     tokenRepository.getFacebookUserPageTitlesAsTags()
                 )
             } catch(ex: Exception) {
@@ -96,7 +95,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         viewModelScope.launch {
             _facebookState.value = FacebookState.Loading
             _facebookState.value = try {
-                FacebookState.OnData.OnEmailReceived(
+                FacebookState.OnData.EmailReceived(
                     tokenRepository.getFacebookUserEmail()
                 )
             } catch(ex: Exception) {
@@ -121,7 +120,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                     image,
                     tags
                 )
-                TokenState.OnFacebookRegisterTokenSuccess
+                TokenState.FacebookRegisterTokenSuccess
             } catch(ex: Exception) {
                 ex.printStackTrace()
                 TokenState.Error(ex.message)

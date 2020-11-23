@@ -14,10 +14,10 @@ abstract class NetworkBoundFetcher<CacheModel, NetworkResponse> {
     fun asFlow() = flow {
         emit(null)
 
-        val dbValue = loadFromDb()
-        emitAll(dbValue)
+        val dbValue = loadFromDb().first()
+        emit(dbValue)
 
-        if (shouldFetch(dbValue.first())) {
+        if (shouldFetch(dbValue)) {
             val apiResponse = fetchFromNetwork() // if exception is thrown here, execution stops, user is notified, and initial db value is still emitted
             saveNetworkResult(apiResponse)
             emitAll(loadFromDb())
@@ -35,7 +35,4 @@ abstract class NetworkBoundFetcher<CacheModel, NetworkResponse> {
 
     @MainThread
     protected abstract suspend fun fetchFromNetwork(): NetworkResponse // handles/throws network exceptions
-
-    @MainThread
-    protected abstract fun isNetworkResponseInvalid(response: NetworkResponse): Boolean
 }

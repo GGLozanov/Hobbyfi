@@ -22,4 +22,6 @@ abstract class BaseFragment : Fragment(), KodeinAware {
         super.onActivityCreated(savedInstanceState)
         navController = findNavController()
     }
+
+
 }
