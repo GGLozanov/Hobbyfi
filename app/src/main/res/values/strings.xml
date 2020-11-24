@@ -61,4 +61,6 @@
     <string name="create_custom_tag_header">Create your tag</string>
     <string name="message_hint">Enter a message</string>
     <string name="profile">Your Profile</string>
+    <string name="read_external_storage_rationale">We need to access your storage for you to select your profile picture.</string>
+    <string name="chatrooms">Chatrooms</string>
 </resources>

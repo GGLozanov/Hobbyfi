@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/userProfileFragment"
         android:name="com.example.hobbyfi.ui.main.UserProfileFragment"
-        android:label="Profile"
+        android:label="Your Profile"
         tools:layout="@layout/fragment_user_profile">
         <action
             android:id="@+id/action_userProfileFragment_to_chatroomListFragment"
@@ -17,9 +17,6 @@
             android:name="user"
             app:argType="com.example.hobbyfi.models.User"
             app:nullable="true" />
-        <action
-            android:id="@+id/action_userProfileFragment_to_tagSelectionDialogFragment2"
-            app:destination="@id/tagSelectionDialogFragment2" />
         <action
             android:id="@+id/action_userProfileFragment_to_changeEmailDialogFragment"
             app:destination="@id/changeEmailDialogFragment" />
