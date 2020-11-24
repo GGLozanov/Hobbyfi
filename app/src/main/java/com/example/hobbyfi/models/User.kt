@@ -30,6 +30,7 @@ data class User(
     var photoUrl: String?,
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_ID)
+    @ColumnInfo(name = "chatroomId", index = true)
     var chatroomId: Int?,
     override var hasImage: Boolean = photoUrl == null,
 ) : ExpandedModel, Parcelable {

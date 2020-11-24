@@ -4,12 +4,16 @@ import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import com.example.hobbyfi.models.User
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao : BaseDao<User> {
-    @Query("SELECT * from users")
-    fun getUsers() : PagingSource<Int, User>
+    @Query("SELECT * FROM users")
+    fun getUsers(): PagingSource<Int, User>
 
     @Query("UPDATE users SET chatroomId = :chatroomId WHERE id = :userId")
-    fun updateUserChatroomId(userId: Int, chatroomId: Int)
+    fun updateUserChatroomId(userId: Long, chatroomId: Int)
+
+    @Query("SELECT * FROM users WHERE id = :userId")
+    fun getUserById(userId: Long): Flow<User?>
 }

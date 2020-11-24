@@ -12,6 +12,7 @@ import com.example.hobbyfi.adapters.user.UserResponseDeserializer
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isConnected
 import com.google.gson.GsonBuilder
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.Interceptor
@@ -107,17 +108,11 @@ interface HobbyfiAPI {
     ): Response?
 
     companion object {
-        @RequiresApi(Build.VERSION_CODES.N)
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {
-                val activeNetworkInfo = connectivityManager.activeNetwork
 
-                val networkCapabilities = connectivityManager.getNetworkCapabilities(
-                    activeNetworkInfo
-                )
 
-                if(!(networkCapabilities != null &&
-                            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))) {
+                if(!connectivityManager.isConnected()) {
                     throw NoConnectivityException()
                 }
 

@@ -8,5 +8,5 @@ import com.example.hobbyfi.models.Message
 @Dao
 interface MessageDao : BaseDao<Message> {
     @Query("SELECT * FROM messages")
-    fun getMessages() : PagingSource<Int, Message>
+    fun getMessages(): PagingSource<Int, Message>
 }

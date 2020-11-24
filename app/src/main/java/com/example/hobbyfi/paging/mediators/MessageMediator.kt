@@ -12,7 +12,8 @@ import com.example.hobbyfi.shared.PrefConfig
 
 @ExperimentalPagingApi
 class MessageMediator(
-    private val messageRepository: MessageRepository,
+    private val hobbyfiAPI: HobbyfiAPI,
+    private val hobbyfiDatabase: HobbyfiDatabase,
     private val prefConfig: PrefConfig
 ) : RemoteMediator<Int, Chatroom>() {
 

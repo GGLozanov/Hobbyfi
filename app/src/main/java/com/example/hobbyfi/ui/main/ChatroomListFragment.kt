@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.paging.LoadStateAdapter
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.LoaderStateAdapter
@@ -28,4 +29,5 @@ class ChatroomListFragment : MainFragment() {
 
         return view
     }
+
 }

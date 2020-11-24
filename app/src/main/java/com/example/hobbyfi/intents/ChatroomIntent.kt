@@ -5,9 +5,8 @@ package com.example.hobbyfi.intents
 // includes delete/edit chatroom intents
 // and includes instant delete chatroom intent
 sealed class ChatroomIntent : Intent {
-    object FetchChatrooms : ChatroomIntent() // pass in page number for pagination
     object FetchChatroom : ChatroomIntent() // fetch registered user's chatroom => pass in chatroom id?
 
-    sealed class UpdateChatroom(val chatroomId: Int, val chatroomUpdateFields: Map<String, String>) : ChatroomIntent()
-    sealed class DeleteChatroom(val chatroomId: Int) : ChatroomIntent()
+    data class UpdateChatroom(val chatroomId: Int, val chatroomUpdateFields: Map<String, String>) : ChatroomIntent()
+    data class DeleteChatroom(val chatroomId: Int) : ChatroomIntent()
 }

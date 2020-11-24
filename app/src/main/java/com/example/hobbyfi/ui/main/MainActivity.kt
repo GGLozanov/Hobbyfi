@@ -1,15 +1,19 @@
 package com.example.hobbyfi.ui.main
 
-import androidx.appcompat.app.AppCompatActivity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
+import android.os.PersistableBundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.navArgs
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
-import com.example.hobbyfi.state.ResponseState
+import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
@@ -21,17 +25,27 @@ import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
-    // TODO: Viewpager 2 & bottomnav setup
-    // TODO: Fetch viewmodel by delegation *everywhere*
-
     private val viewModel: MainActivityViewModel by viewModels()
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
+        setSupportActionBar(binding.toolbar)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        binding.bottomNav.setupWithNavController(navController)
+        binding.toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(
+            R.id.userProfileFragment,
+            R.id.chatroomListFragment
+        )))
 
         lifecycleScope.launch {
-            viewModel.state.collect {
+            viewModel.mainState.collect {
                 when(it) {
                     is UserState.Idle -> {
 
@@ -40,7 +54,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
-
+                        viewModel.setAndSaveUser(it.user)
                     }
                     is UserState.OnData.UserDeleteResult -> {
                         logout()
@@ -49,11 +63,10 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         viewModel.updateAndSaveUser(it.userFields)
                     }
                     is UserState.Error -> {
-                        Toast.makeText(this@MainActivity, "Couldn't get user!", Toast.LENGTH_LONG)
+                        Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
                             .show()
-                        // TODO: Logout
+                        logout()
                     }
-                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -61,8 +74,23 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     override fun logout() {
         prefConfig.writeLoginStatus(false)
-        prefConfig.writeToken(null)
-        prefConfig.writeRefreshToken(null)
-        navController.popBackStack(R.id.registerFragment, false)
+        prefConfig.resetToken()
+        prefConfig.resetRefreshToken()
+        navController.popBackStack(R.id.loginFragment, false)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main_appbar_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+        if(item.itemId == R.id.action_logout) {
+            logout()
+        }
+
+        return true
     }
 }

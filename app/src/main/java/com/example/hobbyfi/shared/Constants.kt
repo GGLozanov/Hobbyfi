@@ -38,7 +38,7 @@ object Constants {
         return PagingConfig(pageSize = 5, enablePlaceholders = false)
     }
 
-    const val CACHE_TIMEOUT = 60 * 30 // 30 minutes
+    const val CACHE_TIMEOUT = 60 * 60 * 2 // 2 hours
         .toLong()
 
     const val SUCCESS_RESPONSE = "Ok"

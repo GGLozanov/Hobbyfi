@@ -1,22 +1,23 @@
 package com.example.hobbyfi.repositories
 
+import android.net.ConnectivityManager
 import androidx.lifecycle.LiveData
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.PagingSource
+import androidx.paging.*
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.paging.mediators.MessageMediator
+import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.persistence.MessageDao
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import java.lang.Exception
 
-class MessageRepository(
-    pagingSource: PagingSource<Int, Message>, prefConfig: PrefConfig,
-    hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase)
-    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase) {
+class MessageRepository @ExperimentalPagingApi constructor(
+    private val remoteMediator: MessageMediator, prefConfig: PrefConfig,
+    hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
+    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     // return livedata of pagedlist for messages
     fun getMessages(pagingConfig: PagingConfig = Constants.getDefaultPageConfig()): LiveData<PagingData<Chatroom>> {
 //        return Pager(

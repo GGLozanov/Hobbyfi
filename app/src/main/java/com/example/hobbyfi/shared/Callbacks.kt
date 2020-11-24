@@ -40,7 +40,7 @@ object Callbacks {
     }
 
     // "returns" a response when in reality it always throws an exception
-    fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
+    fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false, needsReauth: Boolean = false): Nothing {
         when(ex) {
             is HobbyfiAPI.NoConnectivityException -> throw Exception("Couldn't register! Please check your connection!")
             is HttpException -> {
@@ -50,12 +50,13 @@ object Callbacks {
                 } // TODO: Might use if responses from API are too generic. Will make them not be!
 
                 if(ex.code() == 401) { // unauthorized
-                    if(isAuthorisedRequest) throw Repository.AuthorisedRequestException() else throw Repository.ReauthenticationException()
+                    if(isAuthorisedRequest) throw Repository.AuthorisedRequestException() else throw
+                        Repository.ReauthenticationException(if(needsReauth) "Your session may have expired and you need to reauthenticate!" else "Invalid credentials!")
                 }
 
                 throw Exception(ex.message().toString() + " ; code: " + ex.code())
             }
-            else -> throw Exception("Unknown error! Please check your connection or contact a developer!")
+            else -> throw Exception("Unknown error! Please check your connection or contact a developer! ${ex.message}")
         }
     }
 }

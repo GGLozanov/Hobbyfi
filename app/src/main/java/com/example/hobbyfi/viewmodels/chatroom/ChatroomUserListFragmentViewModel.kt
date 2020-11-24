@@ -1,29 +1,25 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
-import androidx.multidex.MultiDexApplication
-import androidx.paging.PagingSource
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.persistence.UserDao
+import com.example.hobbyfi.state.UserListState
 import com.example.hobbyfi.state.UserState
-import com.example.hobbyfi.viewmodels.base.PagedListViewModel
+import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class ChatroomUserListFragmentViewModel(application: Application) : PagedListViewModel<UserState, UserIntent, User, UserDao>(application) {
+class ChatroomUserListFragmentViewModel(application: Application) : StateIntentViewModel<UserListState, UserListIntent>(application) {
     // TODO: Upon fetching pagingdata, set the UserState to onData and pass in the pagingdata in order to trigger observer in view
     // TODO: Kodein data source instance
     init {
         handleIntent()
     }
 
-    override val pagingSource: PagingSource<Int, Message> by instance()
 
-    override val _state: MutableStateFlow<UserState>
+    override val _mainState: MutableStateFlow<UserListState>
         get() = TODO("Not yet implemented")
 
     override fun handleIntent() {

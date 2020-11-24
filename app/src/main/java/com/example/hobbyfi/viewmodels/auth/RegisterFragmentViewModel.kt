@@ -21,11 +21,11 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
     }
 
-    override val _state: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
+    override val _mainState: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
 
     override fun handleIntent() {
         viewModelScope.launch {
-            intent.consumeAsFlow().collect {
+            mainIntent.consumeAsFlow().collect {
                 when(it) {
                     is TokenIntent.FetchRegisterToken -> fetchRegisterToken()
                     else -> throw Intent.InvalidIntentException()
@@ -40,21 +40,18 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
     @Bindable
     val description: MutableLiveData<String> = MutableLiveData()
 
-    private var base64Image: String? = null
+    private var _base64Image: String? = null
+    val base64Image get() = _base64Image
 
     fun setProfileImageBase64(base64Image: String) {
-        this.base64Image = base64Image
-    }
-
-    fun getProfileImageBase64() : String? {
-        return base64Image
+        _base64Image = base64Image
     }
 
     private fun fetchRegisterToken() {
         Log.i("RegisterFragmentVM", "fetchRegisterToken called")
         viewModelScope.launch {
-            _state.value = TokenState.Loading
-            _state.value = try {
+            _mainState.value = TokenState.Loading
+            _mainState.value = try {
                 TokenState.TokenReceived(tokenRepository.getRegisterToken(
                     null,
                     email.value,

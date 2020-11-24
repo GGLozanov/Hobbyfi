@@ -22,7 +22,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         handleIntent()
     }
 
-    override val _state: MutableStateFlow<TokenState>
+    override val _mainState: MutableStateFlow<TokenState>
             = MutableStateFlow(TokenState.Idle)
 
     private val _facebookState: MutableStateFlow<FacebookState>
@@ -33,7 +33,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
 
     override fun handleIntent() {
         viewModelScope.launch {
-            intent.consumeAsFlow().collect {
+            mainIntent.consumeAsFlow().collect {
                 when(it) {
                     is TokenIntent.FetchLoginToken -> {
                         fetchLoginToken()
@@ -53,7 +53,6 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                     is FacebookIntent.FetchFacebookUserEmail -> {
                         fetchFacebookEmail()
                     }
-                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -65,8 +64,8 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
 
     private fun fetchLoginToken() {
         viewModelScope.launch {
-            _state.value = TokenState.Loading
-            _state.value = try {
+            _mainState.value = TokenState.Loading
+            _mainState.value = try {
                 TokenState.TokenReceived(tokenRepository.getLoginToken(
                     email.value!!,
                     password.value!!
@@ -109,8 +108,8 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
     // Too bad!
     private fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, image: String, tags: List<Tag>) {
         viewModelScope.launch {
-            _state.value = TokenState.Loading
-            _state.value = try {
+            _mainState.value = TokenState.Loading
+            _mainState.value = try {
                 tokenRepository.getRegisterToken(
                     facebookToken,
                     email,

@@ -1,9 +1,11 @@
 package com.example.hobbyfi.ui.auth
 
+import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.*
 import android.widget.Toast
@@ -12,6 +14,7 @@ import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.ui.onNavDestinationSelected
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -31,6 +34,7 @@ import com.example.spendidly.utils.PredicateTextWatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import pub.devrel.easypermissions.EasyPermissions
 
 
 @ExperimentalCoroutinesApi
@@ -38,8 +42,12 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
-    private var imageRequestCode: Int = 777
+    private val imageRequestCode: Int = 777
     private var bitmap: Bitmap? = null
+
+    companion object {
+        val tag: String = "RegisterFragment"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,17 +69,21 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         initTextFieldValidators()
 
         binding.profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
-            // TODO: Ask for Read storage permission here
-            val selectImageIntent = Intent()
-            selectImageIntent.type = "image/*" // set MIME data type to all images
+            if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                val selectImageIntent = Intent()
+                selectImageIntent.type = "image/*" // set MIME data type to all images
 
-            selectImageIntent.action =
-                Intent.ACTION_GET_CONTENT // set the desired action to get image
+                selectImageIntent.action =
+                    Intent.ACTION_GET_CONTENT // set the desired action to get image
 
-            startActivityForResult(
-                selectImageIntent,
-                imageRequestCode
-            ) // start activity and await result
+                startActivityForResult(
+                    selectImageIntent,
+                    imageRequestCode
+                ) // start activity and await result
+            } else {
+                EasyPermissions.requestPermissions(this, getString(R.string.read_external_storage_rationale),
+                    200, Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
         }
 
         binding.registerAccountButton.setOnClickListener {
@@ -94,8 +106,8 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.tagSelectButton.setOnClickListener {
             val action = RegisterFragmentDirections.actionRegisterFragmentToTagSelectionDialogFragment(
                 viewModel.selectedTags.toTypedArray(),
@@ -105,7 +117,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
 
         lifecycleScope.launch {
-            viewModel.state.collect {
+            viewModel.mainState.collect {
                 when(it) {
                     is TokenState.Idle -> {
                     }
@@ -117,10 +129,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                         // TODO: Show a progress indicator or something
                     }
                     is TokenState.TokenReceived -> {
-                        prefConfig.writeToken(it.token?.jwt!!)
-                        prefConfig.writeRefreshToken(it.token.refreshJwt!!)
-
-                        val id = TokenUtils.getTokenUserIdFromPayload(it.token.jwt)
+                        val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
 
                         login(
                             User(
@@ -132,7 +141,9 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                                         + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
                                 viewModel.selectedTags, // TODO: User has null tags or just an empty list?
                                 null
-                            )
+                            ),
+                            it.token?.jwt,
+                            it.token?.refreshJwt
                         )
                     }
                     else -> throw State.InvalidStateException()
@@ -194,6 +205,20 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         )
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.register_appbar_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -210,19 +235,5 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                 ImageUtils.encodeImage(bitmap!!)
             )
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.register_appbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        super.onOptionsItemSelected(item)
-        if(item.itemId == R.id.action_login) {
-            navController.navigate(R.id.action_registerFragment_to_loginFragment)
-        }
-
-        return true
     }
 }

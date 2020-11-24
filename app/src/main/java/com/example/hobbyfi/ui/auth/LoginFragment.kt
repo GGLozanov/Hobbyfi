@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.auth
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.*
 import android.widget.Toast
@@ -11,6 +12,7 @@ import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.ui.onNavDestinationSelected
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
@@ -28,6 +30,7 @@ import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.facebook.*
 import com.facebook.login.LoginResult
+import kotlinx.android.synthetic.main.activity_auth.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -37,6 +40,7 @@ import kotlinx.coroutines.launch
 class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
+        val tag: String = "LoginFragment"
         fun newInstance() = LoginFragment()
     }
 
@@ -58,6 +62,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
         binding.viewModel = viewModel
+        binding.lifecycleOwner = this
 
         val view: View = binding.root
 
@@ -80,13 +85,13 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         initFacebookLogin()
 
         lifecycleScope.launch {
-            viewModel.state.collect {
+            viewModel.mainState.collect {
                 when(it) {
                     is TokenState.Idle -> {
 
@@ -166,6 +171,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         // FIXME: Possible shared manipulaton of "selectedTags" saveStateHandle from Register and Login fragment?
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(viewLifecycleOwner) {
             viewModel.setSelectedTags(it)
+            Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()
                 val image = ImageUtils.encodeImage(
@@ -204,7 +210,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         )
     }
 
-    fun initFacebookLogin() {
+    private fun initFacebookLogin() {
         val shouldRegister: Boolean = AccessToken.getCurrentAccessToken() == null && Profile.getCurrentProfile() == null
 
         binding.facebookButton.setPermissions(listOf("email", "user_likes"))
@@ -212,6 +218,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         binding.facebookButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
             override fun onSuccess(loginResult: LoginResult?) {
                 // TODO: Should request for tags be intent or not since user doesn't know about it?
+                Log.i("LoginFragment", "Triggered w/ loging result $loginResult")
 
                 if(shouldRegister) {
                     lifecycleScope.launch {
@@ -240,15 +247,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.login_appbar_menu, menu)
         super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        super.onOptionsItemSelected(item)
-        if(item.itemId == R.id.action_register) {
-            navController.navigate(R.id.action_loginFragment_to_registerFragment)
-        }
-
-        return true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

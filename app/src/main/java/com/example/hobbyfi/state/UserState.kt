@@ -12,18 +12,8 @@ sealed class UserState : State {
 
     sealed class OnData : UserState() {
         data class UserResult(val user: User) : OnData()
-        data class UsersResult(val users: PagingData<User>) : OnData() // TODO: if fetch from network the map<String, User> will be converted to a flat list and processed by pagination
         data class UserUpdateResult(val response: Response?, val userFields: Map<String?, String?>) : OnData()
         data class UserDeleteResult(val response: Response?) : OnData()
-    }
-
-    // TODO: Find a way to Swift-ify this and pass the eventId only in OnNotification and have the inner classes access it
-    sealed class OnNotification : UserState() {
-        data class ChatroomJoinNotification(val user: User) : OnNotification() // entire user model is sent through the notification (FIXME: Bad idea and misue of FCM...?)
-        data class ChatroomLeaveNotification(val username: String) : OnNotification() // only need username to notify users of someone leaving
-        // TODO: OnDeleteUserNotification special case: can trigger OnDeleteChatroomNotification if deleted user is chatroom owner
-        data class DeleteUserNotification(val userId: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live user delete (in chatroom & main activity) for all users
-        data class UpdateUserNotification(val userid: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom update for all users
     }
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : UserState()

@@ -29,6 +29,8 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        (requireActivity() as AppCompatActivity).supportActionBar?.hide()
+
         view?.postDelayed({
             if(!prefConfig.readLoginStatus()) {  // TODO: Also check token expiry here? and Facebook
                 Log.i("SplashScreen", "Not authenticated. Moving to login fragment")
@@ -41,6 +43,8 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
                 )
                 navController.navigate(action)
             }
+
+            (requireActivity() as AppCompatActivity).supportActionBar?.show()
         }, 3000)
     }
 }

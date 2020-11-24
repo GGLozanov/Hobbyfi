@@ -19,5 +19,6 @@ data class Chatroom(
     val tags: List<Tag>,
     @ColumnInfo(name = "ownerId", index = true)
     val ownerId: Int,
+    @ColumnInfo(name = "lastEventId", index = true)
     val lastEventId: Int
 ) : ExpandedModel

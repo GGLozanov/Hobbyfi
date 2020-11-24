@@ -23,14 +23,11 @@ abstract class AuthUserHolderViewModel(application: Application)
     protected var _authUser: MutableLiveData<User?> = MutableLiveData(null) // mainactivity observes state, ProfileFragment sends intent & this fetches, lifecycle-aware stateflow receives state update & triggers UI update
     val authUser: LiveData<User?> get() = _authUser
 
-    override val _state: MutableStateFlow<UserState> = MutableStateFlow(UserState.Idle)
-
-//    private val _responseState: MutableStateFlow<ResponseState<Response>> = MutableStateFlow(ResponseState.Idle)
-//    val responseState: StateFlow<ResponseState<Response>> get() = _responseState
+    override val _mainState: MutableStateFlow<UserState> = MutableStateFlow(UserState.Idle)
 
     override fun handleIntent() {
         viewModelScope.launch {
-            intent.consumeAsFlow().collect {
+            mainIntent.consumeAsFlow().collect {
                 when(it) {
                     is UserIntent.FetchUser -> {
                         fetchUser()
@@ -40,9 +37,6 @@ abstract class AuthUserHolderViewModel(application: Application)
                     }
                     is UserIntent.DeleteUser -> {
                         deleteUser()
-                    }
-                    is UserIntent.FetchUsers -> {
-                        fetchUsers()
                     }
                 }
             }
@@ -65,14 +59,14 @@ abstract class AuthUserHolderViewModel(application: Application)
 
     private fun fetchUser() {
         viewModelScope.launch {
-            _state.value = UserState.Loading
+            _mainState.value = UserState.Loading
             // observe flow returned from networkBoundFetcher and change state upon emitted value
             userRepository.getUser().catch { e ->
-                _state.value = if(e is Repository.ReauthenticationException)
+                _mainState.value = if(e is Repository.ReauthenticationException)
                     UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
             }.collect {
                 if(it != null) {
-                    _state.value = UserState.OnData.UserResult(it)
+                    _mainState.value = UserState.OnData.UserResult(it)
                 }
             }
         }
@@ -80,9 +74,9 @@ abstract class AuthUserHolderViewModel(application: Application)
 
     private fun updateUser(userFields: Map<String?, String?>) {
         viewModelScope.launch {
-            _state.value = UserState.Loading
+            _mainState.value = UserState.Loading
 
-            _state.value = try {
+            _mainState.value = try {
                 UserState.OnData.UserUpdateResult(
                     userRepository.editUser(userFields),
                     userFields
@@ -102,9 +96,9 @@ abstract class AuthUserHolderViewModel(application: Application)
 
     private fun deleteUser() {
         viewModelScope.launch {
-            _state.value = UserState.Loading
+            _mainState.value = UserState.Loading
 
-            _state.value = try {
+            _mainState.value = try {
                 UserState.OnData.UserDeleteResult(
                     userRepository.deleteUser()
                 )
@@ -118,14 +112,6 @@ abstract class AuthUserHolderViewModel(application: Application)
                     ex.message
                 )
             }
-        }
-    }
-
-    private fun fetchUsers() {
-        viewModelScope.launch {
-            _state.value = UserState.Loading
-
-            // TODO: Users fetch. . .
         }
     }
 }

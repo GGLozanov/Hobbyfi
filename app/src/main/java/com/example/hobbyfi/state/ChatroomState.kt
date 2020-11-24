@@ -8,10 +8,7 @@ sealed class ChatroomState : State {
     object Idle : ChatroomState()
     object Loading : ChatroomState()
 
-    sealed class OnData : ChatroomState() {
-        data class ChatroomResult(val chatroom: Chatroom) // might not need this
-        data class ChatroomsResult(val chatrooms: PagingData<Chatroom>) // TODO: if fetch from network the map<String, Chatroom> will be converted to a flat list and processed by pagination
-    }
+    data class ChatroomResult(val chatroom: Chatroom) // might not need this...?
 
     // TODO: Find a way to Swift-ify this and pass the chatroomId only in OnNotification and have the inner classes access it
     sealed class OnNotification : ChatroomState() {

@@ -8,7 +8,7 @@ import java.lang.IllegalStateException
 
 abstract class Repository(protected val prefConfig: PrefConfig, protected val hobbyfiAPI: HobbyfiAPI) {
     class AuthorisedRequestException : Exception()
-    class ReauthenticationException : Exception()
+    class ReauthenticationException(message: String?) : Exception(message)
 
     protected suspend fun getNewTokenWithRefresh(): TokenResponse? {
         return try {
@@ -19,8 +19,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
                 token
             } else throw IllegalStateException()
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
-            null
+            Callbacks.dissectRepositoryExceptionAndThrow(ex, needsReauth = true)
         }
     }
 }

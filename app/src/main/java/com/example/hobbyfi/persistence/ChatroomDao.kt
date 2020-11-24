@@ -10,5 +10,5 @@ import javax.sql.DataSource
 @Dao
 interface ChatroomDao : BaseDao<Chatroom> {
     @Query("SELECT * FROM chatrooms")
-    fun getChatrooms() : PagingSource<Int, Chatroom>
+    fun getChatrooms(): PagingSource<Int, Chatroom>
 }

@@ -12,7 +12,8 @@ import com.google.firebase.firestore.auth.User
 
 @ExperimentalPagingApi
 class UserMediator(
-    private val userRepository: UserRepository,
+    private val hobbyfiAPI: HobbyfiAPI,
+    private val hobbyfiDatabase: HobbyfiDatabase,
     private val prefConfig: PrefConfig
 ) : RemoteMediator<Int, User>() {
 

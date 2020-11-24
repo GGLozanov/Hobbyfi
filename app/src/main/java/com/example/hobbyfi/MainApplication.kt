@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
+import androidx.paging.RemoteMediator
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
@@ -32,7 +33,6 @@ import org.kodein.di.generic.singleton
 // TODO: DI, Notification channel, etc. setup
 @ExperimentalPagingApi
 class MainApplication : MultiDexApplication(), KodeinAware {
-    @RequiresApi(Build.VERSION_CODES.N)
     override val kodein: Kodein = Kodein.lazy {
         import(androidXModule(this@MainApplication))
 
@@ -52,43 +52,51 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "userRepository") from singleton { UserRepository(
-                instance(tag = "userPagingSource") as PagingSource<Int, User>,
+                instance(tag = "userMediator") as UserMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
-                instance(tag = "chatroomPagingSource") as PagingSource<Int, Chatroom>,
+                instance(tag = "chatroomMediator") as ChatroomMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "eventRepository") from singleton { EventRepository(
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "messageRepository") from singleton { MessageRepository(
-                instance(tag = "messagePagingSource") as PagingSource<Int, Message>,
+                instance(tag = "messageMediator") as MessageMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "chatroomMediator") from singleton { ChatroomMediator(
-                instance(tag = "chatroomRepository") as ChatroomRepository
+                instance(tag = "api") as HobbyfiAPI,
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "prefConfig") as PrefConfig
             )
         }
         bind(tag = "messageMediator") from singleton { MessageMediator(
-                instance(tag = "messageMediator") as MessageRepository,
+                instance(tag = "api") as HobbyfiAPI,
+                instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "prefConfig") as PrefConfig
             )
         }
         bind(tag = "userMediator") from singleton { UserMediator(
-                instance(tag = "userRepository") as UserRepository,
+                instance(tag = "api") as HobbyfiAPI,
+                instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "prefConfig") as PrefConfig
             )
         }

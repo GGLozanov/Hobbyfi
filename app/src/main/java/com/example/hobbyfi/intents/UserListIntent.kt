@@ -1,3 +1,5 @@
 package com.example.hobbyfi.intents
 
-sealed class UserListIntent
+sealed class UserListIntent : Intent {
+    object FetchUsers : UserListIntent()
+}
