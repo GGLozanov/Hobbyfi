@@ -1,3 +1,3 @@
 package com.example.hobbyfi.state
 
-sealed class MessageState
+sealed class UserListClass
