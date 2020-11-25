@@ -11,16 +11,20 @@
 
         <item name="colorOnBackground">@color/colorBackground</item>
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:buttonStyle">@style/ButtonColor</item>
+        <item name="android:buttonStyle">@style/RubikButtonStyle</item>
 
-        <item name="textAppearanceButton">@style/ButtonColor</item>
+        <item name="android:textAppearance">@style/RubikTextStyle</item>
+        <item name="textAppearanceButton">@style/RubikButtonStyle</item>
         <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
 
+    <style name="RubikTextStyle" parent="Widget.MaterialComponents.TextView">
+        <item name="fontFamily">@font/rubik</item>
+    </style>
 
-
-    <style name="ButtonColor" parent="TextAppearance.MaterialComponents.Button">
+    <style name="RubikButtonStyle" parent="TextAppearance.MaterialComponents.Button">
         <item name="android:textColor">@android:color/white</item>
+        <item name="fontFamily">@font/rubik</item>
     </style>
 
     <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">

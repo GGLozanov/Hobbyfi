@@ -6,7 +6,7 @@
     <!--Button & text suggesting user creates a new chatroom if they reach the bottom of chatroom list or there are no chatrooms-->
     <!--Button suggesting to reload page too-->
     <include
-        layout="@layout/refresh_list_header" />
+        layout="@layout/default_refresh_list_header" />
 
 <!--    <TextView-->
 <!--        android:layout_width="wrap_content"-->

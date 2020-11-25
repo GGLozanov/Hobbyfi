@@ -3,24 +3,29 @@ package com.example.hobbyfi.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 
 // TODO: Use this adapter with the withLoadStateFooter() method of the PagedListAdapter
-class LoaderStateAdapter(private inline val retry: () -> Unit) :
-    LoadStateAdapter<LoaderStateAdapter.LoaderViewHolder>() {
+class DefaultLoadStateAdapter(
+    private inline val retry: () -> Unit,
+    private val createChatroomButtonCallback: OnCreateChatroomButtonPressed? = null) :
+    LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
-    class LoaderViewHolder(view: View, retry: () -> Unit) : RecyclerView.ViewHolder(view) {
+    interface OnCreateChatroomButtonPressed {
+        fun onCreateChatroomButtonPress(view: View)
+    }
+
+    class DefaultLoaderViewHolder(view: View, private val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
         // TODO: Init button & error text
 
         companion object {
-            fun getInstance(parent: ViewGroup, retry: () -> Unit): LoaderViewHolder {
+            fun getInstance(parent: ViewGroup, retry: () -> Unit): DefaultLoaderViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.refresh_list_header, parent, false)
-                return LoaderViewHolder(view, retry)
+                val view = inflater.inflate(R.layout.default_refresh_list_header, parent, false)
+                return DefaultLoaderViewHolder(view, retry)
             }
         }
 
@@ -43,11 +48,11 @@ class LoaderStateAdapter(private inline val retry: () -> Unit) :
         }
     }
 
-    override fun onBindViewHolder(holder: LoaderViewHolder, loadState: LoadState) {
+    override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
         holder.bind(loadState)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, loadState: LoadState): LoaderViewHolder {
-        return LoaderViewHolder.getInstance(parent, retry)
+    override fun onCreateViewHolder(parent: ViewGroup, loadState: LoadState): DefaultLoaderViewHolder {
+        return DefaultLoaderViewHolder.getInstance(parent, retry)
     }
 }

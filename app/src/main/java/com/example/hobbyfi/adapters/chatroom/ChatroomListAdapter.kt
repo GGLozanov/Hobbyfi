@@ -10,7 +10,13 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.models.Chatroom
 
 
-class ChatroomListAdapter : PagingDataAdapter<Chatroom, ChatroomListAdapter.ChatroomListViewHolder>(DIFF_CALLBACK) {
+class ChatroomListAdapter(
+    private val onJoinChatroomButtonCallback: OnJoinChatroomButtonPressed) :
+    PagingDataAdapter<Chatroom, ChatroomListAdapter.ChatroomListViewHolder>(DIFF_CALLBACK) {
+
+    interface OnJoinChatroomButtonPressed {
+        fun onJoinChatroomButtonPress(view: View)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomListViewHolder {
         val view = LayoutInflater.from(parent.context)
