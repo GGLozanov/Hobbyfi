@@ -65,7 +65,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                     is UserState.Error -> {
                         Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
                             .show()
-                        logout()
+                        // logout()
                     }
                 }
             }
@@ -76,7 +76,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         prefConfig.writeLoginStatus(false)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
-        navController.popBackStack(R.id.loginFragment, false)
+        navController.popBackStack()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

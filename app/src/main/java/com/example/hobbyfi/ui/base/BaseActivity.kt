@@ -25,17 +25,4 @@ abstract class BaseActivity : AppCompatActivity(), KodeinAware {
         navController = findNavController(this, R.id.nav_host_fragment)
     }
 
-    override fun onBackPressed() {
-        AlertDialog.Builder(this)
-            .setMessage("Are you sure you want to leave?")
-            .setPositiveButton("Yes") { dialogInterface: DialogInterface, _: Int ->
-                dialogInterface.dismiss()
-                finish()
-            }
-            .setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
-                dialogInterface.dismiss()
-            }
-            .create()
-            .show()
-    }
 }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -122,12 +123,16 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             navController.navigate(action)
         }
 
-        val user = UserProfileFragmentArgs.fromBundle(requireActivity().intent?.extras!!)
+        var user = UserProfileFragmentArgs.fromBundle(requireActivity().intent?.extras!!)
             .user // fixme: code dup
 
+        Log.i("UserProfileFragment", "Args auth user: $user")
         lifecycleScope.launch {
-            if(user == null)
-                activityViewModel.sendIntent(UserIntent.FetchUser) else activityViewModel.setAndSaveUser(user)
+            if(user == null) {
+                if(activityViewModel.authUser.value.also { user = it } == null) {
+                    activityViewModel.sendIntent(UserIntent.FetchUser)
+                }
+            } else activityViewModel.setAndSaveUser(user!!)
         }
 
         // observe
@@ -135,7 +140,10 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             if(it != null) {
                 viewModel.description.value = it.description
                 viewModel.username.value = it.name
-                binding.profileImage.load(it.photoUrl)
+
+                if(it.photoUrl != null) {
+                    binding.profileImage.load(it.photoUrl)
+                }
                 // TODO: Send email as argument to emailchangedialogfragment for autofill
             }
         })

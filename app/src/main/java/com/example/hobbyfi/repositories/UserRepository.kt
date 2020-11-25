@@ -35,6 +35,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             Log.i("UserRepository", "getUser -> getting current user")
             return@withContext object : NetworkBoundFetcher<User, UserResponse>() {
                 override suspend fun saveNetworkResult(response: UserResponse) {
+                    prefConfig.writeLastUserFetchTimeNow()
                     saveUser(response.model)
                 }
 
@@ -46,6 +47,7 @@ class UserRepository @ExperimentalPagingApi constructor(
 
                 @RequiresApi(Build.VERSION_CODES.O)
                 override fun loadFromDb(): Flow<User?> {
+                    Log.i("UserRepository", "getUser -> ${prefConfig.readToken()}")
                     val userId = TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())
                     return hobbyfiDatabase.userDao().getUserById(userId)
                 }

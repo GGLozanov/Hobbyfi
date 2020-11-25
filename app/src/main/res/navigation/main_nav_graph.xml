@@ -43,7 +43,7 @@
         android:name="com.example.hobbyfi.ui.create.ChatroomCreateActivity"
         android:label="Create Chatroom"
         tools:layout="@layout/activity_chatroom_create" />
-    <fragment
+    <dialog
         android:id="@+id/tagSelectionDialogFragment"
         android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
         android:label="fragment_tag_selection_dialog"
@@ -57,16 +57,16 @@
         <argument
             android:name="tags"
             app:argType="com.example.hobbyfi.models.Tag[]" />
-    </fragment>
-    <fragment
+    </dialog>
+    <dialog
         android:id="@+id/customTagCreateDialogFragment"
         android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
         android:label="CustomTagCreateDialogFragment" />
-    <fragment
+    <dialog
         android:id="@+id/changeEmailDialogFragment"
         android:name="com.example.hobbyfi.ui.main.ChangeEmailDialogFragment"
         android:label="ChangeEmailDialogFragment" />
-    <fragment
+    <dialog
         android:id="@+id/changePasswordDialogFragment"
         android:name="com.example.hobbyfi.ui.main.ChangePasswordDialogFragment"
         android:label="ChangePasswordDialogFragment" />

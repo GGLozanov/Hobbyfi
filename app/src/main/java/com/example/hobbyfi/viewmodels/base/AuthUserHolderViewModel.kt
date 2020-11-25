@@ -62,6 +62,7 @@ abstract class AuthUserHolderViewModel(application: Application)
             _mainState.value = UserState.Loading
             // observe flow returned from networkBoundFetcher and change state upon emitted value
             userRepository.getUser().catch { e ->
+                e.printStackTrace()
                 _mainState.value = if(e is Repository.ReauthenticationException)
                     UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
             }.collect {

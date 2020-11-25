@@ -1,5 +1,6 @@
 package com.example.hobbyfi.adapters.user
 
+import android.util.Log
 import com.example.hobbyfi.adapters.BaseJsonDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.models.Tag
@@ -24,7 +25,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): UserResponse? {
+    ): UserResponse {
         jsonObject = json.asJsonObject
 
         val entity = User(
@@ -33,8 +34,8 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
             deserializeJSONField(Constants.USERNAME, DeserializeOption.AS_STRING) as String,
             deserializeJSONField(Constants.DESCRIPTION, DeserializeOption.AS_STRING) as String?,
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
-            gson.fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray),
-            deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_INT) as Int
+            gson.fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
+            deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_INT) as Int?
         )
 
         var response = deserializeJSONField(
@@ -45,6 +46,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
         if (response == null) {
             response = Constants.SUCCESS_RESPONSE
         }
+
         return UserResponse(response, entity)
     }
 
