@@ -42,8 +42,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
         UserProfileFragmentViewModelFactory(requireActivity().application,
-            UserProfileFragmentArgs.fromBundle(requireActivity().intent?.extras!!)
-            .user?.tags ?: emptyList())
+            activityViewModel.authUser.value?.tags ?:
+                UserProfileFragmentArgs.fromBundle(requireActivity().intent?.extras!!)
+                    .user?.tags ?: emptyList())
     })
 
     private val activityViewModel: MainActivityViewModel by activityViewModels()

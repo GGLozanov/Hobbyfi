@@ -8,6 +8,7 @@ import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
 import java.lang.reflect.Type
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.fromJson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import java.io.StringReader
@@ -17,9 +18,6 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
     val gson = GsonBuilder()
         .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
         .create()
-
-    // FIXME: slight code dup with RoomConverters.kt
-    inline fun <reified T> Gson.fromJson(json: JsonElement) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
     @Throws(JsonParseException::class)
     override fun deserialize(
