@@ -1,9 +1,6 @@
 package com.example.hobbyfi.ui.main
 
-import android.app.AlertDialog
-import android.content.DialogInterface
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -54,7 +51,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
-                        viewModel.setAndSaveUser(it.user)
+                        viewModel.setUser(it.user)
                     }
                     is UserState.OnData.UserDeleteResult -> {
                         logout()
@@ -65,7 +62,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                     is UserState.Error -> {
                         Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
                             .show()
-                        // logout()
+                        logout()
                     }
                 }
             }

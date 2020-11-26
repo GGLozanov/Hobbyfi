@@ -19,6 +19,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.utils.TokenUtils
+import io.jsonwebtoken.ExpiredJwtException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -41,15 +42,27 @@ class UserRepository @ExperimentalPagingApi constructor(
 
                 override fun shouldFetch(cache: User?): Boolean {
                     val lastUserFetchTime = prefConfig.readLastUserFetchTime()
+                    Log.i("UserRepository", "getUser => isConnected: " + connectivityManager.isConnected())
+                    Log.i("UserRepository", "getUser => shouldFetch: " + (cache == null ||
+                            ((System.currentTimeMillis() / 1000) - lastUserFetchTime) <= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()))
                     return cache == null ||
-                            ((System.currentTimeMillis() / 1000) - lastUserFetchTime) >= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()
+                            ((System.currentTimeMillis() / 1000) - lastUserFetchTime) <= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()
                 }
 
                 @RequiresApi(Build.VERSION_CODES.O)
-                override fun loadFromDb(): Flow<User?> {
+                override suspend fun loadFromDb(): Flow<User?> {
                     Log.i("UserRepository", "getUser -> ${prefConfig.readToken()}")
-                    val userId = TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())
-                    return hobbyfiDatabase.userDao().getUserById(userId)
+                    return try {
+                        val userId = TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())
+                        hobbyfiDatabase.userDao().getUserById(userId)
+                    } catch(ex: Exception) {
+                        try {
+                            Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+                        } catch(authEx: AuthorisedRequestException) {
+                            getNewTokenWithRefresh()
+                            loadFromDb()
+                        }
+                    }
                 }
 
                 override suspend fun fetchFromNetwork(): UserResponse? {
@@ -57,28 +70,25 @@ class UserRepository @ExperimentalPagingApi constructor(
                         val token = prefConfig.readToken()
                         if(token != null) hobbyfiAPI.fetchUser(token) else null
                     } catch(ex: Exception) {
-                        try {
-                            Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-                        } catch(authEx: AuthorisedRequestException) {
-                            val token = getNewTokenWithRefresh()
-                            fetchFromNetwork()
-                        }
+                        Callbacks.dissectRepositoryExceptionAndThrow(ex) // no need for authorised request handling here because token parsing already handles expired token exceptions
                     }
                 }
             }.asFlow()
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
             return@withContext try {
+                val userId = TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken()) // validate token expiry by attempting to get id
                 hobbyfiAPI.editUser(prefConfig.readToken()!!, userFields)
             } catch(ex: Exception) {
                 try {
                     Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
                 } catch(authEx: AuthorisedRequestException) {
-                    val token = getNewTokenWithRefresh()
+                    getNewTokenWithRefresh()
                     editUser(userFields) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
                 }
             }

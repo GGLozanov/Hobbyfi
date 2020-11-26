@@ -4,6 +4,8 @@ import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.PrefConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.lang.IllegalStateException
 
 abstract class Repository(protected val prefConfig: PrefConfig, protected val hobbyfiAPI: HobbyfiAPI) {
@@ -14,12 +16,14 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
         return try {
             // TODO: Constants
             if (prefConfig.readToken() != "invalid" && prefConfig.readRefreshToken() != "invalid") {
-                val token = hobbyfiAPI.fetchNewTokenWithRefresh(prefConfig.readRefreshToken()!!)
-                prefConfig.writeToken(token?.jwt!!)
-                token
+                withContext(Dispatchers.IO) {
+                    val token = hobbyfiAPI.fetchNewTokenWithRefresh(prefConfig.readRefreshToken()!!)
+                    prefConfig.writeToken(token?.jwt!!)
+                    token
+                }
             } else throw IllegalStateException()
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex, needsReauth = true)
+            Callbacks.dissectRepositoryExceptionAndThrow(ex)
         }
     }
 }

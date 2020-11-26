@@ -40,6 +40,7 @@ object TokenUtils {
         } catch (e: InvalidKeySpecException) {
             throw Exception("Invalid key parsing!")
         }
+
         val parser: JwtParser = Jwts.parserBuilder()
             .setSigningKey(rsaPublicKey)
             .build()
@@ -50,48 +51,35 @@ object TokenUtils {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getTokenUserIdFromStoredTokens(prefConfig: PrefConfig): Long? { // TODO: rename; absolutely horrid name
+    fun getTokenUserIdFromStoredTokens(prefConfig: PrefConfig): Long { // TODO: rename; absolutely horrid name
         return try {
             getTokenUserIdFromPayload(prefConfig.readToken())
-        } catch (e: ExpiredJwtException) {
-            Log.w(
-                "UserRepository",
-                "getUsers —> User's token is expired & id cannot be retrieved. Attempting to get id from refresh token."
-            )
-            try {
-                getTokenUserIdFromPayload(prefConfig.readRefreshToken())
-            } catch (x: ExpiredJwtException) {
-                Log.w(
-                    "UserRepository", "getUsers —> User needs to reauth. " +
-                            "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
-                )
-                return null
-            } catch (x: MalformedJwtException) {
-                Log.w(
-                    "UserRepository", "getUsers —> User needs to reauth. " +
-                            "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
-                )
-                return null
-            }
-        } catch (e: MalformedJwtException) {
-            Log.w(
-                "UserRepository",
-                "getUsers —> User's token is expired & id cannot be retrieved. Attempting to get id from refresh token."
-            )
-            try {
-                getTokenUserIdFromPayload(prefConfig.readRefreshToken())
-            } catch (x: ExpiredJwtException) {
-                Log.w(
-                    "UserRepository", "getUsers —> User needs to reauth. " +
-                            "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
-                )
-                return null
-            } catch (x: MalformedJwtException) {
-                Log.w(
-                    "UserRepository", "getUsers —> User needs to reauth. " +
-                            "This method will suspend and the user will be logged out after the REAUTH_FLAG response has been handled from the network entity."
-                )
-                return null
+        } catch (e: Exception) {
+            when(e) {
+                is MalformedJwtException, is ExpiredJwtException -> {
+                    Log.w(
+                        "UserRepository",
+                        "getUsers —> User's token is expired & id cannot be retrieved. Attempting to get id from refresh token."
+                    )
+
+                    // Catching exceptions & throwing them again in order to provide verbose logging for JWT expiry/invalidity flow
+                    try {
+                        getTokenUserIdFromPayload(prefConfig.readRefreshToken())
+                    } catch (x: ExpiredJwtException) {
+                        Log.w(
+                            "UserRepository", "getUsers —> User needs to reauth. " +
+                                    "This method will suspend and the user will be logged out after the response has been handled from the network entity."
+                        )
+                        throw x
+                    } catch (x: MalformedJwtException) {
+                        Log.w(
+                            "UserRepository", "getUsers —> User needs to reauth. " +
+                                    "This method will suspend and the user will be logged out after the response has been handled from the network entity."
+                        )
+                        throw x
+                    }
+                }
+                else -> throw Exception("Unrecognised failure in token claims parsing! ${e.message}")
             }
         }
     }

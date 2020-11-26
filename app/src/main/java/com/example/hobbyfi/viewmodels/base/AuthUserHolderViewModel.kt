@@ -43,11 +43,8 @@ abstract class AuthUserHolderViewModel(application: Application)
         }
     }
 
-    fun setAndSaveUser(user: User) {
+    fun setUser(user: User) {
         _authUser.value = user
-        viewModelScope.launch {
-            userRepository.saveUser(user)
-        }
     }
 
     fun updateAndSaveUser(userFields: Map<String?, String?>) {

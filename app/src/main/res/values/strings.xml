@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Hobbyfi</string>
 
+    <integer name="google_play_services_version">12451000</integer>
+
     <string name="pref_file">com.example.preference_file</string>
     <string name="pref_login_status">com.example.preference_login_status</string>
     <string name="pref_token">com.example.preference_token</string> <!--Accounts for both JWT and Facebook-->
@@ -34,8 +36,8 @@
     <string name="cancel">Cancel</string>
     <string name="confirm_fields">Confirm Fields</string>
 
-    <string name="change_password">Change\n Password</string>
-    <string name="change_email">Change\n E-mail</string>
+    <string name="change_password">Change Password</string>
+    <string name="change_email">Change E-mail</string>
     <string name="delete_account">Delete Account</string>
 
     <string name="new_email_hint">Enter New E-mail</string>

@@ -33,16 +33,20 @@
             app:destination="@id/mainActivity" />
         <action
             android:id="@+id/action_loginFragment_to_tagSelectionDialogFragment"
-            app:destination="@id/tagSelectionDialogFragment" />
+            app:destination="@id/tagSelectionDialogFragment" >
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.Tag[]" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.example.hobbyfi.ui.auth.RegisterFragment"
         android:label="Register"
         tools:layout="@layout/fragment_register">
-        <action
-            android:id="@+id/action_registerFragment_to_tagSelectionDialogFragment"
-            app:destination="@id/tagSelectionDialogFragment" />
         <action
             android:id="@+id/action_registerFragment_to_mainActivity"
             app:destination="@id/mainActivity" />
@@ -51,27 +55,18 @@
             app:destination="@id/loginFragment"
             app:popUpTo="@id/auth_nav_graph"
             app:popUpToInclusive="true" />
-    </fragment>
-    <dialog
-        android:id="@+id/tagSelectionDialogFragment"
-        android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
-        android:label="Select Tags"
-        tools:layout="@layout/fragment_tag_selection_dialog">
         <action
-            android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment2"
-            app:destination="@id/customTagCreateDialogFragment" />
-        <argument
-            android:name="selectedTags"
-            app:argType="com.example.hobbyfi.models.Tag[]" />
-        <argument
-            android:name="tags"
-            app:argType="com.example.hobbyfi.models.Tag[]" />
-    </dialog>
-    <dialog
-        android:id="@+id/customTagCreateDialogFragment"
-        android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
-        android:label="Create Tag"
-        tools:layout="@layout/fragment_custom_tag_create_dialog" />
+            android:id="@+id/action_registerFragment_to_tagSelectionDialogFragment"
+            app:destination="@id/tagSelectionDialogFragment" >
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.Tag[]" />
+        </action>
+    </fragment>
+
     <activity
         android:id="@+id/mainActivity"
         android:name="com.example.hobbyfi.ui.main.MainActivity"
@@ -82,4 +77,5 @@
             app:argType="com.example.hobbyfi.models.User"
             app:nullable="true" />
     </activity>
+    <include app:graph="@navigation/tag_nav_graph" />
 </navigation>

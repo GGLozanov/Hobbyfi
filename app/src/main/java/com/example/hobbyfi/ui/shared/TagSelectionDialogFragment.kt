@@ -6,18 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.ui.auth.LoginFragment
+import com.example.hobbyfi.ui.auth.RegisterFragment
 import com.example.hobbyfi.ui.base.BaseDialogFragment
+import com.example.hobbyfi.ui.create.ChatroomCreateActivity
 import com.example.hobbyfi.viewmodels.factories.TagSelectionDialogFragmentViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class TagSelectionDialogFragment : BaseDialogFragment() {
 
@@ -50,6 +53,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         return binding.root
     }
 
+    @ExperimentalCoroutinesApi
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
@@ -57,7 +61,6 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
             adapter.addTag(it)
             viewModel.incrementCustomTagCounter()
         }
-
 
         binding.cancelButton.setOnClickListener {
             navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, viewModel.initialSelectedTags)
@@ -71,14 +74,18 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
             dismiss()
         }
 
-        // TODO: Disable button if user profile fragment (check navigation backstack)
-        binding.customTagCreateButton.setOnClickListener {
-            if(viewModel.customTagCreateCounter >= 3) {
-                Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
-                    .show()
-                return@setOnClickListener
+        if(targetFragment is RegisterFragment || targetFragment is LoginFragment ||
+            targetFragment?.activity is ChatroomCreateActivity) { // TODO: Not sure how ChatroomCreateACTIVITY might start a dialog fragment but I'll cross that bridge when I get to it
+            binding.customTagCreateButton.setOnClickListener {
+                if(viewModel.customTagCreateCounter >= 3) {
+                    Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
+                        .show()
+                    return@setOnClickListener
+                }
+                navController.navigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)
             }
-            navController.navigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment2)
+        } else {
+            binding.customTagCreateButton.visibility = View.GONE // can't create custom tags in editing/other places
         }
     }
 

@@ -12,13 +12,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.example.hobbyfi.R
@@ -99,6 +96,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     dialogInterface.dismiss()
                 }
                 .create()
+                .show()
         }
 
         return binding.root
@@ -132,7 +130,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 if(activityViewModel.authUser.value.also { user = it } == null) {
                     activityViewModel.sendIntent(UserIntent.FetchUser)
                 }
-            } else activityViewModel.setAndSaveUser(user!!)
+            } else activityViewModel.setUser(user!!)
         }
 
         // observe
@@ -149,7 +147,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         })
 
         binding.confirmButton.setOnClickListener {
-            if(FieldUtils.isTextFieldInvalid(binding.textInputUsername) || FieldUtils.isTextFieldInvalid(binding.textInputDescription)) {
+            if(FieldUtils.isTextFieldInvalid(binding.textInputUsername) ||
+                FieldUtils.isTextFieldInvalid(binding.textInputDescription)) {
                 return@setOnClickListener
             }
             val fieldMap: MutableMap<String?, String?> = mutableMapOf()

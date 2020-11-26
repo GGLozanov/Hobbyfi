@@ -35,8 +35,8 @@ abstract class NetworkBoundFetcher<CacheModel, NetworkResponse> {
     @MainThread
     protected abstract fun shouldFetch(cache: CacheModel?): Boolean
 
-    @MainThread
-    protected abstract fun loadFromDb(): Flow<CacheModel?>
+    @WorkerThread
+    protected abstract suspend fun loadFromDb(): Flow<CacheModel?>
 
     @MainThread
     protected abstract suspend fun fetchFromNetwork(): NetworkResponse? // handles/throws network exceptions

@@ -10,13 +10,24 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/rounded_container_grey"
+        android:padding="15dp"
         tools:context=".ui.main.ChangeEmailDialogFragment">
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/new_email_header"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:text="@string/change_email"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/new_email_input_field"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
         </com.google.android.material.textview.MaterialTextView>
 
@@ -25,14 +36,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
             android:hint="@string/email_hint"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
             app:hintEnabled="true"
-            app:layout_constraintBottom_toTopOf="@+id/password_input_field"
+            app:layout_constraintBottom_toTopOf="@id/password_input_field"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/new_email_header"
             app:startIconDrawable="@drawable/ic_baseline_email_white_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -55,13 +66,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
             android:hint="@string/password_hint"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
             app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@id/confirm_password_input_field"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/new_email_input_field"
             app:startIconDrawable="@drawable/ic_baseline_security_white_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -79,45 +91,18 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/new_password_input_field"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:hint="@string/password_hint"
-            app:endIconMode="clear_text"
-            app:errorEnabled="true"
-            app:hintEnabled="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:startIconDrawable="@drawable/ic_baseline_security_white_24">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/text_input_new_password"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="true"
-                android:inputType="textPassword"
-                android:singleLine="true"
-                tools:layout_conversion_absoluteHeight="45dp"
-                tools:layout_conversion_absoluteWidth="20dp"
-                tools:layout_editor_absoluteX="4dp"
-                tools:layout_editor_absoluteY="4dp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/confirm_password_input_field"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
             android:hint="@string/confirm_password_hint"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
             app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@id/button_bar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/password_input_field"
             app:startIconDrawable="@drawable/ic_baseline_security_white_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -134,5 +119,33 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <LinearLayout
+            android:id="@+id/button_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/confirm_password_input_field">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cancel_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp">
+
+            </com.google.android.material.button.MaterialButton>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/confirm_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="10dp">
+
+            </com.google.android.material.button.MaterialButton>
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
