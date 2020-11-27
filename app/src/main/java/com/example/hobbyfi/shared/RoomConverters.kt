@@ -14,18 +14,18 @@ class RoomConverters {
         .create() // TODO: Extract this into singleton (DI)
 
     @TypeConverter
-    fun fromRemoteKeyType(value: RemoteKeyType): String? = value.name
+    fun fromRemoteKeyType(value: RemoteKeyType): String = value.name
 
     @TypeConverter
-    fun toRemoteKeyType(value: String): RemoteKeyType? = enumValueOf<RemoteKeyType>(value)
+    fun toRemoteKeyType(value: String): RemoteKeyType = enumValueOf<RemoteKeyType>(value)
 
     @TypeConverter
-    fun fromTagList(value: List<Tag>): String {
+    fun fromTagList(value: List<Tag>?): String {
         return gson.toJson(value)
     }
 
     @TypeConverter
-    fun toTagList(value: String): List<Tag> {
+    fun toTagList(value: String): List<Tag>? {
         return gson.fromJson<List<Tag>>(value)
     }
 }

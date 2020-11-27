@@ -4,17 +4,14 @@ import android.util.Log
 import com.example.hobbyfi.adapters.BaseJsonDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.responses.UserResponse
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
 import java.lang.reflect.Type
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.fromJson
-import com.google.gson.reflect.TypeToken
-import com.google.gson.stream.JsonReader
-import java.io.StringReader
 
-class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
+class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
 
     val gson = GsonBuilder()
         .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
@@ -25,7 +22,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
         json: JsonElement,
         typeOfT: Type?,
         context: JsonDeserializationContext?
-    ): UserResponse {
+    ): CacheResponse<User> {
         jsonObject = json.asJsonObject
 
         val entity = User(
@@ -38,6 +35,8 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
             deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_INT) as Int?
         )
 
+        Log.i("UserResponseDes", "User deserialized: $entity")
+
         var response = deserializeJSONField(
             Constants.RESPONSE,
             DeserializeOption.AS_STRING
@@ -47,7 +46,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<UserResponse>() {
             response = Constants.SUCCESS_RESPONSE
         }
 
-        return UserResponse(response, entity)
+        return CacheResponse(response, entity)
     }
 
 

@@ -44,10 +44,10 @@
     <string name="new_password_hint">Enter New Password</string>
     <string name="confirm_password_hint">Confirm Password</string>
     <string name="confirm_new_password_hint">Confirm New Password</string>
-    <string name="title_activity_event_maps">Map</string>
+    <string name="title_activity_event_maps">Event Map</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_chatroom">ChatroomActivity</string>
+    <string name="title_activity_chatroom">Chatroom Create</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

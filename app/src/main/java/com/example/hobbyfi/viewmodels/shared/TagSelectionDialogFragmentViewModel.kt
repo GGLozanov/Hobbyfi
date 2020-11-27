@@ -8,7 +8,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 
-class TagSelectionDialogFragmentViewModel(application: Application, val initialSelectedTags: MutableList<Tag>) : BaseViewModel(application) {
+class TagSelectionDialogFragmentViewModel(application: Application, val initialSelectedTags: List<Tag>) : BaseViewModel(application) {
 
     var customTagCreateCounter: Int = 0
     // TODO: Change to List<Int> for tag ids?

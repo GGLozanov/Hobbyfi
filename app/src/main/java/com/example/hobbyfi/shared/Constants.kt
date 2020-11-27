@@ -72,6 +72,7 @@ object Constants {
 
     const val name = "name"
     const val colour = "colour"
+    const val isFromFacebook: String = "is_from_facebook"
 
     const val profileImageWidth = 175
     const val profileImageHeight = 135

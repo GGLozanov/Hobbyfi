@@ -19,8 +19,9 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
     // FIXME: Code dup >:(
     private val _tags: MutableList<Tag> = (Constants.predefinedTags + initialTags).toMutableList()
     val tags: List<Tag> get() = _tags
+
     private var _selectedTags: List<Tag> = initialTags
-    // this livedata instance will have its value updated once the tag selection dialog fragment finishes its workTag
+    // this list instance will have its value updated once the tag selection dialog fragment finishes its workTag
     val selectedTags: List<Tag> get() = _selectedTags
 
     private var _base64Image: String? = null
@@ -47,5 +48,11 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
 
     fun setSelectedTags(selectedTags: List<Tag>) {
         _selectedTags = selectedTags
+    }
+
+    fun addTags(tags: List<Tag>?) {
+        if(tags != null) {
+            _tags += tags
+        }
     }
 }

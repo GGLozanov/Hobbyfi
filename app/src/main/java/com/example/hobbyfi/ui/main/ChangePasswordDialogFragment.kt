@@ -27,10 +27,11 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             layoutInflater, R.layout.fragment_change_password_dialog,
             container, false
         )
+
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this
-
-
-        return binding.root
+        with(binding) {
+            lifecycleOwner = this@ChangePasswordDialogFragment
+            return@onCreateView root
+        }
     }
 }

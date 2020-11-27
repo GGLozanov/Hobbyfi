@@ -7,7 +7,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.ui.shared.TagSelectionDialogFragment
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 
-class TagSelectionDialogFragmentViewModelFactory(val application: Application, val initialTags: MutableList<Tag>) : ViewModelProvider.Factory {
+class TagSelectionDialogFragmentViewModelFactory(val application: Application, val initialTags: List<Tag>) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(TagSelectionDialogFragmentViewModel::class.java)) {
             return TagSelectionDialogFragmentViewModel(application, initialTags) as T

@@ -7,7 +7,6 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import java.lang.Exception
-import java.lang.reflect.Type
 
 class TagTypeAdapter : TypeAdapter<Tag>() {
 
@@ -21,6 +20,8 @@ class TagTypeAdapter : TypeAdapter<Tag>() {
         out.value(value.name)
         out.name(Constants.colour)
         out.value(value.colour)
+        out.name(Constants.isFromFacebook)
+        out.value(value.isFromFacebook)
         out.endObject()
     }
 
@@ -32,6 +33,7 @@ class TagTypeAdapter : TypeAdapter<Tag>() {
         reader.beginObject()
         var tagName: String? = null
         var tagColour: String? = null
+        var tagFacebook = false
 
         while(reader.hasNext()) {
             var token = reader.peek()
@@ -43,12 +45,14 @@ class TagTypeAdapter : TypeAdapter<Tag>() {
                     tagColour = reader.nextString()
                 } else if(name == Constants.name) {
                     tagName = reader.nextString()
+                } else if(name == Constants.isFromFacebook) {
+                    tagFacebook = reader.nextBoolean()
                 }
             }
         }
 
         reader.endObject()
 
-        return Tag(tagName!!, tagColour!!)
+        return Tag(tagName!!, tagColour!!, tagFacebook)
     }
 }

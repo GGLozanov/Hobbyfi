@@ -1,6 +1,7 @@
 package com.example.hobbyfi.repositories
 
 import android.util.Log
+import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
@@ -11,10 +12,13 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.ColourUtils
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
+import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 import retrofit2.HttpException
+import java.io.BufferedWriter
+import java.io.StringWriter
 
 class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Repository(prefConfig, hobbyfiAPI) {
     suspend fun getRegisterToken(
@@ -25,6 +29,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
                     + email + "; username:" + username + "; description: " + description + "; image: " + base64Image + "; tags: " + tags + "\n register token")
+
             return@withContext try {
                 hobbyfiAPI.fetchRegistrationToken(
                     facebookToken,

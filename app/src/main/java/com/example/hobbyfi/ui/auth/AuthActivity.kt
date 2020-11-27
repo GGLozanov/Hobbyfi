@@ -23,10 +23,12 @@ class AuthActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAuthBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
+        with(binding) {
+            val view = root
+            setContentView(view)
 
-        setSupportActionBar(binding.toolbar)
+            setSupportActionBar(toolbar)
+        }
     }
 
     override fun onStart() {

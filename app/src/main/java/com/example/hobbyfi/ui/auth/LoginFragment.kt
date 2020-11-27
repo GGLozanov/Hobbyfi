@@ -62,26 +62,28 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this
+        with(binding) {
+            lifecycleOwner = this@LoginFragment
 
-        val view: View = binding.root
+            val view: View = root
 
-        binding.switchToRegisterSubtitle.setOnClickListener {
-            navController.navigate(R.id.action_loginFragment_to_registerFragment)
-        }
-
-        binding.loginButton.setOnClickListener {
-            if(FieldUtils.isTextFieldInvalid(binding.textInputEmail) ||
-                FieldUtils.isTextFieldInvalid(binding.textInputPassword)) {
-                return@setOnClickListener
+            switchToRegisterSubtitle.setOnClickListener {
+                navController.navigate(R.id.action_loginFragment_to_registerFragment)
             }
 
-            lifecycleScope.launch {
-                viewModel.sendIntent(TokenIntent.FetchLoginToken)
-            }
-        }
+            loginButton.setOnClickListener {
+                if(FieldUtils.isTextFieldInvalid(textInputEmail) ||
+                    FieldUtils.isTextFieldInvalid(textInputPassword)) {
+                    return@setOnClickListener
+                }
 
-        return view
+                lifecycleScope.launch {
+                    viewModel!!.sendIntent(TokenIntent.FetchLoginToken)
+                }
+            }
+
+            return@onCreateView view
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -105,15 +107,15 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.TokenReceived -> {
                         login(
-                            null,
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(null),
                             it.token?.jwt,
-                            it.token?.refreshJwt
+                            it.token?.refreshJwt,
                         )
                     }
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
                         login(
-                            User(
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(User(
                                 Integer.parseInt(Profile.getCurrentProfile().id)
                                     .toLong(), // this will freaking die if Facebook changes their ID schema
                                 viewModel.email.value,
@@ -123,7 +125,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 viewModel.selectedTags,
                                 null
                             )
-                        )
+                        ))
                     }
                 }
             }
@@ -143,7 +145,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         }
                     }
                     is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
-                        val action = LoginFragmentDirections.actionLoginFragmentToTagSelectionDialogFragment(
+                        val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                             viewModel.selectedTags.toTypedArray(),
                             viewModel.tags
                                 .toTypedArray() + it.tags
@@ -152,7 +154,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is FacebookState.Error -> {
                         if(it.equals(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)) {
-                            val action = LoginFragmentDirections.actionLoginFragmentToTagSelectionDialogFragment(
+                            val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                 viewModel.selectedTags.toTypedArray(),
                                 viewModel.tags
                                     .toTypedArray()
@@ -213,35 +215,37 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     private fun initFacebookLogin() {
         val shouldRegister: Boolean = AccessToken.getCurrentAccessToken() == null && Profile.getCurrentProfile() == null
 
-        binding.facebookButton.setPermissions(listOf("email", "user_likes"))
-        binding.facebookButton.fragment = this
-        binding.facebookButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
-            override fun onSuccess(loginResult: LoginResult?) {
-                // TODO: Should request for tags be intent or not since user doesn't know about it?
-                Log.i("LoginFragment", "Triggered w/ loging result $loginResult")
+        with(binding.facebookButton) {
+            setPermissions(listOf("email", "user_likes"))
+            fragment = this@LoginFragment
+            registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
+                override fun onSuccess(loginResult: LoginResult?) {
+                    // TODO: Should request for tags be intent or not since user doesn't know about it?
+                    Log.i("LoginFragment", "Triggered w/ loging result $loginResult")
 
-                if(shouldRegister) {
-                    lifecycleScope.launch {
-                        viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserEmail)
+                    if(shouldRegister) {
+                        lifecycleScope.launch {
+                            viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserEmail)
+                        }
+                    } else {
+                        // TODO: repetition
+                        login(
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(null)
+                        )
                     }
-                } else {
-                    // TODO: repetition
-                    login(
-                        null
-                    )
                 }
-            }
 
-            override fun onCancel() {
-                Toast.makeText(context, "Facebook login cancelled!", Toast.LENGTH_LONG)
-                    .show()
-            }
+                override fun onCancel() {
+                    Toast.makeText(context, "Facebook login cancelled!", Toast.LENGTH_LONG)
+                        .show()
+                }
 
-            override fun onError(exception: FacebookException) {
-                Toast.makeText(context, "Facebook login error!", Toast.LENGTH_LONG)
-                    .show()
-            }
-        })
+                override fun onError(exception: FacebookException) {
+                    Toast.makeText(context, "Facebook login error!", Toast.LENGTH_LONG)
+                        .show()
+                }
+            })
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

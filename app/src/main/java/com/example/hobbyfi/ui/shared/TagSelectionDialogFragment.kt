@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.shared
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,10 +13,7 @@ import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.ui.auth.LoginFragment
-import com.example.hobbyfi.ui.auth.RegisterFragment
 import com.example.hobbyfi.ui.base.BaseDialogFragment
-import com.example.hobbyfi.ui.create.ChatroomCreateActivity
 import com.example.hobbyfi.viewmodels.factories.TagSelectionDialogFragmentViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
@@ -28,11 +26,13 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     private val args: TagSelectionDialogFragmentArgs by navArgs()
 
     private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
-        TagSelectionDialogFragmentViewModelFactory(requireActivity().application, args.selectedTags.toMutableList())
+        TagSelectionDialogFragmentViewModelFactory(requireActivity().application, args.selectedTags.toList())
     })
 
     private var _binding: FragmentTagSelectionDialogBinding? = null
     private val binding get() = _binding!!
+
+    private var dismissedFromConfirm = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,13 +44,14 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
         adapter = TagListAdapter(
             args.tags.toMutableList(),
-            viewModel.initialSelectedTags
+            viewModel.initialSelectedTags.toMutableList() // new list to modify tags
         )
 
-        binding.tagList.addItemDecoration(VerticalSpaceItemDecoration(5))
-        binding.tagList.adapter = adapter
-
-        return binding.root
+        with(binding) {
+            tagList.addItemDecoration(VerticalSpaceItemDecoration(5))
+            tagList.adapter = adapter
+            return@onCreateView root
+        }
     }
 
     @ExperimentalCoroutinesApi
@@ -62,35 +63,39 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
             viewModel.incrementCustomTagCounter()
         }
 
-        binding.cancelButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, viewModel.initialSelectedTags)
-
-            dismiss()
+        with(binding) {
+            cancelButton.setOnClickListener { dismiss() }
+            confirmTagsButton.setOnClickListener { dismissedFromConfirm = true
+                dismiss() }
         }
 
-        binding.confirmTagsButton.setOnClickListener {
-            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey, adapter.getSelectedTags())
-
-            dismiss()
-        }
-
-        if(targetFragment is RegisterFragment || targetFragment is LoginFragment ||
-            targetFragment?.activity is ChatroomCreateActivity) { // TODO: Not sure how ChatroomCreateACTIVITY might start a dialog fragment but I'll cross that bridge when I get to it
-            binding.customTagCreateButton.setOnClickListener {
-                if(viewModel.customTagCreateCounter >= 3) {
-                    Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
-                        .show()
-                    return@setOnClickListener
+        with(navController.previousBackStackEntry?.destination) {
+            val targetFragmentId = this?.id
+            if(targetFragmentId == R.id.registerFragment || targetFragmentId == R.id.loginFragment ||
+                    this?.parent?.id == R.id.chatroom_create_nav_graph) {
+                binding.customTagCreateButton.setOnClickListener {
+                    if(viewModel.customTagCreateCounter >= 3) {
+                        Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
+                            .show()
+                        return@setOnClickListener
+                    }
+                    navController.navigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)
                 }
-                navController.navigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)
+            } else {
+                binding.customTagCreateButton.visibility = View.GONE // can't create custom tags in editing/other places
             }
-        } else {
-            binding.customTagCreateButton.visibility = View.GONE // can't create custom tags in editing/other places
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null // nullify the binding (fragment outlives the binding)
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey,
+            if(adapter.getSelectedTags() == viewModel.initialSelectedTags && !dismissedFromConfirm) viewModel.initialSelectedTags else adapter.getSelectedTags()
+        )
     }
 }

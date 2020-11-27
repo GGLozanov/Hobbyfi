@@ -15,7 +15,9 @@
             app:destination="@id/loginFragment" />
         <action
             android:id="@+id/action_splashScreenFragment_to_mainActivity"
-            app:destination="@id/mainActivity" />
+            app:destination="@id/mainActivity"
+            app:popUpTo="@id/auth_nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/loginFragment"
@@ -30,10 +32,12 @@
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_loginFragment_to_mainActivity"
-            app:destination="@id/mainActivity" />
+            app:destination="@id/mainActivity"
+            app:popUpTo="@id/auth_nav_graph"
+            app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_loginFragment_to_tagSelectionDialogFragment"
-            app:destination="@id/tagSelectionDialogFragment" >
+            android:id="@+id/action_loginFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
                 app:argType="com.example.hobbyfi.models.Tag[]" />
@@ -49,15 +53,17 @@
         tools:layout="@layout/fragment_register">
         <action
             android:id="@+id/action_registerFragment_to_mainActivity"
-            app:destination="@id/mainActivity" />
+            app:destination="@id/mainActivity"
+            app:popUpTo="@id/auth_nav_graph"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_registerFragment_to_loginFragment"
             app:destination="@id/loginFragment"
             app:popUpTo="@id/auth_nav_graph"
             app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_registerFragment_to_tagSelectionDialogFragment"
-            app:destination="@id/tagSelectionDialogFragment" >
+            android:id="@+id/action_registerFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
                 app:argType="com.example.hobbyfi.models.Tag[]" />

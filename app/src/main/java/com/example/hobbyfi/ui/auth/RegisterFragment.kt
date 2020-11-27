@@ -62,54 +62,57 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
 
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this
 
-        val view = binding.root
+        with(binding) {
+            lifecycleOwner = this@RegisterFragment
 
-        initTextFieldValidators()
+            val view = root
 
-        binding.profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
-            if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                val selectImageIntent = Intent()
-                selectImageIntent.type = "image/*" // set MIME data type to all images
+            initTextFieldValidators()
 
-                selectImageIntent.action =
-                    Intent.ACTION_GET_CONTENT // set the desired action to get image
+            profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
+                if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    val selectImageIntent = Intent()
+                    selectImageIntent.type = "image/*" // set MIME data type to all images
 
-                startActivityForResult(
-                    selectImageIntent,
-                    imageRequestCode
-                ) // start activity and await result
-            } else {
-                EasyPermissions.requestPermissions(this, getString(R.string.read_external_storage_rationale),
-                    200, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    selectImageIntent.action =
+                        Intent.ACTION_GET_CONTENT // set the desired action to get image
+
+                    startActivityForResult(
+                        selectImageIntent,
+                        imageRequestCode
+                    ) // start activity and await result
+                } else {
+                    EasyPermissions.requestPermissions(this@RegisterFragment, getString(R.string.read_external_storage_rationale),
+                        200, Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
             }
+
+            registerAccountButton.setOnClickListener {
+                if(FieldUtils.isTextFieldInvalid(textInputEmail) ||
+                    FieldUtils.isTextFieldInvalid(textInputPassword) ||
+                    FieldUtils.isTextFieldInvalid(textInputUsername) ||
+                    FieldUtils.isTextFieldInvalid(textInputConfirmPassword) ||
+                    FieldUtils.isTextFieldInvalid(textInputDescription)) {
+                    Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
+                        .show() // TODO: Extract into separate error text
+                    return@setOnClickListener
+                }
+
+                lifecycleScope.launch {
+                    viewModel!!.sendIntent(TokenIntent.FetchRegisterToken)
+                }
+            }
+
+            return view
         }
-
-        binding.registerAccountButton.setOnClickListener {
-            if(FieldUtils.isTextFieldInvalid(binding.textInputEmail) ||
-                FieldUtils.isTextFieldInvalid(binding.textInputPassword) ||
-                FieldUtils.isTextFieldInvalid(binding.textInputUsername) ||
-                FieldUtils.isTextFieldInvalid(binding.textInputConfirmPassword) ||
-                    FieldUtils.isTextFieldInvalid(binding.textInputDescription)) {
-                Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
-                    .show() // TODO: Extract into separate error text
-                return@setOnClickListener
-            }
-
-            lifecycleScope.launch {
-                viewModel.sendIntent(TokenIntent.FetchRegisterToken)
-            }
-        }
-
-        return view
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tagSelectButton.setOnClickListener {
-            val action = RegisterFragmentDirections.actionRegisterFragmentToTagSelectionDialogFragment(
+            val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
                 viewModel.selectedTags.toTypedArray(),
                 viewModel.tags.toTypedArray()
             )
@@ -132,7 +135,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
 
                         login(
-                            User(
+                            RegisterFragmentDirections.actionRegisterFragmentToMainActivity(User(
                                 id,
                                 viewModel.email.value!!,
                                 viewModel.username.value!!,
@@ -141,7 +144,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                                         + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
                                 viewModel.selectedTags, // TODO: User has null tags or just an empty list?
                                 null
-                            ),
+                            )),
                             it.token?.jwt,
                             it.token?.refreshJwt
                         )

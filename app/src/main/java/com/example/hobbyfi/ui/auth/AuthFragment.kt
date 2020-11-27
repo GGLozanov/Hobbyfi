@@ -1,12 +1,13 @@
 package com.example.hobbyfi.ui.auth
 
 import android.util.Log
+import androidx.navigation.NavDirections
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
 
 abstract class AuthFragment : BaseFragment(), OnAuthStateChanged {
-    override fun login(user: User?, token: String?, refreshToken: String?) {
+    override fun login(action: NavDirections, token: String?, refreshToken: String?) {
         if(token != null) {
             prefConfig.writeToken(token)
         }
@@ -16,9 +17,6 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged {
         }
 
         prefConfig.writeLoginStatus(true)
-        val action = LoginFragmentDirections.actionLoginFragmentToMainActivity(
-            user
-        )
         navController.navigate(action)
     }
 }

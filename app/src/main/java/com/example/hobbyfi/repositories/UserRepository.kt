@@ -8,21 +8,18 @@ import androidx.lifecycle.LiveData
 import androidx.paging.*
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
-import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
+import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
-import com.example.hobbyfi.responses.UserResponse
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.utils.TokenUtils
-import io.jsonwebtoken.ExpiredJwtException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 
 // fetches both auth users & chatroom users (map<string, user>)
@@ -34,8 +31,8 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun getUser(): Flow<User?> {
         return withContext(Dispatchers.IO) {
             Log.i("UserRepository", "getUser -> getting current user")
-            return@withContext object : NetworkBoundFetcher<User, UserResponse>() {
-                override suspend fun saveNetworkResult(response: UserResponse) {
+            return@withContext object : NetworkBoundFetcher<User, CacheResponse<User>>() {
+                override suspend fun saveNetworkResult(response: CacheResponse<User>) {
                     prefConfig.writeLastUserFetchTimeNow()
                     saveUser(response.model)
                 }
@@ -65,10 +62,14 @@ class UserRepository @ExperimentalPagingApi constructor(
                     }
                 }
 
-                override suspend fun fetchFromNetwork(): UserResponse? {
+                override suspend fun fetchFromNetwork(): CacheResponse<User>? {
                     return try {
                         val token = prefConfig.readToken()
-                        if(token != null) hobbyfiAPI.fetchUser(token) else null
+                        if(token != null) {
+                            val response = hobbyfiAPI.fetchUser(token)
+                            Log.i("UserRepository", "getUser -> ${response?.model}")
+                            response
+                        } else null
                     } catch(ex: Exception) {
                         Callbacks.dissectRepositoryExceptionAndThrow(ex) // no need for authorised request handling here because token parsing already handles expired token exceptions
                     }

@@ -3,27 +3,34 @@ package com.example.hobbyfi.api
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
 import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.adapters.user.UserResponseDeserializer
+import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import org.kodein.di.javaType
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
 
 
-interface HobbyfiAPI {
+interface
+HobbyfiAPI {
 
     /**
      * FormUrlEncoded POST request to create a new User resource with given credentials
@@ -75,8 +82,7 @@ interface HobbyfiAPI {
     @GET("api/v1.0/user/read")
     suspend fun fetchUser(
         @Header(Constants.AUTH_HEADER) token: String // id inside token for DB query; token inside auth header
-    ): UserResponse?
-
+    ): CacheResponse<User>?
 
     /**
      * GET request to fetch all other users apart from the authenticated (auth'd) one
@@ -87,7 +93,7 @@ interface HobbyfiAPI {
     fun fetchChatroomUsers(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.PAGE) page: Int
-    ): Map<String?, UserResponse?>? // FIXME: Modify to List<UserResponse> for new API
+    ): List<User>? // FIXME: Modify to List<UserResponse> for new API
 
     /**
      * POST request to update a given user with the params specified in the body
@@ -142,16 +148,17 @@ interface HobbyfiAPI {
                     GsonConverterFactory.create(
                         GsonBuilder()
                             .serializeNulls()
+                            .setLenient()
                             .registerTypeAdapter(
-                                UserResponse::class.java,
+                                TypeToken.getParameterized(CacheResponse::class.java, User::class.java).type,
                                 UserResponseDeserializer()
                             )
                             .registerTypeAdapter(
-                                ChatroomResponse::class.java,
+                                TypeToken.getParameterized(CacheResponse::class.java, Chatroom::class.java).type,
                                 ChatroomResponseDeserializer()
                             )
                             .registerTypeAdapter(
-                                MessageResponse::class.java,
+                                TypeToken.getParameterized(CacheListResponse::class.java, Message::class.java).type,
                                 MessageResponseDeserializer()
                             )
                             .registerTypeAdapter(

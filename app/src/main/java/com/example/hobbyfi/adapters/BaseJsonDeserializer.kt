@@ -10,6 +10,7 @@ abstract class BaseJsonDeserializer<T> : JsonDeserializer<T> {
         AS_STRING, AS_INT, AS_LONG, AS_ARRAY
     }
 
+    // TODO: Bad function. Delete
     protected fun deserializeJSONField(field: String, flag: DeserializeOption): Any? {
         val jsonElement = jsonObject?.get(field)
         return if (jsonElement != null && !jsonElement.isJsonNull) {

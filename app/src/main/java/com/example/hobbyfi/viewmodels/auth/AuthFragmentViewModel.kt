@@ -20,7 +20,6 @@ abstract class AuthFragmentViewModel(application: Application)
 
     protected val tokenRepository: TokenRepository by instance(tag = "tokenRepository")
 
-    // TODO: Extract tag functionality into interface+class delegate
     protected val _tags: MutableList<Tag> = Constants.predefinedTags.toMutableList()
     val tags: List<Tag> get() = _tags
     protected var _selectedTags: List<Tag> = emptyList()
@@ -35,5 +34,13 @@ abstract class AuthFragmentViewModel(application: Application)
 
     fun setSelectedTags(tags: List<Tag>) {
         _selectedTags = tags
+    }
+
+    fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
+        selectedTags.forEach {
+            if(!_tags.contains(it)) {
+                _tags.add(it)
+            }
+        }
     }
 }

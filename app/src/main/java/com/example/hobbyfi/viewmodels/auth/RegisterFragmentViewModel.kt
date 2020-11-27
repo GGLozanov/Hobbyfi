@@ -67,12 +67,4 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
             }
         }
     }
-
-    fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
-        selectedTags.forEach {
-            if(!_tags.contains(it)) {
-                _tags.add(it)
-            }
-        }
-    }
 }

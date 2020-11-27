@@ -24,8 +24,8 @@
             android:id="@+id/action_userProfileFragment_to_changePasswordDialogFragment"
             app:destination="@id/changePasswordDialogFragment" />
         <action
-            android:id="@+id/action_userProfileFragment_to_tagSelectionDialogFragment"
-            app:destination="@id/tagSelectionDialogFragment" >
+            android:id="@+id/action_userProfileFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
                 app:argType="com.example.hobbyfi.models.Tag[]" />

@@ -31,8 +31,10 @@ import com.example.hobbyfi.viewmodels.factories.UserProfileFragmentViewModelFact
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
+import com.google.gson.Gson
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import org.kodein.di.generic.instance
 import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
@@ -114,7 +116,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         }
 
         binding.tagSelectButton.setOnClickListener {
-            val action = UserProfileFragmentDirections.actionUserProfileFragmentToTagSelectionDialogFragment(
+            val action = UserProfileFragmentDirections.actionUserProfileFragmentToTagNavGraph(
                 viewModel.selectedTags.toTypedArray(),
                 viewModel.tags.toTypedArray()
             )
@@ -138,6 +140,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             if(it != null) {
                 viewModel.description.value = it.description
                 viewModel.username.value = it.name
+                viewModel.addTags(it.tags)
 
                 if(it.photoUrl != null) {
                     binding.profileImage.load(it.photoUrl)
@@ -159,6 +162,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
             if(user?.description != viewModel.description.value) {
                 fieldMap[Constants.DESCRIPTION] = viewModel.description.value
+            }
+
+            if(user?.tags != viewModel.selectedTags) {
+                fieldMap[Constants.TAGS] = (instance<Gson>("tagGson") as Gson)
+                    .toJson(viewModel.selectedTags)
             }
 
             if(viewModel.base64Image != null) { // means user has changed their pfp

@@ -10,9 +10,11 @@ import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
 import androidx.paging.RemoteMediator
+import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator
@@ -22,6 +24,7 @@ import com.example.hobbyfi.repositories.*
 import com.example.hobbyfi.shared.PrefConfig
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
+import com.google.gson.GsonBuilder
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
@@ -99,6 +102,11 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "prefConfig") as PrefConfig
             )
+        }
+        bind(tag = "tagGson") from singleton {
+            GsonBuilder()
+                .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
+                .create()
         }
         // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
         // OR TODO: Might need to keep these as singletons. Heck if I know

@@ -28,18 +28,22 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
-        setSupportActionBar(binding.toolbar)
+        with(binding) {
+            val view = root
+            setContentView(view)
+            setSupportActionBar(toolbar)
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        binding.bottomNav.setupWithNavController(navController)
-        binding.toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(
-            R.id.userProfileFragment,
-            R.id.chatroomListFragment
-        )))
+        with(binding) {
+            bottomNav.setupWithNavController(navController)
+            toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(
+                R.id.userProfileFragment,
+                R.id.chatroomListFragment
+            )))
+        }
 
         lifecycleScope.launch {
             viewModel.mainState.collect {
@@ -73,7 +77,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         prefConfig.writeLoginStatus(false)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
-        navController.popBackStack()
+        finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
