@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
@@ -15,15 +16,20 @@ import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.OnAuthStateReset
+import com.example.hobbyfi.viewmodels.factories.MainActivityViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
+import com.facebook.login.LoginManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
-    private val viewModel: MainActivityViewModel by viewModels()
+    private val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
+        MainActivityViewModelFactory(application, args.isFacebookUser, args.user)
+    })
     private lateinit var binding: ActivityMainBinding
+    private val args: MainActivityArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +80,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     override fun logout() {
-        prefConfig.writeLoginStatus(false)
+        LoginManager.getInstance().logOut()
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
         finish()
@@ -93,5 +99,9 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         }
 
         return true
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
     }
 }

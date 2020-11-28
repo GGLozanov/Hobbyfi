@@ -12,6 +12,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentCustomTagCreateDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
@@ -53,7 +54,7 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         }
 
         binding.confirmCustomTagButton.setOnClickListener {
-            if(FieldUtils.isTextFieldInvalid(binding.textInputTagName)) {
+            if(assertTextFieldsInvalidity()) {
                 return@setOnClickListener
             }
 
@@ -69,13 +70,14 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         return binding.root
     }
 
-    override fun initTextFieldValidators() {
-        binding.textInputTagName.addTextChangedListener(PredicateTextWatcher(
-            binding.textInputTagName,
-            Constants.tagNameInputError,
-            Predicate {
-                return@Predicate it.isEmpty() || it.length > 25
-            }
-        ))
+    override fun initTextFieldValidators() = binding.textInputTagName.addTextChangedListener(
+        Constants.tagNameInputError,
+        Predicate {
+            return@Predicate it.isEmpty() || it.length > 25
+        }
+    )
+
+    override fun assertTextFieldsInvalidity(): Boolean {
+        return FieldUtils.isTextFieldInvalid(binding.textInputTagName)
     }
 }

@@ -21,8 +21,6 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
     }
 
-    override val _mainState: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
-
     override fun handleIntent() {
         viewModelScope.launch {
             mainIntent.consumeAsFlow().collect {

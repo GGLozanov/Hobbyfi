@@ -16,11 +16,13 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application)
+abstract class AuthUserHolderViewModel(application: Application, protected val _isFacebookAuthUser: Boolean, user: User?)
     : StateIntentViewModel<UserState, UserIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
-    protected var _authUser: MutableLiveData<User?> = MutableLiveData(null) // mainactivity observes state, ProfileFragment sends intent & this fetches, lifecycle-aware stateflow receives state update & triggers UI update
+    val isFacebookUser: Boolean = _isFacebookAuthUser
+
+    protected var _authUser: MutableLiveData<User?> = MutableLiveData(user)
     val authUser: LiveData<User?> get() = _authUser
 
     override val _mainState: MutableStateFlow<UserState> = MutableStateFlow(UserState.Idle)
@@ -58,7 +60,7 @@ abstract class AuthUserHolderViewModel(application: Application)
         viewModelScope.launch {
             _mainState.value = UserState.Loading
             // observe flow returned from networkBoundFetcher and change state upon emitted value
-            userRepository.getUser().catch { e ->
+            userRepository.getUser(_isFacebookAuthUser).catch { e ->
                 e.printStackTrace()
                 _mainState.value = if(e is Repository.ReauthenticationException)
                     UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
@@ -76,7 +78,7 @@ abstract class AuthUserHolderViewModel(application: Application)
 
             _mainState.value = try {
                 UserState.OnData.UserUpdateResult(
-                    userRepository.editUser(userFields),
+                    userRepository.editUser(_isFacebookAuthUser, userFields),
                     userFields
                 )
             } catch(reauthEx: Repository.ReauthenticationException) {
@@ -98,7 +100,7 @@ abstract class AuthUserHolderViewModel(application: Application)
 
             _mainState.value = try {
                 UserState.OnData.UserDeleteResult(
-                    userRepository.deleteUser()
+                    userRepository.deleteUser(_isFacebookAuthUser)
                 )
             } catch(reauthEx: Repository.ReauthenticationException) {
                 UserState.Error(

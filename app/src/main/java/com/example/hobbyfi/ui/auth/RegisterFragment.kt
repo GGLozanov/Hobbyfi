@@ -23,6 +23,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -89,11 +90,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             }
 
             registerAccountButton.setOnClickListener {
-                if(FieldUtils.isTextFieldInvalid(textInputEmail) ||
-                    FieldUtils.isTextFieldInvalid(textInputPassword) ||
-                    FieldUtils.isTextFieldInvalid(textInputUsername) ||
-                    FieldUtils.isTextFieldInvalid(textInputConfirmPassword) ||
-                    FieldUtils.isTextFieldInvalid(textInputDescription)) {
+                if(assertTextFieldsInvalidity()) {
                     Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
                         .show() // TODO: Extract into separate error text
                     return@setOnClickListener
@@ -108,7 +105,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.tagSelectButton.setOnClickListener {
@@ -142,7 +138,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 viewModel.description.value,
                                 BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
                                         + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
-                                viewModel.selectedTags, // TODO: User has null tags or just an empty list?
+                                viewModel.selectedTags, // FIXME: User has null tags or just an empty list?
                                 null
                             )),
                             it.token?.jwt,
@@ -162,50 +158,42 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     override fun initTextFieldValidators() {
-        binding.textInputEmail.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputEmail,
+        with(binding) {
+            textInputEmail.addTextChangedListener(
                 Constants.emailInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
-                })
-        )
+                Constants.emailPredicate
+            )
 
-        binding.textInputPassword.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputPassword,
+            textInputPassword.addTextChangedListener(
                 Constants.passwordInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
-                })
-        )
+                Constants.passwordPredicate
+            )
 
-        binding.textInputConfirmPassword.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputConfirmPassword,
+            textInputConfirmPassword.addTextChangedListener(
                 Constants.confirmPasswordInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || it != viewModel.password.value
-                })
-        )
+                Constants.confirmPasswordPredicate(viewModel!!.password.value)
+            )
 
-        binding.textInputUsername.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputUsername,
+            textInputUsername.addTextChangedListener(
                 Constants.usernameInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || it.length >= 25
-                })
-        )
+                Constants.usernamePredicate
+            )
 
-        binding.textInputDescription.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputDescription,
+            textInputDescription.addTextChangedListener(
                 Constants.descriptionInputError,
-                Predicate {
-                    return@Predicate it.length >= 30
-                })
-        )
+                Constants.descriptionPredicate
+            )
+        }
+    }
+
+    override fun assertTextFieldsInvalidity(): Boolean {
+        with(binding) {
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputEmail) ||
+                    FieldUtils.isTextFieldInvalid(textInputPassword) ||
+                    FieldUtils.isTextFieldInvalid(textInputUsername) ||
+                    FieldUtils.isTextFieldInvalid(textInputConfirmPassword) ||
+                    FieldUtils.isTextFieldInvalid(textInputDescription)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -222,7 +210,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(Callbacks.getBitmapFromImageOnActivityResult(

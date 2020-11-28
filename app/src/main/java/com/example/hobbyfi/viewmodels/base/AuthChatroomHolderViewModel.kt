@@ -9,6 +9,7 @@ import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.UserState
+import com.example.hobbyfi.models.User
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthChatroomHolderViewModel(application: Application) : AuthUserHolderViewModel(application) {
+abstract class AuthChatroomHolderViewModel(application: Application, _isFacebookAuthUser: Boolean, user: User?)
+    : AuthUserHolderViewModel(application, _isFacebookAuthUser, user) {
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
     protected var _authChatroom : Chatroom? = null

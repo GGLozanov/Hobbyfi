@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class MainActivityViewModel(application: Application) : AuthUserHolderViewModel(application) {
+class MainActivityViewModel(application: Application, _isFacebookAuthUser: Boolean, user: User?)
+    : AuthUserHolderViewModel(application, _isFacebookAuthUser, user) {
 
     init {
         handleIntent()

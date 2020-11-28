@@ -76,12 +76,16 @@
     <activity
         android:id="@+id/mainActivity"
         android:name="com.example.hobbyfi.ui.main.MainActivity"
-        android:label="MainActivity"
+        android:label="Main"
         tools:layout="@layout/activity_main">
         <argument
             android:name="user"
             app:argType="com.example.hobbyfi.models.User"
             app:nullable="true" />
+        <argument
+            android:name="isFacebookUser"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </activity>
     <include app:graph="@navigation/tag_nav_graph" />
 </navigation>

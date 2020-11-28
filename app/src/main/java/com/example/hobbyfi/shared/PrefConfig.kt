@@ -14,15 +14,6 @@ class PrefConfig(private val context: Context) {
             ), Context.MODE_PRIVATE
         )
 
-    fun writeLoginStatus(status: Boolean) {
-        val editor = sharedPreferences.edit()
-        editor.putBoolean(context.getString(R.string.pref_login_status), status).apply()
-    }
-
-    fun readLoginStatus(): Boolean {
-        return sharedPreferences.getBoolean(context.getString(R.string.pref_login_status), false)
-    }
-
     fun writeToken(token: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_token), token).apply()

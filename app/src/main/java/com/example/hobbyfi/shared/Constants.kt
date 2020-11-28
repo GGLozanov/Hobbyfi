@@ -1,5 +1,7 @@
 package com.example.hobbyfi.shared
 
+import android.util.Patterns
+import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
@@ -34,6 +36,29 @@ object Constants {
         )
     )
 
+    // TODO: Put in in-memory db
+    val emailPredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
+
+    val passwordPredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
+    }
+
+    fun confirmPasswordPredicate(originalPassword: String?) = Predicate<String> {
+        return@Predicate it.isEmpty() || it != originalPassword
+    }
+
+    val usernamePredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || it.length >= 25
+    }
+
+    val descriptionPredicate = Predicate<String> {
+        return@Predicate it.length >= 30
+    }
+
+
+
     fun getDefaultPageConfig(): PagingConfig { // used in pager init
         return PagingConfig(pageSize = 5, enablePlaceholders = false)
     }
@@ -48,6 +73,7 @@ object Constants {
     const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Error with fetching your Facebook email! Stopping login!"
     const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
     const val EXISTS_RESPONSE = "exists"
+    const val INVALID_TOKEN = "invalid"
     const val REAUTH_FLAG = "Reauth"
     const val FAILED_FLAG = "Failed: "
 

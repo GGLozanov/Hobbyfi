@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel" />
+            type="com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -36,7 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:hint="@string/email_hint"
+            android:hint="@string/new_email_hint"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
             app:hintEnabled="true"
@@ -54,6 +54,7 @@
                 android:inputType="textEmailAddress"
                 android:maxLines="2"
                 android:singleLine="true"
+                android:text="@={viewModel.email}"
                 tools:layout_conversion_absoluteHeight="45dp"
                 tools:layout_conversion_absoluteWidth="20dp"
                 tools:layout_editor_absoluteX="4dp"
@@ -83,6 +84,7 @@
                 android:includeFontPadding="true"
                 android:inputType="textPassword"
                 android:singleLine="true"
+                android:text="@={viewModel.password}"
                 tools:layout_conversion_absoluteHeight="45dp"
                 tools:layout_conversion_absoluteWidth="20dp"
                 tools:layout_editor_absoluteX="4dp"
@@ -112,6 +114,7 @@
                 android:includeFontPadding="true"
                 android:inputType="textPassword"
                 android:singleLine="true"
+                android:text="@={viewModel.confirmPassword}"
                 tools:layout_conversion_absoluteHeight="45dp"
                 tools:layout_conversion_absoluteWidth="20dp"
                 tools:layout_editor_absoluteX="4dp"

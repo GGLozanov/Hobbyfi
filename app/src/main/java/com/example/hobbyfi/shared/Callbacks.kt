@@ -51,15 +51,17 @@ object Callbacks {
                 } // TODO: Might use if responses from API are too generic. Will make them not be!
 
                 if(ex.code() == 401) { // unauthorized
-                    throw Exception("Invalid credentials!") // only for login incorrect password error
+                    throw if(isAuthorisedRequest) Exception("Invalid credentials!")
+                        else Repository.AuthorisedRequestException() // only for login incorrect password error
                 }
 
                 throw Exception(ex.message().toString() + " ; code: " + ex.code())
             }
             is ExpiredJwtException -> {
-                throw if(isAuthorisedRequest) throw Repository.AuthorisedRequestException()
+                throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
                     else Repository.ReauthenticationException("Your session may have expired and you need to (re)authenticate!")
             }
+            is Repository.ReauthenticationException -> throw ex
             else -> throw Exception("Unknown error! Please check your connection or contact a developer! ${ex.message}")
         }
     }

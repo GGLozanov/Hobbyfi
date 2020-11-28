@@ -5,7 +5,9 @@ import android.content.Context
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.os.Build
+import android.util.Patterns
 import androidx.annotation.RequiresApi
+import androidx.core.util.Predicate
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
@@ -107,6 +109,13 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             GsonBuilder()
                 .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
                 .create()
+        }
+
+        bind(tag = "usernamePredicate") from singleton {
+
+        }
+        bind(tag = "descriptionPredicate") from singleton {
+
         }
         // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
         // OR TODO: Might need to keep these as singletons. Heck if I know

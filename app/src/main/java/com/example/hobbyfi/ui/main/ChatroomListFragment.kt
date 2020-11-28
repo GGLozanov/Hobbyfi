@@ -17,9 +17,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 class ChatroomListFragment : MainFragment(),
     DefaultLoadStateAdapter.OnCreateChatroomButtonPressed, ChatroomListAdapter.OnJoinChatroomButtonPressed {
     // TODO: Refresh chatroom callback with REFRESH in remoteMediator
-
     private val viewModel: ChatroomListFragmentViewModel by viewModels()
-    private val activityViewModel: MainActivityViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

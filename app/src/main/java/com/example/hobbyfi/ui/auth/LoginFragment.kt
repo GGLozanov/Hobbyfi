@@ -21,6 +21,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -34,6 +35,7 @@ import kotlinx.android.synthetic.main.activity_auth.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
@@ -72,8 +74,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             }
 
             loginButton.setOnClickListener {
-                if(FieldUtils.isTextFieldInvalid(textInputEmail) ||
-                    FieldUtils.isTextFieldInvalid(textInputPassword)) {
+                if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
 
@@ -86,7 +87,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -107,7 +107,9 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.TokenReceived -> {
                         login(
-                            LoginFragmentDirections.actionLoginFragmentToMainActivity(null),
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                                null
+                            ),
                             it.token?.jwt,
                             it.token?.refreshJwt,
                         )
@@ -124,8 +126,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
                                 viewModel.selectedTags,
                                 null
-                            )
-                        ))
+                            ), true)
+                        )
                     }
                 }
             }
@@ -153,18 +155,16 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         navController.navigate(action)
                     }
                     is FacebookState.Error -> {
-                        if(it.equals(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)) {
-                            val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                                viewModel.selectedTags.toTypedArray(),
-                                viewModel.tags
-                                    .toTypedArray()
-                            )
-                            navController.navigate(action)
-                        }
-                        if(it.equals(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)) {
-                            // TODO: Invalidate access token
-                            // TODO: Cancel login attempt
-                        }
+                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
+                            .show()
+
+                        // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
+                        val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
+                            viewModel.selectedTags.toTypedArray(),
+                            viewModel.tags
+                                .toTypedArray()
+                        )
+                        navController.navigate(action)
                     }
                 }
             }
@@ -193,23 +193,24 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     override fun initTextFieldValidators() {
-        binding.textInputEmail.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputEmail,
+        with(binding) {
+            textInputEmail.addTextChangedListener(
                 Constants.emailInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
-                })
-        )
+                Constants.emailPredicate
+            )
 
-        binding.textInputPassword.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputPassword,
+            textInputPassword.addTextChangedListener(
                 Constants.passwordInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || it.length >= 15
-                })
-        )
+                Constants.passwordPredicate
+            )
+        }
+    }
+
+    override fun assertTextFieldsInvalidity(): Boolean {
+        with(binding) {
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputEmail) ||
+                    FieldUtils.isTextFieldInvalid(textInputPassword)
+        }
     }
 
     private fun initFacebookLogin() {

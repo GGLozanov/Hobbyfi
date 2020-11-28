@@ -29,8 +29,7 @@ import retrofit2.http.*
 import java.io.IOException
 
 
-interface
-HobbyfiAPI {
+interface HobbyfiAPI {
 
     /**
      * FormUrlEncoded POST request to create a new User resource with given credentials

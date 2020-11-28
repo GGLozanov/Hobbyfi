@@ -22,9 +22,6 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         handleIntent()
     }
 
-    override val _mainState: MutableStateFlow<TokenState>
-            = MutableStateFlow(TokenState.Idle)
-
     private val _facebookState: MutableStateFlow<FacebookState>
             = MutableStateFlow(FacebookState.Idle)
     val facebookState: StateFlow<FacebookState> get() = _facebookState
@@ -60,21 +57,6 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
 
     suspend fun sendFacebookIntent(i: FacebookIntent) {
         facebookIntent.send(i)
-    }
-
-    private fun fetchLoginToken() {
-        viewModelScope.launch {
-            _mainState.value = TokenState.Loading
-            _mainState.value = try {
-                TokenState.TokenReceived(tokenRepository.getLoginToken(
-                    email.value!!,
-                    password.value!!
-                ))
-            } catch(ex: Exception) {
-                ex.printStackTrace()
-                TokenState.Error(ex.localizedMessage)
-            }
-        }
     }
 
     private fun fetchFacebookTags() {

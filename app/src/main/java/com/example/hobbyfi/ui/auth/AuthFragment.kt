@@ -16,7 +16,6 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged {
             prefConfig.writeRefreshToken(refreshToken)
         }
 
-        prefConfig.writeLoginStatus(true)
         navController.navigate(action)
     }
 }
