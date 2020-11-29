@@ -95,7 +95,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey,
-            if(adapter.getSelectedTags() == viewModel.initialSelectedTags && !dismissedFromConfirm) viewModel.initialSelectedTags else adapter.getSelectedTags()
+            if(adapter.getSelectedTags() == viewModel.initialSelectedTags || !dismissedFromConfirm) viewModel.initialSelectedTags else adapter.getSelectedTags()
         )
     }
 }

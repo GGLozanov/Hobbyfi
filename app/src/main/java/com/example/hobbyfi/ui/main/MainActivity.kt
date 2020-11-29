@@ -1,6 +1,8 @@
 package com.example.hobbyfi.ui.main
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -30,6 +32,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     })
     private lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
+
+    private var poppedFromNavController: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,18 +83,22 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         }
     }
 
-    override fun logout() {
+    fun resetAuth() {
         LoginManager.getInstance().logOut()
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
-        finish()
+    }
+
+    override fun logout() {
+        resetAuth()
+        poppedFromNavController = true
+        onBackPressed()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_appbar_menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
-
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
@@ -102,6 +110,11 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
+        if(poppedFromNavController) {
+            super.onBackPressed()
+        } else {
+            resetAuth()
+            finishAffinity()
+        }
     }
 }

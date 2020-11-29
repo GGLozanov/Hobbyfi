@@ -7,6 +7,7 @@ import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
+import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 
 // TODO: Use this adapter with the withLoadStateFooter() method of the PagedListAdapter
 class DefaultLoadStateAdapter(
@@ -18,14 +19,14 @@ class DefaultLoadStateAdapter(
         fun onCreateChatroomButtonPress(view: View)
     }
 
-    class DefaultLoaderViewHolder(view: View, private val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
-        // TODO: Init button & error text
+    class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, view: View, private val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
 
         companion object {
             fun getInstance(parent: ViewGroup, retry: () -> Unit): DefaultLoaderViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.default_refresh_list_header, parent, false)
-                return DefaultLoaderViewHolder(view, retry)
+                val binding = DefaultRefreshListHeaderBinding.inflate(inflater, parent, false)
+
+                return DefaultLoaderViewHolder(binding, binding.root, retry)
             }
         }
 
@@ -49,6 +50,9 @@ class DefaultLoadStateAdapter(
     }
 
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
+        if(createChatroomButtonCallback == null) {
+            holder.binding.chatroomCreateButton.visibility = View.GONE
+        }
         holder.bind(loadState)
     }
 

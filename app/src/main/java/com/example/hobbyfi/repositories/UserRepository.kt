@@ -70,6 +70,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                 // and that checks for expired token errors
                 // this request should proceed without much/any fail for expired tokens, which is why they aren't validated here
                 override suspend fun fetchFromNetwork(): CacheResponse<User>? {
+                    Log.i("UserRepository", "getUser => fetchFromNetwork() => fetching current auth user from network")
                     return try {
                         val token = if(isFacebookUser) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()
                         if(token != null) {

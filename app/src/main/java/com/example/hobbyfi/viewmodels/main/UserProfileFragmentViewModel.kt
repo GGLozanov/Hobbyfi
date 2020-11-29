@@ -6,6 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.appendNewSelectedTagsToTags
+import com.example.hobbyfi.shared.getNewSelectedTagsWithTags
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
@@ -17,7 +19,8 @@ import org.kodein.di.generic.instance
 class UserProfileFragmentViewModel(application: Application, initialTags: List<Tag>)
     : BaseViewModel(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     // FIXME: Code dup >:(
-    private val _tags: MutableList<Tag> = (Constants.predefinedTags + initialTags).toMutableList()
+    private val _tags: MutableList<Tag> = (Constants.predefinedTags.getNewSelectedTagsWithTags(initialTags))
+        .toMutableList()
     val tags: List<Tag> get() = _tags
 
     private var _selectedTags: List<Tag> = initialTags
@@ -39,11 +42,7 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
 
     // FIXME: Code dup with RegisterFragmentViewModel. . .
     fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
-        selectedTags.forEach {
-            if(!_tags.contains(it)) {
-                _tags.add(it)
-            }
-        }
+        _tags.appendNewSelectedTagsToTags(selectedTags)
     }
 
     fun setSelectedTags(selectedTags: List<Tag>) {

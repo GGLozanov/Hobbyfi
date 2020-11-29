@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
@@ -16,15 +17,17 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.BaseDialogFragment
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel
+import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
-    
     private val viewModel: AuthChangeDialogFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChangePasswordDialogBinding
 
@@ -49,16 +52,22 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                     return@setOnClickListener
                 }
 
-                viewModel.email.value = activityViewModel.authUser.value?.email // set user email to AuthUser Activity VM email
+                viewModel!!.email.value = activityViewModel.authUser.value?.email // set user email to AuthUser Activity VM email
 
                 lifecycleScope.launch {
-                    viewModel.sendIntent(TokenIntent.FetchLoginToken)
+                    viewModel!!.sendIntent(TokenIntent.FetchLoginToken)
                 }
             }
 
             lifecycleScope.launch {
-                viewModel.mainState.collect {
+                viewModel!!.mainState.collect {
                     when(it) {
+                        is TokenState.Idle -> {
+
+                        }
+                        is TokenState.Loading -> {
+                            // TODO: Progress bar/thing
+                        }
                         is TokenState.TokenReceived -> {
                             activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                                 Pair(
@@ -90,7 +99,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             )
             textInputConfirmNewPassword.addTextChangedListener(
                 Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(viewModel.password.value)
+                Constants.confirmPasswordPredicate(viewModel!!.password.value)
             )
         }
     }

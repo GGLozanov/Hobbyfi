@@ -12,10 +12,13 @@
         tools:layout="@layout/splash_screen_fragment">
         <action
             android:id="@+id/action_splashScreenFragment_to_loginFragment"
-            app:destination="@id/loginFragment" />
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/auth_nav_graph"
+            app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_splashScreenFragment_to_mainActivity"
             app:destination="@id/mainActivity"
+            app:launchSingleTop="true"
             app:popUpTo="@id/auth_nav_graph"
             app:popUpToInclusive="true" />
     </fragment>
@@ -32,9 +35,7 @@
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_loginFragment_to_mainActivity"
-            app:destination="@id/mainActivity"
-            app:popUpTo="@id/auth_nav_graph"
-            app:popUpToInclusive="true" />
+            app:destination="@id/mainActivity" />
         <action
             android:id="@+id/action_loginFragment_to_tag_nav_graph"
             app:destination="@id/tag_nav_graph" >
@@ -54,8 +55,8 @@
         <action
             android:id="@+id/action_registerFragment_to_mainActivity"
             app:destination="@id/mainActivity"
-            app:popUpTo="@id/auth_nav_graph"
-            app:popUpToInclusive="true" />
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="false" />
         <action
             android:id="@+id/action_registerFragment_to_loginFragment"
             app:destination="@id/loginFragment"

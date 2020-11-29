@@ -106,6 +106,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                             .show()
                     }
                     is TokenState.TokenReceived -> {
+                        Log.i("LoginFragment", "${navController.backStack}")
+                        Log.i("LoginFragment", "${navController.currentBackStackEntry}")
                         login(
                             LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                 null

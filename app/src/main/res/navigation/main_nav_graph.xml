@@ -44,6 +44,11 @@
         <action
             android:id="@+id/action_chatroomListFragment_to_chatroomCreateActivity"
             app:destination="@id/chatroomCreateActivity" />
+        <action
+            android:id="@+id/action_chatroomListFragment_to_chatroomActivity"
+            app:destination="@id/chatroomActivity">
+
+        </action>
     </fragment>
     <activity
         android:id="@+id/chatroomCreateActivity"
@@ -59,4 +64,21 @@
         android:name="com.example.hobbyfi.ui.main.ChangePasswordDialogFragment"
         android:label="ChangePasswordDialogFragment" />
     <include app:graph="@navigation/tag_nav_graph" />
+    <activity
+        android:id="@+id/chatroomActivity"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomActivity"
+        android:label="Chatroom">
+        <argument
+            android:name="user"
+            app:argType="com.example.hobbyfi.models.User"
+            app:nullable="true" />
+        <argument
+            android:name="chatroom"
+            app:argType="com.example.hobbyfi.models.Chatroom"
+            app:nullable="true" />
+        <argument
+            android:name="isFacebookUser"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </activity>
 </navigation>

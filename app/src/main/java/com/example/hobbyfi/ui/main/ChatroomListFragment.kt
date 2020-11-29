@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
+import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

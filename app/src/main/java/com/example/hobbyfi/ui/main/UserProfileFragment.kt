@@ -19,6 +19,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
@@ -27,13 +28,16 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.viewmodels.factories.MainActivityViewModelFactory
 import com.example.hobbyfi.viewmodels.factories.UserProfileFragmentViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
@@ -41,7 +45,6 @@ import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
 class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
-
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
         UserProfileFragmentViewModelFactory(requireActivity().application,
             activityViewModel.authUser.value?.tags ?:
@@ -142,9 +145,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             // observe
             activityViewModel.authUser.observe(viewLifecycleOwner, {
                 if(it != null) {
-                    viewModel.description.value = it.description
-                    viewModel.username.value = it.name
-                    viewModel.addTags(it.tags)
+                    viewModel!!.description.value = it.description
+                    viewModel!!.username.value = it.name
+                    viewModel!!.addTags(it.tags)
 
                     if(it.photoUrl != null) {
                         profileImage.load(it.photoUrl)
@@ -168,7 +171,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 }
 
                 if(user?.tags != viewModel!!.selectedTags) {
-                    fieldMap[Constants.TAGS] = (instance<Gson>("tagGson") as Gson)
+                    fieldMap[Constants.TAGS] = (GsonBuilder()
+                        .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
+                        .create()) // TODO: Extract into DI/singleton/static var
                         .toJson(viewModel!!.selectedTags)
                 }
 

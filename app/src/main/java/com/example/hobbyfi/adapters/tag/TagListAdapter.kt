@@ -40,16 +40,17 @@ class TagListAdapter(
             color = Color.GREEN // default colour, idk
         }
 
-        val isSelected = selectedTags.contains(tag)
-
+        val wasSelected = selectedTags.contains(tag)
         with(holder.binding) {
             tagCard.setCardBackgroundColor(
-                if(isSelected) color
+                if(wasSelected) color
                 else ContextCompat.getColor(root.context, R.color.colorGrey)
             )
 
             tagCard.setOnClickListener {
-                if(!isSelected) {
+                val isSelected = !selectedTags.contains(tag)
+
+                if(isSelected) {
                     selectedTags.add(tag)
                     tagCard.setCardBackgroundColor(
                         color

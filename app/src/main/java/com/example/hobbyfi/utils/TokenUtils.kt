@@ -33,6 +33,7 @@ object TokenUtils {
             throw InvalidStoredTokenException()
         }
 
+        // FIXME: Random zip error that yeets the app
         val rsaPublicKey: RSAPublicKey
         rsaPublicKey = try {
             val decodedPublicKey: ByteArray = android.util.Base64.decode(BuildConfig.JWT_PUBLIC_KEY, DEFAULT)

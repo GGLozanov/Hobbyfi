@@ -105,18 +105,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "prefConfig") as PrefConfig
             )
         }
-        bind(tag = "tagGson") from singleton {
-            GsonBuilder()
-                .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
-                .create()
-        }
-
-        bind(tag = "usernamePredicate") from singleton {
-
-        }
-        bind(tag = "descriptionPredicate") from singleton {
-
-        }
         // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
         // OR TODO: Might need to keep these as singletons. Heck if I know
 //        bind(tag = "chatroomPagingSource") from provider {

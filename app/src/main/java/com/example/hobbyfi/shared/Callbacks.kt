@@ -51,7 +51,7 @@ object Callbacks {
                 } // TODO: Might use if responses from API are too generic. Will make them not be!
 
                 if(ex.code() == 401) { // unauthorized
-                    throw if(isAuthorisedRequest) Exception("Invalid credentials!")
+                    throw if(!isAuthorisedRequest) Exception("Invalid credentials!")
                         else Repository.AuthorisedRequestException() // only for login incorrect password error
                 }
 

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
@@ -15,14 +16,16 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.BaseDialogFragment
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel
+import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
-
     private val viewModel: AuthChangeDialogFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChangeEmailDialogBinding
 
@@ -37,6 +40,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
             container, false
         )
 
+        binding.viewModel = viewModel
         with(binding) {
             lifecycleOwner = this@ChangeEmailDialogFragment
 
@@ -47,13 +51,19 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 }
 
                 lifecycleScope.launch {
-                    viewModel.sendIntent(TokenIntent.FetchLoginToken)
+                    viewModel!!.sendIntent(TokenIntent.FetchLoginToken)
                 }
             }
 
             lifecycleScope.launch {
-                viewModel.mainState.collect {
+                viewModel!!.mainState.collect {
                     when(it) {
+                        is TokenState.Idle -> {
+
+                        }
+                        is TokenState.Loading -> {
+                            // TODO: Progress bar/thing
+                        }
                         is TokenState.TokenReceived -> {
                             activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                                 Pair(Constants.EMAIL, viewModel!!.email.value!!)))

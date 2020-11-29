@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.models.Tag
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
@@ -36,4 +37,22 @@ fun ConnectivityManager.isConnected(): Boolean {
     } else {
         return activeNetworkInfo?.isConnected == true // null safety requires explicit check
     }
+}
+
+fun MutableList<Tag>.appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
+    selectedTags.forEach {
+        if(!this.contains(it)) {
+            this.add(it)
+        }
+    }
+}
+
+fun List<Tag>.getNewSelectedTagsWithTags(selectedTags: List<Tag>): List<Tag> {
+    val newTags = this.toMutableList()
+    selectedTags.forEach {
+        if(!newTags.contains(it)) {
+            newTags.add(it)
+        }
+    }
+    return newTags
 }

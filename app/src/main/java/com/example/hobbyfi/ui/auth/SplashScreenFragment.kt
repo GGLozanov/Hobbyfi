@@ -30,7 +30,7 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        (requireActivity() as AppCompatActivity).supportActionBar?.hide()
+        (activity as AppCompatActivity?)?.supportActionBar?.hide()
 
         view?.postDelayed({
             try {
@@ -51,7 +51,7 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
                 navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
             }
 
-            (requireActivity() as AppCompatActivity).supportActionBar?.show()
+            (activity as AppCompatActivity?)?.supportActionBar?.show()
         }, 3000)
     }
 

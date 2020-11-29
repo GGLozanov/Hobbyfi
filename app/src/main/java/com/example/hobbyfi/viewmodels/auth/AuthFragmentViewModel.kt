@@ -7,6 +7,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.appendNewSelectedTagsToTags
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.AuthInclusiveViewModel
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
@@ -30,10 +31,6 @@ abstract class AuthFragmentViewModel(application: Application)
     }
 
     fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
-        selectedTags.forEach {
-            if(!_tags.contains(it)) {
-                _tags.add(it)
-            }
-        }
+        _tags.appendNewSelectedTagsToTags(selectedTags)
     }
 }
