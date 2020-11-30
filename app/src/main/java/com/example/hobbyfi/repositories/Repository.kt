@@ -9,8 +9,8 @@ import kotlinx.coroutines.withContext
 import java.lang.IllegalStateException
 
 abstract class Repository(protected val prefConfig: PrefConfig, protected val hobbyfiAPI: HobbyfiAPI) {
-    class AuthorisedRequestException : Exception()
-    class ReauthenticationException(message: String?) : Exception(message)
+    class AuthorisedRequestException(message: String? = null) : Exception(message)
+    class ReauthenticationException(message: String? = null) : Exception(message)
 
     protected suspend fun getNewTokenWithRefresh(): TokenResponse? {
         return try {

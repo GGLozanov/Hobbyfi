@@ -71,7 +71,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
         with(navController.previousBackStackEntry?.destination) {
             val targetFragmentId = this?.id
-            if(targetFragmentId == R.id.registerFragment || targetFragmentId == R.id.loginFragment ||
+            if(targetFragmentId == R.id.registerFragment ||
                     this?.parent?.id == R.id.chatroom_create_nav_graph) {
                 binding.customTagCreateButton.setOnClickListener {
                     if(viewModel.customTagCreateCounter >= 3) {

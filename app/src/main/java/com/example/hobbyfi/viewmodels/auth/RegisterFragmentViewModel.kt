@@ -45,24 +45,22 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         _base64Image = base64Image
     }
 
-    private fun fetchRegisterToken() {
+    private suspend fun fetchRegisterToken() {
         Log.i("RegisterFragmentVM", "fetchRegisterToken called")
-        viewModelScope.launch {
-            _mainState.value = TokenState.Loading
-            _mainState.value = try {
-                TokenState.TokenReceived(tokenRepository.getRegisterToken(
-                    null,
-                    email.value,
-                    password.value,
-                    username.value!!,
-                    description.value,
-                    base64Image,
-                    selectedTags
-                ))
-            } catch (e: Exception) {
-                e.printStackTrace()
-                TokenState.Error(e.message) // TODO: More specific error handling w/ custom exceptions
-            }
+        _mainState.value = TokenState.Loading
+        _mainState.value = try {
+            TokenState.TokenReceived(tokenRepository.getRegisterToken(
+                null,
+                email.value,
+                password.value,
+                username.value!!,
+                description.value,
+                base64Image,
+                selectedTags
+            ))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            TokenState.Error(e.message) // TODO: More specific error handling w/ custom exceptions
         }
     }
 }

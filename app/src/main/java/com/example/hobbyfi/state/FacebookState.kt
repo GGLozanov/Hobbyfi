@@ -10,6 +10,7 @@ sealed class FacebookState : State {
     sealed class OnData : FacebookState() {
         data class TagsReceived(val tags: List<Tag>) : FacebookState()
         data class EmailReceived(val email: String?) : FacebookState()
+        data class ExistenceResultReceived(val exists: Boolean) : FacebookState()
     }
 
     data class Error(val error: String?) : FacebookState()

@@ -24,7 +24,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     suspend fun getRegisterToken(
         facebookToken: String?,
             email: String?, password: String?, username: String, description: String?,
-            base64Image: String?, tags: List<Tag>) : TokenResponse? {
+            base64Image: String?, tags: List<Tag>): TokenResponse? {
 
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
@@ -46,7 +46,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         }
     }
 
-    suspend fun getLoginToken(email: String, password: String) : TokenResponse? {
+    suspend fun getLoginToken(email: String, password: String): TokenResponse? {
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getLoginToken -> getting user w/ email:"
                     + email + "\n login token")
@@ -62,51 +62,57 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         }
     }
 
-    suspend fun getFacebookUserEmail() : String? {
+    suspend fun getUserExistence(username: String): Boolean = withContext(Dispatchers.IO) { hobbyfiAPI.fetchUserExists(username) }
+
+    suspend fun getFacebookUserEmail(): String? {
         Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
 
-        val response = GraphRequest.executeAndWait(
-            GraphRequest(
-                AccessToken.getCurrentAccessToken(),
-                "me?fields=email"
+        return withContext(Dispatchers.IO) {
+            val response = GraphRequest.executeAndWait(
+                GraphRequest(
+                    AccessToken.getCurrentAccessToken(),
+                    "me?fields=email"
+                )
             )
-        )
 
-        try {
-            return response.jsonObject.getString(Constants.EMAIL)
-        } catch(ex: JSONException) {
-            throw Exception(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)
+            try {
+                response.jsonObject.getString(Constants.EMAIL)
+            } catch(ex: JSONException) {
+                throw Exception(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)
+            }
         }
     }
 
-    suspend fun getFacebookUserPageTitlesAsTags() : List<Tag> {
+    suspend fun getFacebookUserPageTitlesAsTags(): List<Tag> {
         Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user page titles as tags")
 
-        val response = GraphRequest.executeAndWait(
-            GraphRequest(
-                AccessToken.getCurrentAccessToken(),
-                "me/likes"
+        return withContext(Dispatchers.IO) {
+            val response = GraphRequest.executeAndWait(
+                GraphRequest(
+                    AccessToken.getCurrentAccessToken(),
+                    "me/likes"
+                )
             )
-        )
 
-        try {
-            val pages = response.jsonObject.getJSONArray("data")
-            val tags = mutableListOf<Tag>()
+            try {
+                val pages = response.jsonObject.getJSONArray("data")
+                val tags = mutableListOf<Tag>()
 
-            for(i in 0..3) {
-                if(!pages.isNull(i)) {
-                    tags.add(i, Tag(
-                        pages.getJSONObject(i)
-                            .getString("name"),
-                        ColourUtils.getRandomHex(),
-                        true
-                    ))
+                for(i in 0..3) {
+                    if(!pages.isNull(i)) {
+                        tags.add(i, Tag(
+                            pages.getJSONObject(i)
+                                .getString("name"),
+                            ColourUtils.getRandomHex(),
+                            true
+                        ))
+                    }
                 }
-            }
 
-            return tags
-        } catch(ex: JSONException) {
-            throw Exception(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)
+                tags
+            } catch(ex: JSONException) {
+                throw Exception(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)
+            }
         }
     }
 }

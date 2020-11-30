@@ -29,18 +29,16 @@ abstract class AuthInclusiveViewModel(application: Application) : StateIntentVie
     @Bindable
     val password: MutableLiveData<String> = MutableLiveData()
 
-    protected fun fetchLoginToken() {
-        viewModelScope.launch {
-            _mainState.value = TokenState.Loading
-            _mainState.value = try {
-                TokenState.TokenReceived(tokenRepository.getLoginToken(
-                    email.value!!,
-                    password.value!!
-                ))
-            } catch(ex: Exception) {
-                ex.printStackTrace()
-                TokenState.Error(ex.localizedMessage)
-            }
+    protected suspend fun fetchLoginToken() {
+        _mainState.value = TokenState.Loading
+        _mainState.value = try {
+            TokenState.TokenReceived(tokenRepository.getLoginToken(
+                email.value!!,
+                password.value!!
+            ))
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+            TokenState.Error(ex.localizedMessage)
         }
     }
 }

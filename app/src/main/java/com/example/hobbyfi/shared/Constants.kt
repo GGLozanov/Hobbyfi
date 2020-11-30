@@ -15,6 +15,13 @@ object Constants {
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
 
     const val reauthError: String = "Logging out! Your session may have expired!"
+    const val resourceExistsError: String = "This user/thing already exists!"
+    const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
+    const val invalidCredentialsError: String = "Invalid credentials!"
+    const val unauthorisedAccessError: String = "Unauthorised access!"
+    const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
+    const val missingDataError: String = "Missing/invalid data entered!"
+    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -56,7 +63,6 @@ object Constants {
     val descriptionPredicate = Predicate<String> {
         return@Predicate it.length >= 30
     }
-
 
 
     fun getDefaultPageConfig(): PagingConfig { // used in pager init

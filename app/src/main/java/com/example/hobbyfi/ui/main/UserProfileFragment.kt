@@ -150,6 +150,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.addTags(it.tags)
 
                     if(it.photoUrl != null) {
+                        Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
                         profileImage.load(it.photoUrl)
                     }
                     // TODO: Send email as argument to emailchangedialogfragment for autofill?

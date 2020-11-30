@@ -37,7 +37,6 @@ class UserRepository @ExperimentalPagingApi constructor(
             Log.i("UserRepository", "getUser -> getting current user")
             return@withContext object : NetworkBoundFetcher<User, CacheResponse<User>>() {
                 override suspend fun saveNetworkResult(response: CacheResponse<User>) {
-                    prefConfig.writeLastUserFetchTimeNow()
                     saveUser(response.model)
                 }
 
@@ -139,7 +138,12 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun saveUser(user: User) = withContext(Dispatchers.IO) { hobbyfiDatabase.userDao().insert(user) }
+    suspend fun saveUser(user: User) {
+        prefConfig.writeLastUserFetchTimeNow()
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.userDao().insert(user)
+        }
+    }
 
     private fun getUserIdFromToken(isFacebookUser: Boolean): Long {
         if(isFacebookUser) {
@@ -148,7 +152,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                     // Callbacks.dissectRepositoryExceptionAndThrow() immediately recognises this and throws it again
             }
 
-            return Integer.parseInt(Profile.getCurrentProfile().id).toLong()
+            return Profile.getCurrentProfile().id.toLong()
         }
 
         return TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())

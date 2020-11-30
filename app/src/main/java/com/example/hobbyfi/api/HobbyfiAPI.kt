@@ -52,6 +52,15 @@ interface HobbyfiAPI {
     ): TokenResponse?
 
     /**
+     * GET request to check if a user already exists on the back-end
+     * @param username - a given username to check by (usernames are ALWAYS unique)
+     */
+    @GET("api/v1.0/user/exists")
+    suspend fun fetchUserExists(
+        @Query(Constants.USERNAME) username: String
+    ): Boolean
+
+    /**
      * GET request to retrieve a new JWT upon requested login
      * @param email - auth user's email
      * @param password - auth user's password

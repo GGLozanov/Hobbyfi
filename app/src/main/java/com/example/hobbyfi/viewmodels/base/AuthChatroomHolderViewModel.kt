@@ -38,9 +38,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, _isFacebook
         chatroomIntent.send(i)
     }
 
-    private fun fetchChatroom() {
-        viewModelScope.launch {
-
-        }
+    private suspend fun fetchChatroom() {
     }
 }

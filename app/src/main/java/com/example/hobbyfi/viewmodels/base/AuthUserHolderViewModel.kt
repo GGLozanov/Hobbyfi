@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -18,6 +19,16 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class AuthUserHolderViewModel(application: Application, protected val _isFacebookAuthUser: Boolean, user: User?)
     : StateIntentViewModel<UserState, UserIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
+    init {
+        // TODO: Check if this gets called every time in bottomnav
+        if(user != null) {
+            Log.i("AuthUserHolderVM", "Saving auth user instance")
+            viewModelScope.launch {
+                userRepository.saveUser(user)
+            }
+        }
+    }
+
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
     val isFacebookUser: Boolean = _isFacebookAuthUser
@@ -45,6 +56,7 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
         }
     }
 
+    // user fetched - already saved from networkboundfetcher
     fun setUser(user: User) {
         _authUser.value = user
     }
@@ -56,62 +68,56 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
         }
     }
 
-    private fun fetchUser() {
-        viewModelScope.launch {
-            _mainState.value = UserState.Loading
-            // observe flow returned from networkBoundFetcher and change state upon emitted value
-            userRepository.getUser(_isFacebookAuthUser).catch { e ->
-                e.printStackTrace()
-                _mainState.value = if(e is Repository.ReauthenticationException)
-                    UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
-            }.collect {
-                if(it != null) {
-                    _mainState.value = UserState.OnData.UserResult(it)
-                }
+    private suspend fun fetchUser() {
+        _mainState.value = UserState.Loading
+        // observe flow returned from networkBoundFetcher and change state upon emitted value
+        userRepository.getUser(_isFacebookAuthUser).catch { e ->
+            e.printStackTrace()
+            _mainState.value = if(e is Repository.ReauthenticationException)
+                UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
+        }.collect {
+            if(it != null) {
+                _mainState.value = UserState.OnData.UserResult(it)
             }
         }
     }
 
-    private fun updateUser(userFields: Map<String?, String?>) {
-        viewModelScope.launch {
-            _mainState.value = UserState.Loading
+    private suspend fun updateUser(userFields: Map<String?, String?>) {
+        _mainState.value = UserState.Loading
 
-            _mainState.value = try {
-                UserState.OnData.UserUpdateResult(
-                    userRepository.editUser(_isFacebookAuthUser, userFields),
-                    userFields
-                )
-            } catch(reauthEx: Repository.ReauthenticationException) {
-                UserState.Error(
-                    Constants.reauthError,
-                    shouldReauth = true
-                )
-            } catch(ex: Exception) {
-                UserState.Error(
-                    ex.message
-                )
-            }
+        _mainState.value = try {
+            UserState.OnData.UserUpdateResult(
+                userRepository.editUser(_isFacebookAuthUser, userFields),
+                userFields
+            )
+        } catch(reauthEx: Repository.ReauthenticationException) {
+            UserState.Error(
+                Constants.reauthError,
+                shouldReauth = true
+            )
+        } catch(ex: Exception) {
+            UserState.Error(
+                ex.message
+            )
         }
     }
 
-    private fun deleteUser() {
-        viewModelScope.launch {
-            _mainState.value = UserState.Loading
+    private suspend fun deleteUser() {
+        _mainState.value = UserState.Loading
 
-            _mainState.value = try {
-                UserState.OnData.UserDeleteResult(
-                    userRepository.deleteUser(_isFacebookAuthUser)
-                )
-            } catch(reauthEx: Repository.ReauthenticationException) {
-                UserState.Error(
-                    Constants.reauthError,
-                    shouldReauth = true
-                )
-            } catch(ex: Exception) {
-                UserState.Error(
-                    ex.message
-                )
-            }
+        _mainState.value = try {
+            UserState.OnData.UserDeleteResult(
+                userRepository.deleteUser(_isFacebookAuthUser)
+            )
+        } catch(reauthEx: Repository.ReauthenticationException) {
+            UserState.Error(
+                Constants.reauthError,
+                shouldReauth = true
+            )
+        } catch(ex: Exception) {
+            UserState.Error(
+                ex.message
+            )
         }
     }
 }

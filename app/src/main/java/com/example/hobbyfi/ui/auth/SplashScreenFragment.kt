@@ -13,6 +13,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.utils.TokenUtils
 import com.facebook.AccessToken
+import com.facebook.Profile
 
 class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs (probably...) so it can stay Fragment() and not BaseFragment()
 
@@ -35,6 +36,7 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
         view?.postDelayed({
             try {
                 val isFacebookUserLogged = AccessToken.getCurrentAccessToken() != null && !AccessToken.getCurrentAccessToken().isExpired
+                        && Profile.getCurrentProfile().id != null
                 if(isFacebookUserLogged || TokenUtils.getTokenUserIdFromStoredTokens(prefConfig)
                         .compareTo(0) != 0) { // assert jwt doesn't throw exception
                     Log.i("SplashScreen", "Authenticated. Moving to main activity")
