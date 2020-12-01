@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlin.properties.Delegates
 
-// fetches both auth users & chatroom users (map<string, user>)
+// fetches both auth users & chatroom users
 class UserRepository @ExperimentalPagingApi constructor(
     private val remoteMediator: UserMediator, prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
