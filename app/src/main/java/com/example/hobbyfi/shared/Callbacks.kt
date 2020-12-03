@@ -3,19 +3,14 @@ package com.example.hobbyfi.shared
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.TokenUtils
 import io.jsonwebtoken.ExpiredJwtException
 import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
-import kotlin.jvm.Throws
 
 
 object Callbacks {
@@ -51,7 +46,7 @@ object Callbacks {
                         throw Exception(Constants.missingDataError)
                     }
                     401 -> { // unauthorized
-                        throw if(!isAuthorisedRequest) Exception(Constants.invalidCredentialsError)
+                        throw if(!isAuthorisedRequest) Exception(Constants.invalidTokenError)
                         else Repository.AuthorisedRequestException(Constants.unauthorisedAccessError) // only for login incorrect password error
                     }
                     409 -> { // conflict
@@ -65,7 +60,7 @@ object Callbacks {
                 throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
                     else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
-            is Repository.ReauthenticationException -> throw ex
+            is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException -> throw ex
             else -> throw Exception(Constants.unknownError(ex.message))
         }
     }

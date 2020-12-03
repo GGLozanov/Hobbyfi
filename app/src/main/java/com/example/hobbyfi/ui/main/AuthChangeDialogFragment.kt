@@ -13,6 +13,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 abstract class AuthChangeDialogFragment : BaseDialogFragment(), TextFieldInputValidationOnus {
     protected val activityViewModel: MainActivityViewModel by activityViewModels(factoryProducer = {
         val activityArgs: MainActivityArgs by (activity as MainActivity).navArgs()
-        MainActivityViewModelFactory(requireActivity().application, activityArgs.isFacebookUser, activityArgs.user)
+        MainActivityViewModelFactory(requireActivity().application, activityArgs.user)
     })
 }

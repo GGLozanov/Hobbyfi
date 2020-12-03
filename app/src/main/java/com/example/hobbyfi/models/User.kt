@@ -27,12 +27,11 @@ data class User(
     override var name: String,
     var description: String?,
     @SerializedName(Constants.PHOTO_URL)
-    var photoUrl: String?,
+    override var photoUrl: String?,
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_ID)
     @ColumnInfo(name = "chatroomId", index = true)
     var chatroomId: Int?,
-    override var hasImage: Boolean = photoUrl == null,
 ) : ExpandedModel, Parcelable {
     fun updateFromFieldMap(fieldMap: Map<String?, String?>): Unit {
         for((key, value) in fieldMap.entries) {
@@ -56,7 +55,6 @@ data class User(
                 }
                 Constants.PHOTO_URL -> {
                     photoUrl = value
-                    hasImage = value == null
                 }
             }
         }

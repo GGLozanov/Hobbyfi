@@ -5,6 +5,8 @@ import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
+import com.facebook.AccessToken
+import com.facebook.Profile
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
@@ -18,6 +20,7 @@ object Constants {
     const val resourceExistsError: String = "This user/thing already exists!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
     const val invalidCredentialsError: String = "Invalid credentials!"
+    const val invalidTokenError: String = "Invalid access! Please login again!"
     const val unauthorisedAccessError: String = "Unauthorised access!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
@@ -48,6 +51,10 @@ object Constants {
         return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
     }
 
+    fun newEmailPredicate(originalEmail: String?) = Predicate<String> {
+        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
+
     val passwordPredicate = Predicate<String> {
         return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
     }
@@ -69,6 +76,11 @@ object Constants {
         return PagingConfig(pageSize = 5, enablePlaceholders = false)
     }
 
+    fun isFacebookUserAuthd(): Boolean {
+        return AccessToken.getCurrentAccessToken() != null && !AccessToken.getCurrentAccessToken().isExpired
+                && Profile.getCurrentProfile().id != null
+    }
+
     const val CACHE_TIMEOUT = 60 * 60 * 2 // 2 hours
         .toLong()
 
@@ -88,12 +100,17 @@ object Constants {
     const val RESPONSE = "response"
     const val EMAIL = "email"
     const val PASSWORD = "password"
+    const val NAME = "name"
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
-    const val CHATROOM_ID: String = "chatroom_id"
+    const val CHATROOM_ID = "chatroom_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
+    const val OWNER_ID = "owner_id"
+    const val LAST_EVENT_ID = "last_event_id"
     const val PAGE = "page"
+    const val DATA = "data"
+    const val DATA_LIST = "data_list"
 
     const val PHOTO_URL = "photo_url"
 

@@ -6,6 +6,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.example.hobbyfi.shared.Constants
+import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 // TODO: Room embed fields & typeconverters for saving tag lists in chatroom/user entity
@@ -19,11 +21,13 @@ data class Chatroom(
     @PrimaryKey
     override val id: Long,
     override val name: String,
-    val description: String,
-    override val hasImage: Boolean,
+    val description: String?,
+    override var photoUrl: String?,
     val tags: List<Tag>,
     @ColumnInfo(name = "ownerId", index = true)
-    val ownerId: Int,
+    @SerializedName(Constants.OWNER_ID)
+    val ownerId: Long,
     @ColumnInfo(name = "lastEventId", index = true)
-    val lastEventId: Int
+    @SerializedName(Constants.LAST_EVENT_ID)
+    val lastEventId: Int?
 ) : ExpandedModel, Parcelable

@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
     private val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
-        MainActivityViewModelFactory(application, args.isFacebookUser, args.user)
+        MainActivityViewModelFactory(application, args.user)
     })
     private lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
@@ -68,9 +68,13 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         viewModel.setUser(it.user)
                     }
                     is UserState.OnData.UserDeleteResult -> {
+                        Toast.makeText(this@MainActivity, "Successfully deleted account!", Toast.LENGTH_LONG)
+                            .show()
                         logout()
                     }
                     is UserState.OnData.UserUpdateResult -> {
+                        Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
+                            .show()
                         viewModel.updateAndSaveUser(it.userFields)
                     }
                     is UserState.Error -> {
@@ -85,6 +89,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     fun resetAuth() {
         LoginManager.getInstance().logOut()
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
     }

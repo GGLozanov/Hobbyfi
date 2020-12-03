@@ -88,21 +88,24 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "chatroomMediator") from singleton { ChatroomMediator(
-                instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig
+                instance(tag = "prefConfig") as PrefConfig,
+                instance(tag = "api") as HobbyfiAPI,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "messageMediator") from singleton { MessageMediator(
-                instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig
+                instance(tag = "prefConfig") as PrefConfig,
+                instance(tag = "api") as HobbyfiAPI,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "userMediator") from singleton { UserMediator(
-                instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig
+                instance(tag = "prefConfig") as PrefConfig,
+                instance(tag = "api") as HobbyfiAPI,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory

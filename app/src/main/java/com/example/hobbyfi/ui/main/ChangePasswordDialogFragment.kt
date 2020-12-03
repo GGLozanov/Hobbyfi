@@ -69,6 +69,8 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                             // TODO: Progress bar/thing
                         }
                         is TokenState.TokenReceived -> {
+                            it.token?.jwt?.let { jwt -> prefConfig.writeToken(jwt) }
+                            it.token?.refreshJwt?.let { refreshJwt -> prefConfig.writeToken(refreshJwt) }
                             activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                                 Pair(
                                     Constants.PASSWORD, viewModel!!.password.value!!)

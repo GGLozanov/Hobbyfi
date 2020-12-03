@@ -23,7 +23,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): CacheResponse<User> {
-        jsonObject = json.asJsonObject
+        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA)
 
         val entity = User(
             deserializeJSONField(Constants.ID, DeserializeOption.AS_LONG) as Long,
@@ -35,11 +35,10 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
             deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_INT) as Int?
         )
 
-        Log.i("UserResponseDes", "User deserialized: $entity")
-
         var response = deserializeJSONField(
             Constants.RESPONSE,
-            DeserializeOption.AS_STRING
+            DeserializeOption.AS_STRING,
+            json.asJsonObject
         ) as String? // response may not always be contained in API return JSON (like in getUsers request)
 
         if (response == null) {

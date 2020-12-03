@@ -3,6 +3,8 @@ package com.example.hobbyfi.shared
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.view.View
+import android.widget.GridView
 import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import com.example.hobbyfi.api.HobbyfiAPI
@@ -55,4 +57,35 @@ fun List<Tag>.getNewSelectedTagsWithTags(selectedTags: List<Tag>): List<Tag> {
         }
     }
     return newTags
+}
+
+// credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
+fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
+    val gridViewAdapter = adapter ?: return // adapter is not set yet
+    var totalHeight: Int //total height to set on grid view
+    val items = gridViewAdapter.count //no. of items in the grid
+    val rows: Int //no. of rows in grid
+    val listItem: View = gridViewAdapter.getView(0, null, this)
+    listItem.measure(0, 0)
+    totalHeight = listItem.getMeasuredHeight()
+    val x: Float
+    if (items > noOfColumns) {
+        x = (items / noOfColumns).toFloat()
+
+        //Check if exact no. of rows of rows are available, if not adding 1 extra row
+        rows = if (items % noOfColumns != 0) {
+            (x + 1).toInt()
+        } else {
+            x.toInt()
+        }
+        totalHeight *= rows
+
+        //Adding any vertical space set on grid view
+        totalHeight += verticalSpacing * rows
+    }
+
+    //Setting height on grid view
+    val params = layoutParams
+    params.height = totalHeight
+    layoutParams = params
 }

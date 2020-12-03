@@ -31,6 +31,7 @@ import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.facebook.*
@@ -38,6 +39,7 @@ import com.facebook.login.LoginResult
 import kotlinx.android.synthetic.main.activity_auth.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
@@ -73,10 +75,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
             val view: View = root
 
-            switchToRegisterSubtitle.setOnClickListener {
-                navController.navigate(R.id.action_loginFragment_to_registerFragment)
-            }
-
             loginButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
@@ -96,8 +94,12 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
         initFacebookLogin()
 
+        binding.switchToRegisterSubtitle.setOnClickListener {
+            navController.navigate(R.id.action_loginFragment_to_registerFragment)
+        }
+
         lifecycleScope.launch {
-            viewModel.facebookState.collect {
+            viewModel.facebookState.collectLatest {
                 when(it) {
                     is FacebookState.Idle -> {
 
@@ -111,7 +113,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                             login(
                                 LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                     null,
-                                    true
                                 )
                             )
                         } else {
@@ -192,7 +193,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
                                 viewModel.selectedTags,
                                 null
-                            ), true)
+                            ))
                         )
                     }
                 }

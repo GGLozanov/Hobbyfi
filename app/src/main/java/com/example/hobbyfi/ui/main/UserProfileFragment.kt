@@ -4,17 +4,13 @@ import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
-import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.load
@@ -23,33 +19,30 @@ import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
-import com.example.hobbyfi.viewmodels.factories.MainActivityViewModelFactory
 import com.example.hobbyfi.viewmodels.factories.UserProfileFragmentViewModelFactory
-import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
-import com.example.spendidly.utils.PredicateTextWatcher
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
 class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
-        UserProfileFragmentViewModelFactory(requireActivity().application,
-            activityViewModel.authUser.value?.tags ?:
-                UserProfileFragmentArgs.fromBundle(requireActivity().intent?.extras!!)
-                    .user?.tags ?: emptyList())
+        UserProfileFragmentViewModelFactory(
+            requireActivity().application,
+            activityViewModel.authUser.value?.tags ?: UserProfileFragmentArgs.fromBundle(
+                requireActivity().intent?.extras!!
+            )
+                .user?.tags ?: emptyList()
+        )
     })
 
     private lateinit var binding: FragmentUserProfileBinding
@@ -66,14 +59,22 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_user_profile, container, false)
+        binding = DataBindingUtil.inflate(
+            inflater,
+            R.layout.fragment_user_profile,
+            container,
+            false
+        )
         binding.viewModel = viewModel
 
         with(binding) {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
 
             profileImage.setOnClickListener {
-                if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                if(EasyPermissions.hasPermissions(
+                        requireContext(),
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    )) {
                     val selectImageIntent = Intent()
                     selectImageIntent.type = "image/*" // set MIME data type to all images
 
@@ -85,8 +86,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                         imageRequestCode
                     ) // start activity and await result
                 } else {
-                    EasyPermissions.requestPermissions(this@UserProfileFragment, getString(R.string.read_external_storage_rationale),
-                        200, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    EasyPermissions.requestPermissions(
+                        this@UserProfileFragment,
+                        getString(R.string.read_external_storage_rationale),
+                        200,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    )
                 }
             }
 
@@ -114,7 +119,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         super.onViewCreated(view, savedInstanceState)
 
         with(binding) {
-            if(!activityViewModel.isFacebookUser) {
+            if(!Constants.isFacebookUserAuthd()) {
                 emailChangeButton.setOnClickListener {
                     navController.navigate(R.id.action_userProfileFragment_to_changeEmailDialogFragment)
                 }
@@ -135,21 +140,21 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 navController.navigate(action)
             }
 
-            var user: User? = null
             lifecycleScope.launch {
-                if(activityViewModel.authUser.value.also { user = it } == null) {
+                if(activityViewModel.authUser.value == null) {
                     activityViewModel.sendIntent(UserIntent.FetchUser)
                 }
             }
 
             // observe
             activityViewModel.authUser.observe(viewLifecycleOwner, {
-                if(it != null) {
+                if (it != null) {
                     viewModel!!.description.value = it.description
                     viewModel!!.username.value = it.name
+                    it.tags?.let { selectedTags -> viewModel!!.setSelectedTags(selectedTags) }
                     viewModel!!.addTags(it.tags)
 
-                    if(it.photoUrl != null) {
+                    if (it.photoUrl != null) {
                         Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
                         profileImage.load(it.photoUrl)
                     }
@@ -161,17 +166,18 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
+
                 val fieldMap: MutableMap<String?, String?> = mutableMapOf()
 
-                if(user?.name != viewModel!!.username.value) {
+                if(activityViewModel.authUser.value?.name != viewModel!!.username.value) {
                     fieldMap[Constants.USERNAME] = viewModel!!.username.value
                 }
 
-                if(user?.description != viewModel!!.description.value) {
+                if(activityViewModel.authUser.value?.description != viewModel!!.description.value) {
                     fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                 }
 
-                if(user?.tags != viewModel!!.selectedTags) {
+                if(activityViewModel.authUser.value?.tags != viewModel!!.selectedTags) {
                     fieldMap[Constants.TAGS] = (GsonBuilder()
                         .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
                         .create()) // TODO: Extract into DI/singleton/static var
@@ -182,9 +188,19 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     fieldMap[Constants.PHOTO_URL] = viewModel!!.base64Image
                 }
 
+                Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
+                if(fieldMap.isEmpty()) {
+                    return@setOnClickListener
+                }
+
                 lifecycleScope.launch {
                     activityViewModel.sendIntent(UserIntent.UpdateUser(fieldMap))
                 }
+
+                it.isEnabled = false // antispam
+                it.postDelayed({ // append delayed message to internal handler's message queue to reenable the button
+                    it.isEnabled = true
+                }, 1000 * 5) // reenable after delay
             }
         }
 
@@ -224,7 +240,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 imageRequestCode,
                 requestCode,
                 resultCode,
-                data).also { bitmap = it } != null) {
+                data
+            ).also { bitmap = it } != null) {
             binding.profileImage.setImageBitmap(
                 bitmap
             ) // set the new image resource to be decoded from the bitmap

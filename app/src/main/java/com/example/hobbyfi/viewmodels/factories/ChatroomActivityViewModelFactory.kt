@@ -9,12 +9,12 @@ import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 // TODO: This is a separate viewmodelfactory from MainActivityVMFactory because it will 99% have more parameters in the future
-class ChatroomActivityViewModelFactory(val application: Application, val _isFacebookAuthUser: Boolean, val user: User?)
+class ChatroomActivityViewModelFactory(val application: Application, val user: User?)
     : ViewModelProvider.Factory {
     @ExperimentalCoroutinesApi
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(ChatroomActivityViewModel::class.java)) {
-            return ChatroomActivityViewModelFactory(application, _isFacebookAuthUser, user) as T
+            return ChatroomActivityViewModel(application, user) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -12,6 +12,7 @@ import com.example.hobbyfi.state.TokenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 
@@ -23,7 +24,7 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
+            mainIntent.consumeAsFlow().collectLatest {
                 when(it) {
                     is TokenIntent.FetchRegisterToken -> fetchRegisterToken()
                     else -> throw Intent.InvalidIntentException()

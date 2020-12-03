@@ -7,6 +7,6 @@ import com.example.hobbyfi.models.User
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
-class ChatroomActivityViewModel(application: Application, _isFacebookAuthUser: Boolean, user: User?)
-    : AuthChatroomHolderViewModel(application, _isFacebookAuthUser, user) {
+class ChatroomActivityViewModel(application: Application, user: User?)
+    : AuthChatroomHolderViewModel(application, user) {
 }

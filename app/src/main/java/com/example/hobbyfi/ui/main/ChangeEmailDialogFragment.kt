@@ -14,10 +14,12 @@ import com.example.hobbyfi.databinding.FragmentChangeEmailDialogBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
+import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -65,6 +67,8 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                             // TODO: Progress bar/thing
                         }
                         is TokenState.TokenReceived -> {
+                            it.token?.jwt?.let { jwt -> prefConfig.writeToken(jwt) }
+                            it.token?.refreshJwt?.let { refreshJwt -> prefConfig.writeToken(refreshJwt) }
                             activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                                 Pair(Constants.EMAIL, viewModel!!.email.value!!)))
                             )
@@ -83,10 +87,28 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
     }
 
     override fun initTextFieldValidators() {
-        TODO("Not yet implemented")
+        with(binding) {
+            textInputNewEmail.addTextChangedListener(
+                Constants.emailInputError,
+                Constants.newEmailPredicate(activityViewModel.authUser.value?.email)
+            )
+
+            textInputPassword.addTextChangedListener(
+                Constants.passwordInputError,
+                Constants.passwordPredicate
+            )
+
+            textInputConfirmPassword.addTextChangedListener(
+                Constants.confirmPasswordInputError,
+                Constants.confirmPasswordPredicate(viewModel!!.password.value)
+            )
+        }
     }
 
     override fun assertTextFieldsInvalidity(): Boolean {
-        TODO("Not yet implemented")
+        with(binding) {
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputNewEmail) ||
+                    FieldUtils.isTextFieldInvalid(textInputPassword) || FieldUtils.isTextFieldInvalid(textInputConfirmPassword)
+        }
     }
 }

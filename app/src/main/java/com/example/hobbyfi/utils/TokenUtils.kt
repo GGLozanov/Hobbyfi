@@ -1,9 +1,7 @@
 package com.example.hobbyfi.utils
 
-import android.os.Build
 import android.util.Base64.DEFAULT
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
@@ -20,7 +18,8 @@ import java.util.*
 
 
 object TokenUtils {
-    class InvalidStoredTokenException : Exception()
+    object InvalidStoredTokenException : Exception(Constants.unauthorisedAccessError
+            + " " + Constants.reauthError)
 
     /**
      * Decodes a given JWT and returns the value of the 'userId' field in the payload
@@ -30,7 +29,7 @@ object TokenUtils {
     @Throws(ExpiredJwtException::class, MalformedJwtException::class, InvalidStoredTokenException::class)
     fun getTokenUserIdFromPayload(jwtToken: String?): Long {
         if(jwtToken == Constants.INVALID_TOKEN) {
-            throw InvalidStoredTokenException()
+            throw InvalidStoredTokenException
         }
 
         // FIXME: Random zip error that yeets the app
@@ -61,7 +60,7 @@ object TokenUtils {
         return try {
             prefConfig.readToken().let {
                 if(it != Constants.INVALID_TOKEN) getTokenUserIdFromPayload(it)
-                    else throw InvalidStoredTokenException()
+                    else throw InvalidStoredTokenException
             }
         } catch (e: Exception) {
             when(e) {
@@ -75,7 +74,7 @@ object TokenUtils {
                     return try {
                         prefConfig.readRefreshToken().let {
                             if(it != Constants.INVALID_TOKEN) getTokenUserIdFromPayload(it)
-                                else throw InvalidStoredTokenException()
+                                else throw InvalidStoredTokenException
                         }
                     } catch (x: ExpiredJwtException) {
                         Log.w(

@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application, protected val _isFacebookAuthUser: Boolean, user: User?)
+abstract class AuthUserHolderViewModel(application: Application, user: User?)
     : StateIntentViewModel<UserState, UserIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     init {
         // TODO: Check if this gets called every time in bottomnav
@@ -31,8 +31,6 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
 
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
-    val isFacebookUser: Boolean = _isFacebookAuthUser
-
     protected var _authUser: MutableLiveData<User?> = MutableLiveData(user)
     val authUser: LiveData<User?> get() = _authUser
 
@@ -40,15 +38,17 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
+            mainIntent.consumeAsFlow().collectLatest { // collect latest doesn't cancel the [action] block after receiving a value
                 when(it) {
                     is UserIntent.FetchUser -> {
                         fetchUser()
                     }
                     is UserIntent.UpdateUser -> {
+                        Log.i("AuthUserHolderVM", "Update User intent sent")
                         updateUser(it.userUpdateFields)
                     }
                     is UserIntent.DeleteUser -> {
+                        Log.i("AuthUserHolderVM", "Delete User intent sent")
                         deleteUser()
                     }
                 }
@@ -71,7 +71,7 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
     private suspend fun fetchUser() {
         _mainState.value = UserState.Loading
         // observe flow returned from networkBoundFetcher and change state upon emitted value
-        userRepository.getUser(_isFacebookAuthUser).catch { e ->
+        userRepository.getUser().catch { e ->
             e.printStackTrace()
             _mainState.value = if(e is Repository.ReauthenticationException)
                 UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
@@ -87,7 +87,7 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
 
         _mainState.value = try {
             UserState.OnData.UserUpdateResult(
-                userRepository.editUser(_isFacebookAuthUser, userFields),
+                userRepository.editUser(userFields),
                 userFields
             )
         } catch(reauthEx: Repository.ReauthenticationException) {
@@ -107,7 +107,7 @@ abstract class AuthUserHolderViewModel(application: Application, protected val _
 
         _mainState.value = try {
             UserState.OnData.UserDeleteResult(
-                userRepository.deleteUser(_isFacebookAuthUser)
+                userRepository.deleteUser()
             )
         } catch(reauthEx: Repository.ReauthenticationException) {
             UserState.Error(

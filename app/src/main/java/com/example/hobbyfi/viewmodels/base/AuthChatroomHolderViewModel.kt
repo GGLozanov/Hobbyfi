@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthChatroomHolderViewModel(application: Application, _isFacebookAuthUser: Boolean, user: User?)
-    : AuthUserHolderViewModel(application, _isFacebookAuthUser, user) {
+abstract class AuthChatroomHolderViewModel(application: Application, user: User?)
+    : AuthUserHolderViewModel(application, user) {
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
     protected var _authChatroom : Chatroom? = null

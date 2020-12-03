@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.utils.TokenUtils
 import com.facebook.AccessToken
@@ -35,17 +36,18 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
 
         view?.postDelayed({
             try {
-                val isFacebookUserLogged = AccessToken.getCurrentAccessToken() != null && !AccessToken.getCurrentAccessToken().isExpired
-                        && Profile.getCurrentProfile().id != null
+                val isFacebookUserLogged = Constants.isFacebookUserAuthd()
                 if(isFacebookUserLogged || TokenUtils.getTokenUserIdFromStoredTokens(prefConfig)
                         .compareTo(0) != 0) { // assert jwt doesn't throw exception
                     Log.i("SplashScreen", "Authenticated. Moving to main activity")
 
-                    val action = SplashScreenFragmentDirections.actionSplashScreenFragmentToMainActivity(
-                        null, // fetches user in MainActivity; if fails due to token expiry => logout user
-                        isFacebookUserLogged
+                    // TODO: Don't show login fragment being added to backstack
+                    navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
+                    navController.navigate(
+                        LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                            null
+                        )
                     )
-                    navController.navigate(action)
                 } else throw UnauthenticatedException()
             } catch(ex: Exception) {
                 ex.printStackTrace()

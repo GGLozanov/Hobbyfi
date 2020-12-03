@@ -19,7 +19,7 @@ class DefaultLoadStateAdapter(
         fun onCreateChatroomButtonPress(view: View)
     }
 
-    class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, view: View, private val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
+    class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, view: View, private inline val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
 
         companion object {
             fun getInstance(parent: ViewGroup, retry: () -> Unit): DefaultLoaderViewHolder {

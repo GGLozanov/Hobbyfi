@@ -27,8 +27,10 @@ class ChatroomActivity : BaseActivity() {
 
     // TODO: Have this be the deeplink activity. Register it and handle intent extras and facebook/default user
 
+    // TODO: If user leaves chatroom (not exits), delete messages saved in local db + users
+
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
-        ChatroomActivityViewModelFactory(application, args.isFacebookUser, args.user)
+        ChatroomActivityViewModelFactory(application, args.user)
     })
     private val args: ChatroomActivityArgs by navArgs()
 

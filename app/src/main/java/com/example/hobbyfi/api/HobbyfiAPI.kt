@@ -1,10 +1,6 @@
 package com.example.hobbyfi.api
 
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
 import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
@@ -22,7 +18,6 @@ import com.google.gson.reflect.TypeToken
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import org.kodein.di.javaType
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
@@ -93,17 +88,6 @@ interface HobbyfiAPI {
     ): CacheResponse<User>?
 
     /**
-     * GET request to fetch all other users apart from the authenticated (auth'd) one
-     * @param token - JWT for the given auth user used to validate requests to secure endpoints (contains auth user's id)
-     * @return - a map of "user" string (+ their id - i.e. "user1") and user models (no string response; if something goes awry, blame it on the user's connection)
-     */
-    @GET("api/v1.0/users/read")
-    fun fetchChatroomUsers(
-        @Header(Constants.AUTH_HEADER) token: String,
-        @Query(Constants.PAGE) page: Int
-    ): List<User>? // FIXME: Modify to List<UserResponse> for new API
-
-    /**
      * POST request to update a given user with the params specified in the body
      * @param token - JWT for the given auth user used to validate requests to secure endpoints (contains auth user's id)
      * @param body - POST body fields containing key-value pairs on fields to be updated in the backend
@@ -111,15 +95,67 @@ interface HobbyfiAPI {
      */
     @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now) FIXME potentially in backend
     @FormUrlEncoded
-    fun editUser(
+    suspend fun editUser(
         @Header(Constants.AUTH_HEADER) token: String,
         @FieldMap body: Map<String?, String?> // variable body parameters (which is why a map is used)
     ): Response?
 
+    /**
+     * DELETE request to, well, delete a user
+     * @param token - JWT for the given auth user used to validate requests to secure endpoints (contains auth user's id)
+     */
     @DELETE("api/v1.0/user/delete")
-    fun deleteUser(
+    suspend fun deleteUser(
         @Header(Constants.AUTH_HEADER) token: String
     ): Response?
+
+    /**
+     *
+     */
+    @POST("api/v1.0/chatroom/create")
+    suspend fun createChatroom()
+
+    /**
+     *
+     */
+    @POST("api/v1.0/chatroom/edit")
+    suspend fun editChatroom()
+
+    /**
+     *
+     */
+    @DELETE("api/v1.0/chatroom/delete")
+    suspend fun deleteChatroom()
+
+    /**
+     *
+     */
+    @GET("api/v1.0/chatroom/delete")
+    suspend fun fetchChatrooms(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.PAGE) page: Int?
+    ) : CacheListResponse<Chatroom>
+
+    /**
+     * GET request to fetch all other users apart from the authenticated (auth'd) one
+     * @param token - JWT for the given auth user used to validate requests to secure endpoints (contains auth user's id)
+     * @return - a map of "user" string (+ their id - i.e. "user1") and user models (no string response; if something goes awry, blame it on the user's connection)
+     */
+    @GET("api/v1.0/users/read")
+    suspend fun fetchChatroomUsers(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.PAGE) page: Int
+    ): List<User>? // FIXME: Modify to List<UserResponse> for new API
+
+    /**
+     *
+     */
+    @GET("api/v1.0/event/create")
+    suspend fun createEvent(
+
+    )
+
+    // TODO: Add rest of API operations
 
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
