@@ -4,16 +4,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <import type="android.view.View"/>
+        <import type="com.example.hobbyfi.utils.ColourUtils"/>
+        <import type="android.graphics.Color"/>
+
         <variable
             name="chatroom"
             type="com.example.hobbyfi.models.Chatroom" />
     </data>
 
-    <!--isImage decides whether to enable/disable visibility for ImageView section of card & whether to disable/enable visibility for text section of card-->
-
     <androidx.cardview.widget.CardView
         android:id="@+id/chatroom_card"
-        app:cardBackgroundColor="@color/colorBackground"
+        app:cardBackgroundColor="@{Color.parseColor(ColourUtils.INSTANCE.randomHex)}"
         android:layout_width="250dp"
         android:layout_height="wrap_content">
 
@@ -95,6 +96,15 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/chatroom_hosting_event" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/chatroom_join_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

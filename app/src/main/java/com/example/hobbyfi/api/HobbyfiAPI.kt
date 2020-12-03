@@ -113,7 +113,14 @@ interface HobbyfiAPI {
      *
      */
     @POST("api/v1.0/chatroom/create")
-    suspend fun createChatroom()
+    suspend fun createChatroom(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.USERNAME) name: String,
+        @Field(Constants.DESCRIPTION) description: String?,
+        @Field(Constants.OWNER_ID) ownerId: Int,
+        @Field(Constants.IMAGE) image: String?,
+        @Field(Constants.TAGS + "[]") tags: List<Tag>?
+    )
 
     /**
      *

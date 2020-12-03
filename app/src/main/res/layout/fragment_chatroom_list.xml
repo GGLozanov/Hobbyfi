@@ -11,12 +11,8 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <!--TODO: Inflate one chatroom card here or recyclerview depending on viewmodel user whether his chatroomId is null or not - Databinding-->
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        android:layout_height="match_parent"
+        android:background="@drawable/background_secondary_gradient">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/chatroom_list"
@@ -27,7 +23,7 @@
             android:layout_marginRight="16dp"
             app:layoutManager="LinearLayoutManager"
             tools:context=".ui.main.ChatroomListFragment"
-            tools:listitem="@layout/message_card_send" />
+            tools:listitem="@layout/chatroom_card" />
 
         <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

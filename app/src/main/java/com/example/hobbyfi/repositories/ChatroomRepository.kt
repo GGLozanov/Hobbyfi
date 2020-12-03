@@ -21,11 +21,11 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     // return livedata of pagedlist for chatrooms
     @ExperimentalPagingApi
-    fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig()): Flow<PagingData<Chatroom>> {
+    fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig(), shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = { hobbyfiDatabase.chatroomDao().getChatrooms() }, // TODO: DI & cache as SSOT
-            remoteMediator = remoteMediator
+            remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, shouldFetchAuthChatroom)
         ).flow
     }
 

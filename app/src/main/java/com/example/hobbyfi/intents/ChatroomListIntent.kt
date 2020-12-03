@@ -1,5 +1,5 @@
 package com.example.hobbyfi.intents
 
 sealed class ChatroomListIntent : Intent {
-    object FetchChatrooms : ChatroomListIntent() // pass in page number for pagination?
+    data class FetchChatrooms(val shouldDisplayAuthChatroom: Boolean) : ChatroomListIntent() // pass in page number for pagination?
 }

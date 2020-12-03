@@ -75,6 +75,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                     is UserState.OnData.UserUpdateResult -> {
                         Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
                             .show()
+                        // TODO: If viewModel.user chatroom id == null & userFileds Id != null => navigate to chatroom page
                         viewModel.updateAndSaveUser(it.userFields)
                     }
                     is UserState.Error -> {

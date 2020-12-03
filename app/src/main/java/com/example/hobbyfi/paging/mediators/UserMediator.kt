@@ -16,9 +16,8 @@ import com.example.hobbyfi.shared.RemoteKeyType
 class UserMediator(
     hobbyfiDatabase: HobbyfiDatabase,
     prefConfig: PrefConfig,
-    private val hobbyfiAPI: HobbyfiAPI,
-    private val connectivityManager: ConnectivityManager
-) : ModelRemoteMediator<Int, User>(hobbyfiDatabase, prefConfig, RemoteKeyType.USER) {
+    hobbyfiAPI: HobbyfiAPI,
+) : ModelRemoteMediator<Int, User>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.USER) {
 
     // TODO: get user token, get cached auth user from id, check his chatroom id and make request based on that
     override suspend fun load(loadType: LoadType, state: PagingState<Int, User>): MediatorResult {

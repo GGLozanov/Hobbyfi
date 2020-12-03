@@ -11,10 +11,7 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 // TODO: Room embed fields & typeconverters for saving tag lists in chatroom/user entity
-@Entity(tableName = "chatrooms", foreignKeys = [
-    ForeignKey(entity = User::class, parentColumns = arrayOf("id"), childColumns = arrayOf("ownerId"), onDelete = ForeignKey.CASCADE),
-    ForeignKey(entity = Event::class, parentColumns = arrayOf("id"), childColumns = arrayOf("lastEventId"))
-])
+@Entity(tableName = "chatrooms")
 @Keep
 @Parcelize
 data class Chatroom(
@@ -23,11 +20,16 @@ data class Chatroom(
     override val name: String,
     val description: String?,
     override var photoUrl: String?,
-    val tags: List<Tag>,
-    @ColumnInfo(name = "ownerId", index = true)
+    val tags: List<Tag>?,
+    @ColumnInfo(name = "ownerId")
     @SerializedName(Constants.OWNER_ID)
     val ownerId: Long,
-    @ColumnInfo(name = "lastEventId", index = true)
+    @ColumnInfo(name = "lastEventId")
     @SerializedName(Constants.LAST_EVENT_ID)
     val lastEventId: Int?
 ) : ExpandedModel, Parcelable
+
+// , foreignKeys = [
+//    ForeignKey(entity = User::class, parentColumns = arrayOf("id"), childColumns = arrayOf("ownerId"), onDelete = ForeignKey.CASCADE),
+//    ForeignKey(entity = Event::class, parentColumns = arrayOf("id"), childColumns = arrayOf("lastEventId"))
+//]

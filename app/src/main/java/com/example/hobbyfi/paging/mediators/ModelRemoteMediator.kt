@@ -1,6 +1,7 @@
 package com.example.hobbyfi.paging.mediators
 
 import androidx.paging.*
+import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.models.Model
@@ -14,6 +15,7 @@ import java.io.InvalidObjectException
 abstract class ModelRemoteMediator<Key: Any, Value: Model>(
     protected val hobbyfiDatabase: HobbyfiDatabase,
     protected val prefConfig: PrefConfig,
+    protected val hobbyfiAPI: HobbyfiAPI,
     protected val remoteKeyType: RemoteKeyType
 ) : RemoteMediator<Key, Value>() {
     companion object {

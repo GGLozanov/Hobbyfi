@@ -31,15 +31,17 @@ class DefaultLoadStateAdapter(
         }
 
         init {
-//            view.findViewById<Button>(R.id.btnRetry).setOnClickListener {
-//                retry()
-//            }
-            // TODO: Update callback once UI is setup
+            binding.refreshPageButton.setOnClickListener {
+                retry()
+            }
         }
 
         fun bind(loadState: LoadState) {
-            //errorText.visibility = toVisibility(loadState is LoadState.Error)
-            //button.visibilit = toVisibility(loadState is LoadState.Error)
+            with(binding) {
+                listErrorHeader.visibility = toVisibility(loadState is LoadState.Error)
+                refreshPageButton.visibility = toVisibility(loadState is LoadState.Error)
+                progressBar.visibility = toVisibility(loadState is LoadState.Loading)
+            }
         }
 
         private fun toVisibility(constraint: Boolean): Int = if (constraint) {
@@ -50,9 +52,14 @@ class DefaultLoadStateAdapter(
     }
 
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
-        if(createChatroomButtonCallback == null) {
+        if(createChatroomButtonCallback == null || loadState is LoadState.Error) {
             holder.binding.chatroomCreateButton.visibility = View.GONE
+        } else {
+            holder.binding.chatroomCreateButton.setOnClickListener {
+                createChatroomButtonCallback.onCreateChatroomButtonPress(it)
+            }
         }
+
         holder.bind(loadState)
     }
 

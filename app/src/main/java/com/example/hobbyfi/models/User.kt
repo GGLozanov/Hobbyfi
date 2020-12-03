@@ -14,9 +14,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
-@Entity(tableName = "users", foreignKeys = [
-    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomId"))
-])
+@Entity(tableName = "users")
 @Keep
 @Parcelize
 data class User(
@@ -60,3 +58,7 @@ data class User(
         }
     }
 }
+
+//foreignKeys = [
+//    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomId"))
+//]
