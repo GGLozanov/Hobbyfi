@@ -15,12 +15,6 @@
             app:destination="@id/loginFragment"
             app:popUpTo="@id/auth_nav_graph"
             app:popUpToInclusive="true" />
-        <action
-            android:id="@+id/action_splashScreenFragment_to_mainActivity"
-            app:destination="@id/mainActivity"
-            app:launchSingleTop="true"
-            app:popUpTo="@id/auth_nav_graph"
-            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/loginFragment"
@@ -83,10 +77,6 @@
             android:name="user"
             app:argType="com.example.hobbyfi.models.User"
             app:nullable="true" />
-        <argument
-            android:name="isFacebookUser"
-            app:argType="boolean"
-            android:defaultValue="false" />
     </activity>
     <include app:graph="@navigation/tag_nav_graph" />
 </navigation>
