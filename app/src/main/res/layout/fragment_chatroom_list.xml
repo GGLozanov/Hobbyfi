@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.main.ChatroomListFragment">
     <data>
         <variable
             name="viewModel"
@@ -12,20 +13,26 @@
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="40dp"
         android:background="@drawable/background_secondary_gradient">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/chatroom_list"
-            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            app:layoutManager="LinearLayoutManager"
-            tools:context=".ui.main.ChatroomListFragment"
-            tools:listitem="@layout/chatroom_card" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical">
 
-        <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/chatroom_list"
+                android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                app:layoutManager="LinearLayoutManager"
+                tools:listitem="@layout/chatroom_card" />
+
+            <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
+        </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
 </layout>

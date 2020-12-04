@@ -19,8 +19,7 @@ import org.kodein.di.generic.instance
 class UserProfileFragmentViewModel(application: Application, initialTags: List<Tag>)
     : BaseViewModel(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     // FIXME: Code dup >:(
-    private val _tags: MutableList<Tag> = (Constants.predefinedTags.getNewSelectedTagsWithTags(initialTags))
-        .toMutableList()
+    private val _tags: MutableList<Tag> = Constants.predefinedTags.getNewSelectedTagsWithTags(initialTags)
     val tags: List<Tag> get() = _tags
 
     private var _selectedTags: List<Tag> = initialTags

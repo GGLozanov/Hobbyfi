@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class ChatroomRepository @ExperimentalPagingApi constructor(
-    private val remoteMediator: ChatroomMediator,
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
     : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     // return livedata of pagedlist for chatrooms

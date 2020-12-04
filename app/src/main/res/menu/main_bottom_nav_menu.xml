@@ -2,16 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/userProfileFragment"
+        android:id="@+id/user_profile_graph"
         android:icon="@drawable/ic_baseline_person_white_24"
         android:title="@string/profile"
         android:titleCondensed="@string/profile"
+        android:menuCategory="secondary"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/chatroomListFragment"
+        android:id="@+id/chatroom_list_graph"
         android:icon="@drawable/ic_baseline_mode_comment_24"
         android:title="@string/chatrooms"
         android:titleCondensed="@string/chatrooms"
+        android:menuCategory="secondary"
         app:showAsAction="always" />
 </menu>

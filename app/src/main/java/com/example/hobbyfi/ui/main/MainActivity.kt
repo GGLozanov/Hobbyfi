@@ -8,12 +8,14 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
+import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
@@ -24,6 +26,9 @@ import com.facebook.login.LoginManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+
+
+
 
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
@@ -48,11 +53,17 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onStart() {
         super.onStart()
         with(binding) {
-            bottomNav.setupWithNavController(navController)
-            toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(
-                R.id.userProfileFragment,
-                R.id.chatroomListFragment
-            )))
+            bottomNav.setupWithNavController(
+                navGraphIds = listOf(R.navigation.user_profile_nav_graph, R.navigation.chatroom_list_nav_graph),
+                fragmentManager = supportFragmentManager,
+                containerId = R.id.nav_host_fragment,
+                intent = intent
+            ).observe(this@MainActivity, Observer {
+                toolbar.setupWithNavController(it, AppBarConfiguration(setOf(
+                    R.id.userProfileFragment,
+                    R.id.chatroomListFragment
+                )))
+            })
         }
 
         lifecycleScope.launch {

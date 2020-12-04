@@ -1,9 +1,11 @@
 package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.repositories.ChatroomRepository
@@ -29,14 +31,12 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
 
     override val _mainState: MutableStateFlow<ChatroomListState> = MutableStateFlow(ChatroomListState.Idle)
 
-    private var _chatroomPagingData: PagingData<Chatroom>? = null
-    val chatroomPagingData: PagingData<Chatroom>? get() = _chatroomPagingData
-
     override fun handleIntent() {
         viewModelScope.launch {
             mainIntent.consumeAsFlow().collectLatest {
                 when(it) {
                     is ChatroomListIntent.FetchChatrooms -> {
+                        Log.i("ChatroomListFragmentVM", "Handling FetchChatrooms intent with shouldDisplayAuthChatroom: ${it.shouldDisplayAuthChatroom}")
                         fetchChatrooms(it.shouldDisplayAuthChatroom)
                     }
                 }
@@ -46,12 +46,14 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
 
     private suspend fun fetchChatrooms(shouldDisplayAuthChatroom: Boolean) {
         _mainState.value = ChatroomListState.Loading
-        chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom).catch { e ->
+        chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom).cachedIn(viewModelScope)
+        .catch { e ->
             e.printStackTrace()
             _mainState.value = if(e is Repository.ReauthenticationException)
                 ChatroomListState.Error(Constants.reauthError, shouldReauth = true) else ChatroomListState.Error(e.message)
         }.collect {
-            _chatroomPagingData = it
+            Log.i("ChatroomListFragmentVM", "Received chatroom paging data: ${it}")
+            // _chatroomPagingData = it
             _mainState.value = ChatroomListState.ChatroomsResult(
                 it
             )

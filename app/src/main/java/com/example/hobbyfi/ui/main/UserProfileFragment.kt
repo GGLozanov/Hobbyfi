@@ -15,6 +15,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.example.hobbyfi.R
+import com.example.hobbyfi.UserProfileNavDirections
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.intents.UserIntent
@@ -121,11 +122,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             if(!Constants.isFacebookUserAuthd()) {
                 emailChangeButton.setOnClickListener {
-                    navController.navigate(R.id.action_userProfileFragment_to_changeEmailDialogFragment)
+                    navController.navigate(R.id.action_global_changeEmailDialogFragment)
                 }
 
                 passwordChangeButton.setOnClickListener {
-                    navController.navigate(R.id.action_userProfileFragment_to_changePasswordDialogFragment)
+                    navController.navigate(R.id.action_global_changePasswordDialogFragment)
                 }
             } else {
                 emailChangeButton.visibility = View.GONE
@@ -133,7 +134,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             tagSelectButton.setOnClickListener {
-                val action = UserProfileFragmentDirections.actionUserProfileFragmentToTagNavGraph(
+                val action = UserProfileFragmentDirections.actionGlobalTagNavGraph(
                     viewModel!!.selectedTags.toTypedArray(),
                     viewModel!!.tags.toTypedArray()
                 )

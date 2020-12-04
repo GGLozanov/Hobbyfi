@@ -3,6 +3,7 @@ package com.example.hobbyfi.adapters.chatroom
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
 import com.example.hobbyfi.databinding.ChatroomCardBinding
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
+import com.example.hobbyfi.utils.ColourUtils
 
 
 class ChatroomListAdapter(
@@ -35,6 +37,10 @@ class ChatroomListAdapter(
         val chatroom = getItem(position)
 
         holder.bind(chatroom)
+
+        holder.binding.chatroomCardLayout.setBackgroundColor(
+            ColourUtils.getRandomColour()
+        )
         holder.binding.chatroomJoinButton.setOnClickListener {
             if (chatroom != null) {
                 onJoinChatroomButtonCallback.onJoinChatroomButtonPress(it, chatroom)

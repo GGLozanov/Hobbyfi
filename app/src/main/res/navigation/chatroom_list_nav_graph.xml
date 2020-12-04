@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chatroom_list_graph"
+    app:startDestination="@id/chatroomListFragment">
+        <activity
+            android:id="@+id/chatroomCreateActivity"
+            android:name="com.example.hobbyfi.ui.create.ChatroomCreateActivity"
+            tools:layout="@layout/activity_chatroom_create"
+            android:label="Create Chatroom" />
+        <activity
+            android:id="@+id/chatroomActivity"
+            android:name="com.example.hobbyfi.ui.chatroom.ChatroomActivity"
+            android:label="Chatroom">
+                <argument
+                    android:name="user"
+                    app:argType="com.example.hobbyfi.models.User"
+                    app:nullable="true" />
+                <argument
+                    android:name="chatroom"
+                    app:argType="com.example.hobbyfi.models.Chatroom"
+                    app:nullable="true" />
+        </activity>
+        <fragment
+            android:id="@+id/chatroomListFragment"
+            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+            android:label="Chatrooms">
+                <action
+                    android:id="@+id/action_global_activityChatroom"
+                    app:destination="@id/chatroomActivity">
+                        <argument
+                            android:name="user"
+                            app:argType="com.example.hobbyfi.models.User"
+                            app:nullable="true" />
+                        <argument
+                            android:name="chatroom"
+                            app:argType="com.example.hobbyfi.models.Chatroom"
+                            app:nullable="true" />
+                </action>
+                <action android:id="@+id/action_global_activityChatroomCreate" app:destination="@id/chatroomCreateActivity" />
+        </fragment>
+</navigation>
+
+<!--    <action
+                android:id="@+id/action_chatroomListFragment_to_userProfileFragment"
+                app:destination="@id/user_profile_graph" />
+            <action
+                android:id="@+id/action_chatroomListFragment_to_chatroomCreateActivity"
+                app:destination="@id/chatroomCreateActivity" />
+            <action
+                android:id="@+id/action_chatroomListFragment_to_chatroomActivity"
+                app:destination="@id/chatroomActivity">
+
+            </action>-->

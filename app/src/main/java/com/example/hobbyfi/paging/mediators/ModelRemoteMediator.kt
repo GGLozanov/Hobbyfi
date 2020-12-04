@@ -9,6 +9,8 @@ import com.example.hobbyfi.persistence.RemoteKeysDao
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.InvalidObjectException
 
 @ExperimentalPagingApi
@@ -37,10 +39,10 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
                 // can't return mediator result with endOfPaginationReached to true here because
                 // this may be the last remote key but we don't have context for remote and rely on cache
                 val remoteKeys = getLastRemoteKey(state)
-                    ?: throw InvalidObjectException("Remote key should not be null for $loadType")
-                remoteKeys.nextKey
+                // return if(remoteKeys == null) DEFAULT_PAGE_INDEX else remoteKeys.nextKey
+                remoteKeys?.nextKey ?: MediatorResult.Success(endOfPaginationReached = true)
             }
-            LoadType.PREPEND -> { // load type for whenever
+            LoadType.PREPEND -> { // load type for whenever data needs to be prepended to the paged list (scroll up after down)
                 val remoteKeys = getFirstRemoteKey(state)
                     ?: throw InvalidObjectException("Invalid state, key should not be null")
                 // end of list condition reached -> reached the top of the page where the first page is loaded initially
@@ -54,30 +56,32 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
     /**
      * get the last remote key inserted which had the data
      */
-    protected fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
+            ?.let { model -> withContext(Dispatchers.IO) { remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) } }
     }
 
     /**
      * get the first remote key inserted which had the data
      */
-    protected fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .firstOrNull() { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
+            ?.let { model -> withContext(Dispatchers.IO) { remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) } }
     }
 
     /**
      * get the closest remote key inserted which had the data
      */
-    protected fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
-                remoteKeysDao.getRemoteKeysByIdAndType(modelId, remoteKeyType)
+                withContext(Dispatchers.IO) {
+                    remoteKeysDao.getRemoteKeysByIdAndType(modelId, remoteKeyType)
+                }
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.example.hobbyfi.adapters.tag
 
 import android.content.Context
+import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +11,7 @@ import androidx.databinding.DataBindingUtil
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ChatroomTagCardBinding
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.utils.ColourUtils
 
 
 class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Context, resource: Int) : ArrayAdapter<Tag>(context, resource) {
@@ -20,6 +23,12 @@ class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Conte
         return chatroomTags[position].id
     }
 
+    override fun getItem(position: Int): Tag? {
+        return if (chatroomTags.isNotEmpty() && position < chatroomTags.size)
+            return chatroomTags[position]
+        else null
+    }
+
     private class ChatroomTagHolder(var chatroomCardBinding: ChatroomTagCardBinding? = null)
 
     /**
@@ -29,22 +38,25 @@ class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Conte
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val chatroomTagHolder: ChatroomTagHolder
         var tagCard = convertView
-        if (chatroomTags.isNotEmpty() && position < chatroomTags.size) {
-            val tag: Tag? = getItem(position)
-            if (tagCard == null) {
-                chatroomTagHolder = ChatroomTagHolder(
-                    DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.chatroom_tag_card, parent, false)
-                )
+        Log.i("ChatroomTagLAdapter", "Chatroom tags: $chatroomTags")
+        val tag: Tag? = getItem(position)
+        if (tagCard == null) {
+            chatroomTagHolder = ChatroomTagHolder(
+                DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.chatroom_tag_card, parent, false)
+            )
 
-                tagCard = chatroomTagHolder.chatroomCardBinding!!.root
-                tagCard.tag = chatroomTagHolder
-            } else {
-                chatroomTagHolder = tagCard.tag as ChatroomTagHolder
-            }
-
-            chatroomTagHolder.chatroomCardBinding!!.tag = tag
+            tagCard = chatroomTagHolder.chatroomCardBinding!!.root
+            tagCard.tag = chatroomTagHolder
+        } else {
+            chatroomTagHolder = tagCard.tag as ChatroomTagHolder
         }
-        return tagCard!! // should be init'ed in any valid case
+
+        chatroomTagHolder.chatroomCardBinding!!.tagName.setBackgroundColor(
+            ColourUtils.getRandomColour()
+        )
+        chatroomTagHolder.chatroomCardBinding!!.tag = tag
+
+        return tagCard  // should be init'ed in any valid case
     }
 
 

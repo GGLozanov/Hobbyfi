@@ -3,78 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav_graph"
-    app:startDestination="@id/userProfileFragment">
+    app:startDestination="@id/user_profile_nav">
 
-    <fragment
-        android:id="@+id/userProfileFragment"
-        android:name="com.example.hobbyfi.ui.main.UserProfileFragment"
-        android:label="Your Profile"
-        tools:layout="@layout/fragment_user_profile">
+    <navigation android:id="@+id/user_profile_nav"
+        app:startDestination="@id/user_profile_graph">
+        <include app:graph="@navigation/user_profile_nav_graph" />
+        <action android:id="@+id/action_global_chatroom_list_graph"
+            app:destination="@id/chatroom_list_nav"/>
+    </navigation>
+    <navigation android:id="@+id/chatroom_list_nav"
+        app:startDestination="@id/chatroom_list_graph">
+        <include app:graph="@navigation/chatroom_list_nav_graph" />
         <action
-            android:id="@+id/action_userProfileFragment_to_chatroomListFragment"
-            app:destination="@id/chatroomListFragment" />
-        <argument
-            android:name="user"
-            app:argType="com.example.hobbyfi.models.User"
-            app:nullable="true" />
-        <action
-            android:id="@+id/action_userProfileFragment_to_changeEmailDialogFragment"
-            app:destination="@id/changeEmailDialogFragment" />
-        <action
-            android:id="@+id/action_userProfileFragment_to_changePasswordDialogFragment"
-            app:destination="@id/changePasswordDialogFragment" />
-        <action
-            android:id="@+id/action_userProfileFragment_to_tag_nav_graph"
-            app:destination="@id/tag_nav_graph" >
-            <argument
-                android:name="selectedTags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
-            <argument
-                android:name="tags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
-        </action>
-    </fragment>
-    <fragment
-        android:id="@+id/chatroomListFragment"
-        android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
-        android:label="Chatrooms">
-        <action
-            android:id="@+id/action_chatroomListFragment_to_userProfileFragment"
-            app:destination="@id/userProfileFragment" />
-        <action
-            android:id="@+id/action_chatroomListFragment_to_chatroomCreateActivity"
-            app:destination="@id/chatroomCreateActivity" />
-        <action
-            android:id="@+id/action_chatroomListFragment_to_chatroomActivity"
-            app:destination="@id/chatroomActivity">
-
-        </action>
-    </fragment>
-    <activity
-        android:id="@+id/chatroomCreateActivity"
-        android:name="com.example.hobbyfi.ui.create.ChatroomCreateActivity"
-        android:label="Create Chatroom"
-        tools:layout="@layout/activity_chatroom_create" />
-    <dialog
-        android:id="@+id/changeEmailDialogFragment"
-        android:name="com.example.hobbyfi.ui.main.ChangeEmailDialogFragment"
-        android:label="ChangeEmailDialogFragment" />
-    <dialog
-        android:id="@+id/changePasswordDialogFragment"
-        android:name="com.example.hobbyfi.ui.main.ChangePasswordDialogFragment"
-        android:label="ChangePasswordDialogFragment" />
-    <include app:graph="@navigation/tag_nav_graph" />
-    <activity
-        android:id="@+id/chatroomActivity"
-        android:name="com.example.hobbyfi.ui.chatroom.ChatroomActivity"
-        android:label="Chatroom">
-        <argument
-            android:name="user"
-            app:argType="com.example.hobbyfi.models.User"
-            app:nullable="true" />
-        <argument
-            android:name="chatroom"
-            app:argType="com.example.hobbyfi.models.Chatroom"
-            app:nullable="true" />
-    </activity>
+            android:id="@+id/action_global_user_profile_nav"
+            app:destination="@id/user_profile_nav" />
+    </navigation>
 </navigation>

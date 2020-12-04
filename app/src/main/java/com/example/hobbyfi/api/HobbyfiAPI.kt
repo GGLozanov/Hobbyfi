@@ -137,7 +137,7 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/chatroom/delete")
+    @GET("api/v1.0/chatrooms/read")
     suspend fun fetchChatrooms(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.PAGE) page: Int?

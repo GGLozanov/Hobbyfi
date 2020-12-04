@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.graphics.Color"/>
+        <variable
+            name="tag"
+            type="com.example.hobbyfi.models.Tag" />
+    </data>
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tag_name"
+        android:layout_width="100dp"
+        android:layout_height="60dp"
+        android:background="@drawable/rounded_container"
+        android:ellipsize="end"
+        android:fontFamily="@font/rubik_bold"
+        android:gravity="center"
+        android:maxWidth="150dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="5dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="5dp"
+        android:text="@{tag.name}"
+        android:textSize="20sp"
+        android:textStyle="bold"> <!--TODO: Proper ellipsize-->
+
+    </com.google.android.material.textview.MaterialTextView>
+</layout> <!--TODO: Add shadow-->

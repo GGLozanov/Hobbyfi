@@ -65,7 +65,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
-                instance(tag = "chatroomMediator") as ChatroomMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
