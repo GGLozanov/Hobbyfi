@@ -5,13 +5,18 @@ import android.content.Context
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.os.Build
+import android.util.Patterns
 import androidx.annotation.RequiresApi
+import androidx.core.util.Predicate
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
+import androidx.paging.RemoteMediator
+import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator
@@ -21,6 +26,7 @@ import com.example.hobbyfi.repositories.*
 import com.example.hobbyfi.shared.PrefConfig
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
+import com.google.gson.GsonBuilder
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
@@ -32,7 +38,6 @@ import org.kodein.di.generic.singleton
 // TODO: DI, Notification channel, etc. setup
 @ExperimentalPagingApi
 class MainApplication : MultiDexApplication(), KodeinAware {
-    @RequiresApi(Build.VERSION_CODES.N)
     override val kodein: Kodein = Kodein.lazy {
         import(androidXModule(this@MainApplication))
 
@@ -52,57 +57,65 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "userRepository") from singleton { UserRepository(
-                instance(tag = "userPagingSource") as PagingSource<Int, User>,
+                instance(tag = "userMediator") as UserMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
-                instance(tag = "chatroomPagingSource") as PagingSource<Int, Chatroom>,
+                instance(tag = "chatroomMediator") as ChatroomMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "eventRepository") from singleton { EventRepository(
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
         bind(tag = "messageRepository") from singleton { MessageRepository(
-                instance(tag = "messagePagingSource") as PagingSource<Int, Message>,
+                instance(tag = "messageMediator") as MessageMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
-        bind(tag = "chatroomMediator") from singleton { ChatroomMediator(
-                instance(tag = "chatroomRepository") as ChatroomRepository
-            )
-        }
+//        bind(tag = "chatroomMediator") from singleton { ChatroomMediator(
+//                instance(tag = "database") as HobbyfiDatabase,
+//                instance(tag = "prefConfig") as PrefConfig,
+//                instance(tag = "api") as HobbyfiAPI
+//            )
+//        } // FIXME: symmetry with mediator DI
         bind(tag = "messageMediator") from singleton { MessageMediator(
-                instance(tag = "messageMediator") as MessageRepository,
-                instance(tag = "prefConfig") as PrefConfig
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "prefConfig") as PrefConfig,
+                instance(tag = "api") as HobbyfiAPI
             )
         }
         bind(tag = "userMediator") from singleton { UserMediator(
-                instance(tag = "userRepository") as UserRepository,
-                instance(tag = "prefConfig") as PrefConfig
-            )
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "prefConfig") as PrefConfig,
+                instance(tag = "api") as HobbyfiAPI
+        )
         }
         // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
         // OR TODO: Might need to keep these as singletons. Heck if I know
-        bind(tag = "chatroomPagingSource") from provider {
-            (instance(tag = "database") as HobbyfiDatabase).chatroomDao().getChatrooms()
-        }
-        bind(tag = "messagePagingSource") from provider {
-            (instance(tag = "database") as HobbyfiDatabase).messageDao().getMessages()
-        }
-        bind(tag = "userPagingSource") from provider {
-            (instance(tag = "database") as HobbyfiDatabase).userDao().getUsers()
-        }
+//        bind(tag = "chatroomPagingSource") from provider {
+//            (instance(tag = "database") as HobbyfiDatabase).chatroomDao().getChatrooms()
+//        }
+//        bind(tag = "messagePagingSource") from provider {
+//            (instance(tag = "database") as HobbyfiDatabase).messageDao().getMessages()
+//        }
+//        bind(tag = "userPagingSource") from provider {
+//            (instance(tag = "database") as HobbyfiDatabase).userDao().getUsers()
+//        }
     }
 
     override fun onCreate() {

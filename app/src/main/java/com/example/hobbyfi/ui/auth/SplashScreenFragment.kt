@@ -10,8 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseFragment
+import com.example.hobbyfi.utils.TokenUtils
 import com.facebook.AccessToken
+import com.facebook.Profile
 
 class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs (probably...) so it can stay Fragment() and not BaseFragment()
 
@@ -28,24 +31,33 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val activity = (activity as AppCompatActivity)
 
-        activity.supportActionBar?.hide()
+        (activity as AppCompatActivity?)?.supportActionBar?.hide()
 
         view?.postDelayed({
-            if(!prefConfig.readLoginStatus()) {  // TODO: Also check token expiry here? and Facebook
+            try {
+                val isFacebookUserLogged = Constants.isFacebookUserAuthd()
+                if(isFacebookUserLogged || TokenUtils.getTokenUserIdFromStoredTokens(prefConfig)
+                        .compareTo(0) != 0) { // assert jwt doesn't throw exception
+                    Log.i("SplashScreen", "Authenticated. Moving to main activity")
+
+                    // TODO: Don't show login fragment being added to backstack
+                    navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
+                    navController.navigate(
+                        LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                            null
+                        )
+                    )
+                } else throw UnauthenticatedException()
+            } catch(ex: Exception) {
+                ex.printStackTrace()
                 Log.i("SplashScreen", "Not authenticated. Moving to login fragment")
                 navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
-            } else {
-                Log.i("SplashScreen", "Authenticated. Moving to main activity")
-
-                val action = SplashScreenFragmentDirections.actionSplashScreenFragmentToMainActivity(
-                    null // fetches user in MainActivity; if fails due to token expiry => logout user
-                )
-                navController.navigate(action)
             }
 
-            activity.supportActionBar?.show()
+            (activity as AppCompatActivity?)?.supportActionBar?.show()
         }, 3000)
     }
+
+    class UnauthenticatedException : Exception()
 }

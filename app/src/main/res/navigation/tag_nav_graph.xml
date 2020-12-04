@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tag_nav_graph"
+    app:startDestination="@id/tagSelectionDialogFragment">
+    <dialog
+        android:id="@+id/tagSelectionDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
+        android:label="fragment_tag_selection_dialog"
+        tools:layout="@layout/fragment_tag_selection_dialog">
+        <argument
+            android:name="selectedTags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
+        <argument
+            android:name="tags"
+            app:argType="com.example.hobbyfi.models.Tag[]" />
+
+        <action
+            android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment"
+            app:destination="@id/customTagCreateDialogFragment" />
+    </dialog>
+    <dialog
+        android:id="@+id/customTagCreateDialogFragment"
+        android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
+        android:label="CustomTagCreateDialogFragment" />
+</navigation>

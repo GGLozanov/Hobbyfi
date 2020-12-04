@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/userProfileFragment"
+        android:icon="@drawable/ic_baseline_person_white_24"
+        android:title="@string/profile"
+        android:titleCondensed="@string/profile"
+        app:showAsAction="always" />
 
+    <item
+        android:id="@+id/chatroomListFragment"
+        android:icon="@drawable/ic_baseline_mode_comment_24"
+        android:title="@string/chatrooms"
+        android:titleCondensed="@string/chatrooms"
+        app:showAsAction="always" />
 </menu>

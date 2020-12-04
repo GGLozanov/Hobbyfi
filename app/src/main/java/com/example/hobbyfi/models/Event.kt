@@ -11,7 +11,7 @@ data class Event(
     val description: String,
     val startDate: String, // converted to Date format in back-end
     val date: String,
-    override val hasImage: Boolean,
+    override var photoUrl: String?,
     val latitude: Double,
     val longitude: Double
 ) : ExpandedModel

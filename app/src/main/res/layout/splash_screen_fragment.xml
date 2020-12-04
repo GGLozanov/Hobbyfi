@@ -9,4 +9,12 @@
 
     <!--TODO: Convert to MotionLayout-->
 
+    <TextView
+        android:id="@+id/debug_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textColor="@android:color/black"
+        android:text="SPLASH">
+    </TextView>
+
 </androidx.constraintlayout.motion.widget.MotionLayout>

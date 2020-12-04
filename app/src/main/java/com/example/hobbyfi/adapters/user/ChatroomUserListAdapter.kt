@@ -27,10 +27,10 @@ class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.
     class ChatroomUserViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         companion object {
             //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup): ChatroomListAdapter.ChatroomListViewHolder {
+            fun getInstance(parent: ViewGroup): ChatroomUserViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val view = inflater.inflate(R.layout.message_card_send, parent, false)
-                return ChatroomListAdapter.ChatroomListViewHolder(view)
+                return ChatroomUserViewHolder(view)
             }
         }
 

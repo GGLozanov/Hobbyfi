@@ -7,20 +7,58 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.example.hobbyfi.adapters.tag.TagTypeAdapter
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.fromJson
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
-@Entity(tableName = "users", foreignKeys = [
-    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomId"))
-])
+@Entity(tableName = "users")
 @Keep
 @Parcelize
 data class User(
     @PrimaryKey
     override val id: Long,
-    val email: String?,
-    override val name: String,
-    val description: String?,
-    override val hasImage: Boolean,
-    val tags: List<Tag>?,
-    var chatroomId: Int?
-) : ExpandedModel, Parcelable
+    var email: String?,
+    @SerializedName(Constants.USERNAME)
+    override var name: String,
+    var description: String?,
+    @SerializedName(Constants.PHOTO_URL)
+    override var photoUrl: String?,
+    var tags: List<Tag>?,
+    @SerializedName(Constants.CHATROOM_ID)
+    @ColumnInfo(name = "chatroomId", index = true)
+    var chatroomId: Int?,
+) : ExpandedModel, Parcelable {
+    fun updateFromFieldMap(fieldMap: Map<String?, String?>): Unit {
+        for((key, value) in fieldMap.entries) {
+            when(key) {
+                Constants.EMAIL -> {
+                    email = value
+                }
+                Constants.USERNAME -> {
+                    name = value!!
+                }
+                Constants.DESCRIPTION -> {
+                    description = value
+                }
+                Constants.TAGS -> {
+                    tags = GsonBuilder()
+                        .registerTypeAdapter(
+                            Tag::class.java,
+                            TagTypeAdapter()
+                        ) // FIXME: Extract into singleton
+                        .create().fromJson(value!!)
+                }
+                Constants.PHOTO_URL -> {
+                    photoUrl = value
+                }
+            }
+        }
+    }
+}
+
+//foreignKeys = [
+//    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomId"))
+//]

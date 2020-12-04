@@ -8,11 +8,14 @@
             type="com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel" />
     </data>
 
+
     <ScrollView
+        android:id="@+id/register_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background_secondary_gradient"
-        android:fillViewport="true"
+        android:fadeScrollbars="false"
+        android:fillViewport="false"
         android:visibility="visible"
         tools:visibility="visible">
 
@@ -20,13 +23,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="75dp"
-            android:layout_marginBottom="75dp"
             android:background="@drawable/layout_shadow"
-            android:elevation="8dp"
-            android:padding="50dp"
             android:paddingLeft="40dp"
+            android:paddingTop="15dp"
             android:paddingRight="40dp"
+            android:paddingBottom="15dp"
             tools:context=".ui.auth.RegisterFragment">
 
             <com.google.android.material.textview.MaterialTextView
@@ -79,9 +80,10 @@
                     android:layout_height="wrap_content"
                     android:includeFontPadding="true"
                     android:inputType="textEmailAddress"
-                    android:text="@={viewModel.email}"
+                    android:lines="2"
                     android:maxLines="2"
                     android:singleLine="true"
+                    android:text="@={viewModel.email}"
                     tools:layout_conversion_absoluteHeight="45dp"
                     tools:layout_conversion_absoluteWidth="20dp"
                     tools:layout_editor_absoluteX="4dp"
@@ -99,7 +101,7 @@
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
                 app:hintEnabled="true"
-                app:layout_constraintBottom_toTopOf="@+id/username_input_field"
+                app:layout_constraintBottom_toTopOf="@id/confirm_password_input_field"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/email_input_field"
@@ -121,6 +123,36 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/confirm_password_input_field"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:hint="@string/confirm_password_hint"
+                app:endIconMode="clear_text"
+                app:errorEnabled="true"
+                app:hintEnabled="true"
+                app:layout_constraintBottom_toTopOf="@+id/username_input_field"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/password_input_field"
+                app:startIconDrawable="@drawable/ic_baseline_security_white_24">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/text_input_confirm_password"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="true"
+                    android:inputType="textPassword"
+                    android:singleLine="true"
+                    tools:layout_conversion_absoluteHeight="45dp"
+                    tools:layout_conversion_absoluteWidth="20dp"
+                    tools:layout_editor_absoluteX="4dp"
+                    tools:layout_editor_absoluteY="4dp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/username_input_field"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -133,7 +165,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/description_input_field"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/password_input_field"
+                app:layout_constraintTop_toBottomOf="@id/confirm_password_input_field"
                 app:startIconDrawable="@drawable/ic_baseline_person_24">
 
                 <com.google.android.material.textfield.TextInputEditText

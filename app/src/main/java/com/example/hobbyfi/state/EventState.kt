@@ -8,7 +8,7 @@ sealed class EventState : State {
     object Idle : EventState()
     object Loading : EventState()
 
-    data class OnEventReceived(val event: Event)
+    data class OnEventReceived(val event: Event) : EventState()
 
     // TODO: Find a way to Swift-ify this and pass the eventId only in OnNotification and have the inner classes access it
     sealed class OnNotification : EventState() {
@@ -17,5 +17,5 @@ sealed class EventState : State {
         data class OnUpdateEventNotification(val eventId: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom update for all users
     }
 
-    data class Error(val error: String?) : EventState()
+    data class Error(val error: String?, val shouldReauth: Boolean = false) : EventState()
 }

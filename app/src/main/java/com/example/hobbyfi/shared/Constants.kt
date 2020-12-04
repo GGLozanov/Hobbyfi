@@ -1,15 +1,30 @@
 package com.example.hobbyfi.shared
 
+import android.util.Patterns
+import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
+import com.facebook.AccessToken
+import com.facebook.Profile
 
 object Constants {
-    val descriptionInputError: String = "Enter a shorter description!"
-    val usernameInputError: String = "Enter a non-empty valid username!"
-    val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
-    val emailInputError: String = "Enter a non-empty valid e-mail address!"
-    val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
+    const val descriptionInputError: String = "Enter a shorter description!"
+    const val usernameInputError: String = "Enter a non-empty valid username!"
+    const val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
+    const val confirmPasswordInputError: String = "Enter the same password!"
+    const val emailInputError: String = "Enter a non-empty valid e-mail address!"
+    const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
+
+    const val reauthError: String = "Logging out! Your session may have expired!"
+    const val resourceExistsError: String = "This user/thing already exists!"
+    const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
+    const val invalidCredentialsError: String = "Invalid credentials!"
+    const val invalidTokenError: String = "Invalid access! Please login again!"
+    const val unauthorisedAccessError: String = "Unauthorised access!"
+    const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
+    const val missingDataError: String = "Missing/invalid data entered!"
+    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -31,11 +46,42 @@ object Constants {
         )
     )
 
+    // TODO: Put in in-memory db
+    val emailPredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
+
+    fun newEmailPredicate(originalEmail: String?) = Predicate<String> {
+        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
+
+    val passwordPredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
+    }
+
+    fun confirmPasswordPredicate(originalPassword: String?) = Predicate<String> {
+        return@Predicate it.isEmpty() || it != originalPassword
+    }
+
+    val usernamePredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || it.length >= 25
+    }
+
+    val descriptionPredicate = Predicate<String> {
+        return@Predicate it.length >= 30
+    }
+
+
     fun getDefaultPageConfig(): PagingConfig { // used in pager init
         return PagingConfig(pageSize = 5, enablePlaceholders = false)
     }
 
-    const val CACHE_TIMEOUT = 60 * 30 // 30 minutes
+    fun isFacebookUserAuthd(): Boolean {
+        return AccessToken.getCurrentAccessToken() != null && !AccessToken.getCurrentAccessToken().isExpired
+                && Profile.getCurrentProfile().id != null
+    }
+
+    const val CACHE_TIMEOUT = 60 * 60 * 2 // 2 hours
         .toLong()
 
     const val SUCCESS_RESPONSE = "Ok"
@@ -45,6 +91,7 @@ object Constants {
     const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Error with fetching your Facebook email! Stopping login!"
     const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
     const val EXISTS_RESPONSE = "exists"
+    const val INVALID_TOKEN = "invalid"
     const val REAUTH_FLAG = "Reauth"
     const val FAILED_FLAG = "Failed: "
 
@@ -53,10 +100,17 @@ object Constants {
     const val RESPONSE = "response"
     const val EMAIL = "email"
     const val PASSWORD = "password"
+    const val NAME = "name"
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
+    const val CHATROOM_ID = "chatroom_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
+    const val OWNER_ID = "owner_id"
+    const val LAST_EVENT_ID = "last_event_id"
+    const val PAGE = "page"
+    const val DATA = "data"
+    const val DATA_LIST = "data_list"
 
     const val PHOTO_URL = "photo_url"
 
@@ -64,4 +118,13 @@ object Constants {
 
     const val tagsKey = "tag"
     const val selectedTagsKey = "selectedTags"
+
+    const val name = "name"
+    const val colour = "colour"
+    const val isFromFacebook: String = "is_from_facebook"
+
+    const val profileImageWidth = 175
+    const val profileImageHeight = 135
+
+    const val userProfileImageDir = "user_pfps"
 }

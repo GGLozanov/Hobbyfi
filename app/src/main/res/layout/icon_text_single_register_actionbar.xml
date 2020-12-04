@@ -5,6 +5,8 @@
     android:layout_height="wrap_content"
     android:background="@color/colorPrimary"
     android:clickable="true"
+    android:drawableStart="@drawable/ic_baseline_login_white_24"
+    android:drawableLeft="@drawable/ic_baseline_login_white_24"
     android:drawablePadding="10dp"
     android:focusable="true"
     android:gravity="center"
@@ -15,5 +17,4 @@
     android:paddingBottom="14dp"
     android:text="@string/login"
     android:textSize="18sp"
-    android:textStyle="bold"
-    app:drawableLeftCompat="@drawable/ic_baseline_login_white_24" />
+    android:textStyle="bold" />

@@ -10,5 +10,11 @@ import javax.sql.DataSource
 @Dao
 interface ChatroomDao : BaseDao<Chatroom> {
     @Query("SELECT * FROM chatrooms")
-    fun getChatrooms() : PagingSource<Int, Chatroom>
+    fun getChatrooms(): PagingSource<Int, Chatroom>
+
+    @Query("DELETE FROM chatrooms")
+    suspend fun deleteChatrooms()
+
+    @Query("DELETE FROM users WHERE id != :chatroomId")
+    fun deleteChatroomsExceptId(chatroomId: Long)
 }

@@ -32,24 +32,36 @@ class TagListAdapter(
         Log.i("SelectedTags", selectedTags.toString())
         Log.i("Tags", tags.toString())
 
-        holder.binding.tagCard.setCardBackgroundColor(
-            if(selectedTags.contains(tag)) Color.parseColor(tag.colour)
-            else ContextCompat.getColor(holder.binding.root.context, R.color.colorGrey)
-        )
+        var color: Int
+        try {
+            color = Color.parseColor(tag.colour)
+        } catch(ex: IllegalArgumentException) {
+            Log.w("TagListAdapter" , "Invalid color for tag! Reverting to default colour")
+            color = Color.GREEN // default colour, idk
+        }
 
-        holder.binding.tagCard.setOnClickListener {
-            val isSelected = !selectedTags.contains(tag)
+        val wasSelected = selectedTags.contains(tag)
+        with(holder.binding) {
+            tagCard.setCardBackgroundColor(
+                if(wasSelected) color
+                else ContextCompat.getColor(root.context, R.color.colorGrey)
+            )
 
-            if(isSelected) {
-                selectedTags.add(tag)
-                holder.binding.tagCard.setCardBackgroundColor(
-                    Color.parseColor(tag.colour)
-                )
-            } else {
-                selectedTags.remove(tag)
-                holder.binding.tagCard.setCardBackgroundColor(
-                    ContextCompat.getColor(holder.binding.root.context, R.color.colorGrey)
-                )
+            tagCard.setOnClickListener {
+                val isSelected = !selectedTags.contains(tag)
+
+                if(isSelected) {
+                    selectedTags.add(tag)
+                    tagCard.setCardBackgroundColor(
+                        color
+                    )
+                } else {
+                    selectedTags.remove(tag)
+                    tagCard.setCardBackgroundColor(
+                        ContextCompat.getColor(root.context, R.color.colorGrey)
+                    )
+                }
+                Log.i("TagListAdapter", "Tags: ${selectedTags}")
             }
         }
     }

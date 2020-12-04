@@ -1,5 +1,10 @@
 package com.example.hobbyfi.responses
 
-interface Response {
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
+
+data class Response(
+    @SerializedName("response")
+    @Expose
     val response: String?
-}
+)

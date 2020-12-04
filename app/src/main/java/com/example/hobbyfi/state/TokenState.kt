@@ -8,8 +8,8 @@ sealed class TokenState : State {
     object Idle : TokenState()
     object Loading : TokenState()
 
-    data class OnTokenReceived(val token: TokenResponse?) : TokenState()
-    object OnFacebookRegisterTokenSuccess : TokenState()
+    data class TokenReceived(val token: TokenResponse?) : TokenState()
+    object FacebookRegisterTokenSuccess : TokenState()
 
     data class Error(val error: String?) : TokenState()
 }

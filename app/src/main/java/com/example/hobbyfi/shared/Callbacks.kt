@@ -3,17 +3,14 @@ package com.example.hobbyfi.shared
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.TokenUtils
+import io.jsonwebtoken.ExpiredJwtException
 import retrofit2.HttpException
-import retrofit2.Response
 import java.io.IOException
-import kotlin.jvm.Throws
 
 
 object Callbacks {
@@ -39,18 +36,32 @@ object Callbacks {
     }
 
     // "returns" a response when in reality it always throws an exception
-    fun dissectRepositoryExceptionAndThrow(ex: Exception) {
+    fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
         when(ex) {
-            is HobbyfiAPI.NoConnectivityException -> throw Exception("Couldn't register! Please check your connection!")
+            is HobbyfiAPI.NoConnectivityException -> throw Exception(Constants.noConnectionError)
             is HttpException -> {
 
-                if(ex.code() == 409) { // conflict
-                    throw Exception("This user/thing already exists!") // FIXME: Generify response for future endpoints with "exist" as response, idfk
-                } // TODO: Might use if responses from API are too generic. Will make them not be!
+                when(ex.code()) {
+                    400 -> { // bad request (missing data)
+                        throw Exception(Constants.missingDataError)
+                    }
+                    401 -> { // unauthorized
+                        throw if(!isAuthorisedRequest) Exception(Constants.invalidTokenError)
+                        else Repository.AuthorisedRequestException(Constants.unauthorisedAccessError) // only for login incorrect password error
+                    }
+                    409 -> { // conflict
+                        throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk
+                    }
+                }
 
                 throw Exception(ex.message().toString() + " ; code: " + ex.code())
             }
-            else -> throw Exception("Unknown error! Please check your connection or contact a developer!")
+            is ExpiredJwtException -> {
+                throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
+                    else Repository.ReauthenticationException(Constants.expiredTokenError)
+            }
+            is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException -> throw ex
+            else -> throw Exception(Constants.unknownError(ex.message))
         }
     }
 }

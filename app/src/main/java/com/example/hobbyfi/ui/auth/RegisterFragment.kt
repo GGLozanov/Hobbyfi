@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.auth
 
+import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
@@ -12,8 +13,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.ui.onNavDestinationSelected
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
@@ -21,8 +23,9 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -32,17 +35,20 @@ import com.example.spendidly.utils.PredicateTextWatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import pub.devrel.easypermissions.EasyPermissions
 
 
 @ExperimentalCoroutinesApi
-class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
-    private val viewModel: RegisterFragmentViewModel by viewModels(factoryProducer = {
-        ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().application)
-    })
+class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
+    private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
-    private var imageRequestCode: Int = 777
+    private val imageRequestCode: Int = 777
     private var bitmap: Bitmap? = null
+
+    companion object {
+        val tag: String = "RegisterFragment"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,50 +63,52 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
             DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
 
         binding.viewModel = viewModel
-        binding.lifecycleOwner = this
 
-        val view = binding.root
+        with(binding) {
+            lifecycleOwner = this@RegisterFragment
 
-        initTextFieldValidators()
+            val view = root
 
-        binding.profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
-            // TODO: Ask for Read storage permission here
-            val selectImageIntent = Intent()
-            selectImageIntent.type = "image/*" // set MIME data type to all images
+            initTextFieldValidators()
 
-            selectImageIntent.action =
-                Intent.ACTION_GET_CONTENT // set the desired action to get image
+            profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
+                if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    val selectImageIntent = Intent()
+                    selectImageIntent.type = "image/*" // set MIME data type to all images
 
-            startActivityForResult(
-                selectImageIntent,
-                imageRequestCode
-            ) // start activity and await result
-        }
+                    selectImageIntent.action =
+                        Intent.ACTION_GET_CONTENT // set the desired action to get image
 
-
-        binding.registerAccountButton.setOnClickListener {
-            if(FieldUtils.isTextFieldInvalid(binding.textInputEmail) ||
-                FieldUtils.isTextFieldInvalid(binding.textInputPassword) ||
-                FieldUtils.isTextFieldInvalid(binding.textInputUsername) ||
-                    FieldUtils.isTextFieldInvalid(binding.textInputDescription)) {
-                Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
-                    .show() // TODO: Extract into separate error text
-                return@setOnClickListener
+                    startActivityForResult(
+                        selectImageIntent,
+                        imageRequestCode
+                    ) // start activity and await result
+                } else {
+                    EasyPermissions.requestPermissions(this@RegisterFragment, getString(R.string.read_external_storage_rationale),
+                        200, Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
             }
 
-            lifecycleScope.launch {
-                viewModel.sendIntent(TokenIntent.FetchRegisterToken)
-            }
-        }
+            registerAccountButton.setOnClickListener {
+                if(assertTextFieldsInvalidity()) {
+                    Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
+                        .show() // TODO: Extract into separate error text
+                    return@setOnClickListener
+                }
 
-        return view
+                lifecycleScope.launch {
+                    viewModel!!.sendIntent(TokenIntent.FetchRegisterToken)
+                }
+            }
+
+            return view
+        }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.tagSelectButton.setOnClickListener {
-            val action = RegisterFragmentDirections.actionRegisterFragmentToTagSelectionDialogFragment(
+            val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
                 viewModel.selectedTags.toTypedArray(),
                 viewModel.tags.toTypedArray()
             )
@@ -108,7 +116,7 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
         }
 
         lifecycleScope.launch {
-            viewModel.state.collect {
+            viewModel.mainState.collect {
                 when(it) {
                     is TokenState.Idle -> {
                     }
@@ -119,78 +127,89 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                     is TokenState.Loading -> {
                         // TODO: Show a progress indicator or something
                     }
-                    is TokenState.OnTokenReceived -> {
-                        prefConfig.writeToken(it.token?.jwt)
-                        prefConfig.writeRefreshToken(it.token?.refreshJwt)
-                        prefConfig.writeLoginStatus(true)
+                    is TokenState.TokenReceived -> {
+                        val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
 
-                        val action = RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
-                            User(
-                                TokenUtils.getTokenUserIdFromPayload(it.token?.jwt),
+                        login(
+                            RegisterFragmentDirections.actionRegisterFragmentToMainActivity(User(
+                                id,
                                 viewModel.email.value!!,
                                 viewModel.username.value!!,
                                 viewModel.description.value,
-                                viewModel.getProfileImageBase64() != null,
-                                viewModel.selectedTags, // TODO: User has null tags or just an empty list?
+                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                        + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
+                                viewModel.selectedTags, // FIXME: User has null tags or just an empty list?
                                 null
-                            )
+                            )),
+                            it.token?.jwt,
+                            it.token?.refreshJwt
                         )
-                        navController.navigate(action)
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
-            selectedTags.forEach {
-                if(!viewModel.tags.contains(it)) {
-                    viewModel.addTag(it)
-                }
-            }
+            viewModel.appendNewSelectedTagsToTags(selectedTags)
             viewModel.setSelectedTags(selectedTags)
         }
     }
 
     override fun initTextFieldValidators() {
-        binding.textInputEmail.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputEmail,
+        with(binding) {
+            textInputEmail.addTextChangedListener(
                 Constants.emailInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
-                })
-        )
+                Constants.emailPredicate
+            )
 
-        binding.textInputPassword.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputPassword,
+            textInputPassword.addTextChangedListener(
                 Constants.passwordInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
-                })
-        )
+                Constants.passwordPredicate
+            )
 
-        binding.textInputUsername.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputUsername,
+            textInputConfirmPassword.addTextChangedListener(
+                Constants.confirmPasswordInputError,
+                Constants.confirmPasswordPredicate(viewModel!!.password.value)
+            )
+
+            textInputUsername.addTextChangedListener(
                 Constants.usernameInputError,
-                Predicate {
-                    return@Predicate it.isEmpty() || it.length >= 25
-                })
-        )
+                Constants.usernamePredicate
+            )
 
-        binding.textInputDescription.addTextChangedListener(
-            PredicateTextWatcher(
-                binding.textInputDescription,
+            textInputDescription.addTextChangedListener(
                 Constants.descriptionInputError,
-                Predicate {
-                    return@Predicate it.length >= 30
-                })
-        )
+                Constants.descriptionPredicate
+            )
+        }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    override fun assertTextFieldsInvalidity(): Boolean {
+        with(binding) {
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputEmail) ||
+                    FieldUtils.isTextFieldInvalid(textInputPassword) ||
+                    FieldUtils.isTextFieldInvalid(textInputUsername) ||
+                    FieldUtils.isTextFieldInvalid(textInputConfirmPassword) ||
+                    FieldUtils.isTextFieldInvalid(textInputDescription)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.register_appbar_menu, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(Callbacks.getBitmapFromImageOnActivityResult(
@@ -206,19 +225,5 @@ class RegisterFragment : BaseFragment(), TextFieldInputValidationOnus {
                 ImageUtils.encodeImage(bitmap!!)
             )
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.register_appbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        super.onOptionsItemSelected(item)
-        if(item.itemId == R.id.action_login) {
-            navController.navigate(R.id.action_registerFragment_to_loginFragment)
-        }
-
-        return true
     }
 }

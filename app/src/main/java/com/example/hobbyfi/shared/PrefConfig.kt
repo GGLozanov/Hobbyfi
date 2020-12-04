@@ -14,16 +14,7 @@ class PrefConfig(private val context: Context) {
             ), Context.MODE_PRIVATE
         )
 
-    fun writeLoginStatus(status: Boolean) {
-        val editor = sharedPreferences.edit()
-        editor.putBoolean(context.getString(R.string.pref_login_status), status).apply()
-    }
-
-    fun readLoginStatus(): Boolean {
-        return sharedPreferences.getBoolean(context.getString(R.string.pref_login_status), false)
-    }
-
-    fun writeToken(token: String?) {
+    fun writeToken(token: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_token), token).apply()
     }
@@ -32,8 +23,12 @@ class PrefConfig(private val context: Context) {
         return sharedPreferences.getString(context.getString(R.string.pref_token), "invalid")
     }
 
+    fun resetToken() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_token)).apply()
+    }
 
-    fun writeRefreshToken(refreshToken: String?) {
+    fun writeRefreshToken(refreshToken: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_refresh_token), refreshToken).apply()
     }
@@ -45,66 +40,30 @@ class PrefConfig(private val context: Context) {
         )
     }
 
-    fun writeLastChatroomFetchTimeNow() {
+    fun resetRefreshToken() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_refresh_token)).apply()
+    }
+
+
+    fun writeLastPrefFetchTimeNow(prefId: Int) {
         val editor = sharedPreferences.edit()
         editor.putInt(
-            context.getString(R.string.pref_last_chatroom_fetch_time), System.currentTimeMillis()
+            context.getString(prefId),
+            System.currentTimeMillis()
                 .toInt() / 1000
         ).apply()
     }
 
-    fun resetLastChatroomFetchTime() {
+    fun resetLastPrefFetchTime(prefId: Int) {
         val editor = sharedPreferences.edit()
-        editor.remove(context.getString(R.string.pref_last_chatroom_fetch_time)).apply()
+        editor.remove(context.getString(prefId)).apply()
     }
 
-    fun readLastChatroomFetchTime() : Long {
+    fun readLastPrefFetchTime(prefId: Int) : Long {
         return sharedPreferences.getInt(
-            context.getString(R.string.pref_last_chatroom_fetch_time),
-            System.currentTimeMillis().toInt()
-        ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
-    }
-
-
-//    // last chatroom users fetch time is used for checking and responding to possible notifications of
-//    fun writeLastChatroomUsersFetchTimeNow() {
-//        val editor = sharedPreferences.edit()
-//        editor.putInt(
-//            context.getString(R.string.pref_last_chatroom_users_fetch_time), System.currentTimeMillis()
-//                .toInt() / 1000
-//        ).apply()
-//    }
-//
-//    fun resetLastChatroomUsersFetchTime() {
-//        val editor = sharedPreferences.edit()
-//        editor.remove(context.getString(R.string.pref_last_chatroom_users_fetch_time)).apply()
-//    }
-//
-//    fun readLastChatroomUsersFetchTime(): Long {
-//        return sharedPreferences.getInt(
-//            context.getString(R.string.pref_last_chatroom_users_fetch_time),
-//            System.currentTimeMillis().toInt()
-//        ).toLong() // return different default value for ObjectKey cache (always fetch)
-//    }
-
-
-    fun writeLastUserFetchTimeNow() {
-        val editor = sharedPreferences.edit()
-        editor.putInt(
-            context.getString(R.string.pref_last_user_fetch_time), System.currentTimeMillis()
-                .toInt() / 1000
-        ).apply()
-    }
-
-    fun resetLastUserFetchTime() {
-        val editor = sharedPreferences.edit()
-        editor.remove(context.getString(R.string.pref_last_user_fetch_time)).apply()
-    }
-
-    fun readLastUserFetchTime() : Long {
-        return sharedPreferences.getInt(
-            context.getString(R.string.pref_last_user_fetch_time),
-            System.currentTimeMillis().toInt()
+            context.getString(prefId),
+            (System.currentTimeMillis() / 1000).toInt()
         ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
     }
 

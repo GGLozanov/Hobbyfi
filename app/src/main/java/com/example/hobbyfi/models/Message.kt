@@ -14,7 +14,9 @@ data class Message(
     override val id: Long,
     val message: String,
     val createTime: String, // iso string?
+    @ColumnInfo(name = "userSentId", index = true)
     val userSentId: Int,
+    @ColumnInfo(name = "chatroomSentId", index = true)
     val chatroomSentId: Int,
     val isTimeline: Boolean = false // is a timeline notification (set to true if received from notification broadcastreceiver)
 ) : Model

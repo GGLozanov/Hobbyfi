@@ -7,33 +7,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.Navigation.findNavController
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.PrefConfig
 import kotlinx.android.synthetic.main.activity_chatroom.view.*
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
+import org.kodein.di.generic.instance
 
 abstract class BaseActivity : AppCompatActivity(), KodeinAware {
     override val kodein: Kodein by kodein()
     protected lateinit var navController: NavController
 
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
+    protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
+
+    override fun onStart() {
+        super.onStart()
         navController = findNavController(this, R.id.nav_host_fragment)
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        AlertDialog.Builder(this)
-            .setMessage("Are you sure you want to leave?")
-            .setPositiveButton("Yes") { dialogInterface: DialogInterface, _: Int ->
-                dialogInterface.dismiss()
-                finish()
-            }
-            .setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
-                dialogInterface.dismiss()
-            }
-            .setIcon(R.drawable.ic_baseline_exit_to_app_24)
-            .create()
-            .show()
-    }
 }

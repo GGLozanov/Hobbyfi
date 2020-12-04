@@ -5,11 +5,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.hobbyfi.shared.RemoteKeyType
 
-@Entity(tableName = "remoteKeys")
+@Entity(tableName = "remoteKeys", primaryKeys = ["id", "modelType"])
 data class RemoteKeys(
-    @PrimaryKey
     override val id: Long,
     val nextKey: Int?,
-    val previousKey: Int?,
+    val prevKey: Int?,
     val modelType: RemoteKeyType // user, tag, or message -> used for filtering; MUST be between these three
 ) : Model
