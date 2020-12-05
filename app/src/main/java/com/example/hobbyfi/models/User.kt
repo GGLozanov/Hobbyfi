@@ -28,10 +28,9 @@ data class User(
     override var photoUrl: String?,
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_ID)
-    @ColumnInfo(name = "chatroomId", index = true)
     var chatroomId: Int?,
 ) : ExpandedModel, Parcelable {
-    fun updateFromFieldMap(fieldMap: Map<String?, String?>): Unit {
+    fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.EMAIL -> {
@@ -54,8 +53,12 @@ data class User(
                 Constants.PHOTO_URL -> {
                     photoUrl = value
                 }
+                Constants.CHATROOM_ID -> {
+                    chatroomId = value!!.toInt()
+                }
             }
         }
+        return this
     }
 }
 

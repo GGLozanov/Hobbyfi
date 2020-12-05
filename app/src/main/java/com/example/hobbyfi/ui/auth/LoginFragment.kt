@@ -200,7 +200,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             }
         }
 
-        // FIXME: Possible shared manipulaton of "selectedTags" saveStateHandle from Register and Login fragment?
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(viewLifecycleOwner) {
             viewModel.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
@@ -248,9 +247,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     private fun initFacebookLogin() {
-        val shouldRegister: Boolean = AccessToken.getCurrentAccessToken() == null
-                && Profile.getCurrentProfile() == null
-
         with(binding.facebookButton) {
             setPermissions(listOf("email", "user_likes"))
             fragment = this@LoginFragment
@@ -272,7 +268,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 }
 
                 override fun onError(exception: FacebookException) {
-                    Toast.makeText(context, "Facebook login error!", Toast.LENGTH_LONG)
+                    Toast.makeText(context, "Facebook login error! ${exception.message}", Toast.LENGTH_LONG)
                         .show()
                 }
             })

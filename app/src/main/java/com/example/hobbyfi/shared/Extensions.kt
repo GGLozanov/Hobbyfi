@@ -3,6 +3,7 @@ package com.example.hobbyfi.shared
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
@@ -14,6 +15,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.paging.LoadState
+import androidx.paging.LoadStateAdapter
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Tag
@@ -60,12 +66,24 @@ fun MutableList<Tag>.appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
 
 fun List<Tag>.getNewSelectedTagsWithTags(selectedTags: List<Tag>): MutableList<Tag> {
     val newTags = this.toMutableList()
+    Log.i("getNewSelectedTagsWTags", "Original tags: ${newTags}")
     selectedTags.forEach {
         if(!newTags.contains(it)) {
+            Log.i("getNewSelectedTagsWTags", "Adding tag: $it")
             newTags.add(it)
         }
     }
     return newTags
+}
+
+fun PagingDataAdapter<*, *>.withExpandedLoadStateFooter(footer: LoadStateAdapter<*>): ConcatAdapter {
+    addLoadStateListener { loadStates ->
+        footer.loadState = when (loadStates.refresh) {
+            is LoadState.NotLoading -> loadStates.append
+            else -> loadStates.refresh
+        }
+    }
+    return ConcatAdapter(this, footer)
 }
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added

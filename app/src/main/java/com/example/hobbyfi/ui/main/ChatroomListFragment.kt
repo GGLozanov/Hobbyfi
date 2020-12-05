@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
@@ -19,12 +19,10 @@ import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.withExpandedLoadStateFooter
 import com.example.hobbyfi.state.ChatroomListState
-import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
-import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -61,7 +59,7 @@ class ChatroomListFragment : MainFragment() {
             }
         })
 
-        chatroomListAdapter.withLoadStateFooter(DefaultLoadStateAdapter({
+        chatroomListAdapter.withExpandedLoadStateFooter(DefaultLoadStateAdapter({
                 chatroomListAdapter.refresh()
             },
             object : DefaultLoadStateAdapter.OnCreateChatroomButtonPressed {
@@ -80,41 +78,38 @@ class ChatroomListFragment : MainFragment() {
                 // should trickle down to remote mediator and VM
             }
 
-            lifecycleScope.launch {
-                // Log.i("ChatroomListFragment", "Cachec chatroom: ${viewModel!!.chatroomPagingData}")
-//                if(viewModel!!.chatroomPagingData == null) {
-                    Log.i("ChatroomListFragment", "Sending FetchChatrooms intent. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
-                    viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(
-                        activityViewModel.authUser.value?.chatroomId != null
+            Log.i("ChatroomListFragment", "Sending FetchChatrooms intent. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
+
+            activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
+                if(it != null) {
+                    lifecycleScope.launch {
+                        viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(
+                            it.chatroomId != null
+                            )
                         )
-                    )
-//                } else {
-//                    Log.i("ChatroomListFragment", "Using cached pagedata. Pagedata: ${viewModel!!.chatroomPagingData}")
-//                    withContext(Dispatchers.Main) {
-//                        (chatroomList.adapter as ChatroomListAdapter).submitData(viewModel!!.chatroomPagingData!!)
-//                    }
-//                }
 
-                viewModel!!.mainState.collect {
-                    when(it) {
-                        is ChatroomListState.Idle -> {
+                        viewModel!!.mainState.collect {
+                            when(it) {
+                                is ChatroomListState.Idle -> {
 
-                        }
-                        is ChatroomListState.Loading -> {
+                                }
+                                is ChatroomListState.Loading -> {
 
-                        }
-                        is ChatroomListState.ChatroomsResult -> {
-                            binding.swiperefresh.isRefreshing = false
-                            chatroomListAdapter.submitData(it.chatrooms)
-                        }
-                        is ChatroomListState.Error -> {
-                            binding.swiperefresh.isRefreshing = false
-                            Toast.makeText(requireContext(), "Problem loading chatrooms! ${it.error}", Toast.LENGTH_LONG)
-                                .show()
+                                }
+                                is ChatroomListState.ChatroomsResult -> {
+                                    binding.swiperefresh.isRefreshing = false
+                                    chatroomListAdapter.submitData(it.chatrooms)
+                                }
+                                is ChatroomListState.Error -> {
+                                    binding.swiperefresh.isRefreshing = false
+                                    Toast.makeText(requireContext(), "Problem loading chatrooms! ${it.error}", Toast.LENGTH_LONG)
+                                        .show()
+                                }
+                            }
                         }
                     }
                 }
-            }
+            })
 
             return@onCreateView root
         }

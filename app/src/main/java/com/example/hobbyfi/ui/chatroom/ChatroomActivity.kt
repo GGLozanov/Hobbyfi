@@ -32,13 +32,23 @@ class ChatroomActivity : BaseActivity() {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         ChatroomActivityViewModelFactory(application, args.user)
     })
+    private lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityChatroomBinding.inflate(layoutInflater)
+        binding = ActivityChatroomBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // if not deeplink: fire off 3 requests/load from db here -> event, messages, user
+        // if deeplink: also fire off request/load from db here -> chatroom info
+
+        // TODO: Ask for permission upon event card press for access to location
+    }
+
+    override fun onStart() {
+        super.onStart()
         with(binding) {
-            setContentView(root)
             val appBarConfiguration = AppBarConfiguration(navController.graph, drawerLayout)
 
             // FIXME: Bad Kotlin synthetics
@@ -46,12 +56,6 @@ class ChatroomActivity : BaseActivity() {
             // TODO: if(user_is_admin) - viewmodel & databinding
             nav_view_chatroom.setupWithNavController(navController)
         }
-
-
-        // if not deeplink: fire off 3 requests/load from db here -> event, messages, user
-        // if deeplink: also fire off request/load from db here -> chatroom info
-
-        // TODO: Ask for permission upon event card press for access to location
     }
 
     override fun onResume() {

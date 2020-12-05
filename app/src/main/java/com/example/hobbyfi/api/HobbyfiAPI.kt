@@ -167,8 +167,6 @@ interface HobbyfiAPI {
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {
-
-
                 if(!connectivityManager.isConnected()) {
                     throw NoConnectivityException()
                 }

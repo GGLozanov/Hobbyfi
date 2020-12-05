@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 
 
 
-
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
     private val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
@@ -53,6 +52,9 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onStart() {
         super.onStart()
         with(binding) {
+            bottomNav.setOnNavigationItemReselectedListener {
+                // avoid fragment recreation (do nothing here)
+            }
             bottomNav.setupWithNavController(
                 navGraphIds = listOf(R.navigation.user_profile_nav_graph, R.navigation.chatroom_list_nav_graph),
                 fragmentManager = supportFragmentManager,
@@ -92,13 +94,16 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                     is UserState.Error -> {
                         Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
                             .show()
-                        logout()
+                        if(it.shouldReauth) {
+                            logout()
+                        }
                     }
                 }
             }
         }
     }
 
+    // FIXME: Bad way to handle backstack
     fun resetAuth() {
         LoginManager.getInstance().logOut()
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
@@ -127,10 +132,11 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     override fun onBackPressed() {
+        // FIXME: Weird navcontroller crash in onDestroy when app is in background
+        resetAuth()
         if(poppedFromNavController) {
-            super.onBackPressed()
+            finish()
         } else {
-            resetAuth()
             finishAffinity()
         }
     }

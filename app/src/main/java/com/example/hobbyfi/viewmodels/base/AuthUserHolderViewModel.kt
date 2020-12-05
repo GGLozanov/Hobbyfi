@@ -62,7 +62,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?)
     }
 
     fun updateAndSaveUser(userFields: Map<String?, String?>) {
-        _authUser.value!!.updateFromFieldMap(userFields)
+        _authUser.value = _authUser.value!!.updateFromFieldMap(userFields)
         viewModelScope.launch {
             userRepository.saveUser(_authUser.value!!)
         }
@@ -90,15 +90,18 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?)
                 userRepository.editUser(userFields),
                 userFields
             )
-        } catch(reauthEx: Repository.ReauthenticationException) {
-            UserState.Error(
-                Constants.reauthError,
-                shouldReauth = true
-            )
         } catch(ex: Exception) {
-            UserState.Error(
-                ex.message
-            )
+            when(ex) {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError -> {
+                    UserState.Error(
+                        Constants.reauthError,
+                        shouldReauth = true
+                    )
+                }
+                else -> UserState.Error(
+                    ex.message
+                )
+            }
         }
     }
 

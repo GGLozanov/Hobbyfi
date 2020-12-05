@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.example.hobbyfi.R
@@ -148,18 +149,19 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             // observe
-            activityViewModel.authUser.observe(viewLifecycleOwner, {
+            activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
                 if (it != null) {
                     viewModel!!.description.value = it.description
                     viewModel!!.username.value = it.name
-                    it.tags?.let { selectedTags -> viewModel!!.setSelectedTags(selectedTags) }
-                    viewModel!!.addTags(it.tags)
+                    it.tags?.let { selectedTags ->
+                        viewModel!!.setSelectedTags(selectedTags)
+                        viewModel!!.appendNewSelectedTagsToTags(selectedTags)
+                    }
 
                     if (it.photoUrl != null) {
                         Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
                         profileImage.load(it.photoUrl)
                     }
-                    // TODO: Send email as argument to emailchangedialogfragment for autofill?
                 }
             })
 

@@ -14,5 +14,4 @@ abstract class MainFragment : BaseFragment() {
         val activityArgs: MainActivityArgs by (activity as MainActivity).navArgs()
         MainActivityViewModelFactory(requireActivity().application, activityArgs.user)
     })
-
 }

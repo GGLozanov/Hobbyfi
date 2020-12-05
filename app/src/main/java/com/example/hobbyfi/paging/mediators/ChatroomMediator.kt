@@ -12,8 +12,10 @@ import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.shared.Callbacks
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
+import com.facebook.AccessToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -54,7 +56,7 @@ class ChatroomMediator(
             val pageKeyData = getKeyPageData(loadType, state)
             page = when (pageKeyData) {
                 is MediatorResult.Success -> {
-                    Log.i("ChatroomMediator", "PREPEND triggered MediatorResult.Success. Returning")
+                    Log.i("ChatroomMediator", "PREPEND/APPEND triggered MediatorResult.Success. Returning")
                     return pageKeyData
                 }
                 else -> {
@@ -66,7 +68,7 @@ class ChatroomMediator(
         Log.i("ChatroomMediator", "Fetching next chatrooms with page ${page}")
 
         val chatroomsResponse = hobbyfiAPI.fetchChatrooms(
-            prefConfig.readToken()!!,
+            if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
             page
         )
 

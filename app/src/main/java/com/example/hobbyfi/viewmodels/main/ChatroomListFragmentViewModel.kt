@@ -13,9 +13,8 @@ import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -47,16 +46,15 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
     private suspend fun fetchChatrooms(shouldDisplayAuthChatroom: Boolean) {
         _mainState.value = ChatroomListState.Loading
         chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom).cachedIn(viewModelScope)
-        .catch { e ->
-            e.printStackTrace()
-            _mainState.value = if(e is Repository.ReauthenticationException)
-                ChatroomListState.Error(Constants.reauthError, shouldReauth = true) else ChatroomListState.Error(e.message)
-        }.collect {
-            Log.i("ChatroomListFragmentVM", "Received chatroom paging data: ${it}")
-            // _chatroomPagingData = it
-            _mainState.value = ChatroomListState.ChatroomsResult(
-                it
-            )
-        }
+            .catch { e ->
+                e.printStackTrace()
+                _mainState.value = if(e is Repository.ReauthenticationException)
+                    ChatroomListState.Error(Constants.reauthError, shouldReauth = true) else ChatroomListState.Error(e.message)
+            }.collect {
+                Log.i("ChatroomListFragmentVM", "Received chatroom paging data: ${it}")
+                _mainState.value = ChatroomListState.ChatroomsResult(
+                    it
+                )
+            }
     }
 }
