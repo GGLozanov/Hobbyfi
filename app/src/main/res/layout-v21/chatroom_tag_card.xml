@@ -11,7 +11,7 @@
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tag_name"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="60dp"
         android:background="@drawable/rounded_container"
         android:ellipsize="end"

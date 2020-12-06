@@ -10,17 +10,21 @@
         <variable
             name="chatroom"
             type="com.example.hobbyfi.models.Chatroom" />
+        <variable
+            name="isAuthUserChatroom"
+            type="Boolean" />
     </data>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/chatroom_card"
         android:layout_width="250dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        app:cardBackgroundColor="@color/colorBackground">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/chatroom_card_layout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_container">
 
@@ -29,6 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:gravity="center"
                 android:layout_marginTop="8dp"
                 android:ellipsize="marquee"
                 android:maxWidth="125dp"
@@ -81,6 +86,8 @@
                 android:text="@{String.format(`%s %s`, (`Currently hosting an event: `), (chatroom.lastEventId != null ? `Yes!` : `No...`))}"
                 android:textSize="20sp"
                 android:textStyle="bold"
+                android:gravity="center"
+                android:layout_gravity="center"
                 app:layout_constraintBottom_toTopOf="@id/tags_grid_view"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -100,22 +107,37 @@
                 android:numColumns="auto_fit"
                 android:stretchMode="columnWidth"
                 android:verticalSpacing="10dp"
-                app:layout_constraintBottom_toTopOf="@id/chatroom_join_button"
+                android:visibility="@{chatroom.tags == null ? View.GONE : View.VISIBLE}"
+                app:layout_constraintBottom_toTopOf="@id/chatroom_interact_buttons"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/chatroom_hosting_event"
                 tools:listitem="@layout/chatroom_tag_card" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/chatroom_join_button"
+            <LinearLayout
+                android:id="@+id/chatroom_interact_buttons"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginLeft="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tags_grid_view" />
+                app:layout_constraintTop_toBottomOf="@id/tags_grid_view">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/chatroom_leave_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="@{isAuthUserChatroom ? View.VISIBLE : View.GONE}" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/chatroom_join_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginLeft="8dp" />
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 </layout>

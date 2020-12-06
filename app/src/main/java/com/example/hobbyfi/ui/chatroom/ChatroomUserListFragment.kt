@@ -20,7 +20,7 @@ class ChatroomUserListFragment : ChatroomFragment() {
         // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
         //  => triggers REFRESH loadstate in Mediator => check if users last fetch time is too long
         //  => doesn't delete old users (if no connection or time isn't long enough) => fetches users if time is long enough
-        // TODO: Invalidate users data source upon notification & refetch from network
+        // TODO: Update users data source in Room upon notification (no need to refetch from network???)
 
         return view
     }

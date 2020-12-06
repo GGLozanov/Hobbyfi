@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 
-// TODO: Use this adapter with the withLoadStateFooter() method of the PagedListAdapter
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
     private val createChatroomButtonCallback: OnCreateChatroomButtonPressed? = null) :
@@ -39,7 +38,7 @@ class DefaultLoadStateAdapter(
         fun bind(loadState: LoadState) {
             with(binding) {
                 listErrorHeader.visibility = toVisibility(loadState is LoadState.Error)
-                refreshPageButton.visibility = toVisibility(loadState is LoadState.Error)
+                refreshPageButton.visibility = toVisibility(loadState !is LoadState.Loading)
                 progressBar.visibility = toVisibility(loadState is LoadState.Loading)
             }
         }

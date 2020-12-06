@@ -1,8 +1,6 @@
 package com.example.hobbyfi.adapters.tag
 
 import android.content.Context
-import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,7 +36,6 @@ class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Conte
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val chatroomTagHolder: ChatroomTagHolder
         var tagCard = convertView
-        Log.i("ChatroomTagLAdapter", "Chatroom tags: $chatroomTags")
         val tag: Tag? = getItem(position)
         if (tagCard == null) {
             chatroomTagHolder = ChatroomTagHolder(
@@ -52,7 +49,7 @@ class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Conte
         }
 
         chatroomTagHolder.chatroomCardBinding!!.tagName.setBackgroundColor(
-            ColourUtils.getRandomColour()
+           ColourUtils.getColourOrGreen(tag?.colour)
         )
         chatroomTagHolder.chatroomCardBinding!!.tag = tag
 

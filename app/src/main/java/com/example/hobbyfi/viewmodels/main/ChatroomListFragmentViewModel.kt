@@ -30,6 +30,8 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
 
     override val _mainState: MutableStateFlow<ChatroomListState> = MutableStateFlow(ChatroomListState.Idle)
 
+    private var currentChatrooms: Flow<PagingData<Chatroom>>? = null
+
     override fun handleIntent() {
         viewModelScope.launch {
             mainIntent.consumeAsFlow().collectLatest {
@@ -38,23 +40,29 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
                         Log.i("ChatroomListFragmentVM", "Handling FetchChatrooms intent with shouldDisplayAuthChatroom: ${it.shouldDisplayAuthChatroom}")
                         fetchChatrooms(it.shouldDisplayAuthChatroom)
                     }
+                    is ChatroomListIntent.DeleteChatroomsCache -> {
+                        Log.i("ChatroomListFragmentVM", "Handling DeleteChatroomsCache intent with auth chatroom id: ${it.authChatroomId}")
+                        deleteChatroomsCache(it.authChatroomId)
+                    }
                 }
             }
         }
     }
 
-    private suspend fun fetchChatrooms(shouldDisplayAuthChatroom: Boolean) {
+    private fun fetchChatrooms(shouldDisplayAuthChatroom: Boolean) {
         _mainState.value = ChatroomListState.Loading
-        chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom).cachedIn(viewModelScope)
-            .catch { e ->
-                e.printStackTrace()
-                _mainState.value = if(e is Repository.ReauthenticationException)
-                    ChatroomListState.Error(Constants.reauthError, shouldReauth = true) else ChatroomListState.Error(e.message)
-            }.collect {
-                Log.i("ChatroomListFragmentVM", "Received chatroom paging data: ${it}")
-                _mainState.value = ChatroomListState.ChatroomsResult(
-                    it
-                )
-            }
+
+        if(currentChatrooms == null) {
+            currentChatrooms = chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom)
+                .distinctUntilChanged()
+                .cachedIn(viewModelScope)
+        }
+
+        _mainState.value = ChatroomListState.ChatroomsResult(currentChatrooms!!)
+    }
+
+    private suspend fun deleteChatroomsCache(authChatroomId: Long) {
+        // no need to keep track of state for this because it nearly always succeeds
+        chatroomRepository.deleteChatrooms(authChatroomId)
     }
 }

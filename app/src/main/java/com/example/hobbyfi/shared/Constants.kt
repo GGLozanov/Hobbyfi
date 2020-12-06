@@ -81,6 +81,10 @@ object Constants {
                 && Profile.getCurrentProfile().id != null
     }
 
+    fun cacheTimedOut(prefConfig: PrefConfig, prefId: Int): Boolean {
+        return ((System.currentTimeMillis() / 1000) - prefConfig.readLastPrefFetchTime(prefId)) <= Constants.CACHE_TIMEOUT
+    }
+
     const val CACHE_TIMEOUT = 60 * 60 * 2 // 2 hours
         .toLong()
 

@@ -16,8 +16,11 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
 import com.facebook.AccessToken
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.single
+import java.io.InvalidObjectException
 
 @ExperimentalPagingApi
 class ChatroomMediator(
@@ -32,7 +35,6 @@ class ChatroomMediator(
         loadType: LoadType,
         state: PagingState<Int, Chatroom>
     ): MediatorResult {
-
         // insert new page numbers (remote keys) after using cached page number to fetch new one
         Log.i("ChatroomMediator", "Loading all chatrooms based on shouldFetchAuthChatroom set to ${shouldFetchAuthChatroom}")
 
@@ -53,14 +55,42 @@ class ChatroomMediator(
         var page: Int? = null
 
         if(!shouldFetchAuthChatroom) {
-            val pageKeyData = getKeyPageData(loadType, state)
-            page = when (pageKeyData) {
-                is MediatorResult.Success -> {
-                    Log.i("ChatroomMediator", "PREPEND/APPEND triggered MediatorResult.Success. Returning")
-                    return pageKeyData
+            page = when (loadType) {
+                LoadType.REFRESH -> {
+                    val remoteKeys = hobbyfiDatabase.withTransaction {
+                        getClosestRemoteKey(state)
+                    }
+                    Log.i("ModelRemoteM", "getKeyPageData => REFRESH Remote Keys: $remoteKeys")
+                    remoteKeys?.nextKey?.minus(1) ?: DEFAULT_PAGE_INDEX
                 }
-                else -> {
-                    pageKeyData as Int
+                LoadType.APPEND -> { // load type for whenever data needs to be appended to the paged list (scroll down)
+                    // can't return mediator result with endOfPaginationReached to true here because
+                    // this may be the last remote key but we don't have context for remote and rely on cache
+                    val remoteKeys = hobbyfiDatabase.withTransaction {
+                        getLastRemoteKey(state)
+                    }
+                    Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys: $remoteKeys")
+                    if (remoteKeys?.nextKey == null) {
+                        Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND")
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
+
+                    remoteKeys.nextKey
+                }
+                LoadType.PREPEND -> {
+                    // return MediatorResult.Success(endOfPaginationReached = true) // load type for whenever data needs to be prepended to the paged list (scroll up after down)
+                    val remoteKeys = hobbyfiDatabase.withTransaction {
+                        getFirstRemoteKey(state)
+                    }
+                    // end of list condition reached -> reached the top of the page where the first page is loaded initially
+                    // which meanas we can set endOfPaginationReached to true
+                    Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys: $remoteKeys")
+                    if(remoteKeys?.prevKey == null) {
+                        Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR PREPEND")
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
+
+                    remoteKeys.prevKey
                 }
             }
         }
@@ -81,15 +111,15 @@ class ChatroomMediator(
     }
 
     private suspend fun saveChatrooms(chatroomsResponse: CacheListResponse<Chatroom>, page: Int, loadType: LoadType): MediatorResult {
-        val isEndOfList = chatroomsResponse.modelList.isEmpty() || shouldFetchAuthChatroom
+        val isEndOfList = chatroomsResponse.modelList.isEmpty()
         Log.i("ChatroomMediator", "Fetched Chatrooms.")
         Log.i("ChatroomMediator", "Reached end of list: ${isEndOfList}")
         Log.i("ChatroomMediator", "Chatroom list: ${chatroomsResponse.modelList}")
 
         hobbyfiDatabase.withTransaction {
             // clear all rows in chatroom and remote keys table (for chatrooms)
-            // FIXME: this cache timeout thing will surely not work
-            val cacheTimedOut = cacheTimedOut(R.string.pref_last_chatrooms_fetch_time)
+            // TODO: Extract cache check in view and call refresh() whenever cache has expired
+            val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatrooms_fetch_time)
             if (loadType == LoadType.REFRESH || cacheTimedOut) {
                 Log.i("ChatroomMediator", "Chatroom triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
                 remoteKeysDao.deleteRemoteKeyByType(remoteKeyType)

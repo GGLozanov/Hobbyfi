@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import androidx.paging.LoadState
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
@@ -18,13 +19,15 @@ import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.withExpandedLoadStateFooter
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -34,6 +37,8 @@ class ChatroomListFragment : MainFragment() {
     // TODO: Refresh chatroom callback with REFRESH in remoteMediator
     private val viewModel: ChatroomListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomListBinding
+
+    private var searchJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,16 +55,16 @@ class ChatroomListFragment : MainFragment() {
             override fun onJoinChatroomButtonPress(view: View, chatroom: Chatroom) {
                 // TODO: If user join chatroom is successful, delete other chatrooms from cache (+remote keys) and load only their chatroom from cache
                 // TODO: Send user update for chatroom Id and handle no connection and other errors
-
                 lifecycleScope.launch {
                     activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                         Pair(Constants.CHATROOM_ID, chatroom.id.toString())
                     )))
+                    viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(chatroom.id))
                 }
             }
         })
 
-        chatroomListAdapter.withExpandedLoadStateFooter(DefaultLoadStateAdapter({
+        chatroomListAdapter.withLoadStateFooter(DefaultLoadStateAdapter({
                 chatroomListAdapter.refresh()
             },
             object : DefaultLoadStateAdapter.OnCreateChatroomButtonPressed {
@@ -74,22 +79,41 @@ class ChatroomListFragment : MainFragment() {
             chatroomList.adapter = chatroomListAdapter
 
             swiperefresh.setOnRefreshListener {
-                (chatroomList.adapter as ChatroomListAdapter).refresh()
-                // should trickle down to remote mediator and VM
+                (chatroomList.adapter as ChatroomListAdapter).refresh() // should trickle down to remote mediator and VM
             }
 
             Log.i("ChatroomListFragment", "Sending FetchChatrooms intent. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
 
+            lifecycleScope.launch {
+                chatroomListAdapter.loadStateFlow
+                    // Only emit when REFRESH LoadState for RemoteMediator changes.
+                    .distinctUntilChangedBy { loadState -> loadState.refresh }
+                    // Only react to cases where Remote REFRESH completes i.e., NotLoading.
+                    .filter { loadState -> loadState.refresh is LoadState.NotLoading }
+                    .collect { chatroomList.scrollToPosition(0)
+                    binding.swiperefresh.isRefreshing = false }
+            }
+
             activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
                 if(it != null) {
                     lifecycleScope.launch {
+                        val userHasChatroom = it.chatroomId != null
+
+                        if(userHasChatroom) {
+                            viewModel!!.sendIntent(ChatroomListIntent.DeleteChatroomsCache(it.chatroomId!!))
+                        }
+
                         viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(
-                            it.chatroomId != null
+                                userHasChatroom
                             )
                         )
 
-                        viewModel!!.mainState.collect {
-                            when(it) {
+                        chatroomListAdapter.setLeaveChatroomButtonVisibility(
+                            userHasChatroom
+                        )
+
+                        viewModel!!.mainState.collectLatest { state ->
+                            when(state) {
                                 is ChatroomListState.Idle -> {
 
                                 }
@@ -98,12 +122,22 @@ class ChatroomListFragment : MainFragment() {
                                 }
                                 is ChatroomListState.ChatroomsResult -> {
                                     binding.swiperefresh.isRefreshing = false
-                                    chatroomListAdapter.submitData(it.chatrooms)
-                                }
-                                is ChatroomListState.Error -> {
-                                    binding.swiperefresh.isRefreshing = false
-                                    Toast.makeText(requireContext(), "Problem loading chatrooms! ${it.error}", Toast.LENGTH_LONG)
-                                        .show()
+                                    searchJob = lifecycleScope.launch {
+                                        state.chatrooms.catch { e ->
+                                            e.printStackTrace()
+                                            if(e is Repository.ReauthenticationException) {
+                                                Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
+                                                    .show()
+                                                // TODO: Handle logout through interface
+                                            } else  {
+                                                Log.i("ChatroomListFragment", "state.chatrooms collect() received a normal exception: $e")
+                                                Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
+                                                    .show()
+                                            }
+                                        }.collectLatest { data ->
+                                            chatroomListAdapter.submitData(data)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -113,5 +147,12 @@ class ChatroomListFragment : MainFragment() {
 
             return@onCreateView root
         }
+
+
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchJob?.cancel() // cancel job once we need to yeet from the fragment
     }
 }

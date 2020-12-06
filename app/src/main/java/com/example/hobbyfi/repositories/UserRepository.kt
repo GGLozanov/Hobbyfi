@@ -34,12 +34,11 @@ class UserRepository @ExperimentalPagingApi constructor(
             }
 
             override fun shouldFetch(cache: User?): Boolean {
-                val lastUserFetchTime = prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time)
                 Log.i("UserRepository", "getUser => isConnected: " + connectivityManager.isConnected())
                 Log.i("UserRepository", "getUser => shouldFetch: " + (cache == null ||
-                        ((System.currentTimeMillis() / 1000) - lastUserFetchTime) <= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()))
+                        Constants.cacheTimedOut(prefConfig, R.string.pref_last_user_fetch_time) || connectivityManager.isConnected()))
                 return cache == null ||
-                        ((System.currentTimeMillis() / 1000) - lastUserFetchTime) <= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()
+                        Constants.cacheTimedOut(prefConfig, R.string.pref_last_user_fetch_time) || connectivityManager.isConnected()
             }
 
             override suspend fun loadFromDb(): Flow<User?> {

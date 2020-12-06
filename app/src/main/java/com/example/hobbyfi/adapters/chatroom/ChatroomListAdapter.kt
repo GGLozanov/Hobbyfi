@@ -1,14 +1,10 @@
 package com.example.hobbyfi.adapters.chatroom
 
 import android.content.Context
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SimpleAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -25,6 +21,8 @@ class ChatroomListAdapter(
     private val onJoinChatroomButtonCallback: OnJoinChatroomButtonPressed) :
     PagingDataAdapter<Chatroom, ChatroomListAdapter.ChatroomListViewHolder>(DIFF_CALLBACK) {
 
+    private var shouldDisplayLeaveChatroomButtons: Boolean = false
+
     interface OnJoinChatroomButtonPressed {
         fun onJoinChatroomButtonPress(view: View, chatroom: Chatroom)
     }
@@ -38,9 +36,6 @@ class ChatroomListAdapter(
 
         holder.bind(chatroom)
 
-        holder.binding.chatroomCardLayout.setBackgroundColor(
-            ColourUtils.getRandomColour()
-        )
         holder.binding.chatroomJoinButton.setOnClickListener {
             if (chatroom != null) {
                 onJoinChatroomButtonCallback.onJoinChatroomButtonPress(it, chatroom)
@@ -73,6 +68,7 @@ class ChatroomListAdapter(
                 if(chatroom?.tags != null) {
                     val adapter = ChatroomTagListAdapter(chatroom.tags, itemView.context, R.layout.chatroom_tag_card)
                     tagsGridView.setHeightBasedOnChildren(chatroom.tags.size)
+
                     tagsGridView.adapter = adapter
                 }
             }
@@ -92,8 +88,13 @@ class ChatroomListAdapter(
                                          newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
 
             override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom == newChatroom
+                                            newChatroom: Chatroom) = oldChatroom.name == newChatroom.name && oldChatroom.description == newChatroom.description
         }
 
+    }
+
+    fun setLeaveChatroomButtonVisibility(shouldDisplay: Boolean) {
+        shouldDisplayLeaveChatroomButtons = shouldDisplay
+        notifyDataSetChanged() // eh, not really true but have to notify somehow
     }
 }

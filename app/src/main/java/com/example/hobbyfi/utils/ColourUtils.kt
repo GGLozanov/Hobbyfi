@@ -16,12 +16,12 @@ object ColourUtils {
         return String.format("#{0:X6}", Random.nextInt(0x1000000))
     }
 
-    fun getRandomColour(): Int {
+    fun getColourOrGreen(colourHex: String?): Int {
         return try {
-             Color.argb(255, Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
+            Color.parseColor(colourHex)
         } catch(ex: IllegalArgumentException) {
             Log.w("ColourUtils" , "Invalid color for tag! Reverting to default colour")
-            Color.GREEN // default colour, idk
+            Color.GREEN
         }
     }
 }

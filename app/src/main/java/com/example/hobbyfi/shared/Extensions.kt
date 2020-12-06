@@ -77,12 +77,7 @@ fun List<Tag>.getNewSelectedTagsWithTags(selectedTags: List<Tag>): MutableList<T
 }
 
 fun PagingDataAdapter<*, *>.withExpandedLoadStateFooter(footer: LoadStateAdapter<*>): ConcatAdapter {
-    addLoadStateListener { loadStates ->
-        footer.loadState = when (loadStates.refresh) {
-            is LoadState.NotLoading -> loadStates.append
-            else -> loadStates.refresh
-        }
-    }
+ 
     return ConcatAdapter(this, footer)
 }
 
@@ -94,7 +89,7 @@ fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
     val rows: Int //no. of rows in grid
     val listItem: View = gridViewAdapter.getView(0, null, this)
     listItem.measure(0, 0)
-    totalHeight = listItem.getMeasuredHeight()
+    totalHeight = listItem.measuredHeight
     val x: Float
     if (items > noOfColumns) {
         x = (items / noOfColumns).toFloat()

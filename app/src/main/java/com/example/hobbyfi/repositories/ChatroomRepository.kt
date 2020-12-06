@@ -1,6 +1,7 @@
 package com.example.hobbyfi.repositories
 
 import android.net.ConnectivityManager
+import android.util.Log
 import androidx.paging.*
 import androidx.room.withTransaction
 import com.example.hobbyfi.R
@@ -21,9 +22,10 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     // return livedata of pagedlist for chatrooms
     @ExperimentalPagingApi
     fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig(), shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
+        val pagingSource = { hobbyfiDatabase.chatroomDao().getChatrooms() }
         return Pager(
             config = pagingConfig,
-            pagingSourceFactory = { hobbyfiDatabase.chatroomDao().getChatrooms() }, // TODO: DI & cache as SSOT
+            pagingSourceFactory = pagingSource, // TODO: DI & cache as SSOT
             remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, shouldFetchAuthChatroom)
         ).flow
     }
@@ -34,7 +36,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
                 hobbyfiDatabase.chatroomDao().deleteChatroomsExceptId(authChatroomId)
-                hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(authChatroomId, RemoteKeyType.CHATROOM)
+//                hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(authChatroomId, RemoteKeyType.CHATROOM)
             }
         }
     }
