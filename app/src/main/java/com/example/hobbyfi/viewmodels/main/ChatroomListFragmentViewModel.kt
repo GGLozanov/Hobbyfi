@@ -31,6 +31,17 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
     override val _mainState: MutableStateFlow<ChatroomListState> = MutableStateFlow(ChatroomListState.Idle)
 
     private var currentChatrooms: Flow<PagingData<Chatroom>>? = null
+    private var hasDeletedCacheForSession = false
+    private var _buttonSelectedChatroom: Chatroom? = null
+    val buttonSelectedChatroom: Chatroom? get() = _buttonSelectedChatroom
+
+    fun setButtonSelectedChatroom(chatroom: Chatroom) {
+        _buttonSelectedChatroom = chatroom
+    }
+
+    fun setCurrentChatrooms(chatrooms: Flow<PagingData<Chatroom>>?) {
+        currentChatrooms = chatrooms
+    }
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -42,7 +53,7 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
                     }
                     is ChatroomListIntent.DeleteChatroomsCache -> {
                         Log.i("ChatroomListFragmentVM", "Handling DeleteChatroomsCache intent with auth chatroom id: ${it.authChatroomId}")
-                        deleteChatroomsCache(it.authChatroomId)
+                        deleteChatroomsCache(it.authChatroomId, it.calledFromChatroomJoin)
                     }
                 }
             }
@@ -54,15 +65,23 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
 
         if(currentChatrooms == null) {
             currentChatrooms = chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom)
-                .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
         _mainState.value = ChatroomListState.ChatroomsResult(currentChatrooms!!)
     }
 
-    private suspend fun deleteChatroomsCache(authChatroomId: Long) {
-        // no need to keep track of state for this because it nearly always succeeds
-        chatroomRepository.deleteChatrooms(authChatroomId)
+    private suspend fun deleteChatroomsCache(authChatroomId: Long, calledFromChatroomJoin: Boolean) {
+        var state: ChatroomListState = ChatroomListState.Error(Constants.cacheDeletionError)
+
+        // deletes other cached chatrooms (not auth'd) for user
+        if(hasDeletedCacheForSession || viewModelScope.async {
+                chatroomRepository.deleteChatrooms(authChatroomId)
+            }.await()) {
+            hasDeletedCacheForSession = true
+            state = ChatroomListState.DeleteChatroomsCacheResult(calledFromChatroomJoin)
+        }
+
+        _mainState.value = state
     }
 }

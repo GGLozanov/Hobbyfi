@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -21,8 +22,8 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.withExpandedLoadStateFooter
 import com.example.hobbyfi.state.ChatroomListState
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,8 +36,9 @@ import kotlinx.coroutines.withContext
 @ExperimentalPagingApi
 class ChatroomListFragment : MainFragment() {
     // TODO: Refresh chatroom callback with REFRESH in remoteMediator
-    private val viewModel: ChatroomListFragmentViewModel by viewModels()
+    val viewModel: ChatroomListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomListBinding
+    private lateinit var chatroomListAdapter: ChatroomListAdapter
 
     private var searchJob: Job? = null
 
@@ -51,38 +53,33 @@ class ChatroomListFragment : MainFragment() {
 
         binding.viewModel = viewModel
 
-        val chatroomListAdapter = ChatroomListAdapter(object : ChatroomListAdapter.OnJoinChatroomButtonPressed {
-            override fun onJoinChatroomButtonPress(view: View, chatroom: Chatroom) {
+        chatroomListAdapter = ChatroomListAdapter({ _, chatroom ->
                 // TODO: If user join chatroom is successful, delete other chatrooms from cache (+remote keys) and load only their chatroom from cache
                 // TODO: Send user update for chatroom Id and handle no connection and other errors
+                viewModel.setButtonSelectedChatroom(chatroom)
                 lifecycleScope.launch {
                     activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                         Pair(Constants.CHATROOM_ID, chatroom.id.toString())
                     )))
-                    viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(chatroom.id))
+                    viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(chatroom.id, calledFromChatroomJoin = true))
                 }
+            }, {_, chatroom ->
+            viewModel.setButtonSelectedChatroom(chatroom)
+            lifecycleScope.launch {
+                activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
+                    Pair(Constants.CHATROOM_ID, "0")
+                )))
             }
         })
 
-        chatroomListAdapter.withLoadStateFooter(DefaultLoadStateAdapter({
-                chatroomListAdapter.refresh()
-            },
-            object : DefaultLoadStateAdapter.OnCreateChatroomButtonPressed {
-                override fun onCreateChatroomButtonPress(view: View) {
-                    navController.navigate(R.id.action_global_activityChatroomCreate)
-                }
-            })
-        )
-
         with(binding) {
-            chatroomList.addItemDecoration(VerticalSpaceItemDecoration(20))
-            chatroomList.adapter = chatroomListAdapter
-
-            swiperefresh.setOnRefreshListener {
-                (chatroomList.adapter as ChatroomListAdapter).refresh() // should trickle down to remote mediator and VM
-            }
-
-            Log.i("ChatroomListFragment", "Sending FetchChatrooms intent. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
+            chatroomListAdapter.withLoadStateFooter(DefaultLoadStateAdapter({
+                chatroomListAdapter.retry()
+            }, {
+                navController.navigate(ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
+                    activityViewModel.authUser.value!!
+                ))
+            }))
 
             lifecycleScope.launch {
                 chatroomListAdapter.loadStateFlow
@@ -94,19 +91,18 @@ class ChatroomListFragment : MainFragment() {
                     binding.swiperefresh.isRefreshing = false }
             }
 
-            activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
-                if(it != null) {
+            activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
+                if(user != null) {
                     lifecycleScope.launch {
-                        val userHasChatroom = it.chatroomId != null
+                        val userHasChatroom = user.chatroomId != null
 
                         if(userHasChatroom) {
-                            viewModel!!.sendIntent(ChatroomListIntent.DeleteChatroomsCache(it.chatroomId!!))
+                            viewModel!!.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))
+                        } else {
+                            // FIXME: Small code dup but also, like, code smell.... ew
+                            initChatroomListAdapter(userHasChatroom)
+                            viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(false))
                         }
-
-                        viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(
-                                userHasChatroom
-                            )
-                        )
 
                         chatroomListAdapter.setLeaveChatroomButtonVisibility(
                             userHasChatroom
@@ -128,7 +124,6 @@ class ChatroomListFragment : MainFragment() {
                                             if(e is Repository.ReauthenticationException) {
                                                 Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
                                                     .show()
-                                                // TODO: Handle logout through interface
                                             } else  {
                                                 Log.i("ChatroomListFragment", "state.chatrooms collect() received a normal exception: $e")
                                                 Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
@@ -139,6 +134,23 @@ class ChatroomListFragment : MainFragment() {
                                         }
                                     }
                                 }
+                                is ChatroomListState.DeleteChatroomsCacheResult -> {
+                                    Log.i("ChatroomListFragment", "Deleted chatrooms cache. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
+                                    if(!state.calledFromChatroomJoin) {
+                                        initChatroomListAdapter(userHasChatroom)
+
+                                        Log.i("ChatroomListFragment", "Sending FetchChatrooms intent. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
+
+                                        viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(
+                                                userHasChatroom
+                                            )
+                                        )
+                                    }
+                                }
+                                is ChatroomListState.Error -> {
+                                    Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG)
+                                        .show()
+                                }
                             }
                         }
                     }
@@ -147,12 +159,29 @@ class ChatroomListFragment : MainFragment() {
 
             return@onCreateView root
         }
+    }
+    
+    private fun initChatroomListAdapter(userHasChatroom: Boolean) {
+        with(binding) {
+            chatroomList.addItemDecoration(VerticalSpaceItemDecoration(20))
+            chatroomList.adapter = chatroomListAdapter
 
-
+            swiperefresh.setOnRefreshListener {
+                // TODO: Paging 3 bug currently whenever endOfPagination = true in refresh() https://issuetracker.google.com/issues/174769547
+                // TODO: Attempted hack to fix it by unsubscribing from flow while the bug is fixed; HACK DOESN'T WORK AT THIS POINT
+                if(userHasChatroom || chatroomListAdapter.itemCount <= 5) {
+                    // force flow resubscription for refresh() in single auth chatroom or single REFRESH fetches reaching endOfPagination = true
+                    viewModel!!.setCurrentChatrooms(null)
+                    ChatroomListIntent.FetchChatrooms(userHasChatroom)
+                } else {
+                    chatroomListAdapter.refresh()
+                } // should trickle down to remote mediator and VM
+            }
+        }
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
         searchJob?.cancel() // cancel job once we need to yeet from the fragment
+        super.onDestroyView()
     }
 }

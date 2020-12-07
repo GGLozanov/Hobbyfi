@@ -15,5 +15,5 @@ interface BaseDao<T: Model> {
     suspend fun insert(entity: T)
 
     @Delete
-    suspend fun delete(entity: T)
+    suspend fun delete(entity: T): Int
 }

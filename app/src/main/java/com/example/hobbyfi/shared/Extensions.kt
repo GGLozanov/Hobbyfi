@@ -29,6 +29,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import androidx.fragment.app.Fragment
 
 inline fun <reified T> Gson.fromJson(json: String) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
@@ -76,10 +77,8 @@ fun List<Tag>.getNewSelectedTagsWithTags(selectedTags: List<Tag>): MutableList<T
     return newTags
 }
 
-fun PagingDataAdapter<*, *>.withExpandedLoadStateFooter(footer: LoadStateAdapter<*>): ConcatAdapter {
- 
-    return ConcatAdapter(this, footer)
-}
+val FragmentManager.currentNavigationFragment: Fragment?
+    get() = primaryNavigationFragment?.childFragmentManager?.fragments?.first()
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
 fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {

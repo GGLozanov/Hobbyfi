@@ -5,11 +5,6 @@
     android:id="@+id/chatroom_list_graph"
     app:startDestination="@id/chatroomListFragment">
         <activity
-            android:id="@+id/chatroomCreateActivity"
-            android:name="com.example.hobbyfi.ui.create.ChatroomCreateActivity"
-            tools:layout="@layout/activity_chatroom_create"
-            android:label="Create Chatroom" />
-        <activity
             android:id="@+id/chatroomActivity"
             android:name="com.example.hobbyfi.ui.chatroom.ChatroomActivity"
             android:label="Chatroom">
@@ -38,8 +33,15 @@
                             app:argType="com.example.hobbyfi.models.Chatroom"
                             app:nullable="true" />
                 </action>
-                <action android:id="@+id/action_global_activityChatroomCreate" app:destination="@id/chatroomCreateActivity" />
+                <action
+                    android:id="@+id/action_chatroomListFragment_to_chatroom_create_nav_graph"
+                    app:destination="@id/chatroom_create_nav_graph">
+                        <argument
+                            android:name="user"
+                            app:argType="com.example.hobbyfi.models.User" />
+                </action>
         </fragment>
+        <include app:graph="@navigation/chatroom_create_nav_graph" />
 </navigation>
 
 <!--    <action

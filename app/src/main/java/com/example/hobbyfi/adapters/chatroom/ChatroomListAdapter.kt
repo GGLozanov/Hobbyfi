@@ -18,14 +18,11 @@ import com.example.hobbyfi.utils.ColourUtils
 
 
 class ChatroomListAdapter(
-    private val onJoinChatroomButtonCallback: OnJoinChatroomButtonPressed) :
+    private inline val onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+    private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null) :
     PagingDataAdapter<Chatroom, ChatroomListAdapter.ChatroomListViewHolder>(DIFF_CALLBACK) {
 
     private var shouldDisplayLeaveChatroomButtons: Boolean = false
-
-    interface OnJoinChatroomButtonPressed {
-        fun onJoinChatroomButtonPress(view: View, chatroom: Chatroom)
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomListViewHolder {
         return ChatroomListViewHolder.getInstance(parent)
@@ -34,11 +31,18 @@ class ChatroomListAdapter(
     override fun onBindViewHolder(holder: ChatroomListViewHolder, position: Int) {
         val chatroom = getItem(position)
 
-        holder.bind(chatroom)
-
-        holder.binding.chatroomJoinButton.setOnClickListener {
-            if (chatroom != null) {
-                onJoinChatroomButtonCallback.onJoinChatroomButtonPress(it, chatroom)
+        with(holder) {
+            bind(chatroom)
+            binding.isAuthUserChatroom = shouldDisplayLeaveChatroomButtons
+            binding.chatroomJoinButton.setOnClickListener {
+                if (chatroom != null) {
+                    onJoinChatroomButton?.invoke(it, chatroom)
+                }
+            }
+            binding.chatroomLeaveButton.setOnClickListener {
+                if(chatroom != null) {
+                    onLeaveChatroomButton?.invoke(it, chatroom)
+                }
             }
         }
     }
@@ -88,7 +92,7 @@ class ChatroomListAdapter(
                                          newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
 
             override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom.name == newChatroom.name && oldChatroom.description == newChatroom.description
+                                            newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
         }
 
     }

@@ -24,6 +24,7 @@ object Constants {
     const val unauthorisedAccessError: String = "Unauthorised access!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
+    const val cacheDeletionError: String = "Couldn't clear old (cached) chatrooms!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     // TODO: Put in-memory tags here
@@ -73,7 +74,7 @@ object Constants {
 
 
     fun getDefaultPageConfig(): PagingConfig { // used in pager init
-        return PagingConfig(pageSize = 5, enablePlaceholders = false)
+        return PagingConfig(pageSize = 5, prefetchDistance = 5, enablePlaceholders = false)
     }
 
     fun isFacebookUserAuthd(): Boolean {

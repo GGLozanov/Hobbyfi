@@ -18,5 +18,5 @@ interface UserDao : BaseDao<User> {
     fun getUserById(userId: Long): Flow<User?>
 
     @Query("DELETE FROM users WHERE id != :userId")
-    fun deleteUsersExceptId(userId: Long)
+    fun deleteUsersExceptId(userId: Long): Int
 }

@@ -54,14 +54,11 @@ data class User(
                     photoUrl = value
                 }
                 Constants.CHATROOM_ID -> {
-                    chatroomId = value!!.toLong()
+                    val chatroomId = value!!.toLong()
+                    this.chatroomId = if(chatroomId.compareTo(0) == 0) null else chatroomId
                 }
             }
         }
         return this
     }
 }
-
-//foreignKeys = [
-//    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomId"))
-//]

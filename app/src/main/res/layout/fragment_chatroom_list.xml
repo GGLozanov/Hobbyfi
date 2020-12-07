@@ -25,15 +25,13 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/chatroom_list"
                 android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
                 android:scrollbars="vertical"
                 app:layoutManager="LinearLayoutManager"
                 tools:listitem="@layout/chatroom_card" />
-
-            <!--Todo: include chatroom_create_suggest_header and update it whenever PagedList.BoundaryCallback is hit-->
         </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </layout>

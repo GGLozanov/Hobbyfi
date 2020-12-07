@@ -16,5 +16,5 @@ interface ChatroomDao : BaseDao<Chatroom> {
     suspend fun deleteChatrooms()
 
     @Query("DELETE FROM users WHERE id != :chatroomId")
-    fun deleteChatroomsExceptId(chatroomId: Long)
+    fun deleteChatroomsExceptId(chatroomId: Long): Int
 }

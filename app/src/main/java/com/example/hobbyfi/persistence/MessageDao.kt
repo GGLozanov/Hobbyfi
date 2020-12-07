@@ -11,5 +11,5 @@ interface MessageDao : BaseDao<Message> {
     fun getMessages(): PagingSource<Int, Message>
 
     @Query("DELETE FROM messages")
-    fun deleteMessages()
+    fun deleteMessages(): Int
 }

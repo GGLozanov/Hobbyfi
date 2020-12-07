@@ -31,12 +31,13 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     }
 
     // called when user joins their chatroom for the first time after recyclerview
-    suspend fun deleteChatrooms(authChatroomId: Long) {
+    suspend fun deleteChatrooms(authChatroomId: Long): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
-                hobbyfiDatabase.chatroomDao().deleteChatroomsExceptId(authChatroomId)
-//                hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(authChatroomId, RemoteKeyType.CHATROOM)
+                val deletedChatrooms = hobbyfiDatabase.chatroomDao().deleteChatroomsExceptId(authChatroomId)
+                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authChatroomId, RemoteKeyType.CHATROOM)
+                deletedChatrooms > 0 && deletedRemoteKeys >= 0
             }
         }
     }

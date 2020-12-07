@@ -13,8 +13,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
@@ -49,6 +52,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         }
     }
 
+    @ExperimentalPagingApi
     override fun onStart() {
         super.onStart()
         with(binding) {
@@ -86,8 +90,22 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         logout()
                     }
                     is UserState.OnData.UserUpdateResult -> {
-                        Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
-                            .show()
+                        // FIXME: This feels quite coupled as it exposes the knowledge of the fragment
+                        //  ... but I can't think of any other alternative for now
+                        if(it.userFields.size == 1 && it.userFields.containsKey(Constants.CHATROOM_ID)
+                            && it.userFields.get(Constants.CHATROOM_ID)?.toInt() != 0) {
+                                // if user has updated only their chatroom (though ChatroomListFragment)
+                            navController.navigate(
+                                ChatroomListFragmentDirections.actionGlobalActivityChatroom(
+                                    viewModel.authUser.value,
+                                    (supportFragmentManager.currentNavigationFragment as ChatroomListFragment)
+                                        .viewModel.buttonSelectedChatroom!!,
+                                )
+                            )
+                        } else {
+                            Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
+                                .show()
+                        }
                         // TODO: If viewModel.user chatroom id == null & userFileds Id != null => navigate to chatroom page
                         viewModel.updateAndSaveUser(it.userFields)
                     }

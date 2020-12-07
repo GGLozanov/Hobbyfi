@@ -4,6 +4,7 @@ import android.net.ConnectivityManager
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.paging.*
+import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
@@ -119,20 +120,25 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun deleteUser(user: User) {
+    suspend fun deleteUser(user: User): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
-        withContext(Dispatchers.IO) {
-            hobbyfiDatabase.userDao().delete(user)
-            hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(user.id, RemoteKeyType.USER)
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.withTransaction {
+                val deletedUser = hobbyfiDatabase.userDao().delete(user)
+                return@withTransaction deletedUser > 0 // auth user should not have remote keys stored
+            }
         }
     }
 
     // called when user leaves chatroom
-    suspend fun deleteUsers(authId: Long) { // pass in auth Id from cache user directly to avoid any expired token mishaps
+    suspend fun deleteUsers(authId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
-        withContext(Dispatchers.IO) {
-            hobbyfiDatabase.userDao().deleteUsersExceptId(authId)
-            hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.USER)
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.withTransaction {
+                val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(authId)
+                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authId, RemoteKeyType.USER)
+                return@withTransaction deletedUsers > 0 && deletedRemoteKeys >= 0
+            }
         }
     }
 

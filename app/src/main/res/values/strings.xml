@@ -67,4 +67,6 @@
     <string name="read_external_storage_rationale">We need to access your storage for you to select your profile picture.</string>
     <string name="chatrooms">Chatrooms</string>
     <string name="list_error_text">Something went wrong, please try again</string>
+    <string name="create_chatroom_header">Or... just create your own Chatroom!</string>
+    <string name="list_suggest_text">Don\'t find what you\'re looking for? Just create your own Chatroom!</string>
 </resources>
