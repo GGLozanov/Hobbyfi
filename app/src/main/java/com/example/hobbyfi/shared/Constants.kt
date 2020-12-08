@@ -25,7 +25,14 @@ object Constants {
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
     const val cacheDeletionError: String = "Couldn't clear old (cached) chatrooms!"
+    const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
+    const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
+    const val chatroomJoined: String = "chatroomJoined"
+    const val chatroomLeft: String = "chatroomLeft"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
+
+    const val imagePermissionsRequestCode = 200
+    const val imageRequestCode = 777
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -72,9 +79,8 @@ object Constants {
         return@Predicate it.length >= 30
     }
 
-
     fun getDefaultPageConfig(): PagingConfig { // used in pager init
-        return PagingConfig(pageSize = 5, prefetchDistance = 5, enablePlaceholders = false)
+        return PagingConfig(pageSize = 5, enablePlaceholders = false)
     }
 
     fun isFacebookUserAuthd(): Boolean {

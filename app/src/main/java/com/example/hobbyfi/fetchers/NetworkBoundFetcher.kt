@@ -18,13 +18,13 @@ abstract class NetworkBoundFetcher<CacheModel, NetworkResponse> {
         val dbValue = loadFromDb().first()
         emit(dbValue)
 
-        if (shouldFetch(dbValue)) {
+        if(shouldFetch(dbValue)) {
             val apiResponse = fetchFromNetwork() // if exception is thrown here, execution stops, user is notified, and initial db value is still emitted
             if(apiResponse != null) {
                 saveNetworkResult(apiResponse)
                 emitAll(loadFromDb())
             } else {
-                Log.w("NBF asFlow", "Couldn't fetch response and no exception  ")
+                Log.w("NBF asFlow", "Couldn't fetch response and no exception")
             }
         }
     }

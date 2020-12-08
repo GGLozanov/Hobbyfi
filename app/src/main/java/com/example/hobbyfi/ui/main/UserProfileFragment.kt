@@ -49,7 +49,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     private lateinit var binding: FragmentUserProfileBinding
 
-    private val imageRequestCode: Int = 777
     private var bitmap: Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,28 +72,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
 
             profileImage.setOnClickListener {
-                if(EasyPermissions.hasPermissions(
-                        requireContext(),
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    )) {
-                    val selectImageIntent = Intent()
-                    selectImageIntent.type = "image/*" // set MIME data type to all images
-
-                    selectImageIntent.action =
-                        Intent.ACTION_GET_CONTENT // set the desired action to get image
-
-                    startActivityForResult(
-                        selectImageIntent,
-                        imageRequestCode
-                    ) // start activity and await result
-                } else {
-                    EasyPermissions.requestPermissions(
-                        this@UserProfileFragment,
-                        getString(R.string.read_external_storage_rationale),
-                        200,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    )
-                }
+                Callbacks.requestImage(this@UserProfileFragment)
             }
 
             deleteButton.setOnClickListener {
@@ -180,8 +158,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                 }
 
-                if(activityViewModel.authUser.value?.tags != viewModel!!.selectedTags) {
-                    fieldMap[Constants.TAGS] = (GsonBuilder()
+                if((activityViewModel.authUser.value?.tags ?: emptyList()) != viewModel!!.selectedTags) {
+                    fieldMap[Constants.TAGS + "[]"] = (GsonBuilder()
                         .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
                         .create()) // TODO: Extract into DI/singleton/static var
                         .toJson(viewModel!!.selectedTags)
@@ -237,10 +215,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // FIXME: Code dup from RegisterFragment
+        Callbacks.handlePermissionsResult(this, Constants.imagePermissionsRequestCode, requestCode, resultCode)
+
         if(Callbacks.getBitmapFromImageOnActivityResult(
                 requireActivity(),
-                imageRequestCode,
+                Constants.imageRequestCode,
                 requestCode,
                 resultCode,
                 data

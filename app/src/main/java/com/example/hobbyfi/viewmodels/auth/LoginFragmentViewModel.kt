@@ -26,9 +26,10 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
     private lateinit var facebookIntent: Channel<FacebookIntent>
 
     override fun handleIntent() {
+        // different channels consumed as flows must be collected in different coroutine jobs
         viewModelScope.launch {
-            facebookIntent = Channel(Channel.UNLIMITED)
-            _facebookState = MutableStateFlow(FacebookState.Idle) // has to be init-ed here for some reason; bruh
+            facebookIntent = Channel(Channel.UNLIMITED) // has to be init'd here. bruh...
+            _facebookState = MutableStateFlow(FacebookState.Idle)
 
             facebookIntent.consumeAsFlow().collectLatest {
                 when(it) {

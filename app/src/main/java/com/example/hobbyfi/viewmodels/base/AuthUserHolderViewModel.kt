@@ -91,10 +91,12 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?)
                 userFields
             )
         } catch(ex: Exception) {
+            ex.printStackTrace()
             when(ex) {
+                // FIXME: how tf do you chain `is` checks?
                 is Repository.ReauthenticationException, is InstantiationException, is InstantiationError -> {
                     UserState.Error(
-                        Constants.reauthError,
+                        ex.message,
                         shouldReauth = true
                     )
                 }

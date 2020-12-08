@@ -93,7 +93,7 @@ interface HobbyfiAPI {
      * @param body - POST body fields containing key-value pairs on fields to be updated in the backend
      * @return - a Model containing a response from the server based on success or failure
      */
-    @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now) FIXME potentially in backend
+    @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now)
     @FormUrlEncoded
     suspend fun editUser(
         @Header(Constants.AUTH_HEADER) token: String,

@@ -31,11 +31,12 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
     override val _mainState: MutableStateFlow<ChatroomListState> = MutableStateFlow(ChatroomListState.Idle)
 
     private var currentChatrooms: Flow<PagingData<Chatroom>>? = null
-    private var hasDeletedCacheForSession = false
+    private var _hasDeletedCacheForSession = false
+    val hasDeletedCacheForSession get() = _hasDeletedCacheForSession
     private var _buttonSelectedChatroom: Chatroom? = null
     val buttonSelectedChatroom: Chatroom? get() = _buttonSelectedChatroom
 
-    fun setButtonSelectedChatroom(chatroom: Chatroom) {
+    fun setButtonSelectedChatroom(chatroom: Chatroom?) {
         _buttonSelectedChatroom = chatroom
     }
 
@@ -75,10 +76,10 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
         var state: ChatroomListState = ChatroomListState.Error(Constants.cacheDeletionError)
 
         // deletes other cached chatrooms (not auth'd) for user
-        if(hasDeletedCacheForSession || viewModelScope.async {
+        if(viewModelScope.async {
                 chatroomRepository.deleteChatrooms(authChatroomId)
             }.await()) {
-            hasDeletedCacheForSession = true
+            _hasDeletedCacheForSession = true
             state = ChatroomListState.DeleteChatroomsCacheResult(calledFromChatroomJoin)
         }
 

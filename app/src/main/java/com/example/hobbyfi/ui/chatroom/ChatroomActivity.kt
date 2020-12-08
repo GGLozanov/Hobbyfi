@@ -62,4 +62,10 @@ class ChatroomActivity : BaseActivity() {
         super.onResume()
         // TODO: Google Services availability https://firebase.google.com/docs/cloud-messaging/android/client#sample-play
     }
+
+    override fun onBackPressed() {
+        // TODO: reset auth with no code dup from mainactivity
+        //super.onBackPressed()
+        finish()
+    }
 }

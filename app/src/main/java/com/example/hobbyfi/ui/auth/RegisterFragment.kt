@@ -43,7 +43,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
-    private val imageRequestCode: Int = 777
     private var bitmap: Bitmap? = null
 
     companion object {
@@ -72,21 +71,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             initTextFieldValidators()
 
             profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
-                if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    val selectImageIntent = Intent()
-                    selectImageIntent.type = "image/*" // set MIME data type to all images
-
-                    selectImageIntent.action =
-                        Intent.ACTION_GET_CONTENT // set the desired action to get image
-
-                    startActivityForResult(
-                        selectImageIntent,
-                        imageRequestCode
-                    ) // start activity and await result
-                } else {
-                    EasyPermissions.requestPermissions(this@RegisterFragment, getString(R.string.read_external_storage_rationale),
-                        200, Manifest.permission.READ_EXTERNAL_STORAGE)
-                }
+                Callbacks.requestImage(this@RegisterFragment)
             }
 
             registerAccountButton.setOnClickListener {
@@ -212,9 +197,11 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        Callbacks.handlePermissionsResult(this, Constants.imagePermissionsRequestCode, requestCode, resultCode)
+
         if(Callbacks.getBitmapFromImageOnActivityResult(
                 requireActivity(),
-                imageRequestCode,
+                Constants.imageRequestCode,
                 requestCode,
                 resultCode,
                 data).also { bitmap = it } != null) {

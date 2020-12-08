@@ -23,7 +23,8 @@
             android:label="Chatrooms">
                 <action
                     android:id="@+id/action_global_activityChatroom"
-                    app:destination="@id/chatroomActivity">
+                    app:destination="@id/chatroomActivity"
+                    app:popUpTo="@id/chatroomListFragment">
                         <argument
                             android:name="user"
                             app:argType="com.example.hobbyfi.models.User"

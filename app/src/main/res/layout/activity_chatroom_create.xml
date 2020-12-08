@@ -4,7 +4,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_secondary_gradient"
     tools:context=".ui.create.ChatroomCreateActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/name_input_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:hint="@string/username_hint"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:startIconDrawable="@drawable/ic_baseline_person_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_input_name"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="true"
+                android:inputType="textCapSentences"
+                android:singleLine="true"
+                tools:layout_conversion_absoluteHeight="45dp"
+                tools:layout_conversion_absoluteWidth="20dp"
+                tools:layout_editor_absoluteX="4dp"
+                tools:layout_editor_absoluteY="4dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"

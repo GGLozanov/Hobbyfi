@@ -26,7 +26,7 @@
                 android:id="@+id/chatroom_list"
                 android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
                 android:scrollbars="vertical"
