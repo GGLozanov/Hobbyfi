@@ -42,8 +42,8 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         with(binding) {
             lifecycleOwner = this@ChangeEmailDialogFragment
 
-            cancelButton.setOnClickListener { dismiss() }
-            confirmButton.setOnClickListener {
+            buttonBar.leftButton.setOnClickListener { dismiss() }
+            buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }

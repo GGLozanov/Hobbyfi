@@ -87,8 +87,6 @@
         <activity android:name=".ui.main.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustPan" />
-        <activity android:name=".ui.create.ChatroomCreateActivity" />
-        <activity android:name=".ui.create.EventCreateActivity" />
         <activity
             android:name=".ui.exported.FacebookChromeCustomTabsActivity"
             android:exported="true">

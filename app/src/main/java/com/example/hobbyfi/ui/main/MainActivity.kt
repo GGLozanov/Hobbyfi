@@ -14,10 +14,12 @@ import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.OnAuthStateReset
+import com.example.hobbyfi.ui.create.ChatroomCreateFragment
 import com.example.hobbyfi.viewmodels.factories.MainActivityViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.facebook.login.LoginManager
@@ -143,12 +145,14 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     override fun onBackPressed() {
-        // FIXME: Weird navcontroller crash in onDestroy when app is in background
         resetAuth()
         if(poppedFromNavController) {
             finish()
         } else {
-            finishAffinity()
+            // FIXME: Fix this ass-backwards logic and backstack management hack aaaaaaaaaaaaaaaaaaaaaaa
+            if(supportFragmentManager.currentNavigationFragment is ChatroomCreateFragment) {
+                super.onBackPressed()
+            } else finishAffinity()
         }
     }
 }

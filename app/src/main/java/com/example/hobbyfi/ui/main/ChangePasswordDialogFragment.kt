@@ -46,8 +46,8 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         with(binding) {
             lifecycleOwner = this@ChangePasswordDialogFragment
 
-            cancelButton.setOnClickListener { dismiss() }
-            confirmButton.setOnClickListener {
+            buttonBar.leftButton.setOnClickListener { dismiss() }
+            buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }

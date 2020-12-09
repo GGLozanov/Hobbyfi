@@ -15,6 +15,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.ui.onNavDestinationSelected
+import coil.load
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -46,7 +47,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     private var bitmap: Bitmap? = null
 
     companion object {
-        val tag: String = "RegisterFragment"
+        const val tag: String = "RegisterFragment"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +75,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                 Callbacks.requestImage(this@RegisterFragment)
             }
 
-            registerAccountButton.setOnClickListener {
+            buttonBar.rightButton.setOnClickListener { // register account
                 if(assertTextFieldsInvalidity()) {
                     Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
                         .show() // TODO: Extract into separate error text
@@ -92,7 +93,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tagSelectButton.setOnClickListener {
+        binding.buttonBar.leftButton.setOnClickListener { // select tags
             val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
                 viewModel.selectedTags.toTypedArray(),
                 viewModel.tags.toTypedArray()
@@ -205,7 +206,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                 requestCode,
                 resultCode,
                 data).also { bitmap = it } != null) {
-            binding.profileImage.setImageBitmap(
+            binding.profileImage.load(
                 bitmap
             ) // set the new image resource to be decoded from the bitmap
             viewModel.setProfileImageBase64(

@@ -75,7 +75,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 Callbacks.requestImage(this@UserProfileFragment)
             }
 
-            deleteButton.setOnClickListener {
+            settingsButtonBar.leftButton.setOnClickListener { // delete account button
                 AlertDialog.Builder(requireContext())
                     .setMessage("Are you certain you want to delete you account?")
                     .setPositiveButton("Yes") { dialogInterface: DialogInterface, _: Int ->
@@ -100,19 +100,19 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
         with(binding) {
             if(!Constants.isFacebookUserAuthd()) {
-                emailChangeButton.setOnClickListener {
+                authButtonBar.leftButton.setOnClickListener { // change email button
                     navController.navigate(R.id.action_global_changeEmailDialogFragment)
                 }
 
-                passwordChangeButton.setOnClickListener {
+                authButtonBar.rightButton.setOnClickListener { // change password button
                     navController.navigate(R.id.action_global_changePasswordDialogFragment)
                 }
             } else {
-                emailChangeButton.visibility = View.GONE
-                passwordChangeButton.visibility = View.GONE
+                authButtonBar.leftButton.visibility = View.GONE
+                authButtonBar.rightButton.visibility = View.GONE
             }
 
-            tagSelectButton.setOnClickListener {
+            settingsButtonBar.rightButton.setOnClickListener { // tag selection button
                 val action = UserProfileFragmentDirections.actionGlobalTagNavGraph(
                     viewModel!!.selectedTags.toTypedArray(),
                     viewModel!!.tags.toTypedArray()
@@ -224,9 +224,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 resultCode,
                 data
             ).also { bitmap = it } != null) {
-            binding.profileImage.setImageBitmap(
+            binding.profileImage.load(
                 bitmap
-            ) // set the new image resource to be decoded from the bitmap
+            )
             viewModel.setProfileImageBase64(
                 ImageUtils.encodeImage(bitmap!!)
             )
