@@ -14,7 +14,7 @@ import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseDialogFragment
-import com.example.hobbyfi.viewmodels.factories.TagSelectionDialogFragmentViewModelFactory
+import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
@@ -26,7 +26,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     private val args: TagSelectionDialogFragmentArgs by navArgs()
 
     private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
-        TagSelectionDialogFragmentViewModelFactory(requireActivity().application, args.selectedTags.toList())
+        TagListViewModelFactory(requireActivity().application, args.selectedTags.toList())
     })
 
     private var _binding: FragmentTagSelectionDialogBinding? = null

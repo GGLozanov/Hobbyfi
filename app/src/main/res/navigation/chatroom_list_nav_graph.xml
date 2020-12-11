@@ -17,7 +17,7 @@
         </fragment>
         <fragment
             android:id="@+id/chatroomCreateFragment"
-            android:name="com.example.hobbyfi.ui.create.ChatroomCreateFragment"
+            android:name="com.example.hobbyfi.ui.main.ChatroomCreateFragment"
             android:label="Create Chatroom"
             tools:layout="@layout/fragment_chatroom_create">
                 <argument
@@ -26,6 +26,9 @@
                 <action
                     android:id="@+id/action_chatroomCreateFragment_to_tag_nav_graph"
                     app:destination="@id/tag_nav_graph" />
+                <action
+                    android:id="@+id/action_chatroomCreateFragment_to_chatroomActivity"
+                    app:destination="@id/chatroomActivity" />
         </fragment>
         <include app:graph="@navigation/tag_nav_graph" />
         <activity

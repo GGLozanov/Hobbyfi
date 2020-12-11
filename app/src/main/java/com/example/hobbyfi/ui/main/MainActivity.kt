@@ -19,8 +19,7 @@ import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.OnAuthStateReset
-import com.example.hobbyfi.ui.create.ChatroomCreateFragment
-import com.example.hobbyfi.viewmodels.factories.MainActivityViewModelFactory
+import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.facebook.login.LoginManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,7 +31,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
     private val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
-        MainActivityViewModelFactory(application, args.user)
+        AuthUserViewModelFactory(application, args.user)
     })
     private lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
@@ -91,8 +90,6 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         // FIXME: This feels quite coupled as it exposes the knowledge of the fragment
                         //  ... but I can't think of any other alternative for now
 
-                        // TODO: If viewModel.user chatroom id == null & userFileds Id != null => navigate to chatroom page
-                        viewModel.updateAndSaveUser(it.userFields)
                         if(it.userFields.size == 1 && it.userFields.containsKey(Constants.CHATROOM_ID)) {
                             if(it.userFields[Constants.CHATROOM_ID]?.toInt() != 0) {
                                 // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
@@ -104,6 +101,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                             Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
                                 .show()
                         }
+                        viewModel.updateAndSaveUser(it.userFields)
                     }
                     is UserState.Error -> {
                         Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
@@ -145,14 +143,17 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     override fun onBackPressed() {
+        if(supportFragmentManager.currentNavigationFragment is ChatroomCreateFragment) {
+            super.onBackPressed()
+            return
+        }
+
         resetAuth()
         if(poppedFromNavController) {
             finish()
         } else {
             // FIXME: Fix this ass-backwards logic and backstack management hack aaaaaaaaaaaaaaaaaaaaaaa
-            if(supportFragmentManager.currentNavigationFragment is ChatroomCreateFragment) {
-                super.onBackPressed()
-            } else finishAffinity()
+            finishAffinity()
         }
     }
 }

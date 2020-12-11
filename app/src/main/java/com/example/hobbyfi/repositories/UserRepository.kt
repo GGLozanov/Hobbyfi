@@ -14,9 +14,7 @@ import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
-import com.example.hobbyfi.utils.TokenUtils
 import com.facebook.AccessToken
-import com.facebook.Profile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -38,14 +36,13 @@ class UserRepository @ExperimentalPagingApi constructor(
                 Log.i("UserRepository", "getUser => isConnected: " + connectivityManager.isConnected())
                 Log.i("UserRepository", "getUser => shouldFetch: " + (cache == null ||
                         Constants.cacheTimedOut(prefConfig, R.string.pref_last_user_fetch_time) || connectivityManager.isConnected()))
-                return cache == null ||
-                        Constants.cacheTimedOut(prefConfig, R.string.pref_last_user_fetch_time) || connectivityManager.isConnected()
+                return adheresToDefaultCachePolicy(cache, R.string.pref_last_user_fetch_time)
             }
 
             override suspend fun loadFromDb(): Flow<User?> {
                 Log.i("UserRepository", "getUser -> ${prefConfig.readToken()}")
                 return try {
-                    val userId = getUserIdFromToken()
+                    val userId = getAuthUserIdFromToken()
 
                     hobbyfiDatabase.userDao().getUserById(userId)
                 } catch(ex: Exception) {
@@ -81,7 +78,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editUser -> editing current user")
         return try {
-            val userId = getUserIdFromToken() // validate token expiry by attempting to get id
+            val userId = getAuthUserIdFromToken() // validate token expiry by attempting to get id
             hobbyfiAPI.editUser(
                 if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
                 userFields
@@ -141,12 +138,6 @@ class UserRepository @ExperimentalPagingApi constructor(
             }
         }
     }
-
-    private fun getUserIdFromToken(): Long {
-        return if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
-            TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())
-    }
-
 
     // return livedata of pagedlist for users
     suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultPageConfig()): LiveData<PagingData<User>> {

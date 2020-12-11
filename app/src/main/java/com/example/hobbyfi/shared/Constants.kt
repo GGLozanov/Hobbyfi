@@ -1,16 +1,19 @@
 package com.example.hobbyfi.shared
 
+import android.util.Log
 import android.util.Patterns
 import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 import com.facebook.AccessToken
 import com.facebook.Profile
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
-    const val usernameInputError: String = "Enter a non-empty valid username!"
+    const val usernameInputError: String = "Enter a non-empty or shorter username!"
+    const val nameInputError: String = "Enter a non-empty or shorter name!"
     const val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
     const val confirmPasswordInputError: String = "Enter the same password!"
     const val emailInputError: String = "Enter a non-empty valid e-mail address!"
@@ -54,13 +57,14 @@ object Constants {
         )
     )
 
-    // TODO: Put in in-memory db
+    // TODO: Put in in-memory db annotated by room with @Database
     val emailPredicate = Predicate<String> {
         return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
     }
 
     fun newEmailPredicate(originalEmail: String?) = Predicate<String> {
-        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches() ||
+                originalEmail == it
     }
 
     val passwordPredicate = Predicate<String> {
@@ -71,7 +75,7 @@ object Constants {
         return@Predicate it.isEmpty() || it != originalPassword
     }
 
-    val usernamePredicate = Predicate<String> {
+    val namePredicate = Predicate<String> {
         return@Predicate it.isEmpty() || it.length >= 25
     }
 
@@ -84,8 +88,15 @@ object Constants {
     }
 
     fun isFacebookUserAuthd(): Boolean {
-        return AccessToken.getCurrentAccessToken() != null && !AccessToken.getCurrentAccessToken().isExpired
-                && Profile.getCurrentProfile().id != null
+        if(AccessToken.getCurrentAccessToken() != null) {
+            if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile().id != null) {
+                return true
+            } // facebook user access true
+
+            Log.i("Constants", "Facebook user sharedprefs token is expired. Reauthenticating.")
+            throw Repository.ReauthenticationException() // facebook user auth'd but expired token - throw exception to reauth
+        }
+        return false // facebook user not auth'd - just return false
     }
 
     fun cacheTimedOut(prefConfig: PrefConfig, prefId: Int): Boolean {

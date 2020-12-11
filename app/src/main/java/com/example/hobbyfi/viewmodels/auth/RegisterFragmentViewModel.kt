@@ -3,21 +3,26 @@ package com.example.hobbyfi.viewmodels.auth
 import android.app.Application
 import android.util.Log
 import androidx.databinding.Bindable
+import androidx.databinding.Observable
+import androidx.databinding.PropertyChangeRegistry
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable
+import com.example.hobbyfi.viewmodels.base.NameDescriptionBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 @ExperimentalCoroutinesApi
-class RegisterFragmentViewModel(application: Application) : AuthFragmentViewModel(application) {
+@Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
+class RegisterFragmentViewModel(application: Application) : AuthFragmentViewModel(application),
+    NameDescriptionBindable by NameDescriptionBindableViewModel() {
+
     init {
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
     }
@@ -32,12 +37,6 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
             }
         }
     }
-
-    @Bindable
-    val username: MutableLiveData<String> = MutableLiveData()
-
-    @Bindable
-    val description: MutableLiveData<String> = MutableLiveData()
 
     private var _base64Image: String? = null
     val base64Image get() = _base64Image
@@ -54,7 +53,7 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
                 null,
                 email.value,
                 password.value,
-                username.value!!,
+                name.value!!,
                 description.value,
                 base64Image,
                 selectedTags

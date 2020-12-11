@@ -7,6 +7,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.hobbyfi.intents.ChatroomListIntent
+import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.repositories.Repository
@@ -35,6 +36,10 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
     val hasDeletedCacheForSession get() = _hasDeletedCacheForSession
     private var _buttonSelectedChatroom: Chatroom? = null
     val buttonSelectedChatroom: Chatroom? get() = _buttonSelectedChatroom
+
+    fun setHasDeletedCacheForSession(hasDeletedCache: Boolean) {
+        _hasDeletedCacheForSession = hasDeletedCache
+    }
 
     fun setButtonSelectedChatroom(chatroom: Chatroom?) {
         _buttonSelectedChatroom = chatroom

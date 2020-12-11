@@ -40,7 +40,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                         fetchFacebookEmail()
                     }
                     is FacebookIntent.ValidateFacebookUserExistence -> {
-                        fetchUserExistence(it.username)
+                        fetchUserExistence(it.id)
                     }
                 }
             }
@@ -66,11 +66,11 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         facebookIntent.send(i)
     }
 
-    private suspend fun fetchUserExistence(username: String) {
+    private suspend fun fetchUserExistence(id: Long) {
         _facebookState.value = FacebookState.Loading
         _facebookState.value = try {
             FacebookState.OnData.ExistenceResultReceived(
-                tokenRepository.getUserExistence(username)
+                tokenRepository.getUserExistence(id)
             )
         } catch(ex: Exception) {
             FacebookState.Error(ex.message)

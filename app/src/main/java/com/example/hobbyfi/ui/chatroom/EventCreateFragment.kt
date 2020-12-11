@@ -1,4 +1,4 @@
-package com.example.hobbyfi.ui.create
+package com.example.hobbyfi.ui.chatroom
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

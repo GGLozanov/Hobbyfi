@@ -86,7 +86,9 @@ object Callbacks {
                     }
                     401 -> { // unauthorized
                         throw if(!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                        else Repository.AuthorisedRequestException(Constants.unauthorisedAccessError) // only for login incorrect password error
+                            else if(!Constants.isFacebookUserAuthd())
+                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
+                            else Repository.ReauthenticationException(Constants.reauthError)
                     }
                     409 -> { // conflict
                         throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk

@@ -1,4 +1,4 @@
-package com.example.hobbyfi.viewmodels.create
+package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
 import androidx.multidex.MultiDexApplication

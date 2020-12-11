@@ -1,11 +1,10 @@
 package com.example.hobbyfi.persistence
 
-import androidx.paging.PageKeyedDataSource
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
 import com.example.hobbyfi.models.Chatroom
-import javax.sql.DataSource
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChatroomDao : BaseDao<Chatroom> {
@@ -16,5 +15,8 @@ interface ChatroomDao : BaseDao<Chatroom> {
     suspend fun deleteChatrooms()
 
     @Query("DELETE FROM users WHERE id != :chatroomId")
-    fun deleteChatroomsExceptId(chatroomId: Long): Int
+    suspend fun deleteChatroomsExceptId(chatroomId: Long): Int
+
+    @Query("SELECT * FROM chatrooms WHERE ownerId = :ownerId")
+    fun getChatroomByOwnerId(ownerId: Long): Flow<Chatroom?>
 }

@@ -12,6 +12,7 @@ import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
 import androidx.paging.RemoteMediator
+import androidx.room.Room
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom

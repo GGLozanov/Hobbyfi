@@ -18,11 +18,8 @@ class ChatroomUserListFragmentViewModel(application: Application) : StateIntentV
         handleIntent()
     }
 
-
-    override val _mainState: MutableStateFlow<UserListState>
-        get() = TODO("Not yet implemented")
+    override val _mainState: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
 
     override fun handleIntent() {
-        TODO("Not yet implemented")
     }
 }

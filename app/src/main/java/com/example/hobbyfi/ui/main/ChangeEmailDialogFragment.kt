@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChangeEmailDialogBinding
@@ -98,6 +99,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
 
     override fun initTextFieldValidators() {
         with(binding) {
+
             textInputNewEmail.addTextChangedListener(
                 Constants.emailInputError,
                 Constants.newEmailPredicate(activityViewModel.authUser.value?.email)
@@ -108,10 +110,14 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 Constants.passwordPredicate
             )
 
-            textInputConfirmPassword.addTextChangedListener(
-                Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(viewModel!!.password.value)
-            )
+            viewModel!!.password.observe(viewLifecycleOwner, Observer {
+                textInputConfirmPassword.error = null
+
+                textInputConfirmPassword.addTextChangedListener(
+                    Constants.confirmPasswordInputError,
+                    Constants.confirmPasswordPredicate(it)
+                )
+            })
         }
     }
 

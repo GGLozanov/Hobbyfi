@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application, user: User?)
-    : StateIntentViewModel<UserState, UserIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
+abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
+    TwoWayDataBindable by TwoWayDataBindableViewModel() {
     init {
         // TODO: Check if this gets called every time in bottomnav
         if(user != null) {

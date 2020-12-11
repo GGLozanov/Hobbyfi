@@ -254,10 +254,9 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 override fun onSuccess(loginResult: LoginResult?) {
                     Log.i("LoginFragment", "Triggered w/ user profile name ${Profile.getCurrentProfile().name}")
 
-
                     lifecycleScope.launch {
                         viewModel.sendFacebookIntent(FacebookIntent.ValidateFacebookUserExistence(
-                            Profile.getCurrentProfile().name
+                            Profile.getCurrentProfile().id.toLong()
                         ))
                     }
                 }

@@ -57,7 +57,7 @@
                     android:includeFontPadding="true"
                     android:inputType="textCapSentences"
                     android:singleLine="true"
-                    android:text="@={viewModel.username}"
+                    android:text="@={viewModel.name}"
                     tools:layout_conversion_absoluteHeight="45dp"
                     tools:layout_conversion_absoluteWidth="20dp"
                     tools:layout_editor_absoluteX="4dp"
@@ -74,7 +74,7 @@
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
                 app:hintEnabled="true"
-                app:layout_constraintBottom_toTopOf="@+id/auth_button_bar"
+                app:layout_constraintBottom_toTopOf="@id/settings_button_bar"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/username_input_field"
@@ -101,7 +101,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="visible"
-                app:layout_constraintBottom_toTopOf="@id/settings_button_bar"
+                app:layout_constraintBottom_toTopOf="@id/auth_button_bar"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/description_input_field" />
@@ -113,7 +113,7 @@
                 app:layout_constraintBottom_toTopOf="@id/confirm_button"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/auth_button_bar" />
+                app:layout_constraintTop_toBottomOf="@id/settings_button_bar" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/confirm_button"
@@ -122,7 +122,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/settings_button_bar">
+                app:layout_constraintTop_toBottomOf="@id/auth_button_bar">
 
             </com.google.android.material.button.MaterialButton>
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,14 +1,18 @@
 package com.example.hobbyfi.state
 
-import androidx.paging.PagingData
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.responses.Response
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
 sealed class ChatroomState : State {
     object Idle : ChatroomState()
     object Loading : ChatroomState()
 
-    data class ChatroomResult(val chatroom: Chatroom) // might not need this...?
+    sealed class OnData : ChatroomState() {
+        data class ChatroomDeleteResult(val response: Response?) : OnData()
+        data class ChatroomUpdateResult(val response: Response?, val fieldMap: Map<String?, String?>) : OnData()
+        data class ChatroomResult(val chatroom: Chatroom) : OnData()
+    }
 
     // TODO: Find a way to Swift-ify this and pass the chatroomId only in OnNotification and have the inner classes access it
     sealed class OnNotification : ChatroomState() {

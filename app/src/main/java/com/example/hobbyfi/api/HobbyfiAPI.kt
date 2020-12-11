@@ -52,7 +52,7 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/user/exists")
     suspend fun fetchUserExists(
-        @Query(Constants.USERNAME) username: String
+        @Query(Constants.ID) id: Long
     ): Boolean
 
     /**
@@ -115,12 +115,12 @@ interface HobbyfiAPI {
     @POST("api/v1.0/chatroom/create")
     suspend fun createChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Field(Constants.USERNAME) name: String,
+        @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
         @Field(Constants.OWNER_ID) ownerId: Int,
         @Field(Constants.IMAGE) image: String?,
         @Field(Constants.TAGS + "[]") tags: List<Tag>?
-    )
+    ): Response?
 
     /**
      *

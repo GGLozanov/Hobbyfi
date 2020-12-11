@@ -1,6 +1,6 @@
 package com.example.hobbyfi.ui.main
 
-import android.Manifest
+import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
@@ -9,36 +9,32 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.example.hobbyfi.R
-import com.example.hobbyfi.UserProfileNavDirections
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
-import com.example.hobbyfi.viewmodels.factories.UserProfileFragmentViewModelFactory
+import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
 class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
-        UserProfileFragmentViewModelFactory(
+        TagListViewModelFactory(
             requireActivity().application,
             activityViewModel.authUser.value?.tags ?: UserProfileFragmentArgs.fromBundle(
                 requireActivity().intent?.extras!!
@@ -130,7 +126,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
                 if (it != null) {
                     viewModel!!.description.value = it.description
-                    viewModel!!.username.value = it.name
+                    viewModel!!.name.value = it.name
                     it.tags?.let { selectedTags ->
                         viewModel!!.setSelectedTags(selectedTags)
                         viewModel!!.appendNewSelectedTagsToTags(selectedTags)
@@ -150,8 +146,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 val fieldMap: MutableMap<String?, String?> = mutableMapOf()
 
-                if(activityViewModel.authUser.value?.name != viewModel!!.username.value) {
-                    fieldMap[Constants.USERNAME] = viewModel!!.username.value
+                if(activityViewModel.authUser.value?.name != viewModel!!.name.value) {
+                    fieldMap[Constants.USERNAME] = viewModel!!.name.value
                 }
 
                 if(activityViewModel.authUser.value?.description != viewModel!!.description.value) {
@@ -196,7 +192,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             textInputUsername.addTextChangedListener(
                 Constants.usernameInputError,
-                Constants.usernamePredicate
+                Constants.namePredicate
             )
 
             textInputDescription.addTextChangedListener(
