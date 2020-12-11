@@ -1,6 +1,7 @@
 package com.example.hobbyfi.api
 
 import android.net.ConnectivityManager
+import android.util.Log
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
 import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
@@ -113,26 +114,32 @@ interface HobbyfiAPI {
      *
      */
     @POST("api/v1.0/chatroom/create")
+    @FormUrlEncoded
     suspend fun createChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
         @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
-        @Field(Constants.OWNER_ID) ownerId: Int,
         @Field(Constants.IMAGE) image: String?,
         @Field(Constants.TAGS + "[]") tags: List<Tag>?
-    ): Response?
+    ): IdResponse?
 
     /**
      *
      */
     @POST("api/v1.0/chatroom/edit")
-    suspend fun editChatroom()
+    @FormUrlEncoded
+    suspend fun editChatroom(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @FieldMap body: Map<String?, String?>
+    ): Response?
 
     /**
      *
      */
     @DELETE("api/v1.0/chatroom/delete")
-    suspend fun deleteChatroom()
+    suspend fun deleteChatroom(
+        @Header(Constants.AUTH_HEADER) token: String
+    ): Response?
 
     /**
      *

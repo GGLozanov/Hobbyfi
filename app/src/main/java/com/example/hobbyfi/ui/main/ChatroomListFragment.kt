@@ -41,7 +41,7 @@ class ChatroomListFragment : MainFragment() {
         if(userChatroomId == null || userChatroomId != chatroom.id) {
             // If user join chatroom is successful, delete other chatrooms from cache (+remote keys) and load only their chatroom from cache
             lifecycleScope.launch {
-                activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
+                activityViewModel.sendIntent(UserIntent.UpdateUser(mapOf(
                     Pair(Constants.CHATROOM_ID, chatroom.id.toString())
                 )))
             }
@@ -54,7 +54,7 @@ class ChatroomListFragment : MainFragment() {
     }, {_, chatroom ->
         viewModel.setButtonSelectedChatroom(chatroom)
         lifecycleScope.launch {
-            activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
+            activityViewModel.sendIntent(UserIntent.UpdateUser(mapOf(
                 Pair(Constants.CHATROOM_ID, "0")
             )))
         }

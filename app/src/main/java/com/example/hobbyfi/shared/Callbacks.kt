@@ -18,6 +18,26 @@ import androidx.fragment.app.Fragment
 
 
 object Callbacks {
+    fun handleImageRequestWithPermission(callingFragment: Fragment, activity: Activity,
+                                         requestCode: Int, resultCode: Int,
+                                         data: Intent?, onImageSuccess: (bitmap: Bitmap) -> Unit) {
+        handlePermissionsResult(callingFragment, Constants.imagePermissionsRequestCode, requestCode, resultCode)
+
+        getBitmapFromImageOnActivityResult(
+            activity,
+            Constants.imageRequestCode,
+            requestCode,
+            resultCode,
+            data
+        ).also { if(it != null) { onImageSuccess.invoke(it) } }
+    }
+
+    fun handlePermissionsResult(callingFragment: Fragment, requiredRequestCode: Int, requestCode: Int, resultCode: Int) {
+        if(requestCode == requiredRequestCode && resultCode == Activity.RESULT_OK) {
+            openImageSelection(callingFragment, requestCode)
+        }
+    }
+
     fun getBitmapFromImageOnActivityResult(
         activity: Activity,
         requiredRequestCode: Int,
@@ -36,12 +56,6 @@ object Callbacks {
 
         }
         return null
-    }
-
-    fun handlePermissionsResult(callingFragment: Fragment, requiredRequestCode: Int, requestCode: Int, resultCode: Int) {
-        if(requestCode == requiredRequestCode && resultCode == Activity.RESULT_OK) {
-            openImageSelection(callingFragment, requestCode)
-        }
     }
 
     fun requestImage(callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode, permissionRequestCode: Int = Constants.imagePermissionsRequestCode) {
@@ -75,6 +89,7 @@ object Callbacks {
 
     // always throws an exception
     fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
+        ex.printStackTrace()
         when(ex) {
             is HobbyfiAPI.NoConnectivityException -> throw Exception(Constants.noConnectionError)
             is HttpException -> {
@@ -98,7 +113,7 @@ object Callbacks {
                     }
                 }
 
-                throw Exception(ex.message().toString() + " ; code: " + ex.code())
+                throw Repository.NetworkException(ex.message().toString() + " ; code: " + ex.code())
             }
             is ExpiredJwtException -> {
                 throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()

@@ -2,6 +2,7 @@ package com.example.hobbyfi.models
 
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -42,7 +43,7 @@ data class User(
                 Constants.DESCRIPTION -> {
                     description = value
                 }
-                Constants.TAGS -> {
+                Constants.TAGS + "[]" -> {
                     tags = GsonBuilder()
                         .registerTypeAdapter(
                             Tag::class.java,

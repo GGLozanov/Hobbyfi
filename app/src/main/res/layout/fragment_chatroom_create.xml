@@ -10,15 +10,19 @@
             type="com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fadeScrollbars="false"
+        android:fillViewport="false"
+        android:overScrollMode="always"
         android:background="@drawable/background_secondary_gradient">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="32dp"
             android:background="@drawable/layout_shadow"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -29,12 +33,13 @@
                 android:id="@+id/chatroom_create_header"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginLeft="16dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginLeft="24dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginRight="16dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginRight="24dp"
                 android:layout_marginBottom="8dp"
+                android:singleLine="true"
                 android:text="@string/chatroom_create_header"
                 android:textSize="36sp"
                 android:textStyle="bold"
@@ -49,8 +54,9 @@
                 android:id="@+id/chatroom_image"
                 android:layout_width="175dp"
                 android:layout_height="135dp"
-                android:layout_marginTop="8dp"
-                android:src="@drawable/default_pic"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:src="@drawable/chatroom_default_pic"
                 app:civ_border_color="@color/colorSecondary"
                 app:civ_border_width="3dp"
                 app:layout_constraintBottom_toTopOf="@id/name_input_field"
@@ -127,5 +133,5 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/description_input_field" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 </layout>

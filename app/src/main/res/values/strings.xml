@@ -68,7 +68,7 @@
     <string name="chatrooms">Chatrooms</string>
     <string name="list_error_text">Something went wrong? Try again!</string>
     <string name="create_chatroom_header">Or... just create your own Chatroom!</string>
-    <string name="chatroom_create_header">Create a Chatroom</string>
+    <string name="chatroom_create_header">Create Chatroom</string>
     <string name="list_suggest_text">Don\'t find what you\'re looking for? Just create your own Chatroom!</string>
     <string name="chatroom_name_hint">Enter a chatroom name</string>
 </resources>

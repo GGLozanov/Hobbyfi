@@ -12,6 +12,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
+import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
@@ -76,7 +77,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                             token,
                             null
                         )
-                        Log.i("ChatroomRepository", "getChatroom -> ${response?.modelList}")
+                        Log.i("ChatroomRepository", "getChatroom -> ${response.modelList}")
                         response
                     } else throw ReauthenticationException()
                 } catch(ex: Exception) {
@@ -87,19 +88,19 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }.asFlow()
     }
 
-    suspend fun createChatroom(name: String, description: String?, ownerId: Int,
-                               base64Image: String?, tags: List<Tag>): Response? {
-        Log.i("ChatroomRepository", "createChatroom -> creating chatroom with name:"
-                + name + "; description:" + description + "; ownerId: " + ownerId + "; image: " + base64Image + "; tags: " + tags)
+    suspend fun createChatroom(name: String, description: String?,
+                               base64Image: String?, tags: List<Tag>): IdResponse? {
 
         return try {
+            Log.i("ChatroomRepository", "createChatroom -> creating chatroom with name:"
+                    + name + "; description:" + description + "; ownerId: " + getAuthUserIdFromToken() + "; image: " + base64Image + "; tags: " + tags)
+
             hobbyfiAPI.createChatroom(
                 if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
                 name,
                 description,
-                ownerId,
                 base64Image,
-                tags
+                if(tags.isEmpty()) null else tags
             )
         } catch(ex: Exception) {
             try {
@@ -107,7 +108,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             } catch(authEx: AuthorisedRequestException) {
                 getNewTokenWithRefresh()
 
-                createChatroom(name, description, ownerId, base64Image, tags)
+                createChatroom(name, description, base64Image, tags)
             }
         }
     }

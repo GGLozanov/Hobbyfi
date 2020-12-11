@@ -25,10 +25,18 @@
                     app:argType="com.example.hobbyfi.models.User" />
                 <action
                     android:id="@+id/action_chatroomCreateFragment_to_tag_nav_graph"
-                    app:destination="@id/tag_nav_graph" />
+                    app:destination="@id/tag_nav_graph" >
+                        <argument
+                            android:name="selectedTags"
+                            app:argType="com.example.hobbyfi.models.Tag[]" />
+                        <argument
+                            android:name="tags"
+                            app:argType="com.example.hobbyfi.models.Tag[]" />
+                </action>
                 <action
                     android:id="@+id/action_chatroomCreateFragment_to_chatroomActivity"
-                    app:destination="@id/chatroomActivity" />
+                    app:destination="@id/chatroomActivity"
+                    app:popUpTo="@id/chatroomListFragment" />
         </fragment>
         <include app:graph="@navigation/tag_nav_graph" />
         <activity

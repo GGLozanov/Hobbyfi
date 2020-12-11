@@ -3,7 +3,6 @@ package com.example.hobbyfi.ui.main
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -44,8 +43,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     })
 
     private lateinit var binding: FragmentUserProfileBinding
-
-    private var bitmap: Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -181,6 +178,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
         }
 
+        // FIXME: Code dup with other tag fragments
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
                 viewModel.appendNewSelectedTagsToTags(selectedTags)
@@ -211,20 +209,18 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Callbacks.handlePermissionsResult(this, Constants.imagePermissionsRequestCode, requestCode, resultCode)
-
-        if(Callbacks.getBitmapFromImageOnActivityResult(
-                requireActivity(),
-                Constants.imageRequestCode,
-                requestCode,
-                resultCode,
-                data
-            ).also { bitmap = it } != null) {
+        Callbacks.handleImageRequestWithPermission(
+            this,
+            requireActivity(),
+            requestCode,
+            resultCode,
+            data
+        ) {
             binding.profileImage.load(
-                bitmap
-            )
+                it
+            ) // set the new image resource to be decoded from the bitmap
             viewModel.setProfileImageBase64(
-                ImageUtils.encodeImage(bitmap!!)
+                ImageUtils.encodeImage(it)
             )
         }
     }

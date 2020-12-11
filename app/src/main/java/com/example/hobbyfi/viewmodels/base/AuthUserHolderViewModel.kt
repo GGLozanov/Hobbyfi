@@ -19,16 +19,6 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
     TwoWayDataBindable by TwoWayDataBindableViewModel() {
-    init {
-        // TODO: Check if this gets called every time in bottomnav
-        if(user != null) {
-            Log.i("AuthUserHolderVM", "Saving auth user instance")
-            viewModelScope.launch {
-                userRepository.saveUser(user)
-            }
-        }
-    }
-
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
     protected var _authUser: MutableLiveData<User?> = MutableLiveData(user)
@@ -73,8 +63,18 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         // observe flow returned from networkBoundFetcher and change state upon emitted value
         userRepository.getUser().catch { e ->
             e.printStackTrace()
-            _mainState.value = if(e is Repository.ReauthenticationException)
-                UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
+            _mainState.value = when(e) {
+                // FIXME: how tf do you chain `is` checks?
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError -> {
+                    UserState.Error(
+                        e.message,
+                        shouldReauth = true
+                    )
+                }
+                else -> UserState.Error(
+                    e.message
+                )
+            }
         }.collect {
             if(it != null) {
                 _mainState.value = UserState.OnData.UserResult(it)
@@ -94,7 +94,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             ex.printStackTrace()
             when(ex) {
                 // FIXME: how tf do you chain `is` checks?
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError -> {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
                     UserState.Error(
                         ex.message,
                         shouldReauth = true

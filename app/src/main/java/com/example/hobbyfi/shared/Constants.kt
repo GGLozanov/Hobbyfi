@@ -149,4 +149,7 @@ object Constants {
     const val profileImageHeight = 135
 
     const val userProfileImageDir = "user_pfps"
+    fun chatroomProfileImageDir(chatroomId: Long): String {
+        return "chatroom_imgs_$chatroomId"
+    }
 }

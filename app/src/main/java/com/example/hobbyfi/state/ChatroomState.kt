@@ -1,6 +1,7 @@
 package com.example.hobbyfi.state
 
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
@@ -10,6 +11,7 @@ sealed class ChatroomState : State {
 
     sealed class OnData : ChatroomState() {
         data class ChatroomDeleteResult(val response: Response?) : OnData()
+        data class ChatroomCreateResult(val response: IdResponse?) : OnData()
         data class ChatroomUpdateResult(val response: Response?, val fieldMap: Map<String?, String?>) : OnData()
         data class ChatroomResult(val chatroom: Chatroom) : OnData()
     }

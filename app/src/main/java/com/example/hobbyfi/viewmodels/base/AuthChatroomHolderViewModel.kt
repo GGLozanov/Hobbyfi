@@ -19,6 +19,10 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class AuthChatroomHolderViewModel(application: Application, user: User?, protected val chatroom: Chatroom?)
     : AuthUserHolderViewModel(application, user) {
+    init {
+        // TODO: Save chatroom here
+    }
+
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
     protected val _chatroomState: MutableStateFlow<ChatroomState>

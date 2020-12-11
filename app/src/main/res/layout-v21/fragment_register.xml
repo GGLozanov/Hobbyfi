@@ -14,7 +14,9 @@
         android:layout_height="match_parent"
         android:background="@drawable/background_secondary_gradient"
         android:fadeScrollbars="false"
-        android:fillViewport="true"
+        android:fillViewport="false"
+        android:overScrollMode="always"
+        android:scrollbarStyle="outsideInset"
         android:visibility="visible"
         tools:visibility="visible">
 
@@ -23,6 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="30dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/layout_shadow"
             android:clipToPadding="true"
             android:elevation="8dp"

@@ -14,24 +14,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="40dp"
+        android:animateLayoutChanges="false"
         android:background="@drawable/background_secondary_gradient">
 
-        <LinearLayout
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chatroom_list"
+            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:orientation="vertical">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/chatroom_list"
-                android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:scrollbars="vertical"
-                app:layoutManager="LinearLayoutManager"
-                tools:listitem="@layout/chatroom_card" />
-        </LinearLayout>
+            android:layout_marginTop="40dp"
+            android:animateLayoutChanges="false"
+            android:scrollbars="vertical"
+            app:layoutManager="LinearLayoutManager"
+            app:reverseLayout="false"
+            tools:listitem="@layout/chatroom_card" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </layout>

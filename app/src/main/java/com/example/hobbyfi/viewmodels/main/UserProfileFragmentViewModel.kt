@@ -21,15 +21,7 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
     val tags: List<Tag> get() = _tags
 
     private var _selectedTags: List<Tag> = initialTags
-    // this list instance will have its value updated once the tag selection dialog fragment finishes its workTag
     val selectedTags: List<Tag> get() = _selectedTags
-
-    private var _base64Image: String? = null
-    val base64Image get() = _base64Image
-
-    fun setProfileImageBase64(base64Image: String) {
-        _base64Image = base64Image
-    }
 
     // FIXME: Code dup with RegisterFragmentViewModel. . .
     fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
@@ -40,9 +32,10 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
         _selectedTags = selectedTags
     }
 
-    fun addTags(tags: List<Tag>?) {
-        if(tags != null) {
-            _tags += tags
-        }
+    private var _base64Image: String? = null
+    val base64Image get() = _base64Image
+
+    fun setProfileImageBase64(base64Image: String) {
+        _base64Image = base64Image
     }
 }

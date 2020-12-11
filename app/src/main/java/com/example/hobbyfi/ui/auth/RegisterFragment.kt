@@ -1,7 +1,6 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -37,8 +36,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
-    private var bitmap: Bitmap? = null
-
     companion object {
         const val tag: String = "RegisterFragment"
     }
@@ -51,7 +48,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
 
@@ -115,9 +112,9 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 viewModel.email.value!!,
                                 viewModel.name.value!!,
                                 viewModel.description.value,
-                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
-                                        + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
-                                viewModel.selectedTags, // FIXME: User has null tags or just an empty list?
+                                if(viewModel.base64Image != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                        + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
+                                viewModel.selectedTags,
                                 null
                             )),
                             it.token?.jwt,
@@ -194,19 +191,18 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        Callbacks.handlePermissionsResult(this, Constants.imagePermissionsRequestCode, requestCode, resultCode)
-
-        if(Callbacks.getBitmapFromImageOnActivityResult(
-                requireActivity(),
-                Constants.imageRequestCode,
-                requestCode,
-                resultCode,
-                data).also { bitmap = it } != null) {
+        Callbacks.handleImageRequestWithPermission(
+            this,
+            requireActivity(),
+            requestCode,
+            resultCode,
+            data
+        ) {
             binding.profileImage.load(
-                bitmap
+                it
             ) // set the new image resource to be decoded from the bitmap
             viewModel.setProfileImageBase64(
-                ImageUtils.encodeImage(bitmap!!)
+                ImageUtils.encodeImage(it)
             )
         }
     }

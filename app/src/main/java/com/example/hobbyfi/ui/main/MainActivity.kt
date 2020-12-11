@@ -143,17 +143,19 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     override fun onBackPressed() {
+        if(poppedFromNavController) {
+            resetAuth()
+            finish()
+            return
+        }
+
+        // FIXME: Fix this ass-backwards logic and backstack management hack aaaaaaaaaaaaaaaaaaaaaaa
         if(supportFragmentManager.currentNavigationFragment is ChatroomCreateFragment) {
             super.onBackPressed()
             return
         }
 
         resetAuth()
-        if(poppedFromNavController) {
-            finish()
-        } else {
-            // FIXME: Fix this ass-backwards logic and backstack management hack aaaaaaaaaaaaaaaaaaaaaaa
-            finishAffinity()
-        }
+        finishAffinity()
     }
 }
