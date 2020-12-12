@@ -4,17 +4,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.hobbyfi.R
+import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
 
 class ChatroomMessageListFragment : ChatroomFragment() {
     // TODO: Init adapter, loader
+    private lateinit var binding: FragmentChatroomMessageListBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_chatroom_message_list, container, false)
+        binding = DataBindingUtil
+            .inflate(inflater, R.layout.fragment_chatroom_message_list, container, false)
 
         // TODO: Handle expired token error & logout
 

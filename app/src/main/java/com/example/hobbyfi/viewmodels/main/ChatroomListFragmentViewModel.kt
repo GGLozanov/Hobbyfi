@@ -59,7 +59,7 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
                     }
                     is ChatroomListIntent.DeleteChatroomsCache -> {
                         Log.i("ChatroomListFragmentVM", "Handling DeleteChatroomsCache intent with auth chatroom id: ${it.authChatroomId}")
-                        deleteChatroomsCache(it.authChatroomId, it.calledFromChatroomJoin)
+                        deleteChatroomsCache(it.authChatroomId)
                     }
                 }
             }
@@ -71,13 +71,14 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
 
         if(currentChatrooms == null) {
             currentChatrooms = chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom)
+                .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
         _mainState.value = ChatroomListState.ChatroomsResult(currentChatrooms!!)
     }
 
-    private suspend fun deleteChatroomsCache(authChatroomId: Long, calledFromChatroomJoin: Boolean) {
+    private suspend fun deleteChatroomsCache(authChatroomId: Long) {
         var state: ChatroomListState = ChatroomListState.Error(Constants.cacheDeletionError)
 
         // deletes other cached chatrooms (not auth'd) for user
@@ -85,7 +86,7 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
                 chatroomRepository.deleteChatrooms(authChatroomId)
             }.await()) {
             _hasDeletedCacheForSession = true
-            state = ChatroomListState.DeleteChatroomsCacheResult(calledFromChatroomJoin)
+            state = ChatroomListState.DeleteChatroomsCacheResult
         }
 
         _mainState.value = state

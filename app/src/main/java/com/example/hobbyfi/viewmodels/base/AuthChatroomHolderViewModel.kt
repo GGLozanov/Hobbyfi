@@ -21,6 +21,9 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     : AuthUserHolderViewModel(application, user) {
     init {
         // TODO: Save chatroom here
+        if(chatroom != null) {
+
+        }
     }
 
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")

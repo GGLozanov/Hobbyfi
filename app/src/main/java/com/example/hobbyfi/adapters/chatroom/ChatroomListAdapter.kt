@@ -78,7 +78,6 @@ class ChatroomListAdapter(
             }
 
             // TODO: Handle possible performance issue from notifications with pagination
-            //loads image from network using coil extension function
             // todo: databinding init here
         }
     }
@@ -92,7 +91,7 @@ class ChatroomListAdapter(
                                          newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
 
             override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
+                                            newChatroom: Chatroom) = oldChatroom == newChatroom
         }
 
     }

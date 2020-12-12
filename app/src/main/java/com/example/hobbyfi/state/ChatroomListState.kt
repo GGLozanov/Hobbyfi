@@ -10,7 +10,7 @@ sealed class ChatroomListState : State {
 
     data class ChatroomsResult(val chatrooms: Flow<PagingData<Chatroom>>) : ChatroomListState()  // TODO: if fetch from network the map<String, Chatroom> will be converted to a flat list and processed by pagination
 
-    data class DeleteChatroomsCacheResult(val calledFromChatroomJoin: Boolean) : ChatroomListState()
+    object DeleteChatroomsCacheResult : ChatroomListState()
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : ChatroomListState()
 }

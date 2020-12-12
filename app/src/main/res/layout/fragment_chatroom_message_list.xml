@@ -13,24 +13,29 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/messages_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/background_secondary_gradient">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/message_list"
-            android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="70dp"
-            app:layoutManager="LinearLayoutManager"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="78dp"
             app:layout_constraintBottom_toTopOf="@+id/message_input_field"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.51"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:reverseLayout="true"
-            app:stackFromEnd="true"
-            tools:context=".ui.chatroom.ChatroomMessageListFragment"
-            tools:listitem="@layout/chatroom_card" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/message_list"
+                android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="LinearLayoutManager"
+                app:reverseLayout="true"
+                app:stackFromEnd="true"
+                tools:context=".ui.chatroom.ChatroomMessageListFragment" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/message_input_field"

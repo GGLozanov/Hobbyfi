@@ -76,7 +76,7 @@ class ChatroomListFragment : MainFragment() {
         binding.viewModel = viewModel
 
         with(binding) {
-            lifecycleScope.launch {
+           lifecycleScope.launch {
                 chatroomListAdapter.loadStateFlow
                     // Only emit when REFRESH LoadState for RemoteMediator changes.
                     .distinctUntilChangedBy { loadState -> loadState.refresh }
@@ -117,7 +117,7 @@ class ChatroomListFragment : MainFragment() {
                                 }
                                 is ChatroomListState.ChatroomsResult -> {
                                     binding.swiperefresh.isRefreshing = false
-                                    searchJob = lifecycleScope.launch {
+                                    lifecycleScope.launch {
                                         state.chatrooms.catch { e ->
                                             e.printStackTrace()
                                             if(e is Repository.ReauthenticationException) {
@@ -141,13 +141,8 @@ class ChatroomListFragment : MainFragment() {
                                             ?.value == true) {
                                         navigateToChatroom()
                                         navController.currentBackStackEntry?.savedStateHandle?.set(Constants.chatroomJoined, false)
-                                    } else if(!state.calledFromChatroomJoin) {
-                                        Log.i("ChatroomListFragment", "Sending FetchChatrooms intent. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
-
-                                        viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(
-                                                userHasChatroom
-                                            )
-                                        )
+                                    } else {
+                                        viewModel!!.sendIntent(ChatroomListIntent.FetchChatrooms(true))
                                     }
                                 }
                                 is ChatroomListState.Error -> {
@@ -191,6 +186,7 @@ class ChatroomListFragment : MainFragment() {
         with(binding) {
             chatroomList.addItemDecoration(VerticalSpaceItemDecoration(20))
             loadStateAdapter = DefaultLoadStateAdapter({
+                swiperefresh.isRefreshing = true
                 chatroomListAdapter.retry()
             }, {
                 navController.navigate(ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateFragment(
@@ -210,16 +206,19 @@ class ChatroomListFragment : MainFragment() {
     }
 
     private fun joinChatroom() {
+        viewModel.setButtonSelectedChatroom(null)
         viewModel.setHasDeletedCacheForSession(false) // trigger for authUser observer. . .
+        viewModel.setCurrentChatrooms(null) // reinit list trigger. . .
     }
 
     private fun leaveChatroom() {
         viewModel.setButtonSelectedChatroom(null)
+        viewModel.setCurrentChatrooms(null)
     }
 
     private fun navigateToChatroom() {
         // only called while user is currently joining a chatroom
-        Log.i("ChatroomListFragment", "Navigating to ChatroomCreateFragment")
+        Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
         navController.navigate(
             ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
                 activityViewModel.authUser.value,
