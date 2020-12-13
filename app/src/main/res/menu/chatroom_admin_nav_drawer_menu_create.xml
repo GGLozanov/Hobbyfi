@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/chatroomEditDialogFragment"
+        android:actionLayout="@layout/icon_text_single_login_actionbar"
+        android:icon="@drawable/ic_baseline_person_white_24"
+        android:menuCategory="secondary"
+        android:title="@string/edit_chatroom"
+        android:titleCondensed="@string/edit_chatroom"
+        app:showAsAction="withText" />
+
+    <item
+        android:id="@+id/eventEditDialogFragment"
+        android:actionLayout="@layout/icon_text_single_login_actionbar"
+        android:icon="@drawable/ic_baseline_person_white_24"
+        android:menuCategory="secondary"
+        android:title="@string/edit_event"
+        android:titleCondensed="@string/edit_event"
+        app:showAsAction="withText" />
+</menu>
