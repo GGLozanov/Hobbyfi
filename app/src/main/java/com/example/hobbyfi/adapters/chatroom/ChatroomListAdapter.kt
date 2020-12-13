@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -14,7 +15,6 @@ import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
 import com.example.hobbyfi.databinding.ChatroomCardBinding
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
-import com.example.hobbyfi.utils.ColourUtils
 
 
 class ChatroomListAdapter(
@@ -22,7 +22,7 @@ class ChatroomListAdapter(
     private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null) :
     PagingDataAdapter<Chatroom, ChatroomListAdapter.ChatroomListViewHolder>(DIFF_CALLBACK) {
 
-    private var shouldDisplayLeaveChatroomButtons: Boolean = false
+    private var shouldDisplayLeaveChatroomButton: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomListViewHolder {
         return ChatroomListViewHolder.getInstance(parent)
@@ -33,7 +33,8 @@ class ChatroomListAdapter(
 
         with(holder) {
             bind(chatroom)
-            binding.isAuthUserChatroom = shouldDisplayLeaveChatroomButtons
+            binding.chatroomLeaveButton.isVisible =
+                shouldDisplayLeaveChatroomButton
             binding.chatroomJoinButton.setOnClickListener {
                 if (chatroom != null) {
                     onJoinChatroomButton?.invoke(it, chatroom)
@@ -76,9 +77,6 @@ class ChatroomListAdapter(
                     tagsGridView.adapter = adapter
                 }
             }
-
-            // TODO: Handle possible performance issue from notifications with pagination
-            // todo: databinding init here
         }
     }
 
@@ -97,7 +95,7 @@ class ChatroomListAdapter(
     }
 
     fun setLeaveChatroomButtonVisibility(shouldDisplay: Boolean) {
-        shouldDisplayLeaveChatroomButtons = shouldDisplay
+        shouldDisplayLeaveChatroomButton = shouldDisplay
         notifyDataSetChanged() // eh, not really true but have to notify somehow
     }
 }

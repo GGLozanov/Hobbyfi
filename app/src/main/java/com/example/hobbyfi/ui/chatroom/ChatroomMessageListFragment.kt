@@ -4,13 +4,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
+import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.shared.currentNavigationFragment
+import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
+import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import kotlinx.android.synthetic.main.activity_chatroom.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.util.Observer
 
+@ExperimentalCoroutinesApi
 class ChatroomMessageListFragment : ChatroomFragment() {
     // TODO: Init adapter, loader
+    private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
     override fun onCreateView(
@@ -19,6 +30,7 @@ class ChatroomMessageListFragment : ChatroomFragment() {
     ): View? {
         binding = DataBindingUtil
             .inflate(inflater, R.layout.fragment_chatroom_message_list, container, false)
+        binding.viewModel = viewModel
 
         // TODO: Handle expired token error & logout
 
@@ -29,6 +41,23 @@ class ChatroomMessageListFragment : ChatroomFragment() {
         // TODO: return Mediator Success and load new list with new message?
         // TODO: Append message to room db so that it can be pushed to the paging data automatically;
 
-        return view
+        with(binding) {
+            messageList.addItemDecoration(VerticalSpaceItemDecoration(10))
+
+            return@onCreateView root
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        activityViewModel.authChatroom.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
+            setToolbarProperties(it)
+        })
+    }
+
+    private fun setToolbarProperties(chatroom: Chatroom?) {
+        val activity = requireActivity() as ChatroomActivity
+        activity.title = chatroom?.name
+        activity.toolbar.navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
     }
 }

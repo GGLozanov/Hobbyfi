@@ -9,6 +9,8 @@ import com.example.hobbyfi.R
 
 class ChatroomUserListFragment : ChatroomFragment() {
 
+    // TODO: This probably doesn't need to be a fragment and can be merged with ChatroomActivity
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

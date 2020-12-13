@@ -12,7 +12,7 @@ class AuthUserViewModelFactory(val application: Application, val user: User?)
     : ViewModelProvider.Factory {
     @ExperimentalCoroutinesApi
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-       if(modelClass.isAssignableFrom(MainActivityViewModel::class.java)) {
+        if(modelClass.isAssignableFrom(MainActivityViewModel::class.java)) {
             return MainActivityViewModel(application, user) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

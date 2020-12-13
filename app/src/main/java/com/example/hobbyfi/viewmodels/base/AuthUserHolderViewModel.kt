@@ -47,7 +47,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     }
 
     // user fetched - already saved from networkboundfetcher
-    fun setUser(user: User) {
+    open fun setUser(user: User) {
         _authUser.value = user
     }
 
@@ -64,8 +64,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         userRepository.getUser().catch { e ->
             e.printStackTrace()
             _mainState.value = when(e) {
-                // FIXME: how tf do you chain `is` checks?
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError -> {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
                     UserState.Error(
                         e.message,
                         shouldReauth = true
@@ -93,7 +92,6 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         } catch(ex: Exception) {
             ex.printStackTrace()
             when(ex) {
-                // FIXME: how tf do you chain `is` checks?
                 is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
                     UserState.Error(
                         ex.message,

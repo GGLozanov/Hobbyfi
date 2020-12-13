@@ -151,7 +151,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        (requireActivity() as MainActivity).bottom_nav.isVisible = true
+        (requireActivity() as MainActivity).bottom_nav.isVisible = true // hacky solution but oh well, nested nav graphs do that
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

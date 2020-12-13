@@ -117,6 +117,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     // FIXME: Bad way to handle backstack
     fun resetAuth() {
+        // TODO: Unsubscribe from FCM
         LoginManager.getInstance().logOut()
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()

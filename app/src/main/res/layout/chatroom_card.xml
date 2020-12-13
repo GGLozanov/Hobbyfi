@@ -10,9 +10,6 @@
         <variable
             name="chatroom"
             type="com.example.hobbyfi.models.Chatroom" />
-        <variable
-            name="isAuthUserChatroom"
-            type="Boolean" />
     </data>
 
     <androidx.cardview.widget.CardView
@@ -128,8 +125,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/chatroom_leave_button"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="@{isAuthUserChatroom ? View.VISIBLE : View.GONE}" />
+                    android:layout_height="wrap_content" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/chatroom_join_button"

@@ -1,8 +1,11 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.ChatroomIntent
+import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.state.ChatroomState
@@ -17,14 +20,11 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthChatroomHolderViewModel(application: Application, user: User?, protected val chatroom: Chatroom?)
+abstract class AuthChatroomHolderViewModel(application: Application, user: User?, chatroom: Chatroom?)
     : AuthUserHolderViewModel(application, user) {
-    init {
-        // TODO: Save chatroom here
-        if(chatroom != null) {
 
-        }
-    }
+    protected var _authChatroom: MutableLiveData<Chatroom?> = MutableLiveData(chatroom)
+    val authChatroom: LiveData<Chatroom?> get() = _authChatroom
 
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
@@ -34,17 +34,42 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
     protected val chatroomIntent: Channel<ChatroomIntent> = Channel(Channel.UNLIMITED)
 
+    private var _isAuthUserChatroomOwner = MutableLiveData(authUser.value?.id ==
+            authChatroom.value?.ownerId) // initial check; updated every time auth user or auth chatroom changes
+    val isAuthUserChatroomOwner get() = _isAuthUserChatroomOwner
+
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
             chatroomIntent.consumeAsFlow().collect {
+                when(it) {
+                    is ChatroomIntent.FetchChatroom -> {
+                        fetchChatroom()
+                    }
+                    is ChatroomIntent.DeleteChatroom -> {
 
+                    }
+                    is ChatroomIntent.UpdateChatroom -> {
+
+                    }
+                    else -> throw Intent.InvalidIntentException()
+                }
             }
         }
     }
 
+    fun setChatroom(chatroom: Chatroom) {
+        _authChatroom.value = chatroom
+        _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
+    }
+
     suspend fun sendChatroomIntent(i: ChatroomIntent) {
         chatroomIntent.send(i)
+    }
+
+    override fun setUser(user: User) {
+        super.setUser(user)
+        _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
     }
 
     private suspend fun fetchChatroom() {
@@ -60,5 +85,20 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                 _chatroomState.value = ChatroomState.OnData.ChatroomResult(it)
             }
         }
+    }
+
+    private suspend fun deleteChatroom() {
+
+    }
+
+    private suspend fun updateChatroom() {
+
+    }
+
+    private fun isAuthUserAuthChatroomOwner(): Boolean {
+        // evaluates current auth room and auth user ownership
+        // (for when user and chatroom aren't passed and need to be fetched async - i.e. deeplink)
+        return authUser.value?.id ==
+                authChatroom.value?.ownerId
     }
 }

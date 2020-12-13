@@ -71,4 +71,12 @@
     <string name="chatroom_create_header">Create Chatroom</string>
     <string name="list_suggest_text">Don\'t find what you\'re looking for? Just create your own Chatroom!</string>
     <string name="chatroom_name_hint">Enter a chatroom name</string>
+
+    <string name="search">Search</string>
+    <string name="info">Info</string>
+    <string name="edit_chatroom">Edit Chatroom</string>
+    <string name="edit_event">Edit Event</string>
+    <string name="create_event">Create Event</string>
+    <string name="delete_chatroom">Delete Chatroom</string>
+    <string name="delete_event">Delete Event</string>
 </resources>

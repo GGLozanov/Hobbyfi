@@ -55,43 +55,16 @@ class ChatroomMediator(
         var page: Int? = null
 
         if(!shouldFetchAuthChatroom) {
-            page = when (loadType) {
-                LoadType.REFRESH -> {
-                    val remoteKeys = hobbyfiDatabase.withTransaction {
-                        getClosestRemoteKey(state)
+            page = getPage(loadType, state).let {
+                when(it) {
+                    is MediatorResult.Success -> {
+                        return@getChatrooms it
                     }
-                    Log.i("ModelRemoteM", "getKeyPageData => REFRESH Remote Keys: $remoteKeys")
-                    remoteKeys?.nextKey?.minus(1) ?: DEFAULT_PAGE_INDEX
+                    else -> {
+                        it as Int
+                    }
                 }
-                LoadType.APPEND -> { // load type for whenever data needs to be appended to the paged list (scroll down)
-                    // can't return mediator result with endOfPaginationReached to true here because
-                    // this may be the last remote key but we don't have context for remote and rely on cache
-                    val remoteKeys = hobbyfiDatabase.withTransaction {
-                        getLastRemoteKey(state)
-                    }
-                    Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys: $remoteKeys")
-                    if (remoteKeys?.nextKey == null) {
-                        Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND")
-                        return MediatorResult.Success(endOfPaginationReached = true)
-                    }
 
-                    remoteKeys.nextKey
-                }
-                LoadType.PREPEND -> {
-                    // return MediatorResult.Success(endOfPaginationReached = true) // load type for whenever data needs to be prepended to the paged list (scroll up after down)
-                    val remoteKeys = hobbyfiDatabase.withTransaction {
-                        getFirstRemoteKey(state)
-                    }
-                    // end of list condition reached -> reached the top of the page where the first page is loaded initially
-                    // which meanas we can set endOfPaginationReached to true
-                    Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys: $remoteKeys")
-                    if(remoteKeys?.prevKey == null) {
-                        Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR PREPEND")
-                        return MediatorResult.Success(endOfPaginationReached = true)
-                    }
-
-                    remoteKeys.prevKey
-                }
             }
         }
 

@@ -15,6 +15,7 @@ import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.HttpException
 import java.io.IOException
 import androidx.fragment.app.Fragment
+import io.jsonwebtoken.lang.InstantiationException
 
 
 object Callbacks {
@@ -119,7 +120,7 @@ object Callbacks {
                 throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
                     else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
-            is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException -> throw ex
+            is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException, is InstantiationException -> throw ex
             else -> throw if(ex.message?.contentEquals("failed to connect to /") == true)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
                 else Exception(Constants.unknownError(ex.message))
