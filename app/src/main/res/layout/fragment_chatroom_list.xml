@@ -9,6 +9,7 @@
             type="com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel" />
     </data>
 
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
@@ -16,7 +17,6 @@
         android:layout_marginTop="50dp"
         android:animateLayoutChanges="false"
         android:background="@drawable/background_secondary_gradient">
-
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/chatroom_list"
