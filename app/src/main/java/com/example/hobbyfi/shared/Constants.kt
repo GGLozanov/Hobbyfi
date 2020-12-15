@@ -1,14 +1,20 @@
 package com.example.hobbyfi.shared
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 import android.util.Log
 import android.util.Patterns
 import androidx.core.util.Predicate
+import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingConfig
+import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 import com.facebook.AccessToken
 import com.facebook.Profile
+import kotlinx.coroutines.launch
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
@@ -87,6 +93,7 @@ object Constants {
         return PagingConfig(pageSize = 5, enablePlaceholders = false)
     }
 
+    // should be in prefconfig but... eh
     fun isFacebookUserAuthd(): Boolean {
         if(AccessToken.getCurrentAccessToken() != null) {
             if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile().id != null) {
@@ -148,8 +155,24 @@ object Constants {
     const val profileImageWidth = 175
     const val profileImageHeight = 135
 
+    const val confirmAccountDeletionMessage: String = "Are you certain you want to delete your account?"
+    const val confirmChatroomDeletionMessage: String = "Are you ABSOLUTELY sure you want to delete this chatroom? All messages will be LOST."
+
+    const val noUpdateFields: String = "No fields to update!"
+
     const val userProfileImageDir = "user_pfps"
     fun chatroomProfileImageDir(chatroomId: Long): String {
         return "chatroom_imgs_$chatroomId"
+    }
+
+    fun buildDeleteAlertDialog(context: Context,
+                               dialogMessage: String,
+               onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener) {
+        AlertDialog.Builder(context)
+            .setMessage(dialogMessage)
+            .setPositiveButton("Yes", onConfirm)
+            .setNegativeButton("No", onCancel)
+            .create()
+            .show()
     }
 }

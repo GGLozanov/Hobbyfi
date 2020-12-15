@@ -54,7 +54,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                     is TokenIntent.FetchFacebookRegisterToken -> {
                         Log.i("LoginFragmentVM", "fetching FB register token")
                         fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image,
-                            selectedTags) // fixme: repeated unnecessary checks
+                            tagBundle.selectedTags) // fixme: repeated unnecessary checks
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

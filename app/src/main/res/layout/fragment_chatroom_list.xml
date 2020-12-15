@@ -14,7 +14,6 @@
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
         android:animateLayoutChanges="false"
         android:background="@drawable/background_secondary_gradient">
 
@@ -24,7 +23,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
             android:animateLayoutChanges="false"
             android:scrollbars="vertical"
             app:layoutManager="LinearLayoutManager"

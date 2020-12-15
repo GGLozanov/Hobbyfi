@@ -11,6 +11,7 @@ import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.UserState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -25,6 +26,9 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     val authUser: LiveData<User?> get() = _authUser
 
     override val _mainState: MutableStateFlow<UserState> = MutableStateFlow(UserState.Idle)
+
+    protected var _latestTagUpdateFail: MutableLiveData<Boolean> = MutableLiveData(false)
+    val latestTagUpdateFail: LiveData<Boolean> get() = _latestTagUpdateFail
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -64,7 +68,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         userRepository.getUser().catch { e ->
             e.printStackTrace()
             _mainState.value = when(e) {
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException, is CancellationException -> {
                     UserState.Error(
                         e.message,
                         shouldReauth = true
@@ -82,14 +86,25 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     }
 
     private suspend fun updateUser(userFields: Map<String?, String?>) {
+        val userIsUpdatingTags = userFields.containsKey(Constants.TAGS + "[]")
         _mainState.value = UserState.Loading
 
         _mainState.value = try {
-            UserState.OnData.UserUpdateResult(
+            val result = UserState.OnData.UserUpdateResult(
                 userRepository.editUser(userFields),
                 userFields
             )
+
+            if(userIsUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
+                _latestTagUpdateFail.value = false
+            }
+
+            result
         } catch(ex: Exception) {
+            if(userIsUpdatingTags) {
+                _latestTagUpdateFail.value = true
+            }
+
             ex.printStackTrace()
             when(ex) {
                 is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {

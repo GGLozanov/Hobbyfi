@@ -56,7 +56,7 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
                 name.value!!,
                 description.value,
                 base64Image,
-                selectedTags
+                tagBundle.selectedTags
             ))
         } catch (e: Exception) {
             e.printStackTrace()

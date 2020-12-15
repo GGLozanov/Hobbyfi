@@ -55,7 +55,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             override suspend fun loadFromDb(): Flow<Chatroom?> {
                 Log.i("ChatroomRepository", "getChatroom -> ${prefConfig.readToken()}")
                 return try {
-                    val ownerId = getAuthUserIdFromToken()
+                    val ownerId = prefConfig.getAuthUserIdFromToken()
 
                     hobbyfiDatabase.chatroomDao().getChatroomByOwnerId(ownerId)
                 } catch(ex: Exception) {
@@ -71,7 +71,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             override suspend fun fetchFromNetwork(): CacheListResponse<Chatroom>? {
                 Log.i("ChatroomRepository", "getChatroom -> fetchFromNetwork() -> fetching current auth chatroom from network")
                 return try {
-                    val token = if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()
+                    val token = prefConfig.getAuthUserToken()
                     if(token != null) {
                         val response = hobbyfiAPI.fetchChatrooms(
                             token,
@@ -90,17 +90,38 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
     suspend fun createChatroom(name: String, description: String?,
                                base64Image: String?, tags: List<Tag>): IdResponse? {
-
         return try {
             Log.i("ChatroomRepository", "createChatroom -> creating chatroom with name:"
-                    + name + "; description:" + description + "; ownerId: " + getAuthUserIdFromToken() + "; image: " + base64Image + "; tags: " + tags)
+                    + name + "; description:" + description + "; ownerId: " + prefConfig.getAuthUserIdFromToken() + "; image: " + base64Image + "; tags: " + tags)
 
             hobbyfiAPI.createChatroom(
-                if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
+                prefConfig.getAuthUserToken()!!,
                 name,
                 description,
                 base64Image,
                 if(tags.isEmpty()) null else tags
+            )
+        } catch(ex: Exception) {
+            // TODO: Maybe extract into some kind of util func and have recursive call after it
+            try {
+                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+            } catch(authEx: AuthorisedRequestException) {
+                getNewTokenWithRefresh()
+
+                createChatroom(name, description, base64Image, tags)
+            }
+        }
+    }
+
+    suspend fun editChatroom(chatroomFields: Map<String?, String?>): Response? {
+        Log.i("TokenRepository", "editChatroom -> editing current chatroom")
+
+        return try {
+            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
+
+            hobbyfiAPI.editChatroom(
+                prefConfig.getAuthUserToken()!!,
+                chatroomFields
             )
         } catch(ex: Exception) {
             try {
@@ -108,7 +129,27 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             } catch(authEx: AuthorisedRequestException) {
                 getNewTokenWithRefresh()
 
-                createChatroom(name, description, base64Image, tags)
+                editChatroom(chatroomFields)
+            }
+        }
+    }
+
+    suspend fun deleteChatroom(): Response? {
+        Log.i("TokenRepository", "deleteChatroom -> deleting current chatroom")
+
+        return try {
+            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
+
+            hobbyfiAPI.deleteChatroom(
+                prefConfig.getAuthUserToken()!!,
+            )
+        } catch(ex: Exception) {
+            try {
+                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+            } catch(authEx: AuthorisedRequestException) {
+                getNewTokenWithRefresh()
+
+                deleteChatroom()
             }
         }
     }

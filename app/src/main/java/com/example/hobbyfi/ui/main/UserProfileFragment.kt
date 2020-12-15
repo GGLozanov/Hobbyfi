@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -44,7 +45,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     private lateinit var binding: FragmentUserProfileBinding
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,19 +65,19 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             settingsButtonBar.leftButton.setOnClickListener { // delete account button
-                AlertDialog.Builder(requireContext())
-                    .setMessage("Are you certain you want to delete you account?")
-                    .setPositiveButton("Yes") { dialogInterface: DialogInterface, _: Int ->
+                Constants.buildDeleteAlertDialog(
+                    requireContext(),
+                    Constants.confirmAccountDeletionMessage,
+                    { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {
                             activityViewModel.sendIntent(UserIntent.DeleteUser)
                         }
                         dialogInterface.dismiss()
-                    }
-                    .setNegativeButton("No") { dialogInterface: DialogInterface, _: Int ->
+                    },
+                    { dialogInterface: DialogInterface, _: Int ->
                         dialogInterface.dismiss()
                     }
-                    .create()
-                    .show()
+                )
             }
 
             return@onCreateView root
@@ -103,8 +103,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
             settingsButtonBar.rightButton.setOnClickListener { // tag selection button
                 val action = UserProfileFragmentDirections.actionGlobalTagNavGraph(
-                    viewModel!!.selectedTags.toTypedArray(),
-                    viewModel!!.tags.toTypedArray()
+                    viewModel!!.tagBundle.selectedTags.toTypedArray(),
+                    viewModel!!.tagBundle.tags.toTypedArray()
                 )
                 navController.navigate(action)
             }
@@ -121,8 +121,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.description.value = it.description
                     viewModel!!.name.value = it.name
                     it.tags?.let { selectedTags ->
-                        viewModel!!.setSelectedTags(selectedTags)
-                        viewModel!!.appendNewSelectedTagsToTags(selectedTags)
+                        viewModel!!.tagBundle.setSelectedTags(selectedTags)
+                        viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
                     }
 
                     if (it.photoUrl != null) {
@@ -147,11 +147,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                 }
 
-                if((activityViewModel.authUser.value?.tags ?: emptyList()) != viewModel!!.selectedTags) {
+                if((activityViewModel.authUser.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
                     fieldMap[Constants.TAGS + "[]"] = (GsonBuilder()
                         .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
                         .create()) // TODO: Extract into DI/singleton/static var
-                        .toJson(viewModel!!.selectedTags)
+                        .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 
                 if(viewModel!!.base64Image != null) { // means user has changed their pfp
@@ -160,6 +160,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
                 if(fieldMap.isEmpty()) {
+                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
+                        .show()
                     return@setOnClickListener
                 }
 
@@ -177,9 +179,17 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         // FIXME: Code dup with other tag fragments
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
-                viewModel.appendNewSelectedTagsToTags(selectedTags)
-                viewModel.setSelectedTags(selectedTags)
+                viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+                viewModel.tagBundle.setSelectedTags(selectedTags)
             }
+
+        activityViewModel.latestTagUpdateFail.observe(viewLifecycleOwner, Observer {
+            if(it) {
+                viewModel.tagBundle.setSelectedTags(viewModel.originalSelectedTags)
+            } else {
+                viewModel.setOriginalSelectedTags(viewModel.tagBundle.selectedTags)
+            }
+        })
     }
 
     override fun initTextFieldValidators() {

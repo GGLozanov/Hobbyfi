@@ -47,10 +47,10 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                         fetchChatroom()
                     }
                     is ChatroomIntent.DeleteChatroom -> {
-
+                        deleteChatroom()
                     }
                     is ChatroomIntent.UpdateChatroom -> {
-
+                        updateChatroom(it.chatroomUpdateFields)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -88,11 +88,50 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     }
 
     private suspend fun deleteChatroom() {
+        _chatroomState.value = ChatroomState.Loading
 
+        _chatroomState.value = try {
+            ChatroomState.OnData.ChatroomDeleteResult(
+                chatroomRepository.deleteChatroom()
+            )
+        } catch(ex: Exception) {
+            // FIXME: code dup exception handling (have to because states are somewhat unrelated and assignments/instance generation can't be done with reflections
+            when(ex) {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
+                    ChatroomState.Error(
+                        ex.message,
+                        shouldReauth = true
+                    )
+                }
+                else -> ChatroomState.Error(
+                    ex.message
+                )
+            }
+        }
     }
 
-    private suspend fun updateChatroom() {
+    private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
+        _chatroomState.value = ChatroomState.Loading
 
+        // TODO: Handle fail tags request and reset back to original selected tags
+        _chatroomState.value = try {
+            ChatroomState.OnData.ChatroomUpdateResult(
+                chatroomRepository.editChatroom(updateFields),
+                updateFields
+            )
+        } catch(ex: Exception) {
+            when(ex) {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
+                    ChatroomState.Error(
+                        ex.message,
+                        shouldReauth = true
+                    )
+                }
+                else -> ChatroomState.Error(
+                    ex.message
+                )
+            }
+        }
     }
 
     private fun isAuthUserAuthChatroomOwner(): Boolean {

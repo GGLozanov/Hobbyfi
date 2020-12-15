@@ -40,7 +40,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         const val tag: String = "RegisterFragment"
     }
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -81,8 +80,8 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         super.onViewCreated(view, savedInstanceState)
         binding.buttonBar.leftButton.setOnClickListener { // select tags
             val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
-                viewModel.selectedTags.toTypedArray(),
-                viewModel.tags.toTypedArray()
+                viewModel.tagBundle.selectedTags.toTypedArray(),
+                viewModel.tagBundle.tags.toTypedArray()
             )
             navController.navigate(action)
         }
@@ -110,7 +109,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 viewModel.description.value,
                                 if(viewModel.base64Image != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
                                         + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
-                                viewModel.selectedTags,
+                                viewModel.tagBundle.selectedTags,
                                 null
                             )),
                             it.token?.jwt,
@@ -124,8 +123,8 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
-            viewModel.appendNewSelectedTagsToTags(selectedTags)
-            viewModel.setSelectedTags(selectedTags)
+            viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+            viewModel.tagBundle.setSelectedTags(selectedTags)
         }
     }
 

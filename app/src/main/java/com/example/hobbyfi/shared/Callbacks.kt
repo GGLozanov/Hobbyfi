@@ -16,9 +16,14 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.fragment.app.Fragment
 import io.jsonwebtoken.lang.InstantiationException
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.android.closestKodein
+import org.kodein.di.android.kodein
 
 
 object Callbacks {
+
     fun handleImageRequestWithPermission(callingFragment: Fragment, activity: Activity,
                                          requestCode: Int, resultCode: Int,
                                          data: Intent?, onImageSuccess: (bitmap: Bitmap) -> Unit) {

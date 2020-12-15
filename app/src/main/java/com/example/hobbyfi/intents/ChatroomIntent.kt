@@ -7,6 +7,6 @@ package com.example.hobbyfi.intents
 sealed class ChatroomIntent : Intent {
     object FetchChatroom : ChatroomIntent()
     object CreateChatroom : ChatroomIntent()
-    data class UpdateChatroom(val chatroomUpdateFields: Map<String, String>) : ChatroomIntent()
+    data class UpdateChatroom(val chatroomUpdateFields: Map<String?, String?>) : ChatroomIntent()
     object DeleteChatroom : ChatroomIntent()
 }

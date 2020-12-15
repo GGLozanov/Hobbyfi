@@ -121,8 +121,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
                         val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                            viewModel.selectedTags.toTypedArray(),
-                            viewModel.tags
+                            viewModel.tagBundle.selectedTags.toTypedArray(),
+                            viewModel.tagBundle.tags
                                 .toTypedArray() + it.tags
                         )
                         navController.navigate(action)
@@ -134,8 +134,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         if(it.error != Constants.noConnectionError) {
                             // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                             val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                                viewModel.selectedTags.toTypedArray(),
-                                viewModel.tags
+                                viewModel.tagBundle.selectedTags.toTypedArray(),
+                                viewModel.tagBundle.tags
                                     .toTypedArray()
                             )
                             navController.navigate(action)
@@ -186,7 +186,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 profile.name,
                                 null,
                                 BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
-                                viewModel.selectedTags,
+                                viewModel.tagBundle.selectedTags,
                                 null
                             ))
                         )
@@ -196,7 +196,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(viewLifecycleOwner) {
-            viewModel.setSelectedTags(it)
+            viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()

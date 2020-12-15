@@ -42,7 +42,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             override suspend fun loadFromDb(): Flow<User?> {
                 Log.i("UserRepository", "getUser -> ${prefConfig.readToken()}")
                 return try {
-                    val userId = getAuthUserIdFromToken()
+                    val userId = prefConfig.getAuthUserIdFromToken()
 
                     hobbyfiDatabase.userDao().getUserById(userId)
                 } catch(ex: Exception) {
@@ -61,7 +61,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             override suspend fun fetchFromNetwork(): CacheResponse<User>? {
                 Log.i("UserRepository", "getUser => fetchFromNetwork() => fetching current auth user from network")
                 return try {
-                    val token = if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()
+                    val token = prefConfig.getAuthUserToken()
                     if(token != null) {
                         val response = hobbyfiAPI.fetchUser(token)
                         Log.i("UserRepository", "getUser -> ${response?.model}")
@@ -78,9 +78,9 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editUser -> editing current user")
         return try {
-            val userId = getAuthUserIdFromToken() // validate token expiry by attempting to get id
+            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
             hobbyfiAPI.editUser(
-                if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
+                prefConfig.getAuthUserToken()!!,
                 userFields
             )
         } catch(ex: Exception) {
@@ -97,7 +97,7 @@ class UserRepository @ExperimentalPagingApi constructor(
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return try {
             hobbyfiAPI.deleteUser(
-                if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!
+                prefConfig.getAuthUserToken()!!
             )
         } catch(ex: Exception) {
             try {

@@ -64,8 +64,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             buttonPair.leftButton.setOnClickListener { // tag select button
                 navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToTagNavGraph(
-                    viewModel!!.selectedTags.toTypedArray(),
-                    viewModel!!.tags.toTypedArray(),
+                    viewModel!!.tagBundle.selectedTags.toTypedArray(),
+                    viewModel!!.tagBundle.tags.toTypedArray(),
                 ))
             }
 
@@ -102,7 +102,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                                 viewModel.description.value,
                                 BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(it.response.id)
                                         + "/" + it.response.id + ".jpg",
-                                viewModel.selectedTags,
+                                viewModel.tagBundle.selectedTags,
                                 activityViewModel.authUser.value!!.id,
                                 null
                             )
@@ -123,8 +123,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         // TODO: Fix code dup with other tag fragments
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
-                viewModel.appendNewSelectedTagsToTags(selectedTags)
-                viewModel.setSelectedTags(selectedTags)
+                viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+                viewModel.tagBundle.setSelectedTags(selectedTags)
             }
     }
 

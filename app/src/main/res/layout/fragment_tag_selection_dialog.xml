@@ -24,7 +24,6 @@
 
     </com.google.android.material.textview.MaterialTextView>
 
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/tag_list"
         android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"

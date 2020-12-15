@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -20,6 +21,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
@@ -68,6 +70,11 @@ class ChatroomActivity : BaseActivity() {
                 viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
             }
         }
+
+        // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
+        //  => triggers REFRESH loadstate in Mediator => check if users last fetch time is too long
+        //  => doesn't delete old users (if no connection or time isn't long enough) => fetches users if time is long enough
+        // TODO: Update users data source in Room upon notification (no need to refetch from network???)
 
         // if not deeplink: fire off 3 requests/load from db here -> event, messages, user
         // if deeplink: also fire off request/load from db here -> chatroom info
@@ -136,6 +143,8 @@ class ChatroomActivity : BaseActivity() {
 
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer {
+            title = it?.name
+
             if(it?.lastEventId == null) {
                 nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
             } else {
@@ -156,6 +165,22 @@ class ChatroomActivity : BaseActivity() {
                 Log.i("ChatroomActivity", "Current auth user is chatroom owner")
                 // FIXME: Randomly unresolvable bad Kotlin synthetics
                 nav_view_admin.setupWithNavController(navController)
+                nav_view_admin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
+                    Constants.buildDeleteAlertDialog(
+                        this@ChatroomActivity,
+                        Constants.confirmChatroomDeletionMessage,
+                        { dialogInterface: DialogInterface, _: Int ->
+                            lifecycleScope.launch {
+                                viewModel.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                            }
+                            dialogInterface.dismiss()
+                        },
+                        { dialogInterface: DialogInterface, _: Int ->
+                            dialogInterface.dismiss()
+                        }
+                    )
+                    return@setOnMenuItemClickListener true
+                }
                 toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.chatroomMessageListFragment), drawerLayout))
                 toolbar.navigationIcon = ContextCompat.getDrawable(this@ChatroomActivity, R.drawable.ic_baseline_admin_panel_settings_24)
             } else {

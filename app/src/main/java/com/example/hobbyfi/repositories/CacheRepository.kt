@@ -10,6 +10,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.utils.TokenUtils
+import com.facebook.AccessToken
 import com.facebook.Profile
 
 abstract class CacheRepository(
@@ -17,10 +18,6 @@ abstract class CacheRepository(
     hobbyfiAPI: HobbyfiAPI,
     protected val hobbyfiDatabase: HobbyfiDatabase, protected val connectivityManager: ConnectivityManager)
     : Repository(prefConfig, hobbyfiAPI) {
-    protected fun getAuthUserIdFromToken(): Long {
-        return if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
-            TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())
-    }
 
     protected fun adheresToDefaultCachePolicy(cache: Model?, cachePref: Int): Boolean {
         return cache == null ||

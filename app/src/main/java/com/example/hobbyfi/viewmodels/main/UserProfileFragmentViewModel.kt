@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.appendNewSelectedTagsToTags
@@ -16,20 +17,12 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 class UserProfileFragmentViewModel(application: Application, initialTags: List<Tag>) : BaseViewModel(application),
     NameDescriptionBindable by NameDescriptionBindableViewModel() {
-    // FIXME: Code dup with AuthFragmentViewModel >:(
-    private val _tags: MutableList<Tag> = Constants.predefinedTags.getNewSelectedTagsWithTags(initialTags)
-    val tags: List<Tag> get() = _tags
+    var tagBundle: TagBundle = TagBundle(initialTags)
+    private var _originalSelectedTags: List<Tag> = tagBundle.selectedTags
+    val originalSelectedTags get() = _originalSelectedTags
 
-    private var _selectedTags: List<Tag> = initialTags
-    val selectedTags: List<Tag> get() = _selectedTags
-
-    // FIXME: Code dup with RegisterFragmentViewModel. . .
-    fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
-        _tags.appendNewSelectedTagsToTags(selectedTags)
-    }
-
-    fun setSelectedTags(selectedTags: List<Tag>) {
-        _selectedTags = selectedTags
+    fun setOriginalSelectedTags(tags: List<Tag>) {
+        _originalSelectedTags = tags
     }
 
     private var _base64Image: String? = null

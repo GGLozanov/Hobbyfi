@@ -2,8 +2,13 @@ package com.example.hobbyfi.shared
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import android.widget.Toast
 import com.example.hobbyfi.R
+import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.utils.TokenUtils
+import com.facebook.AccessToken
+import com.facebook.Profile
 
 
 class PrefConfig(private val context: Context) {
@@ -67,7 +72,10 @@ class PrefConfig(private val context: Context) {
         ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
     }
 
-    fun displayToast(message: String?) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-    }
+    fun getAuthUserIdFromToken(): Long =
+        if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
+            TokenUtils.getTokenUserIdFromPayload(readToken())
+
+    fun getAuthUserToken(): String? =
+        if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else readToken()
 }

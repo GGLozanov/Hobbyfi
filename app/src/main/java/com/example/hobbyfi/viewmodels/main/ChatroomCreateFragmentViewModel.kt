@@ -8,6 +8,7 @@ import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
@@ -27,21 +28,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
     NameDescriptionBindable by NameDescriptionBindableViewModel() {
     private val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
-    private val _tags: MutableList<Tag> = Constants.predefinedTags.toMutableList()
-    val tags: List<Tag> get() = _tags
-    private var _selectedTags: List<Tag> = emptyList()
-    // this livedata instance will have its value updated once the tag selection dialog fragment finishes its workTag
-    val selectedTags: List<Tag> get() = _selectedTags
-
-    // FIXME: Code dup with RegisterFragmentViewModel. . .
-    fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
-        _tags.appendNewSelectedTagsToTags(selectedTags)
-    }
-
-    fun setSelectedTags(selectedTags: List<Tag>) {
-        _selectedTags = selectedTags
-    }
-
+    var tagBundle: TagBundle = TagBundle()
 
     private var _base64Image: String? = null
     val base64Image get() = _base64Image
@@ -49,7 +36,6 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
     fun setProfileImageBase64(base64Image: String) {
         _base64Image = base64Image
     }
-
 
     init {
         handleIntent()
@@ -78,7 +64,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
                     name.value!!,
                     description.value!!,
                     base64Image,
-                    selectedTags
+                    tagBundle.selectedTags
                 )
             )
         } catch(ex: Exception) {

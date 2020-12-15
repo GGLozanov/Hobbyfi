@@ -71,7 +71,7 @@ class ChatroomMediator(
         Log.i("ChatroomMediator", "Fetching next chatrooms with page ${page}")
 
         val chatroomsResponse = hobbyfiAPI.fetchChatrooms(
-            if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
+            prefConfig.getAuthUserToken()!!,
             page
         )
 

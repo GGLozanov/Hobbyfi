@@ -53,11 +53,16 @@ class ChatroomMessageListFragment : ChatroomFragment() {
         activityViewModel.authChatroom.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
             setToolbarProperties(it)
         })
+        activityViewModel.isAuthUserChatroomOwner.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
+            if(it) {
+                activity?.toolbar
+                    ?.navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
+            }
+        })
     }
 
     private fun setToolbarProperties(chatroom: Chatroom?) {
         val activity = requireActivity() as ChatroomActivity
         activity.title = chatroom?.name
-        activity.toolbar.navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
     }
 }

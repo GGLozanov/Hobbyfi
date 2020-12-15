@@ -22,7 +22,18 @@
         android:id="@+id/chatroomEditDialogFragment"
         android:name="com.example.hobbyfi.ui.chatroom.ChatroomEditDialogFragment"
         android:label="fragment_chatroom_edit_dialog"
-        tools:layout="@layout/fragment_chatroom_edit_dialog" />
+        tools:layout="@layout/fragment_chatroom_edit_dialog" >
+        <action
+            android:id="@+id/action_chatroomEditDialogFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph" >
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.Tag[]" />
+        </action>
+    </dialog>
     <dialog
         android:id="@+id/eventEditDialogFragment"
         android:name="com.example.hobbyfi.ui.chatroom.EventEditDialogFragment"
@@ -45,4 +56,5 @@
                 app:destination="@id/eventMapsActivity" />
         </fragment>
     </navigation>
+    <include app:graph="@navigation/tag_nav_graph" />
 </navigation>
