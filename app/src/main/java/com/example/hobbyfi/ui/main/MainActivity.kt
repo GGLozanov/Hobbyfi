@@ -79,7 +79,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
-                        viewModel.setUser(it.user)
+                        // TODO: Something
                     }
                     is UserState.OnData.UserDeleteResult -> {
                         Toast.makeText(this@MainActivity, "Successfully deleted account!", Toast.LENGTH_LONG)
@@ -93,15 +93,16 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         if(it.userFields.size == 1 && it.userFields.containsKey(Constants.CHATROOM_ID)) {
                             if(it.userFields[Constants.CHATROOM_ID]?.toInt() != 0) {
                                 // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
-                                navController.currentBackStackEntry?.savedStateHandle?.set(Constants.chatroomJoined, true)
+                                viewModel.setJoinedChatroom(true)
                             } else {
-                                navController.currentBackStackEntry?.savedStateHandle?.set(Constants.chatroomLeft, true)
+                                viewModel.setLeftChatroom(true)
                             }
                         } else {
                             Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
                                 .show()
                         }
                         viewModel.updateAndSaveUser(it.userFields)
+                        viewModel.resetState()
                     }
                     is UserState.Error -> {
                         Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)

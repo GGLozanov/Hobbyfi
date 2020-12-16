@@ -31,7 +31,7 @@ data class User(
     @SerializedName(Constants.CHATROOM_ID)
     var chatroomId: Long?,
 ) : ExpandedModel, Parcelable {
-    fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
+    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.EMAIL -> {

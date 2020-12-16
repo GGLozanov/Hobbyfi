@@ -64,6 +64,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
+        initTextFieldValidators()
+
         binding.viewModel = viewModel
         with(binding) {
             lifecycleOwner = this@LoginFragment
@@ -222,12 +224,12 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun initTextFieldValidators() {
         with(binding) {
-            textInputEmail.addTextChangedListener(
+            emailInputField.addTextChangedListener(
                 Constants.emailInputError,
                 Constants.emailPredicate
             )
 
-            textInputPassword.addTextChangedListener(
+            passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
@@ -236,8 +238,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputEmail) ||
-                    FieldUtils.isTextFieldInvalid(textInputPassword)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(emailInputField, Constants.emailInputError) ||
+                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
         }
     }
 

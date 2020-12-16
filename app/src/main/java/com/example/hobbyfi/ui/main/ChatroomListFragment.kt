@@ -97,8 +97,8 @@ class ChatroomListFragment : MainFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(Constants.chatroomJoined)
-            ?.observe(viewLifecycleOwner, Observer { joined ->
+        activityViewModel.joinedChatroom
+            .observe(viewLifecycleOwner, Observer { joined ->
                 if(joined) {
                     updateJob = lifecycleScope.launch {
                         // TODO: Subscribe to FCM
@@ -109,13 +109,13 @@ class ChatroomListFragment : MainFragment() {
                 }
             })
 
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(Constants.chatroomLeft)
-            ?.observe(viewLifecycleOwner, Observer { left ->
+        activityViewModel.leftChatroom
+            .observe(viewLifecycleOwner, Observer { left ->
                 if(left) {
                     // TODO: Unsubscribe from FCM
                     leaveChatroom()
                 }  else {
-                    Log.i("ChatroomListFragment", "Observing user joined chatroom false")
+                    Log.i("ChatroomListFragment", "Observing user left chatroom false")
                 }
             })
     }
@@ -125,6 +125,7 @@ class ChatroomListFragment : MainFragment() {
             if(user != null) {
                 lifecycleScope.launch {
                     Log.i("ChatroomListFragment", "user chatroom id: ${user.chatroomId}")
+
                     val userHasChatroom = user.chatroomId != null
 
                     loadStateAdapter?.setUserHasChatroom(userHasChatroom)
@@ -158,13 +159,8 @@ class ChatroomListFragment : MainFragment() {
                                                 .show()
                                         }
                                     }.collectLatest { data ->
-                                        try {
-                                            chatroomListAdapter.setLeaveChatroomButtonVisibility(
-                                                userHasChatroom && chatroomListAdapter.peek(0)?.ownerId != user.id // account for user owner of room
-                                            )
-                                        } catch(ex: IndexOutOfBoundsException) {
-                                            Log.i("ChatroomListFragment", "Index out of bounds for current unloaded chatrooms => not setting chatroom visibility")
-                                        }
+                                        // can't use user.hasChatroom here because it differs in the different `collectLatest`-s
+                                        setChatroomLeaveButtonVisibility(state.isJustAuthChatroom, user.id)  // account for user owner of room
 
                                         chatroomListAdapter.submitData(data)
                                     }
@@ -173,10 +169,10 @@ class ChatroomListFragment : MainFragment() {
                             is ChatroomListState.DeleteChatroomsCacheResult -> {
                                 Log.i("ChatroomListFragment", "Deleted chatrooms cache. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
 
-                                if(navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(Constants.chatroomJoined)
-                                        ?.value == true) {
+                                if(activityViewModel.joinedChatroom.value == true) {
+                                    Log.i("ChatroomListFragment", "User joined chatroom: Navigating to chatroom!")
                                     navigateToChatroom()
-                                    navController.currentBackStackEntry?.savedStateHandle?.set(Constants.chatroomJoined, false)
+                                    activityViewModel.setJoinedChatroom(false)
                                 } else {
                                     viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(true))
                                 }
@@ -196,7 +192,6 @@ class ChatroomListFragment : MainFragment() {
         with(binding) {
             chatroomList.addItemDecoration(VerticalSpaceItemDecoration(20))
             loadStateAdapter = DefaultLoadStateAdapter({
-                swiperefresh.isRefreshing = true
                 chatroomListAdapter.retry()
             }, {
                 navController.navigate(ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateFragment(
@@ -216,13 +211,11 @@ class ChatroomListFragment : MainFragment() {
     }
 
     private fun joinChatroom() {
-        viewModel.setButtonSelectedChatroom(null)
         viewModel.setHasDeletedCacheForSession(false) // trigger for authUser observer. . .
         viewModel.setCurrentChatrooms(null) // reinit list trigger. . .
     }
 
     private fun leaveChatroom() {
-        viewModel.setButtonSelectedChatroom(null)
         viewModel.setCurrentChatrooms(null)
     }
 
@@ -235,7 +228,19 @@ class ChatroomListFragment : MainFragment() {
                 viewModel.buttonSelectedChatroom,
             )
         )
-        viewModel.setButtonSelectedChatroom(null)
+    }
+
+    private fun setChatroomLeaveButtonVisibility(userHasChatroom: Boolean, userId: Long) {
+        var userNotOwner: Boolean? = null
+        try {
+            userNotOwner = chatroomListAdapter.peek(0)?.ownerId != userId
+        } catch(ex: IndexOutOfBoundsException) {
+            Log.i("ChatroomListFragment", "Index out of bounds for current unloaded chatrooms => not setting chatroom visibility")
+        }
+
+        chatroomListAdapter.setLeaveChatroomButtonVisibility(
+            userHasChatroom && userNotOwner == true
+        )
     }
 
     override fun onDestroy() {

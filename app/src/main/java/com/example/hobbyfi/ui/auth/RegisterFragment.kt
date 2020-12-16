@@ -49,6 +49,8 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
         binding.viewModel = viewModel
 
+        initTextFieldValidators()
+
         with(binding) {
             lifecycleOwner = this@RegisterFragment
 
@@ -66,6 +68,8 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                         .show() // TODO: Extract into separate error text
                     return@setOnClickListener
                 }
+                
+                buttonBar.rightButton.isEnabled = false
 
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(TokenIntent.FetchRegisterToken)
@@ -92,6 +96,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                     is TokenState.Idle -> {
                     }
                     is TokenState.Error -> {
+                        binding.buttonBar.rightButton.isEnabled = true
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
                             .show()
                     }
@@ -130,30 +135,30 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun initTextFieldValidators() {
         with(binding) {
-            textInputEmail.addTextChangedListener(
+            emailInputField.addTextChangedListener(
                 Constants.emailInputError,
                 Constants.emailPredicate
             )
 
-            textInputPassword.addTextChangedListener(
+            passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
 
             viewModel!!.password.observe(viewLifecycleOwner, Observer {
-                textInputConfirmPassword.error = null
-                textInputConfirmPassword.addTextChangedListener(
+                confirmPasswordInputField.error = null
+                confirmPasswordInputField.addTextChangedListener(
                     Constants.confirmPasswordInputError,
                     Constants.confirmPasswordPredicate(it)
                 )
             })
 
-            textInputUsername.addTextChangedListener(
+            usernameInputField.addTextChangedListener(
                 Constants.usernameInputError,
                 Constants.namePredicate
             )
 
-            textInputDescription.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -162,11 +167,11 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputEmail) ||
-                    FieldUtils.isTextFieldInvalid(textInputPassword) ||
-                    FieldUtils.isTextFieldInvalid(textInputUsername) ||
-                    FieldUtils.isTextFieldInvalid(textInputConfirmPassword) ||
-                    FieldUtils.isTextFieldInvalid(textInputDescription)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(emailInputField, Constants.emailInputError) ||
+                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError) ||
+                    FieldUtils.isTextFieldInvalid(usernameInputField, Constants.usernameInputError) ||
+                    FieldUtils.isTextFieldInvalid(confirmPasswordInputField, Constants.confirmPasswordInputError) ||
+                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
     }
 

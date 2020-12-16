@@ -69,13 +69,14 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
     private fun fetchChatrooms(shouldDisplayAuthChatroom: Boolean) {
         _mainState.value = ChatroomListState.Loading
 
+        Log.i("ChatroomListFragmentVM", "Current chatrooms: ${currentChatrooms}")
         if(currentChatrooms == null) {
             currentChatrooms = chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
-        _mainState.value = ChatroomListState.ChatroomsResult(currentChatrooms!!)
+        _mainState.value = ChatroomListState.ChatroomsResult(currentChatrooms!!, shouldDisplayAuthChatroom)
     }
 
     private suspend fun deleteChatroomsCache(authChatroomId: Long) {

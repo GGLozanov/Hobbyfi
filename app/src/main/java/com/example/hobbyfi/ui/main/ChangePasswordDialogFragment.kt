@@ -42,6 +42,8 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             container, false
         )
 
+        initTextFieldValidators()
+
         binding.viewModel = viewModel
         with(binding) {
             lifecycleOwner = this@ChangePasswordDialogFragment
@@ -91,15 +93,15 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
 
     override fun initTextFieldValidators() {
         with(binding) {
-            textInputPassword.addTextChangedListener(
+            passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
-            textInputNewPassword.addTextChangedListener(
+            newPasswordInputField.addTextChangedListener(
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
-            textInputConfirmNewPassword.addTextChangedListener(
+            confirmNewPasswordInputField.addTextChangedListener(
                 Constants.confirmPasswordInputError,
                 Constants.confirmPasswordPredicate(viewModel!!.password.value)
             )
@@ -108,8 +110,9 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputPassword)
-                    || FieldUtils.isTextFieldInvalid(textInputNewPassword) || FieldUtils.isTextFieldInvalid(textInputConfirmNewPassword)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
+                    || FieldUtils.isTextFieldInvalid(newPasswordInputField, Constants.passwordInputError) ||
+                        FieldUtils.isTextFieldInvalid(confirmNewPasswordInputField, Constants.confirmPasswordInputError)
         }
     }
 }

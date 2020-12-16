@@ -40,6 +40,9 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         )
 
         binding.viewModel = viewModel
+
+        initTextFieldValidators()
+
         with(binding) {
             lifecycleOwner = this@ChangeEmailDialogFragment
 
@@ -99,21 +102,20 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
 
     override fun initTextFieldValidators() {
         with(binding) {
-
-            textInputNewEmail.addTextChangedListener(
+            newEmailInputField.addTextChangedListener(
                 Constants.emailInputError,
                 Constants.newEmailPredicate(activityViewModel.authUser.value?.email)
             )
 
-            textInputPassword.addTextChangedListener(
+            passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
 
             viewModel!!.password.observe(viewLifecycleOwner, Observer {
-                textInputConfirmPassword.error = null
+                confirmPasswordInputField.error = null
 
-                textInputConfirmPassword.addTextChangedListener(
+                confirmPasswordInputField.addTextChangedListener(
                     Constants.confirmPasswordInputError,
                     Constants.confirmPasswordPredicate(it)
                 )
@@ -123,8 +125,9 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputNewEmail) ||
-                    FieldUtils.isTextFieldInvalid(textInputPassword) || FieldUtils.isTextFieldInvalid(textInputConfirmPassword)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(newEmailInputField, Constants.emailInputError) ||
+                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
+                || FieldUtils.isTextFieldInvalid(confirmPasswordInputField, Constants.confirmPasswordInputError)
         }
     }
 }

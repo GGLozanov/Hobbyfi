@@ -62,6 +62,11 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         }
     }
 
+    private suspend fun deleteUserCache() {
+        userRepository.deleteUser(_authUser.value!!)
+        _authUser.value = null
+    }
+
     private suspend fun fetchUser() {
         _mainState.value = UserState.Loading
         // observe flow returned from networkBoundFetcher and change state upon emitted value
@@ -80,6 +85,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             }
         }.collect {
             if(it != null) {
+                setUser(it)
                 _mainState.value = UserState.OnData.UserResult(it)
             }
         }
@@ -124,9 +130,13 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         _mainState.value = UserState.Loading
 
         _mainState.value = try {
-            UserState.OnData.UserDeleteResult(
+            val response = UserState.OnData.UserDeleteResult(
                 userRepository.deleteUser()
             )
+
+            deleteUserCache()
+
+            response
         } catch(reauthEx: Repository.ReauthenticationException) {
             UserState.Error(
                 Constants.reauthError,

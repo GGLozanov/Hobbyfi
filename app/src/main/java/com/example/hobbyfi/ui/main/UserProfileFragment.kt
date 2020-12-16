@@ -57,6 +57,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         )
         binding.viewModel = viewModel
 
+        initTextFieldValidators()
+
         with(binding) {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
 
@@ -194,12 +196,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun initTextFieldValidators() {
         with(binding) {
-            textInputUsername.addTextChangedListener(
+            usernameInputField.addTextChangedListener(
                 Constants.usernameInputError,
                 Constants.namePredicate
             )
 
-            textInputDescription.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -208,8 +210,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputUsername) ||
-                    FieldUtils.isTextFieldInvalid(textInputDescription)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(usernameInputField, Constants.usernameInputError) ||
+                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
     }
 

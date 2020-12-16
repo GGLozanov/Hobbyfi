@@ -78,7 +78,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editUser -> editing current user")
         return try {
-            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
+            prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
                 userFields
@@ -103,7 +103,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             try {
                 Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
             } catch(authEx: AuthorisedRequestException) {
-                val token = getNewTokenWithRefresh()
+                getNewTokenWithRefresh()
                     // if this ^ throws exception => user reauth; invalid refresh token & can't fetch response
                 deleteUser()
             }
@@ -127,7 +127,7 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    // called when user leaves chatroom
+    // called when user leaves chatroom (voluntarily or not - leave chatroom button or yeeted from chatroom)
     suspend fun deleteUsers(authId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
         return withContext(Dispatchers.IO) {

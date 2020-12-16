@@ -18,9 +18,9 @@ import kotlinx.coroutines.launch
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
-    const val usernameInputError: String = "Enter a non-empty or shorter username!"
-    const val nameInputError: String = "Enter a non-empty or shorter name!"
-    const val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
+    const val usernameInputError: String = "Enter a non-empty/shorter username!"
+    const val nameInputError: String = "Enter a non-empty/shorter name!"
+    const val passwordInputError: String = "Enter a non-empty/longer password!"
     const val confirmPasswordInputError: String = "Enter the same password!"
     const val emailInputError: String = "Enter a non-empty valid e-mail address!"
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
@@ -33,11 +33,9 @@ object Constants {
     const val unauthorisedAccessError: String = "Unauthorised access!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
-    const val cacheDeletionError: String = "Couldn't clear old (cached) chatrooms!"
+    const val cacheDeletionError: String = "Couldn't clear old (cached) data!"
     const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
-    const val chatroomJoined: String = "chatroomJoined"
-    const val chatroomLeft: String = "chatroomLeft"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     const val imagePermissionsRequestCode = 200

@@ -23,7 +23,6 @@ import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
-import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -111,7 +110,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                     is ChatroomState.Error -> {
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
                             .show()
-                        if(it.shouldReauth) {
+                        if(it.shouldExit) {
                             (requireActivity() as MainActivity).logout()
                         }
                     }
@@ -131,12 +130,12 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun initTextFieldValidators() {
         with(binding) {
             // TODO: Fix code dup with other layouts like these and find a way to extract this in a single method call or something
-            textInputName.addTextChangedListener(
+            nameInputField.addTextChangedListener(
                 Constants.nameInputError,
                 Constants.namePredicate
             )
 
-            textInputDescription.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -145,7 +144,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputName) || FieldUtils.isTextFieldInvalid(textInputDescription)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
+                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
     }
 

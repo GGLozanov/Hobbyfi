@@ -12,7 +12,7 @@ interface UserDao : BaseDao<User> {
     fun getUsers(): PagingSource<Int, User>
 
     @Query("UPDATE users SET chatroomId = :chatroomId WHERE id = :userId")
-    fun updateUserChatroomId(userId: Long, chatroomId: Int)
+    suspend fun updateUserChatroomId(userId: Long, chatroomId: Int?)
 
     @Query("SELECT * FROM users WHERE id = :userId")
     fun getUserById(userId: Long): Flow<User?>

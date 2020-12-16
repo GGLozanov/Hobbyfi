@@ -117,7 +117,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         Log.i("TokenRepository", "editChatroom -> editing current chatroom")
 
         return try {
-            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
+            prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
 
             hobbyfiAPI.editChatroom(
                 prefConfig.getAuthUserToken()!!,
@@ -131,6 +131,15 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
                 editChatroom(chatroomFields)
             }
+        }
+    }
+
+    suspend fun editChatroomCache(chatroom: Chatroom) {
+        Log.i("ChatroomRepository", "editChatroomCache -> editing auth chatroom with owner id: ${chatroom.ownerId} and id: ${chatroom.id}")
+        Log.i("ChatroomRepository", "editChatroomCache -> NEW CHATROOM: ${chatroom}")
+
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.chatroomDao().insert(chatroom)
         }
     }
 
@@ -150,6 +159,18 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                 getNewTokenWithRefresh()
 
                 deleteChatroom()
+            }
+        }
+    }
+
+    suspend fun deleteChatroomCache(chatroom: Chatroom): Boolean {
+        Log.i("ChatroomRepository", "deleteChatroomCache -> deleting auth chatroom with owner id: ${chatroom.ownerId} and id: ${chatroom.id}")
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.withTransaction {
+                val deletedChatroom = hobbyfiDatabase.chatroomDao().delete(chatroom)
+                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(chatroom.id, RemoteKeyType.CHATROOM)
+                deletedChatroom > 0 && deletedRemoteKeys >= 0
             }
         }
     }

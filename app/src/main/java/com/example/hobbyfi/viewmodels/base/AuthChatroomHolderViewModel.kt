@@ -9,7 +9,6 @@ import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.state.ChatroomState
-import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
@@ -41,7 +40,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
-            chatroomIntent.consumeAsFlow().collect {
+            chatroomIntent.consumeAsFlow().collectLatest {
                 when(it) {
                     is ChatroomIntent.FetchChatroom -> {
                         fetchChatroom()
@@ -51,6 +50,12 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                     }
                     is ChatroomIntent.UpdateChatroom -> {
                         updateChatroom(it.chatroomUpdateFields)
+                    }
+                    is ChatroomIntent.DeleteChatroomCache -> {
+                        deleteChatroomCache(true)
+                    }
+                    is ChatroomIntent.UpdateChatroomCache -> {
+                        updateAndSaveChatroom(it.chatroomUpdateFields)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -79,9 +84,10 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         chatroomRepository.getChatroom().catch { e ->
             e.printStackTrace()
             _chatroomState.value = if(e is Repository.ReauthenticationException)
-                ChatroomState.Error(Constants.reauthError, shouldReauth = true) else ChatroomState.Error(e.message)
+                ChatroomState.Error(Constants.reauthError, shouldExit = true) else ChatroomState.Error(e.message)
         }.collect {
             if(it != null) {
+                setChatroom(it)
                 _chatroomState.value = ChatroomState.OnData.ChatroomResult(it)
             }
         }
@@ -91,16 +97,20 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         _chatroomState.value = ChatroomState.Loading
 
         _chatroomState.value = try {
-            ChatroomState.OnData.ChatroomDeleteResult(
+            val response = ChatroomState.OnData.ChatroomDeleteResult(
                 chatroomRepository.deleteChatroom()
             )
+
+            deleteChatroomCache()
+
+            response
         } catch(ex: Exception) {
             // FIXME: code dup exception handling (have to because states are somewhat unrelated and assignments/instance generation can't be done with reflections
             when(ex) {
                 is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
                     ChatroomState.Error(
                         ex.message,
-                        shouldReauth = true
+                        shouldExit = true
                     )
                 }
                 else -> ChatroomState.Error(
@@ -108,6 +118,23 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                 )
             }
         }
+    }
+
+    private suspend fun deleteChatroomCache(setState: Boolean = false) {
+        val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!)
+        if(setState) {
+            _chatroomState.value = if(success) ChatroomState.OnData.DeleteChatroomCacheResult
+                else ChatroomState.Error(Constants.cacheDeletionError)
+        }
+
+        if(!success) {
+            throw Exception(Constants.cacheDeletionError)
+        }
+
+        _authChatroom.value = null
+        updateAndSaveUser(mapOf(
+            Pair(Constants.CHATROOM_ID, "0")
+        )) // nullify chatroom for cache user after deletion
     }
 
     private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
@@ -115,16 +142,20 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
         // TODO: Handle fail tags request and reset back to original selected tags
         _chatroomState.value = try {
-            ChatroomState.OnData.ChatroomUpdateResult(
+            val response = ChatroomState.OnData.ChatroomUpdateResult(
                 chatroomRepository.editChatroom(updateFields),
                 updateFields
             )
+
+            updateAndSaveChatroom(updateFields)
+
+            response
         } catch(ex: Exception) {
             when(ex) {
                 is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
                     ChatroomState.Error(
                         ex.message,
-                        shouldReauth = true
+                        shouldExit = true
                     )
                 }
                 else -> ChatroomState.Error(
@@ -134,9 +165,15 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         }
     }
 
+    private suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
+        _authChatroom.value = _authChatroom.value?.updateFromFieldMap(chatroomFields)
+
+        chatroomRepository.editChatroomCache(_authChatroom.value!!)
+    }
+
+    // evaluates current auth room and auth user ownership
+    // (for when user and chatroom aren't passed and need to be fetched async - i.e. deeplink)
     private fun isAuthUserAuthChatroomOwner(): Boolean {
-        // evaluates current auth room and auth user ownership
-        // (for when user and chatroom aren't passed and need to be fetched async - i.e. deeplink)
         return authUser.value?.id ==
                 authChatroom.value?.ownerId
     }

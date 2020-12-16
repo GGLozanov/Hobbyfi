@@ -30,13 +30,14 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import androidx.fragment.app.Fragment
+import com.google.android.material.textfield.TextInputLayout
 
 inline fun <reified T> Gson.fromJson(json: String) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
 inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
-fun TextInputEditText.addTextChangedListener(errorText: String, predicate: Predicate<String>) =
-    this.addTextChangedListener(
+fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predicate<String>) =
+    this.editText!!.addTextChangedListener(
         PredicateTextWatcher(
             this,
             errorText,

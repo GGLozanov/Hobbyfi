@@ -14,13 +14,10 @@ sealed class ChatroomState : State {
         data class ChatroomCreateResult(val response: IdResponse?) : OnData()
         data class ChatroomUpdateResult(val response: Response?, val fieldMap: Map<String?, String?>) : OnData()
         data class ChatroomResult(val chatroom: Chatroom) : OnData()
+
+        object DeleteChatroomCacheResult : OnData()
+        // no need for UpdateChatroomCacheResult state because it always succeeds
     }
 
-    // TODO: Find a way to Swift-ify this and pass the chatroomId only in OnNotification and have the inner classes access it
-    sealed class OnNotification : ChatroomState() {
-        data class DeleteChatroomNotification(val chatroomId: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom delete (in chatroom & main activity) for all users
-        data class UpdateChatroomNotification(val chatroomId: Int) : OnNotification() // triggered by broadcastreceiver in activity/fragment from FCM notifications => live chatroom update for all users
-    }
-
-    data class Error(val error: String?, val shouldReauth: Boolean = false) : ChatroomState()
+    data class Error(val error: String?, val shouldExit: Boolean = false) : ChatroomState()
 }

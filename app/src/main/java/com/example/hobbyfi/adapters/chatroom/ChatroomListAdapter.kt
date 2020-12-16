@@ -1,6 +1,7 @@
 package com.example.hobbyfi.adapters.chatroom
 
 import android.content.Context
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -65,14 +66,15 @@ class ChatroomListAdapter(
         fun bind(chatroom: Chatroom?) {
             binding.chatroom = chatroom
             with(binding) {
+                Log.i("ChatroomListAdapter", "Chatroom profile picture url: ${chatroom?.photoUrl}")
                 if(chatroom?.photoUrl != null) {
                     chatroomImage.load(
                         chatroom.photoUrl
                     )
                 }
                 if(chatroom?.tags != null) {
-                    val adapter = ChatroomTagListAdapter(chatroom.tags, itemView.context, R.layout.chatroom_tag_card)
-                    tagsGridView.setHeightBasedOnChildren(chatroom.tags.size)
+                    val adapter = ChatroomTagListAdapter(chatroom.tags!!, itemView.context, R.layout.chatroom_tag_card)
+                    tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
 
                     tagsGridView.adapter = adapter
                 }

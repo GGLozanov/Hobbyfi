@@ -2,34 +2,36 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
-import com.example.hobbyfi.databinding.FragmentChatroomEditDialogBinding
+import com.example.hobbyfi.databinding.FragmentChatroomEditBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.ui.base.BaseDialogFragment
+import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
-import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditDialogFragmentViewModel
+import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
+import com.example.hobbyfi.viewmodels.factories.AuthChatroomViewModelFactory
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
-class ChatroomEditDialogFragment : ChatroomDialogFragment() {
-    private lateinit var binding: FragmentChatroomEditDialogBinding
-    private val viewModel: ChatroomEditDialogFragmentViewModel by viewModels()
+@ExperimentalCoroutinesApi
+class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
+    private lateinit var binding: FragmentChatroomEditBinding
+    private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
+        AuthChatroomViewModelFactory(requireActivity().application, activityViewModel.authChatroom.value)
+    })
 
-    @ExperimentalCoroutinesApi
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,15 +39,13 @@ class ChatroomEditDialogFragment : ChatroomDialogFragment() {
         // Inflate the layout for this fragment
         // TODO: Handle expired token error & logout
         binding = DataBindingUtil
-            .inflate(layoutInflater, R.layout.fragment_chatroom_edit_dialog, container, false)
+            .inflate(layoutInflater, R.layout.fragment_chatroom_edit, container, false)
+
         binding.viewModel = viewModel
 
+        initTextFieldValidators()
+
         with(binding) {
-
-            buttonBar.leftButton.setOnClickListener {
-                dismiss()
-            }
-
             buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
@@ -78,7 +78,6 @@ class ChatroomEditDialogFragment : ChatroomDialogFragment() {
                 lifecycleScope.launch {
                     activityViewModel.sendChatroomIntent(ChatroomIntent.UpdateChatroom(fieldMap))
                 }
-                dismiss()
             }
 
             return@onCreateView root
@@ -93,8 +92,8 @@ class ChatroomEditDialogFragment : ChatroomDialogFragment() {
                 viewModel.tagBundle.appendNewSelectedTagsToTags(it)
         })
 
-        binding.tagSelectButton.setOnClickListener {
-            navController.navigate(ChatroomEditDialogFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
+        binding.buttonBar.leftButton.setOnClickListener {
+            navController.navigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
                 viewModel.tagBundle.selectedTags.toTypedArray(),
                 viewModel.tagBundle.tags.toTypedArray()
             ))
@@ -103,14 +102,22 @@ class ChatroomEditDialogFragment : ChatroomDialogFragment() {
 
     override fun initTextFieldValidators() {
         with(binding) {
+            nameInputField.addTextChangedListener(
+                Constants.nameInputError,
+                Constants.namePredicate
+            )
 
+            descriptionInputField.addTextChangedListener(
+                Constants.descriptionInputError,
+                Constants.descriptionPredicate
+            )
         }
     }
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputUsername) ||
-                    FieldUtils.isTextFieldInvalid(textInputDescription)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
+                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
     }
 

@@ -2,6 +2,7 @@ package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
@@ -20,6 +21,14 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 class MainActivityViewModel(application: Application, user: User?)
     : AuthUserHolderViewModel(application, user) {
+    private val _joinedChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
+    val joinedChatroom: LiveData<Boolean> get() = _joinedChatroom
+    private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
+    val leftChatroom: LiveData<Boolean> get() = _leftChatroom
+
+    fun resetState() {
+        _mainState.value = UserState.Idle
+    }
 
     init {
         if(user != null) {
@@ -30,5 +39,13 @@ class MainActivityViewModel(application: Application, user: User?)
         }
 
         handleIntent()
+    }
+
+    fun setJoinedChatroom(joinedCatroom: Boolean) {
+        _joinedChatroom.value = joinedCatroom
+    }
+
+    fun setLeftChatroom(leftChatroom: Boolean) {
+        _leftChatroom.value = leftChatroom
     }
 }

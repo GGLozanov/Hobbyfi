@@ -5,14 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
-import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
@@ -22,14 +20,12 @@ import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
-import com.example.hobbyfi.viewmodels.factories.AuthChatroomViewModelFactory
-import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
+import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
 import kotlinx.android.synthetic.main.activity_chatroom.*
@@ -39,19 +35,11 @@ import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : BaseActivity() {
-    // TODO: Handle navdrawer, rendering of fragments, activity intent calls, button listeners, etc. . .
-    // TODO: Have user & chatroom info passed in (or fetched from cache) & send request for messages, users, & event
-    // TODO: Disable event create button if event is already created
-
-    // TODO: research into integrating nav drawer different icons with navcomponent
-    // TODO: need to integrate action bar menu and have drawable from there trigger right navigationview
-
     // TODO: Have this be the deeplink activity. Register it and handle intent extras and facebook/default user
-
-    // TODO: If user leaves chatroom (not exits), delete messages saved in local db + users
+    // TODO: If user leaves chatroom (not exits), delete entire chatroom + cached other users (rip foreign key relations)
 
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
-        AuthChatroomViewModelFactory(application, args.user, args.chatroom)
+        AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
     private lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
@@ -89,6 +77,10 @@ class ChatroomActivity : BaseActivity() {
 
         nav_view_chatroom.setupWithNavController(navController)
 
+        // TODO: Register delete/update BroadcastReceiver here that sends DeleteChatroomCache/UpdateChatroomCache intents and responds accordingly
+        // https://stackoverflow.com/questions/41793525/how-to-get-fcm-onmessagereceived-event-in-activity-without-pendingintent
+        // TODO: Do the same with User intents and Event intents
+
         lifecycleScope.launch {
             viewModel.mainState.collect {
                 when(it) {
@@ -100,16 +92,17 @@ class ChatroomActivity : BaseActivity() {
                     }
                     is UserState.OnData.UserResult -> {
                         viewModel.setUser(it.user)
-
                     }
                     is UserState.Error -> {
 
                     }
                     else -> throw State.InvalidStateException()
                 }
+                // no need for UserState.OnData.UserUpdateResult for null chatroom because user gets nulled chatroom in backend when it's deleted
             }
         }
 
+        // whenever broadcast receiver triggered => sets the state in the viewmodel
         lifecycleScope.launch {
             viewModel.chatroomState.collect {
                 when(it) {
@@ -117,20 +110,33 @@ class ChatroomActivity : BaseActivity() {
 
                     }
                     is ChatroomState.OnData.ChatroomResult -> {
-                        viewModel.setChatroom(it.chatroom)
-
+                        // TODO: UI or smth
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
-
+                        Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
+                            .show()
+                        onBackPressed()
+                        // TODO: Should only show toast or something here in the future and have exiting chatroom and
+                        //  nullifying user chatroom ID be handled by DeleteChatroomNotification STATE
+                        // TODO: Delete chatroom from cache and clear user chatroom id
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
-
+                        Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
+                            .show()
+                        // TODO: Should only show toast or something here in the future and have exiting chatroom
+                        //  updates be handled by UpdateChatroomNotification
+                        // TODO: Update chatroom cache
                     }
-                    is ChatroomState.OnNotification.DeleteChatroomNotification -> {
-
+                    is ChatroomState.OnData.DeleteChatroomCacheResult -> {
+                        // can be called by both owner
+                        onBackPressed()
                     }
-                    is ChatroomState.OnNotification.UpdateChatroomNotification -> {
-                        // update name and/or tags + description in right navigation view
+                    is ChatroomState.Error -> {
+                        Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! ${it.error}", Toast.LENGTH_LONG)
+                            .show()
+                        if(it.shouldExit) {
+                            onBackPressed()
+                        }
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -203,17 +209,6 @@ class ChatroomActivity : BaseActivity() {
             || availability == SERVICE_DISABLED) {
             googleApiInstance.makeGooglePlayServicesAvailable(this)
         }
-    }
-
-    override fun onBackPressed() {
-        // TODO: reset auth with no code dup from mainactivity
-        // TODO: Fix this retarded backstack management againnnnnnnn
-        if(supportFragmentManager.currentNavigationFragment is EventCreateFragment) {
-            super.onBackPressed()
-            return
-        }
-
-        finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

@@ -20,7 +20,7 @@ interface RemoteKeysDao : BaseDao<RemoteKeys> {
     suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType)
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id = :id")
-    suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType)
+    suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType): Int
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id != :id")
     suspend fun deleteRemoteKeysExceptForIdAndForType(id: Long, remoteKeyType: RemoteKeyType): Int

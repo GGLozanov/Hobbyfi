@@ -1,9 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--TODO: card layout with imageview and text to the right-->
+    <data>
+        <variable
+            name="message"
+            type="com.example.hobbyfi.models.Message" />
+    </data>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!--TODO: card layout with imageview and text to the right-->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp" />
+        
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp" /> <!--TODO: Open image view fragment on message select-->
+
+    </LinearLayout>
+</layout>

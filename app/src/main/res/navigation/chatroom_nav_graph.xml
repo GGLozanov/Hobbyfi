@@ -9,8 +9,8 @@
         android:id="@+id/chatroomMessageListFragment"
         android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment">
         <action
-            android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditDialogFragment"
-            app:destination="@id/chatroomEditDialogFragment" />
+            android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditFragment"
+            app:destination="@id/chatroomEditFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventEditDialogFragment"
             app:destination="@id/eventEditDialogFragment" />
@@ -18,11 +18,11 @@
             android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
             app:destination="@id/event_create_navigation" />
     </fragment>
-    <dialog
-        android:id="@+id/chatroomEditDialogFragment"
-        android:name="com.example.hobbyfi.ui.chatroom.ChatroomEditDialogFragment"
-        android:label="fragment_chatroom_edit_dialog"
-        tools:layout="@layout/fragment_chatroom_edit_dialog" >
+    <fragment
+        android:id="@+id/chatroomEditFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomEditFragment"
+        android:label="Edit Chatroom"
+        tools:layout="@layout/fragment_chatroom_edit" >
         <action
             android:id="@+id/action_chatroomEditDialogFragment_to_tag_nav_graph"
             app:destination="@id/tag_nav_graph" >
@@ -33,7 +33,7 @@
                 android:name="tags"
                 app:argType="com.example.hobbyfi.models.Tag[]" />
         </action>
-    </dialog>
+    </fragment>
     <dialog
         android:id="@+id/eventEditDialogFragment"
         android:name="com.example.hobbyfi.ui.chatroom.EventEditDialogFragment"

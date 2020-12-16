@@ -15,8 +15,12 @@ data class Message(
     val message: String,
     val createTime: String, // iso string?
     @ColumnInfo(name = "userSentId", index = true)
-    val userSentId: Int,
+    val userSentId: Long?,
     @ColumnInfo(name = "chatroomSentId", index = true)
-    val chatroomSentId: Int,
+    val chatroomSentId: Long,
     val isTimeline: Boolean = false // is a timeline notification (set to true if received from notification broadcastreceiver)
-) : Model
+) : Model {
+    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Message {
+        TODO("Not yet implemented")
+    }
+}
