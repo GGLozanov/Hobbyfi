@@ -8,7 +8,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import coil.load
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -112,7 +112,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 viewModel.email.value!!,
                                 viewModel.name.value!!,
                                 viewModel.description.value,
-                                if(viewModel.base64Image != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
                                         + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
                                 viewModel.tagBundle.selectedTags,
                                 null
@@ -180,15 +180,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(
@@ -198,12 +189,14 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             resultCode,
             data
         ) {
-            binding.profileImage.load(
-                it
-            ) // set the new image resource to be decoded from the bitmap
-            viewModel.setProfileImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
+
+
 }

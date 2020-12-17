@@ -1,8 +1,10 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -10,17 +12,21 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomEditBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
+import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
-import com.example.hobbyfi.viewmodels.factories.AuthChatroomViewModelFactory
+import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -29,7 +35,8 @@ import kotlinx.coroutines.launch
 class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
     private lateinit var binding: FragmentChatroomEditBinding
     private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
-        AuthChatroomViewModelFactory(requireActivity().application, activityViewModel.authChatroom.value)
+        TagListViewModelFactory(requireActivity().application,
+            activityViewModel.authChatroom.value?.tags ?: emptyList())
     })
 
     override fun onCreateView(
@@ -46,6 +53,8 @@ class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
         initTextFieldValidators()
 
         with(binding) {
+            lifecycleOwner = this@ChatroomEditFragment
+
             buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
@@ -54,11 +63,11 @@ class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
                 val fieldMap: MutableMap<String?, String?> = mutableMapOf()
 
                 if(activityViewModel.authChatroom.value?.name != viewModel!!.name.value) {
-                    fieldMap[Constants.USERNAME] = viewModel!!.name.value
+                    fieldMap[Constants.NAME] = viewModel!!.name.value
                 }
 
                 if(activityViewModel.authChatroom.value?.description != viewModel!!.description.value) {
-                    fieldMap[Constants.USERNAME] = viewModel!!.description.value
+                    fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                 }
 
                 if((activityViewModel.authChatroom.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
@@ -66,6 +75,10 @@ class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
                         .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
                         .create()) // TODO: Extract into DI/singleton/static var
                         .toJson(viewModel!!.tagBundle.selectedTags)
+                }
+
+                if(viewModel!!.base64Image.base64 != null) { // means user has changed their pfp
+                    fieldMap[Constants.IMAGE] = viewModel!!.base64Image.base64
                 }
 
                 Log.i("ChatroomEditDFragment", "FieldMap update: ${fieldMap}")
@@ -79,6 +92,29 @@ class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
                     activityViewModel.sendChatroomIntent(ChatroomIntent.UpdateChatroom(fieldMap))
                 }
             }
+
+            activityViewModel.authChatroom.observe(viewLifecycleOwner, Observer {
+                if(it != null) {
+                    viewModel!!.name.value = it.name
+                    viewModel!!.description.value = it.description
+                    it.tags?.let { selectedTags ->
+                        viewModel!!.tagBundle.setSelectedTags(selectedTags)
+                        viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+                    }
+
+                    if (it.photoUrl != null) {
+                        Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
+                        Glide.with(this@ChatroomEditFragment).load(
+                            it.photoUrl!!
+                        ).signature(
+                            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
+                        ).placeholder(binding.chatroomImage.drawable)
+                        .into(binding.chatroomImage)
+                    } else {
+                        // load default img (needed if image deletion is added because image will be sent null/"0" or whatever)
+                    }
+                }
+            })
 
             return@onCreateView root
         }
@@ -121,4 +157,25 @@ class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
         }
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.clear()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Callbacks.handleImageRequestWithPermission(
+            this,
+            requireActivity(),
+            requestCode,
+            resultCode,
+            data
+        ) {
+            binding.chatroomImage.setImageBitmap(it)
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
+        }
+    }
 }

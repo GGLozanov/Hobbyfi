@@ -10,12 +10,18 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import coil.load
+import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
 import com.example.hobbyfi.databinding.ChatroomCardBinding
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.android.kodein
 
 
 class ChatroomListAdapter(
@@ -33,7 +39,7 @@ class ChatroomListAdapter(
         val chatroom = getItem(position)
 
         with(holder) {
-            bind(chatroom)
+            bind(chatroom, position)
             binding.chatroomLeaveButton.isVisible =
                 shouldDisplayLeaveChatroomButton
             binding.chatroomJoinButton.setOnClickListener {
@@ -63,14 +69,25 @@ class ChatroomListAdapter(
         }
 
 
-        fun bind(chatroom: Chatroom?) {
+        fun bind(chatroom: Chatroom?, position: Int) {
             binding.chatroom = chatroom
             with(binding) {
-                Log.i("ChatroomListAdapter", "Chatroom profile picture url: ${chatroom?.photoUrl}")
+                Log.i("ChatroomListAdapter", "Chatroom w/ id ${chatroom?.id} profile picture url: ${chatroom?.photoUrl}")
                 if(chatroom?.photoUrl != null) {
-                    chatroomImage.load(
-                        chatroom.photoUrl
-                    )
+                    Glide.with(itemView.context)
+                        .load(chatroom.photoUrl) // TODO: Find a way to inject PrefConfig's singleton instance
+                        .signature(ObjectKey(
+                            PrefConfig(context).readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time) +
+                                if(position % Constants.chatroomPageSize == 0)
+                                    position / Constants.chatroomPageSize else (position / Constants.chatroomPageSize) + 1))
+                        // calculate current page based on item position
+                        .into(binding.chatroomImage)
+                } else {
+                    Glide.with(itemView.context)
+                        .load(
+                            R.drawable.chatroom_default_pic
+                        )
+                        .into(binding.chatroomImage)
                 }
                 if(chatroom?.tags != null) {
                     val adapter = ChatroomTagListAdapter(chatroom.tags!!, itemView.context, R.layout.chatroom_tag_card)
@@ -91,7 +108,7 @@ class ChatroomListAdapter(
                                          newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
 
             override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom == newChatroom
+                                            newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
         }
 
     }

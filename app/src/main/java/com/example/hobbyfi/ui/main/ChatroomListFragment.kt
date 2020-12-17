@@ -133,7 +133,7 @@ class ChatroomListFragment : MainFragment() {
                     if(userHasChatroom && !viewModel.hasDeletedCacheForSession) {
                         viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))
                     } else {
-                        viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(false))
+                        viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
                     }
 
                     viewModel.mainState.collectLatest { state ->
@@ -237,6 +237,9 @@ class ChatroomListFragment : MainFragment() {
         } catch(ex: IndexOutOfBoundsException) {
             Log.i("ChatroomListFragment", "Index out of bounds for current unloaded chatrooms => not setting chatroom visibility")
         }
+
+        Log.i("ChatroomListFragment", "USER IS NOT OWNER??? ${userNotOwner}")
+        Log.i("ChatroomListFragment", "USER HAS CHATROOM??? ${userHasChatroom}")
 
         chatroomListAdapter.setLeaveChatroomButtonVisibility(
             userHasChatroom && userNotOwner == true

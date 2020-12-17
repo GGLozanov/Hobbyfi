@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.DialogInterface
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -20,6 +21,7 @@ import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
@@ -109,6 +111,9 @@ class ChatroomActivity : BaseActivity() {
                     is ChatroomState.Idle -> {
 
                     }
+                    is ChatroomState.Loading -> {
+                        // TODO: Loading
+                    }
                     is ChatroomState.OnData.ChatroomResult -> {
                         // TODO: UI or smth
                     }
@@ -135,7 +140,7 @@ class ChatroomActivity : BaseActivity() {
                         Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! ${it.error}", Toast.LENGTH_LONG)
                             .show()
                         if(it.shouldExit) {
-                            onBackPressed()
+                            finish()
                         }
                     }
                     else -> throw State.InvalidStateException()
@@ -149,12 +154,20 @@ class ChatroomActivity : BaseActivity() {
 
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer {
-            title = it?.name
-
-            if(it?.lastEventId == null) {
-                nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
+            if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+                title = it?.name
             } else {
-                nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
+                // very, very hacky stuff but... that's life
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+            }
+
+            if(viewModel.isAuthUserChatroomOwner.value == true) {
+                nav_view_admin.menu.clear()
+                if(it?.lastEventId == null) {
+                    nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
+                } else {
+                    nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
+                }
             }
         })
     }
@@ -167,6 +180,7 @@ class ChatroomActivity : BaseActivity() {
 
     private fun initTopNavigation(chatroomOwner: Boolean) {
         with(binding) {
+            toolbar.setNavigationIconTint(Color.WHITE)
             if(chatroomOwner) {
                 Log.i("ChatroomActivity", "Current auth user is chatroom owner")
                 // FIXME: Randomly unresolvable bad Kotlin synthetics

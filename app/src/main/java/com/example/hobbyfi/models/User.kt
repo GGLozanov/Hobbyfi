@@ -8,6 +8,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
@@ -51,8 +52,9 @@ data class User(
                         ) // FIXME: Extract into singleton
                         .create().fromJson(value!!)
                 }
-                Constants.PHOTO_URL -> {
-                    photoUrl = value
+                Constants.IMAGE -> {
+                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
+                        // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_ID -> {
                     val chatroomId = value!!.toLong()

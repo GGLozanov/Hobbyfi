@@ -6,15 +6,11 @@ import android.content.DialogInterface
 import android.util.Log
 import android.util.Patterns
 import androidx.core.util.Predicate
-import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingConfig
-import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.Repository
-import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 import com.facebook.AccessToken
 import com.facebook.Profile
-import kotlinx.coroutines.launch
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
@@ -87,8 +83,10 @@ object Constants {
         return@Predicate it.length >= 30
     }
 
-    fun getDefaultPageConfig(): PagingConfig { // used in pager init
-        return PagingConfig(pageSize = 5, enablePlaceholders = false)
+    const val chatroomPageSize: Int = 5
+
+    fun getDefaultChatroomPageConfig(): PagingConfig { // used in pager init
+        return PagingConfig(pageSize = chatroomPageSize, enablePlaceholders = false)
     }
 
     // should be in prefconfig but... eh

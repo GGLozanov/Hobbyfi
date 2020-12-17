@@ -15,11 +15,9 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
+import com.example.hobbyfi.shared.Constants.getDefaultChatroomPageConfig
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
-import com.facebook.AccessToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -28,7 +26,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
     : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
-    fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig(), shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
+    fun getChatrooms(pagingConfig: PagingConfig = getDefaultChatroomPageConfig(), shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
         Log.i("ChatroomRepository", "getChatrooms -> getting current chatrooms with shouldFetchAuthChatroom: ${shouldFetchAuthChatroom}")
         val pagingSource = { hobbyfiDatabase.chatroomDao().getChatrooms() }
         return Pager(
@@ -134,15 +132,6 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun editChatroomCache(chatroom: Chatroom) {
-        Log.i("ChatroomRepository", "editChatroomCache -> editing auth chatroom with owner id: ${chatroom.ownerId} and id: ${chatroom.id}")
-        Log.i("ChatroomRepository", "editChatroomCache -> NEW CHATROOM: ${chatroom}")
-
-        withContext(Dispatchers.IO) {
-            hobbyfiDatabase.chatroomDao().insert(chatroom)
-        }
-    }
-
     suspend fun deleteChatroom(): Response? {
         Log.i("TokenRepository", "deleteChatroom -> deleting current chatroom")
 
@@ -160,6 +149,16 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
                 deleteChatroom()
             }
+        }
+    }
+
+    suspend fun saveChatroom(chatroom: Chatroom) {
+        Log.i("ChatroomRepository", "editChatroomCache -> editing auth chatroom with owner id: ${chatroom.ownerId} and id: ${chatroom.id}")
+        Log.i("ChatroomRepository", "editChatroomCache -> NEW CHATROOM: ${chatroom}")
+
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.chatroomDao().insert(chatroom)
         }
     }
 

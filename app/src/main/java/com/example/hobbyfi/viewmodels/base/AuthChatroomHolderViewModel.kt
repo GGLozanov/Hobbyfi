@@ -166,9 +166,10 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     }
 
     private suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
-        _authChatroom.value = _authChatroom.value?.updateFromFieldMap(chatroomFields)
+        val updatedUser = _authChatroom.value?.updateFromFieldMap(chatroomFields)
 
-        chatroomRepository.editChatroomCache(_authChatroom.value!!)
+        chatroomRepository.saveChatroom(updatedUser!!)
+        _authChatroom.value = updatedUser
     }
 
     // evaluates current auth room and auth user ownership

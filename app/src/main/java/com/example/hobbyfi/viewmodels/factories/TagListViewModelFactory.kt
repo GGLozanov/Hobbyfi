@@ -18,6 +18,8 @@ class TagListViewModelFactory(val application: Application, val initialTags: Lis
             return UserProfileFragmentViewModel(application, initialTags) as T
         } else if(modelClass.isAssignableFrom(TagSelectionDialogFragmentViewModel::class.java)) {
             return TagSelectionDialogFragmentViewModel(application, initialTags) as T
+        } else if(modelClass.isAssignableFrom(ChatroomEditFragmentViewModel::class.java)) {
+            return ChatroomEditFragmentViewModel(application, initialTags) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

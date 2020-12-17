@@ -6,6 +6,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
@@ -47,8 +48,8 @@ data class Chatroom(
                         ) // FIXME: Extract into singleton
                         .create().fromJson(value!!)
                 }
-                Constants.PHOTO_URL -> {
-                    photoUrl = value
+                Constants.IMAGE -> {
+                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(id) + "/" + id + ".jpg"
                 }
                 Constants.LAST_EVENT_ID -> {
                     val eventId = value!!.toInt()

@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import coil.load
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
@@ -164,12 +164,12 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             data
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
-            binding.chatroomImage.load(
-                it
-            ) // set the new image resource to be decoded from the bitmap
-            viewModel.setProfileImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            binding.chatroomImage.setImageBitmap(it)
+            lifecycleScope.launch {
+                viewModel.setProfileImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
 }

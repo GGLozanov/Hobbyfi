@@ -14,7 +14,6 @@ import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
-import com.facebook.AccessToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -93,7 +92,7 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun deleteUser(): Response? {
+    suspend fun deleteUserCache(): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return try {
             hobbyfiAPI.deleteUser(
@@ -105,19 +104,20 @@ class UserRepository @ExperimentalPagingApi constructor(
             } catch(authEx: AuthorisedRequestException) {
                 getNewTokenWithRefresh()
                     // if this ^ throws exception => user reauth; invalid refresh token & can't fetch response
-                deleteUser()
+                deleteUserCache()
             }
         }
     }
 
     suspend fun saveUser(user: User) {
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
+
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.userDao().insert(user)
         }
     }
 
-    suspend fun deleteUser(user: User): Boolean {
+    suspend fun deleteUserCache(user: User): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
@@ -140,7 +140,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     }
 
     // return livedata of pagedlist for users
-    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultPageConfig()): LiveData<PagingData<User>> {
+    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultChatroomPageConfig()): LiveData<PagingData<User>> {
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
 

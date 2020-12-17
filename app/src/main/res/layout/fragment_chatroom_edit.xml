@@ -34,12 +34,24 @@
                 android:text="@string/edit_chatroom"
                 android:textSize="25sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/name_input_field"
+                app:layout_constraintBottom_toTopOf="@id/chatroom_image"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
             </com.google.android.material.textview.MaterialTextView>
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/chatroom_image"
+                android:layout_width="175dp"
+                android:layout_height="135dp"
+                android:src="@drawable/chatroom_default_pic"
+                app:civ_border_color="@color/colorSecondary"
+                app:civ_border_width="3dp"
+                app:layout_constraintBottom_toTopOf="@id/name_input_field"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_chatroom_header" />
 
             <!-- TODO: Update blank fragment layout -->
             <com.google.android.material.textfield.TextInputLayout
@@ -56,7 +68,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/description_input_field"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edit_chatroom_header"
+                app:layout_constraintTop_toBottomOf="@id/chatroom_image"
                 app:startIconDrawable="@drawable/ic_baseline_person_24">
 
                 <com.google.android.material.textfield.TextInputEditText

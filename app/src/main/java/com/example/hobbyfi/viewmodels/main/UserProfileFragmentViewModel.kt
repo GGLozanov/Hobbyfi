@@ -3,6 +3,7 @@ package com.example.hobbyfi.viewmodels.main
 import android.app.Application
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
+import com.example.hobbyfi.models.Base64Image
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.repositories.UserRepository
@@ -25,10 +26,5 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
         _originalSelectedTags = tags
     }
 
-    private var _base64Image: String? = null
-    val base64Image get() = _base64Image
-
-    fun setProfileImageBase64(base64Image: String) {
-        _base64Image = base64Image
-    }
+    var base64Image: Base64Image = Base64Image()
 }

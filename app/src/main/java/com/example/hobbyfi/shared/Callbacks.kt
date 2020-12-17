@@ -27,8 +27,6 @@ object Callbacks {
     fun handleImageRequestWithPermission(callingFragment: Fragment, activity: Activity,
                                          requestCode: Int, resultCode: Int,
                                          data: Intent?, onImageSuccess: (bitmap: Bitmap) -> Unit) {
-        handlePermissionsResult(callingFragment, Constants.imagePermissionsRequestCode, requestCode, resultCode)
-
         getBitmapFromImageOnActivityResult(
             activity,
             Constants.imageRequestCode,
@@ -36,12 +34,6 @@ object Callbacks {
             resultCode,
             data
         ).also { if(it != null) { onImageSuccess.invoke(it) } }
-    }
-
-    fun handlePermissionsResult(callingFragment: Fragment, requiredRequestCode: Int, requestCode: Int, resultCode: Int) {
-        if(requestCode == requiredRequestCode && resultCode == Activity.RESULT_OK) {
-            openImageSelection(callingFragment, requestCode)
-        }
     }
 
     fun getBitmapFromImageOnActivityResult(

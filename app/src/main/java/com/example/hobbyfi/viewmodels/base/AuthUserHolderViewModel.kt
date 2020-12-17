@@ -56,14 +56,15 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     }
 
     fun updateAndSaveUser(userFields: Map<String?, String?>) {
-        _authUser.value = _authUser.value!!.updateFromFieldMap(userFields)
         viewModelScope.launch {
-            userRepository.saveUser(_authUser.value!!)
+            val updatedUser = _authUser.value!!.updateFromFieldMap(userFields)
+            userRepository.saveUser(updatedUser)
+            _authUser.value = updatedUser
         }
     }
 
     private suspend fun deleteUserCache() {
-        userRepository.deleteUser(_authUser.value!!)
+        userRepository.deleteUserCache(_authUser.value!!)
         _authUser.value = null
     }
 
@@ -131,7 +132,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
         _mainState.value = try {
             val response = UserState.OnData.UserDeleteResult(
-                userRepository.deleteUser()
+                userRepository.deleteUserCache()
             )
 
             deleteUserCache()

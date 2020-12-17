@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -14,9 +15,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.ui.onNavDestinationSelected
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
@@ -202,13 +201,12 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()
-                val loader = ImageLoader(requireContext())
-                val request: ImageRequest = ImageRequest.Builder(requireContext())
-                    .data(profile.getProfilePictureUri(Constants.profileImageWidth, Constants.profileImageHeight))
-                    .build()
+
+                val drawable: Drawable = Glide.with(this@LoginFragment)
+                    .load(profile.getProfilePictureUri(Constants.profileImageWidth, Constants.profileImageHeight))
+                    .submit().get()
                 val image = ImageUtils.encodeImage(
-                    (loader.execute(request) as SuccessResult)
-                        .drawable.toBitmap(Constants.profileImageWidth, Constants.profileImageHeight)
+                    drawable.toBitmap()
                 ) // FIXME: Might not be correct sizes
 
                 viewModel.sendIntent(
