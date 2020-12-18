@@ -7,6 +7,9 @@ import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.example.hobbyfi.R
+import com.example.hobbyfi.databinding.MessageCardReceiveBinding
+import com.example.hobbyfi.databinding.MessageCardSendBinding
+import com.example.hobbyfi.databinding.MessageCardTimelineBinding
 import com.example.hobbyfi.models.Message
 
 
@@ -16,9 +19,9 @@ class ChatroomMessageListAdapter : PagingDataAdapter<Message, RecyclerView.ViewH
         // TODO: databinding & switch viewType for different message cards!
         when(viewType) {}
 
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.message_card_send, parent, false)
-        return ChatroomSendMessageViewHolder(view)
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = MessageCardSendBinding.inflate(inflater, parent, false)
+        return ChatroomSendMessageViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -39,13 +42,13 @@ class ChatroomMessageListAdapter : PagingDataAdapter<Message, RecyclerView.ViewH
         return super.getItemViewType(position)
     }
 
-    class ChatroomSendMessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class ChatroomSendMessageViewHolder(binding: MessageCardSendBinding) : RecyclerView.ViewHolder(binding.root) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): ChatroomSendMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.message_card_send, parent, false)
-                return ChatroomSendMessageViewHolder(view)
+                val binding = MessageCardSendBinding.inflate(inflater, parent, false)
+                return ChatroomSendMessageViewHolder(binding)
             }
         }
 
@@ -55,13 +58,13 @@ class ChatroomMessageListAdapter : PagingDataAdapter<Message, RecyclerView.ViewH
         }
     }
 
-    class ChatroomReceiveMessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class ChatroomReceiveMessageViewHolder(binding: MessageCardReceiveBinding) : RecyclerView.ViewHolder(binding.root) {
         companion object {
             //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup): ChatroomSendMessageViewHolder {
+            fun getInstance(parent: ViewGroup): ChatroomReceiveMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.message_card_receive, parent, false)
-                return ChatroomSendMessageViewHolder(view)
+                val binding = MessageCardReceiveBinding.inflate(inflater, parent, false)
+                return ChatroomReceiveMessageViewHolder(binding)
             }
         }
 
@@ -71,13 +74,13 @@ class ChatroomMessageListAdapter : PagingDataAdapter<Message, RecyclerView.ViewH
         }
     }
 
-    class ChatroomTimelineMessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class ChatroomTimelineMessageViewHolder(binding: MessageCardTimelineBinding) : RecyclerView.ViewHolder(binding.root) {
         companion object {
             //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup): ChatroomSendMessageViewHolder {
+            fun getInstance(parent: ViewGroup): ChatroomTimelineMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.message_card_timeline, parent, false)
-                return ChatroomSendMessageViewHolder(view)
+                val binding = MessageCardTimelineBinding.inflate(inflater, parent, false)
+                return ChatroomTimelineMessageViewHolder(binding)
             }
         }
 

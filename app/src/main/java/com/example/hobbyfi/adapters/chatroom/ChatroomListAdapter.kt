@@ -55,7 +55,7 @@ class ChatroomListAdapter(
         }
     }
 
-    class ChatroomListViewHolder(val context: Context, val binding: ChatroomCardBinding, view: View) : RecyclerView.ViewHolder(view) {
+    class ChatroomListViewHolder(val context: Context, val binding: ChatroomCardBinding) : RecyclerView.ViewHolder(binding.root) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): ChatroomListViewHolder {
@@ -64,7 +64,7 @@ class ChatroomListAdapter(
                     R.layout.chatroom_card,
                     parent, false
                 )
-                return ChatroomListViewHolder(parent.context, binding, binding.root)
+                return ChatroomListViewHolder(parent.context, binding)
             }
         }
 

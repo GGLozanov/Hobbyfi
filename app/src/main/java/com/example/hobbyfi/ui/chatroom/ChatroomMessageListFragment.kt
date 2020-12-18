@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,20 +10,26 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.currentNavigationFragment
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import com.kroegerama.imgpicker.BottomSheetImagePicker
+import com.kroegerama.imgpicker.ButtonType
 import kotlinx.android.synthetic.main.activity_chatroom.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.util.Observer
 
 @ExperimentalCoroutinesApi
-class ChatroomMessageListFragment : ChatroomFragment() {
+class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidationOnus, BottomSheetImagePicker.OnImagesSelectedListener {
     // TODO: Init adapter, loader
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
+
+    private val adapter: ChatroomMessageListAdapter = ChatroomMessageListAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,6 +51,21 @@ class ChatroomMessageListFragment : ChatroomFragment() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(10))
 
+            selectImageButton.setOnClickListener {
+                BottomSheetImagePicker.Builder(getString(R.string.file_provider))
+                    .cameraButton(ButtonType.Button)
+                    .galleryButton(ButtonType.Button)
+                    .multiSelect(1, 4)
+                    .singleSelectTitle(R.string.pick_single)
+                    .peekHeight(R.dimen.peekHeight)
+                    .columnSize(R.dimen.columnSize)
+                    .show(parentFragmentManager)
+            }
+
+            sendMessageButton.setOnClickListener {
+
+            }
+
             return@onCreateView root
         }
     }
@@ -64,5 +86,17 @@ class ChatroomMessageListFragment : ChatroomFragment() {
     private fun setToolbarProperties(chatroom: Chatroom?) {
         val activity = requireActivity() as ChatroomActivity
         activity.title = chatroom?.name
+    }
+
+    override fun onImagesSelected(uris: List<Uri>, tag: String?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun initTextFieldValidators() {
+        TODO("Not yet implemented")
+    }
+
+    override fun assertTextFieldsInvalidity(): Boolean {
+        TODO("Not yet implemented")
     }
 }

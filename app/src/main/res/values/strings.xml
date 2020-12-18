@@ -2,6 +2,7 @@
     <string name="app_name">Hobbyfi</string>
 
     <integer name="google_play_services_version">12451000</integer>
+    <string name="file_provider" translatable="false">com.example.hobbyfi.fileprovider</string>
 
     <string name="pref_file">com.example.preference_file</string>
     <string name="pref_login_status">com.example.preference_login_status</string>
@@ -81,4 +82,5 @@
     <string name="create_event">Create Event</string>
     <string name="delete_chatroom">Delete Chatroom</string>
     <string name="delete_event">Delete Event</string>
+    <string name="pick_single">Pick only one image</string>
 </resources>

@@ -13,7 +13,6 @@
         android:id="@+id/tag_name"
         android:layout_width="110dp"
         android:layout_height="60dp"
-        android:background="@drawable/rounded_container"
         android:ellipsize="end"
         android:fontFamily="@font/rubik_bold"
         android:gravity="center"

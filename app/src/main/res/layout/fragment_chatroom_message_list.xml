@@ -41,6 +41,7 @@
             android:id="@+id/message_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/rounded_container"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -50,6 +51,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginStart="10dp"
                 android:hint="@string/message_hint"
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
@@ -58,7 +60,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/text_input_message"
-                    android:layout_width="200dp"
+                    android:layout_width="250dp"
                     android:layout_height="wrap_content"
                     android:includeFontPadding="true"
                     android:inputType="textEmailAddress"
@@ -67,15 +69,31 @@
                     tools:layout_conversion_absoluteHeight="45dp"
                     tools:layout_conversion_absoluteWidth="20dp"
                     tools:layout_editor_absoluteX="4dp"
-                    tools:layout_editor_absoluteY="4dp"/>
+                    tools:layout_editor_absoluteY="4dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.button.MaterialButton
+            <ImageButton
+                android:id="@+id/select_image_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginStart="30dp"
-                android:layout_marginLeft="30dp" />
+                android:layout_marginLeft="30dp"
+                android:background="@null"
+                android:maxWidth="50dp"
+                android:src="@drawable/ic_baseline_image_42"
+                tools:src="@drawable/ic_baseline_image_42" />
+
+            <ImageButton
+                android:id="@+id/send_message_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="5dp"
+                android:layout_marginLeft="5dp"
+                android:background="@null"
+                android:src="@drawable/ic_baseline_send_42"
+                tools:src="@drawable/ic_baseline_send_42" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

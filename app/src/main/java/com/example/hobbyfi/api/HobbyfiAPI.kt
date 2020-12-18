@@ -164,12 +164,58 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/event/create")
-    suspend fun createEvent(
+    @POST("api/v1.0/message/create")
+    @FormUrlEncoded
+    suspend fun createMessage(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.MESSAGE) message: String
+    ): IdResponse?
 
+    /**
+     *
+     */
+    @GET("api/v1.0/messages/read")
+    suspend fun fetchMessages(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.PAGE) page: Int
     )
 
-    // TODO: Add rest of API operations
+    /**
+     *
+     */
+    @POST("api/v1.0/message/edit")
+    @FormUrlEncoded
+    suspend fun editMessage(
+        @FieldMap body: Map<String?, String?> // ALWAYS takes Id
+    ): Response?
+
+    @DELETE("api/v1.0/message/delete")
+    @FormUrlEncoded
+    suspend fun deleteMessage(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.ID) id: Int
+    ): Response?
+
+    /**
+     *
+     */
+    @POST("api/v1.0/event/create")
+    suspend fun createEvent(
+
+    ): IdResponse?
+
+    @POST("api/v1.0/event/edit")
+    suspend fun editEvent(
+
+    ): Response?
+
+    /**
+     *
+     */
+    @DELETE("api/v1.0/event/delete")
+    suspend fun deleteEvent(
+
+    ): Response?
 
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {

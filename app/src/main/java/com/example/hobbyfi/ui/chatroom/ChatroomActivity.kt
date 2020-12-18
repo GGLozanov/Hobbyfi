@@ -82,6 +82,7 @@ class ChatroomActivity : BaseActivity() {
         // TODO: Register delete/update BroadcastReceiver here that sends DeleteChatroomCache/UpdateChatroomCache intents and responds accordingly
         // https://stackoverflow.com/questions/41793525/how-to-get-fcm-onmessagereceived-event-in-activity-without-pendingintent
         // TODO: Do the same with User intents and Event intents
+        // TODO: First fetch messages from back-end then register for receiving messages
 
         lifecycleScope.launch {
             viewModel.mainState.collect {

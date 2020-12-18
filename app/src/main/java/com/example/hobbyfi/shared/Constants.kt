@@ -136,6 +136,7 @@ object Constants {
     const val PAGE = "page"
     const val DATA = "data"
     const val DATA_LIST = "data_list"
+    const val MESSAGE = "message"
 
     const val PHOTO_URL = "photo_url"
 

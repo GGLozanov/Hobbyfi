@@ -66,7 +66,7 @@ class TagListAdapter(
         }
     }
 
-    class TagViewHolder(val binding: TagCardBinding, itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class TagViewHolder(val binding: TagCardBinding) : RecyclerView.ViewHolder(binding.root) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): TagViewHolder {
@@ -74,7 +74,7 @@ class TagListAdapter(
                     LayoutInflater.from(parent.context),
                     R.layout.tag_card,
                     parent, false)
-                return TagViewHolder(tagCardBinding, tagCardBinding.root)
+                return TagViewHolder(tagCardBinding)
             }
         }
 
