@@ -4,5 +4,5 @@ import android.app.Application
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 
-class ChatroomEditDialogFragmentViewModel(application: Application) : BaseViewModel(application) {
+class EventCreateFragmentViewModel(application: Application) : BaseViewModel(application) {
 }

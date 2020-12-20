@@ -1,6 +1,8 @@
 package com.example.hobbyfi.paging.mediators
 
+import android.util.Log
 import androidx.paging.*
+import androidx.room.withTransaction
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
@@ -9,6 +11,8 @@ import com.example.hobbyfi.persistence.RemoteKeysDao
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.InvalidObjectException
 
 @ExperimentalPagingApi
@@ -24,28 +28,43 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
 
     protected val remoteKeysDao: RemoteKeysDao = hobbyfiDatabase.remoteKeysDao()
 
-    /**
-     * this returns the page key or the final end of list success result
-     */
-    protected suspend fun getKeyPageData(loadType: LoadType, state: PagingState<Key, Value>): Any? {
+
+    protected suspend fun getPage(loadType: LoadType, state: PagingState<Key, Value>): Any {
         return when (loadType) {
             LoadType.REFRESH -> {
-                val remoteKeys = getClosestRemoteKey(state)
+                val remoteKeys = hobbyfiDatabase.withTransaction {
+                    getClosestRemoteKey(state)
+                }
+                Log.i("ModelRemoteM", "getKeyPageData => REFRESH Remote Keys: $remoteKeys")
                 remoteKeys?.nextKey?.minus(1) ?: DEFAULT_PAGE_INDEX
             }
             LoadType.APPEND -> { // load type for whenever data needs to be appended to the paged list (scroll down)
                 // can't return mediator result with endOfPaginationReached to true here because
                 // this may be the last remote key but we don't have context for remote and rely on cache
-                val remoteKeys = getLastRemoteKey(state)
-                    ?: throw InvalidObjectException("Remote key should not be null for $loadType")
+                val remoteKeys = hobbyfiDatabase.withTransaction {
+                    getLastRemoteKey(state)
+                }
+                Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys: $remoteKeys")
+                if (remoteKeys?.nextKey == null) {
+                    Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND")
+                    return MediatorResult.Success(endOfPaginationReached = true)
+                }
+
                 remoteKeys.nextKey
             }
-            LoadType.PREPEND -> { // load type for whenever
-                val remoteKeys = getFirstRemoteKey(state)
-                    ?: throw InvalidObjectException("Invalid state, key should not be null")
+            LoadType.PREPEND -> {
+                // return MediatorResult.Success(endOfPaginationReached = true) // load type for whenever data needs to be prepended to the paged list (scroll up after down)
+                val remoteKeys = hobbyfiDatabase.withTransaction {
+                    getFirstRemoteKey(state)
+                }
                 // end of list condition reached -> reached the top of the page where the first page is loaded initially
                 // which meanas we can set endOfPaginationReached to true
-                remoteKeys.prevKey ?: return MediatorResult.Success(endOfPaginationReached = true)
+                Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys: $remoteKeys")
+                if(remoteKeys?.prevKey == null) {
+                    Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR PREPEND")
+                    return MediatorResult.Success(endOfPaginationReached = true)
+                }
+
                 remoteKeys.prevKey
             }
         }
@@ -54,7 +73,7 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
     /**
      * get the last remote key inserted which had the data
      */
-    protected fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
@@ -64,9 +83,9 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
     /**
      * get the first remote key inserted which had the data
      */
-    protected fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
-            .firstOrNull() { it.data.isNotEmpty() }
+            .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
             ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
     }
@@ -74,15 +93,11 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
     /**
      * get the closest remote key inserted which had the data
      */
-    protected fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
                 remoteKeysDao.getRemoteKeysByIdAndType(modelId, remoteKeyType)
             }
         }
-    }
-
-    protected fun cacheTimedOut(prefId: Int): Boolean {
-        return ((System.currentTimeMillis() / 1000) - prefConfig.readLastPrefFetchTime(prefId)) <= Constants.CACHE_TIMEOUT
     }
 }

@@ -1,20 +1,14 @@
 package com.example.hobbyfi.ui.auth
 
-import android.Manifest
 import android.content.Intent
-import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.util.Patterns
 import android.view.*
 import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.ui.onNavDestinationSelected
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -31,7 +25,6 @@ import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
-import com.example.spendidly.utils.PredicateTextWatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -43,26 +36,20 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
-    private val imageRequestCode: Int = 777
-    private var bitmap: Bitmap? = null
-
     companion object {
-        val tag: String = "RegisterFragment"
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+        const val tag: String = "RegisterFragment"
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
 
         binding.viewModel = viewModel
+
+        initTextFieldValidators()
 
         with(binding) {
             lifecycleOwner = this@RegisterFragment
@@ -72,29 +59,17 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             initTextFieldValidators()
 
             profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
-                if(EasyPermissions.hasPermissions(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    val selectImageIntent = Intent()
-                    selectImageIntent.type = "image/*" // set MIME data type to all images
-
-                    selectImageIntent.action =
-                        Intent.ACTION_GET_CONTENT // set the desired action to get image
-
-                    startActivityForResult(
-                        selectImageIntent,
-                        imageRequestCode
-                    ) // start activity and await result
-                } else {
-                    EasyPermissions.requestPermissions(this@RegisterFragment, getString(R.string.read_external_storage_rationale),
-                        200, Manifest.permission.READ_EXTERNAL_STORAGE)
-                }
+                Callbacks.requestImage(this@RegisterFragment)
             }
 
-            registerAccountButton.setOnClickListener {
+            buttonBar.rightButton.setOnClickListener { // register account
                 if(assertTextFieldsInvalidity()) {
                     Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
                         .show() // TODO: Extract into separate error text
                     return@setOnClickListener
                 }
+                
+                buttonBar.rightButton.isEnabled = false
 
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(TokenIntent.FetchRegisterToken)
@@ -107,10 +82,10 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.tagSelectButton.setOnClickListener {
+        binding.buttonBar.leftButton.setOnClickListener { // select tags
             val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
-                viewModel.selectedTags.toTypedArray(),
-                viewModel.tags.toTypedArray()
+                viewModel.tagBundle.selectedTags.toTypedArray(),
+                viewModel.tagBundle.tags.toTypedArray()
             )
             navController.navigate(action)
         }
@@ -121,6 +96,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                     is TokenState.Idle -> {
                     }
                     is TokenState.Error -> {
+                        binding.buttonBar.rightButton.isEnabled = true
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
                             .show()
                     }
@@ -134,11 +110,11 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                             RegisterFragmentDirections.actionRegisterFragmentToMainActivity(User(
                                 id,
                                 viewModel.email.value!!,
-                                viewModel.username.value!!,
+                                viewModel.name.value!!,
                                 viewModel.description.value,
-                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
-                                        + "/" + id + ".jpg", // FIXME: Find a better way to do this; exposes API logic...
-                                viewModel.selectedTags, // FIXME: User has null tags or just an empty list?
+                                if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                        + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
+                                viewModel.tagBundle.selectedTags,
                                 null
                             )),
                             it.token?.jwt,
@@ -152,34 +128,37 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
             ?.observe(viewLifecycleOwner) { selectedTags ->
-            viewModel.appendNewSelectedTagsToTags(selectedTags)
-            viewModel.setSelectedTags(selectedTags)
+            viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+            viewModel.tagBundle.setSelectedTags(selectedTags)
         }
     }
 
     override fun initTextFieldValidators() {
         with(binding) {
-            textInputEmail.addTextChangedListener(
+            emailInputField.addTextChangedListener(
                 Constants.emailInputError,
                 Constants.emailPredicate
             )
 
-            textInputPassword.addTextChangedListener(
+            passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
 
-            textInputConfirmPassword.addTextChangedListener(
-                Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(viewModel!!.password.value)
-            )
+            viewModel!!.password.observe(viewLifecycleOwner, Observer {
+                confirmPasswordInputField.error = null
+                confirmPasswordInputField.addTextChangedListener(
+                    Constants.confirmPasswordInputError,
+                    Constants.confirmPasswordPredicate(it)
+                )
+            })
 
-            textInputUsername.addTextChangedListener(
+            usernameInputField.addTextChangedListener(
                 Constants.usernameInputError,
-                Constants.usernamePredicate
+                Constants.namePredicate
             )
 
-            textInputDescription.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -188,11 +167,11 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(textInputEmail) ||
-                    FieldUtils.isTextFieldInvalid(textInputPassword) ||
-                    FieldUtils.isTextFieldInvalid(textInputUsername) ||
-                    FieldUtils.isTextFieldInvalid(textInputConfirmPassword) ||
-                    FieldUtils.isTextFieldInvalid(textInputDescription)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(emailInputField, Constants.emailInputError) ||
+                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError) ||
+                    FieldUtils.isTextFieldInvalid(usernameInputField, Constants.usernameInputError) ||
+                    FieldUtils.isTextFieldInvalid(confirmPasswordInputField, Constants.confirmPasswordInputError) ||
+                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
     }
 
@@ -201,29 +180,23 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(Callbacks.getBitmapFromImageOnActivityResult(
-                requireActivity(),
-                imageRequestCode,
-                requestCode,
-                resultCode,
-                data).also { bitmap = it } != null) {
-            binding.profileImage.setImageBitmap(
-                bitmap
-            ) // set the new image resource to be decoded from the bitmap
-            viewModel.setProfileImageBase64(
-                ImageUtils.encodeImage(bitmap!!)
-            )
+        Callbacks.handleImageRequestWithPermission(
+            this,
+            requireActivity(),
+            requestCode,
+            resultCode,
+            data
+        ) {
+            binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
+
+
 }

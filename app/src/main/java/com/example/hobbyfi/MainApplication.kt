@@ -12,6 +12,7 @@ import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
 import androidx.paging.RemoteMediator
+import androidx.room.Room
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
@@ -35,7 +36,7 @@ import org.kodein.di.generic.instance
 import org.kodein.di.generic.provider
 import org.kodein.di.generic.singleton
 
-// TODO: DI, Notification channel, etc. setup
+// TODO: Notification channel setup
 @ExperimentalPagingApi
 class MainApplication : MultiDexApplication(), KodeinAware {
     override val kodein: Kodein = Kodein.lazy {
@@ -65,7 +66,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
-                instance(tag = "chatroomMediator") as ChatroomMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
@@ -103,19 +103,8 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI
-        )
+            )
         }
-        // TODO: Registering these as singletons may not work as they may need to be recreated in pagingSourceFactory
-        // OR TODO: Might need to keep these as singletons. Heck if I know
-//        bind(tag = "chatroomPagingSource") from provider {
-//            (instance(tag = "database") as HobbyfiDatabase).chatroomDao().getChatrooms()
-//        }
-//        bind(tag = "messagePagingSource") from provider {
-//            (instance(tag = "database") as HobbyfiDatabase).messageDao().getMessages()
-//        }
-//        bind(tag = "userPagingSource") from provider {
-//            (instance(tag = "database") as HobbyfiDatabase).userDao().getUsers()
-//        }
     }
 
     override fun onCreate() {

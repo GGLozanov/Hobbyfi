@@ -8,10 +8,10 @@ import com.example.hobbyfi.shared.RemoteKeyType
 @Dao
 interface RemoteKeysDao : BaseDao<RemoteKeys> {
     @Query("SELECT * FROM remoteKeys WHERE id = :id")
-    fun getRemoteKeysById(id: Long): RemoteKeys?
+    suspend fun getRemoteKeysById(id: Long): RemoteKeys?
 
     @Query("SELECT * FROM remoteKeys WHERE id = :id AND modelType = :remoteKeyType")
-    fun getRemoteKeysByIdAndType(id: Long, remoteKeyType: RemoteKeyType): RemoteKeys?
+    suspend fun getRemoteKeysByIdAndType(id: Long, remoteKeyType: RemoteKeyType): RemoteKeys?
 
     @Query("DELETE FROM remoteKeys")
     suspend fun deleteRemoteKeys()
@@ -20,5 +20,8 @@ interface RemoteKeysDao : BaseDao<RemoteKeys> {
     suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType)
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id = :id")
-    suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType)
+    suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType): Int
+
+    @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id != :id")
+    suspend fun deleteRemoteKeysExceptForIdAndForType(id: Long, remoteKeyType: RemoteKeyType): Int
 }

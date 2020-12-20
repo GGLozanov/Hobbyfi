@@ -74,6 +74,7 @@
     </style>
 
     <style name="TextAppearance.App.EditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">@android:color/white</item>
         <item name="fontFamily">@font/rubik</item>
         <item name="android:fontFamily">@font/rubik</item>
     </style>

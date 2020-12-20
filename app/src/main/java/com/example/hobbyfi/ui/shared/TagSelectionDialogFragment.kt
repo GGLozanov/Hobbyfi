@@ -14,7 +14,7 @@ import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseDialogFragment
-import com.example.hobbyfi.viewmodels.factories.TagSelectionDialogFragmentViewModelFactory
+import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
@@ -26,7 +26,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     private val args: TagSelectionDialogFragmentArgs by navArgs()
 
     private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
-        TagSelectionDialogFragmentViewModelFactory(requireActivity().application, args.selectedTags.toList())
+        TagListViewModelFactory(requireActivity().application, args.selectedTags.toList())
     })
 
     private var _binding: FragmentTagSelectionDialogBinding? = null
@@ -64,15 +64,14 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         }
 
         with(binding) {
-            cancelButton.setOnClickListener { dismiss() }
-            confirmTagsButton.setOnClickListener { dismissedFromConfirm = true
-                dismiss() }
+            buttonBar.leftButton.setOnClickListener { dismiss() } // dismiss button
+            buttonBar.rightButton.setOnClickListener { dismissedFromConfirm = true
+                dismiss() } // confirm button
         }
 
         with(navController.previousBackStackEntry?.destination) {
             val targetFragmentId = this?.id
-            if(targetFragmentId == R.id.registerFragment ||
-                    this?.parent?.id == R.id.chatroom_create_nav_graph) {
+            if(targetFragmentId == R.id.registerFragment) {
                 binding.customTagCreateButton.setOnClickListener {
                     if(viewModel.customTagCreateCounter >= 3) {
                         Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
@@ -95,7 +94,8 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey,
-            if(adapter.getSelectedTags() == viewModel.initialSelectedTags || !dismissedFromConfirm) viewModel.initialSelectedTags else adapter.getSelectedTags()
+            if(adapter.getSelectedTags() == viewModel.initialSelectedTags || !dismissedFromConfirm)
+                viewModel.initialSelectedTags else adapter.getSelectedTags()
         )
     }
 }

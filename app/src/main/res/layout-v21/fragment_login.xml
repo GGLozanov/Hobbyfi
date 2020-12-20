@@ -17,6 +17,7 @@
         android:background="@drawable/background_secondary_gradient"
         android:fadeScrollbars="false"
         android:fillViewport="false"
+        android:overScrollMode="always"
         android:visibility="visible"
         tools:visibility="visible">
 
@@ -24,7 +25,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="@drawable/rounded_container"
             tools:context=".ui.auth.LoginFragment">
 
             <androidx.constraintlayout.widget.ConstraintLayout

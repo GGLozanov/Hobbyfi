@@ -3,6 +3,7 @@ package com.example.hobbyfi.viewmodels.chatroom
 import android.app.Application
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.state.MessageListState
@@ -11,6 +12,9 @@ import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class ChatroomMessageListFragmentViewModel(application: Application) :
@@ -24,7 +28,10 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
     override val _mainState: MutableStateFlow<MessageListState> = MutableStateFlow(MessageListState.Idle)
 
     override fun handleIntent() {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            mainIntent.consumeAsFlow().collect {
+            }
+        }
     }
 
 }

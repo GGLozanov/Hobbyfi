@@ -12,100 +12,136 @@
             type="com.example.hobbyfi.models.Chatroom" />
     </data>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/chatroom_card"
-        app:cardBackgroundColor="@{Color.parseColor(ColourUtils.INSTANCE.randomHex)}"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/chatroom_card_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <androidx.cardview.widget.CardView
+            android:id="@+id/chatroom_card"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:cardBackgroundColor="@color/colorBackground"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/chatroom_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="8dp"
-                android:ellipsize="marquee"
-                android:maxWidth="125dp"
-                android:singleLine="false"
-                android:text="@{chatroom.name}"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/chatroom_image"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-            </com.google.android.material.textview.MaterialTextView>
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/chatroom_image"
-                android:layout_width="175dp"
-                android:layout_height="135dp"
-                android:layout_marginTop="8dp"
-                android:src="@drawable/default_pic"
-                app:civ_border_color="@color/colorSecondary"
-                app:civ_border_width="3dp"
-                app:layout_constraintBottom_toTopOf="@id/chatroom_description"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chatroom_name" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/chatroom_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:text="@{chatroom.description}"
-                android:textStyle="bold"
-                android:visibility="@{chatroom.description != null ? View.VISIBLE : View.GONE}"
-                app:layout_constraintBottom_toTopOf="@id/chatroom_hosting_event"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chatroom_image">
-
-            </com.google.android.material.textview.MaterialTextView>
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/chatroom_hosting_event"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@{String.format(`%s %s`, (`Currently hosting an event: `), (chatroom.lastEventId != null ? `Yes!` : `No...`))}"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/tags_grid_view"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chatroom_description">
-
-            </com.google.android.material.textview.MaterialTextView>
-
-            <GridView
-                android:id="@+id/tags_grid_view"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/chatroom_card_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="false"
-                android:numColumns="auto_fit"
-                android:stretchMode="columnWidth"
-                android:verticalSpacing="10dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chatroom_hosting_event" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/chatroom_join_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.cardview.widget.CardView>
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/chatroom_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:ellipsize="marquee"
+                    android:gravity="center"
+                    android:maxWidth="125dp"
+                    android:singleLine="false"
+                    android:text="@{chatroom.name}"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/chatroom_image"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                </com.google.android.material.textview.MaterialTextView>
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/chatroom_image"
+                    android:layout_width="175dp"
+                    android:layout_height="135dp"
+                    android:layout_marginTop="8dp"
+                    android:src="@drawable/chatroom_default_pic"
+                    app:civ_border_color="@color/colorSecondary"
+                    app:civ_border_width="3dp"
+                    app:layout_constraintBottom_toTopOf="@id/chatroom_description"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/chatroom_name" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/chatroom_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@{chatroom.description}"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:visibility="@{chatroom.description != null ? View.VISIBLE : View.GONE}"
+                    app:layout_constraintBottom_toTopOf="@id/chatroom_hosting_event"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/chatroom_image">
+
+                </com.google.android.material.textview.MaterialTextView>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/chatroom_hosting_event"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center"
+                    android:text="@{String.format(`%s %s`, (`Currently hosting an event: `), (chatroom.lastEventId != null ? `Yes!` : `No...`))}"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toTopOf="@id/tags_grid_view"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/chatroom_description">
+
+                </com.google.android.material.textview.MaterialTextView>
+
+                <GridView
+                    android:id="@+id/tags_grid_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginLeft="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginRight="8dp"
+                    android:clickable="false"
+                    android:numColumns="auto_fit"
+                    android:stretchMode="columnWidth"
+                    android:verticalSpacing="10dp"
+                    android:visibility="@{chatroom.tags == null ? View.GONE : View.VISIBLE}"
+                    app:layout_constraintBottom_toTopOf="@id/chatroom_interact_buttons"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/chatroom_hosting_event"
+                    tools:listitem="@layout/chatroom_tag_card" />
+
+                <LinearLayout
+                    android:id="@+id/chatroom_interact_buttons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginLeft="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tags_grid_view">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/chatroom_leave_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/chatroom_join_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginLeft="8dp" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
 </layout>

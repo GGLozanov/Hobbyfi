@@ -23,4 +23,6 @@ data class Tag(
   val isFromFacebook: Boolean = false,
   @PrimaryKey(autoGenerate = true)
   override val id: Long = 0
-) : Model, Parcelable
+) : Model, Parcelable {
+  override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Tag = this
+}

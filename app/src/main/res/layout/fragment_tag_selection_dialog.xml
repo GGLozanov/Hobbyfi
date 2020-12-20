@@ -24,7 +24,6 @@
 
     </com.google.android.material.textview.MaterialTextView>
 
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/tag_list"
         android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
@@ -54,33 +53,12 @@
 
     </com.google.android.material.button.MaterialButton>
 
-    <LinearLayout
+    <include
         android:id="@+id/button_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        layout="@layout/button_bar_pair"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/custom_tag_create_button">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/cancel_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp">
-
-        </com.google.android.material.button.MaterialButton>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/confirm_tags_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginLeft="10dp">
-
-        </com.google.android.material.button.MaterialButton>
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@id/custom_tag_create_button"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

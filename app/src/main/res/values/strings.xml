@@ -2,6 +2,7 @@
     <string name="app_name">Hobbyfi</string>
 
     <integer name="google_play_services_version">12451000</integer>
+    <string name="file_provider" translatable="false">com.example.hobbyfi.fileprovider</string>
 
     <string name="pref_file">com.example.preference_file</string>
     <string name="pref_login_status">com.example.preference_login_status</string>
@@ -10,8 +11,10 @@
 
     <!--Rest of caching is handled by RemoteMediators for Paging3 and Cloud Firestore; these are handled by NetworkBoundFetchers-->
     <string name="pref_last_user_fetch_time">com.example.preference_last_user_fetch_time</string>
+    <string name="pref_last_user_image_fetch_time">com.example.preference_last_user_image_fetch_time</string>
     <string name="pref_last_event_fetch_time">com.example.preference_last_event_fetch_time</string>
     <string name="pref_last_chatrooms_fetch_time">com.example.preference_last_chatrooms_fetch_time</string>
+    <string name="pref_last_chatroom_image_fetch_time">com.example.preference_last_chatroom_image_fetch_time</string>
     <string name="pref_last_chatroom_users_fetch_time">com.example.preference_last_chatroom_users_fetch_time</string>
     <string name="pref_last_chatroom_messages_fetch_time">com.example.preference_last_chatroom_messages_fetch_time</string>
 
@@ -66,5 +69,18 @@
     <string name="profile">Your Profile</string>
     <string name="read_external_storage_rationale">We need to access your storage for you to select your profile picture.</string>
     <string name="chatrooms">Chatrooms</string>
-    <string name="list_error_text">Something went wrong, please try again</string>
+    <string name="list_error_text">Something went wrong? Try again!</string>
+    <string name="create_chatroom_header">Or... just create your own Chatroom!</string>
+    <string name="chatroom_create_header">Create Chatroom</string>
+    <string name="list_suggest_text">Don\'t find what you\'re looking for? Just create your own Chatroom!</string>
+    <string name="chatroom_name_hint">Enter a chatroom name</string>
+
+    <string name="search">Search</string>
+    <string name="info">Info</string>
+    <string name="edit_chatroom">Edit Chatroom</string>
+    <string name="edit_event">Edit Event</string>
+    <string name="create_event">Create Event</string>
+    <string name="delete_chatroom">Delete Chatroom</string>
+    <string name="delete_event">Delete Event</string>
+    <string name="pick_single">Pick only one image</string>
 </resources>

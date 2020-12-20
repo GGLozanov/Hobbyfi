@@ -1,30 +1,30 @@
 package com.example.hobbyfi.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 
-// TODO: Use this adapter with the withLoadStateFooter() method of the PagedListAdapter
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
-    private val createChatroomButtonCallback: OnCreateChatroomButtonPressed? = null) :
+    private inline val onCreateChatroomButton: (view: View) -> Unit) :
     LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
-    interface OnCreateChatroomButtonPressed {
-        fun onCreateChatroomButtonPress(view: View)
-    }
+    private var userHasChatroom: Boolean = false
 
     class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, view: View, private inline val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
 
         companion object {
             fun getInstance(parent: ViewGroup, retry: () -> Unit): DefaultLoaderViewHolder {
-                val inflater = LayoutInflater.from(parent.context)
-                val binding = DefaultRefreshListHeaderBinding.inflate(inflater, parent, false)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.default_refresh_list_header, parent, false)
+                val binding = DefaultRefreshListHeaderBinding.bind(view)
 
                 return DefaultLoaderViewHolder(binding, binding.root, retry)
             }
@@ -36,34 +36,37 @@ class DefaultLoadStateAdapter(
             }
         }
 
-        fun bind(loadState: LoadState) {
+        fun bind(loadState: LoadState, userHasChatroom: Boolean) {
+            Log.i("DefaultLoadStateA", "Binding views by loadState: $loadState")
             with(binding) {
-                listErrorHeader.visibility = toVisibility(loadState is LoadState.Error)
-                refreshPageButton.visibility = toVisibility(loadState is LoadState.Error)
-                progressBar.visibility = toVisibility(loadState is LoadState.Loading)
-            }
-        }
+                listErrorHeader.isVisible = loadState !is LoadState.Loading
+                listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userHasChatroom)
+                    R.string.list_error_text else R.string.list_suggest_text)
 
-        private fun toVisibility(constraint: Boolean): Int = if (constraint) {
-            View.VISIBLE
-        } else {
-            View.GONE
+                refreshPageButton.isVisible = loadState is LoadState.Error || userHasChatroom
+                chatroomCreateButton.isVisible = loadState !is LoadState.Loading && !userHasChatroom
+                progressBar.isVisible = loadState is LoadState.Loading
+            }
         }
     }
 
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
-        if(createChatroomButtonCallback == null || loadState is LoadState.Error) {
-            holder.binding.chatroomCreateButton.visibility = View.GONE
-        } else {
-            holder.binding.chatroomCreateButton.setOnClickListener {
-                createChatroomButtonCallback.onCreateChatroomButtonPress(it)
-            }
+        holder.bind(loadState, userHasChatroom)
+        holder.binding.chatroomCreateButton.setOnClickListener {
+            onCreateChatroomButton.invoke(it)
         }
-
-        holder.bind(loadState)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, loadState: LoadState): DefaultLoaderViewHolder {
         return DefaultLoaderViewHolder.getInstance(parent, retry)
+    }
+
+    fun setUserHasChatroom(hasChatroom: Boolean) {
+        userHasChatroom = hasChatroom
+        notifyDataSetChanged()
+    }
+
+    override fun displayLoadStateAsItem(loadState: LoadState): Boolean {
+        return loadState is LoadState.Loading || loadState is LoadState.Error || loadState is LoadState.NotLoading
     }
 }

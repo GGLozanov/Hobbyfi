@@ -70,7 +70,7 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         return binding.root
     }
 
-    override fun initTextFieldValidators() = binding.textInputTagName.addTextChangedListener(
+    override fun initTextFieldValidators() = binding.tagNameInputField.addTextChangedListener(
         Constants.tagNameInputError,
         Predicate {
             return@Predicate it.isEmpty() || it.length > 25
@@ -78,6 +78,6 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
     )
 
     override fun assertTextFieldsInvalidity(): Boolean {
-        return FieldUtils.isTextFieldInvalid(binding.textInputTagName)
+        return FieldUtils.isTextFieldInvalid(binding.tagNameInputField, Constants.tagNameInputError)
     }
 }

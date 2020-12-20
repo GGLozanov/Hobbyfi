@@ -4,6 +4,7 @@ import android.net.ConnectivityManager
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.paging.*
+import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
@@ -13,9 +14,6 @@ import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
-import com.example.hobbyfi.utils.TokenUtils
-import com.facebook.AccessToken
-import com.facebook.Profile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -34,18 +32,16 @@ class UserRepository @ExperimentalPagingApi constructor(
             }
 
             override fun shouldFetch(cache: User?): Boolean {
-                val lastUserFetchTime = prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time)
                 Log.i("UserRepository", "getUser => isConnected: " + connectivityManager.isConnected())
                 Log.i("UserRepository", "getUser => shouldFetch: " + (cache == null ||
-                        ((System.currentTimeMillis() / 1000) - lastUserFetchTime) <= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()))
-                return cache == null ||
-                        ((System.currentTimeMillis() / 1000) - lastUserFetchTime) <= Constants.CACHE_TIMEOUT || connectivityManager.isConnected()
+                        Constants.cacheTimedOut(prefConfig, R.string.pref_last_user_fetch_time) || connectivityManager.isConnected()))
+                return adheresToDefaultCachePolicy(cache, R.string.pref_last_user_fetch_time)
             }
 
             override suspend fun loadFromDb(): Flow<User?> {
                 Log.i("UserRepository", "getUser -> ${prefConfig.readToken()}")
                 return try {
-                    val userId = getUserIdFromToken()
+                    val userId = prefConfig.getAuthUserIdFromToken()
 
                     hobbyfiDatabase.userDao().getUserById(userId)
                 } catch(ex: Exception) {
@@ -64,7 +60,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             override suspend fun fetchFromNetwork(): CacheResponse<User>? {
                 Log.i("UserRepository", "getUser => fetchFromNetwork() => fetching current auth user from network")
                 return try {
-                    val token = if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()
+                    val token = prefConfig.getAuthUserToken()
                     if(token != null) {
                         val response = hobbyfiAPI.fetchUser(token)
                         Log.i("UserRepository", "getUser -> ${response?.model}")
@@ -81,9 +77,9 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editUser -> editing current user")
         return try {
-            val userId = getUserIdFromToken() // validate token expiry by attempting to get id
+            prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
             hobbyfiAPI.editUser(
-                if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!,
+                prefConfig.getAuthUserToken()!!,
                 userFields
             )
         } catch(ex: Exception) {
@@ -96,55 +92,55 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun deleteUser(): Response? {
+    suspend fun deleteUserCache(): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return try {
             hobbyfiAPI.deleteUser(
-                if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else prefConfig.readToken()!!
+                prefConfig.getAuthUserToken()!!
             )
         } catch(ex: Exception) {
             try {
                 Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
             } catch(authEx: AuthorisedRequestException) {
-                val token = getNewTokenWithRefresh()
+                getNewTokenWithRefresh()
                     // if this ^ throws exception => user reauth; invalid refresh token & can't fetch response
-                deleteUser()
+                deleteUserCache()
             }
         }
     }
 
     suspend fun saveUser(user: User) {
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
+
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.userDao().insert(user)
         }
     }
 
-    suspend fun deleteUser(user: User) {
+    suspend fun deleteUserCache(user: User): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
-        withContext(Dispatchers.IO) {
-            hobbyfiDatabase.userDao().delete(user)
-            hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(user.id, RemoteKeyType.USER)
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.withTransaction {
+                val deletedUser = hobbyfiDatabase.userDao().delete(user)
+                return@withTransaction deletedUser > 0 // auth user should not have remote keys stored
+            }
         }
     }
 
-    // called when user leaves chatroom
-    suspend fun deleteUsers(authId: Long) { // pass in auth Id from cache user directly to avoid any expired token mishaps
+    // called when user leaves chatroom (voluntarily or not - leave chatroom button or yeeted from chatroom)
+    suspend fun deleteUsers(authId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
-        withContext(Dispatchers.IO) {
-            hobbyfiDatabase.userDao().deleteUsersExceptId(authId)
-            hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.USER)
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.withTransaction {
+                val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(authId)
+                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authId, RemoteKeyType.USER)
+                return@withTransaction deletedUsers > 0 && deletedRemoteKeys >= 0
+            }
         }
     }
-
-    private fun getUserIdFromToken(): Long {
-        return if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
-            TokenUtils.getTokenUserIdFromPayload(prefConfig.readToken())
-    }
-
 
     // return livedata of pagedlist for users
-    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultPageConfig()): LiveData<PagingData<User>> {
+    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultChatroomPageConfig()): LiveData<PagingData<User>> {
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
 

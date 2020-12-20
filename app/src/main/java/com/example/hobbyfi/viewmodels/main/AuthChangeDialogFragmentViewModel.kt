@@ -6,21 +6,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.repositories.TokenRepository
-import com.example.hobbyfi.repositories.UserRepository
-import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 // TODO: Avoid code dup and find a way to abstract with AuthFragmentViewModel
 @ExperimentalCoroutinesApi
-class AuthChangeDialogFragmentViewModel(application: Application)
-    : AuthInclusiveViewModel(application) {
+class AuthChangeDialogFragmentViewModel(application: Application) : AuthInclusiveViewModel(application) {
+
+    init {
+        handleIntent()
+    }
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -37,4 +35,12 @@ class AuthChangeDialogFragmentViewModel(application: Application)
 
     @Bindable
     val confirmPassword: MutableLiveData<String> = MutableLiveData()
+
+    private var _newEmail: String? = null
+    val newEmail get() = _newEmail
+
+    // should be mostly called from MainActivity and the like
+    fun setNewEmail(email: String?) {
+        _newEmail = email
+    }
 }

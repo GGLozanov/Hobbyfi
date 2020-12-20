@@ -1,6 +1,7 @@
 package com.example.hobbyfi.api
 
 import android.net.ConnectivityManager
+import android.util.Log
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
 import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
@@ -52,7 +53,7 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/user/exists")
     suspend fun fetchUserExists(
-        @Query(Constants.USERNAME) username: String
+        @Query(Constants.ID) id: Long
     ): Boolean
 
     /**
@@ -93,7 +94,7 @@ interface HobbyfiAPI {
      * @param body - POST body fields containing key-value pairs on fields to be updated in the backend
      * @return - a Model containing a response from the server based on success or failure
      */
-    @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now) FIXME potentially in backend
+    @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now)
     @FormUrlEncoded
     suspend fun editUser(
         @Header(Constants.AUTH_HEADER) token: String,
@@ -113,31 +114,37 @@ interface HobbyfiAPI {
      *
      */
     @POST("api/v1.0/chatroom/create")
+    @FormUrlEncoded
     suspend fun createChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Field(Constants.USERNAME) name: String,
+        @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
-        @Field(Constants.OWNER_ID) ownerId: Int,
         @Field(Constants.IMAGE) image: String?,
         @Field(Constants.TAGS + "[]") tags: List<Tag>?
-    )
+    ): IdResponse?
 
     /**
      *
      */
     @POST("api/v1.0/chatroom/edit")
-    suspend fun editChatroom()
+    @FormUrlEncoded
+    suspend fun editChatroom(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @FieldMap body: Map<String?, String?>
+    ): Response?
 
     /**
      *
      */
     @DELETE("api/v1.0/chatroom/delete")
-    suspend fun deleteChatroom()
+    suspend fun deleteChatroom(
+        @Header(Constants.AUTH_HEADER) token: String
+    ): Response?
 
     /**
      *
      */
-    @GET("api/v1.0/chatroom/delete")
+    @GET("api/v1.0/chatrooms/read")
     suspend fun fetchChatrooms(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.PAGE) page: Int?
@@ -157,18 +164,62 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/event/create")
-    suspend fun createEvent(
+    @POST("api/v1.0/message/create")
+    @FormUrlEncoded
+    suspend fun createMessage(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.MESSAGE) message: String
+    ): IdResponse?
 
+    /**
+     *
+     */
+    @GET("api/v1.0/messages/read")
+    suspend fun fetchMessages(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.PAGE) page: Int
     )
 
-    // TODO: Add rest of API operations
+    /**
+     *
+     */
+    @POST("api/v1.0/message/edit")
+    @FormUrlEncoded
+    suspend fun editMessage(
+        @FieldMap body: Map<String?, String?> // ALWAYS takes Id
+    ): Response?
+
+    @DELETE("api/v1.0/message/delete")
+    @FormUrlEncoded
+    suspend fun deleteMessage(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.ID) id: Int
+    ): Response?
+
+    /**
+     *
+     */
+    @POST("api/v1.0/event/create")
+    suspend fun createEvent(
+
+    ): IdResponse?
+
+    @POST("api/v1.0/event/edit")
+    suspend fun editEvent(
+
+    ): Response?
+
+    /**
+     *
+     */
+    @DELETE("api/v1.0/event/delete")
+    suspend fun deleteEvent(
+
+    ): Response?
 
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {
-
-
                 if(!connectivityManager.isConnected()) {
                     throw NoConnectivityException()
                 }

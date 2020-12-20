@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import com.example.hobbyfi.R
 import com.example.hobbyfi.shared.PrefConfig
 import kotlinx.android.synthetic.main.activity_chatroom.view.*
@@ -22,7 +23,9 @@ abstract class BaseActivity : AppCompatActivity(), KodeinAware {
 
     override fun onStart() {
         super.onStart()
-        navController = findNavController(this, R.id.nav_host_fragment)
+        // navController = findNavController(this, R.id.nav_host_fragment)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
     }
 
 }

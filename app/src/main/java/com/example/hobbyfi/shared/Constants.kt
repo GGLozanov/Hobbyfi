@@ -1,17 +1,22 @@
 package com.example.hobbyfi.shared
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
+import android.util.Log
 import android.util.Patterns
 import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
+import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
-    const val usernameInputError: String = "Enter a non-empty valid username!"
-    const val passwordInputError: String = "Enter a non-empty or shorter/longer password!"
+    const val usernameInputError: String = "Enter a non-empty/shorter username!"
+    const val nameInputError: String = "Enter a non-empty/shorter name!"
+    const val passwordInputError: String = "Enter a non-empty/longer password!"
     const val confirmPasswordInputError: String = "Enter the same password!"
     const val emailInputError: String = "Enter a non-empty valid e-mail address!"
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
@@ -24,7 +29,13 @@ object Constants {
     const val unauthorisedAccessError: String = "Unauthorised access!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
+    const val cacheDeletionError: String = "Couldn't clear old (cached) data!"
+    const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
+    const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
+
+    const val imagePermissionsRequestCode = 200
+    const val imageRequestCode = 777
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -46,13 +57,14 @@ object Constants {
         )
     )
 
-    // TODO: Put in in-memory db
+    // TODO: Put in in-memory db annotated by room with @Database
     val emailPredicate = Predicate<String> {
         return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
     }
 
     fun newEmailPredicate(originalEmail: String?) = Predicate<String> {
-        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches() ||
+                originalEmail == it
     }
 
     val passwordPredicate = Predicate<String> {
@@ -63,7 +75,7 @@ object Constants {
         return@Predicate it.isEmpty() || it != originalPassword
     }
 
-    val usernamePredicate = Predicate<String> {
+    val namePredicate = Predicate<String> {
         return@Predicate it.isEmpty() || it.length >= 25
     }
 
@@ -71,14 +83,27 @@ object Constants {
         return@Predicate it.length >= 30
     }
 
+    const val chatroomPageSize: Int = 5
 
-    fun getDefaultPageConfig(): PagingConfig { // used in pager init
-        return PagingConfig(pageSize = 5, enablePlaceholders = false)
+    fun getDefaultChatroomPageConfig(): PagingConfig { // used in pager init
+        return PagingConfig(pageSize = chatroomPageSize, enablePlaceholders = false)
     }
 
+    // should be in prefconfig but... eh
     fun isFacebookUserAuthd(): Boolean {
-        return AccessToken.getCurrentAccessToken() != null && !AccessToken.getCurrentAccessToken().isExpired
-                && Profile.getCurrentProfile().id != null
+        if(AccessToken.getCurrentAccessToken() != null) {
+            if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile().id != null) {
+                return true
+            } // facebook user access true
+
+            Log.i("Constants", "Facebook user sharedprefs token is expired. Reauthenticating.")
+            throw Repository.ReauthenticationException() // facebook user auth'd but expired token - throw exception to reauth
+        }
+        return false // facebook user not auth'd - just return false
+    }
+
+    fun cacheTimedOut(prefConfig: PrefConfig, prefId: Int): Boolean {
+        return ((System.currentTimeMillis() / 1000) - prefConfig.readLastPrefFetchTime(prefId)) <= Constants.CACHE_TIMEOUT
     }
 
     const val CACHE_TIMEOUT = 60 * 60 * 2 // 2 hours
@@ -111,6 +136,7 @@ object Constants {
     const val PAGE = "page"
     const val DATA = "data"
     const val DATA_LIST = "data_list"
+    const val MESSAGE = "message"
 
     const val PHOTO_URL = "photo_url"
 
@@ -126,5 +152,24 @@ object Constants {
     const val profileImageWidth = 175
     const val profileImageHeight = 135
 
+    const val confirmAccountDeletionMessage: String = "Are you certain you want to delete your account?"
+    const val confirmChatroomDeletionMessage: String = "Are you ABSOLUTELY sure you want to delete this chatroom? All messages will be LOST."
+
+    const val noUpdateFields: String = "No fields to update!"
+
     const val userProfileImageDir = "user_pfps"
+    fun chatroomProfileImageDir(chatroomId: Long): String {
+        return "chatroom_imgs_$chatroomId"
+    }
+
+    fun buildDeleteAlertDialog(context: Context,
+                               dialogMessage: String,
+               onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener) {
+        AlertDialog.Builder(context)
+            .setMessage(dialogMessage)
+            .setPositiveButton("Yes", onConfirm)
+            .setNegativeButton("No", onCancel)
+            .create()
+            .show()
+    }
 }

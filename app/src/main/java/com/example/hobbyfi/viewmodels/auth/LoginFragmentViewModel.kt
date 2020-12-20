@@ -26,9 +26,10 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
     private lateinit var facebookIntent: Channel<FacebookIntent>
 
     override fun handleIntent() {
+        // different channels consumed as flows must be collected in different coroutine jobs
         viewModelScope.launch {
-            facebookIntent = Channel(Channel.UNLIMITED)
-            _facebookState = MutableStateFlow(FacebookState.Idle) // has to be init-ed here for some reason; bruh
+            facebookIntent = Channel(Channel.UNLIMITED) // has to be init'd here. bruh...
+            _facebookState = MutableStateFlow(FacebookState.Idle)
 
             facebookIntent.consumeAsFlow().collectLatest {
                 when(it) {
@@ -39,7 +40,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                         fetchFacebookEmail()
                     }
                     is FacebookIntent.ValidateFacebookUserExistence -> {
-                        fetchUserExistence(it.username)
+                        fetchUserExistence(it.id)
                     }
                 }
             }
@@ -53,7 +54,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
                     is TokenIntent.FetchFacebookRegisterToken -> {
                         Log.i("LoginFragmentVM", "fetching FB register token")
                         fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image,
-                            selectedTags) // fixme: repeated unnecessary checks
+                            tagBundle.selectedTags) // fixme: repeated unnecessary checks
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -65,11 +66,11 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         facebookIntent.send(i)
     }
 
-    private suspend fun fetchUserExistence(username: String) {
+    private suspend fun fetchUserExistence(id: Long) {
         _facebookState.value = FacebookState.Loading
         _facebookState.value = try {
             FacebookState.OnData.ExistenceResultReceived(
-                tokenRepository.getUserExistence(username)
+                tokenRepository.getUserExistence(id)
             )
         } catch(ex: Exception) {
             FacebookState.Error(ex.message)

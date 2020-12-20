@@ -23,6 +23,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
+        app:itemTextColor="@drawable/bottom_nav_item_color"
+        app:itemIconTint="@drawable/bottom_nav_item_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -40,6 +42,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:menu="@menu/register_appbar_menu"
+        app:navigationIconTint="@android:color/white"
         app:titleTextColor="@android:color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

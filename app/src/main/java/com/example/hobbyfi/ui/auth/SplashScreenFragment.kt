@@ -41,7 +41,7 @@ class SplashScreenFragment : BaseFragment() { // surely won't access sharedprefs
                         .compareTo(0) != 0) { // assert jwt doesn't throw exception
                     Log.i("SplashScreen", "Authenticated. Moving to main activity")
 
-                    // TODO: Don't show login fragment being added to backstack
+                    // TODO: Fix explicit navigation to login fragment
                     navController.navigate(R.id.action_splashScreenFragment_to_loginFragment)
                     navController.navigate(
                         LoginFragmentDirections.actionLoginFragmentToMainActivity(

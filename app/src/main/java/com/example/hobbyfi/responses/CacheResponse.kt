@@ -4,7 +4,7 @@ import com.example.hobbyfi.models.Model
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
 
-class CacheResponse<out T: Model>(
+data class CacheResponse<out T: Model>(
     val response: String?,
     @SerializedName("data")
     @Expose

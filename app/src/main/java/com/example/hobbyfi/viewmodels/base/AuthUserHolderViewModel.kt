@@ -11,30 +11,24 @@ import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.UserState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application, user: User?)
-    : StateIntentViewModel<UserState, UserIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
-    init {
-        // TODO: Check if this gets called every time in bottomnav
-        if(user != null) {
-            Log.i("AuthUserHolderVM", "Saving auth user instance")
-            viewModelScope.launch {
-                userRepository.saveUser(user)
-            }
-        }
-    }
-
+abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
+    TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
     protected var _authUser: MutableLiveData<User?> = MutableLiveData(user)
     val authUser: LiveData<User?> get() = _authUser
 
     override val _mainState: MutableStateFlow<UserState> = MutableStateFlow(UserState.Idle)
+
+    protected var _latestTagUpdateFail: MutableLiveData<Boolean> = MutableLiveData(false)
+    val latestTagUpdateFail: LiveData<Boolean> get() = _latestTagUpdateFail
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -57,15 +51,21 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?)
     }
 
     // user fetched - already saved from networkboundfetcher
-    fun setUser(user: User) {
+    open fun setUser(user: User) {
         _authUser.value = user
     }
 
     fun updateAndSaveUser(userFields: Map<String?, String?>) {
-        _authUser.value!!.updateFromFieldMap(userFields)
         viewModelScope.launch {
-            userRepository.saveUser(_authUser.value!!)
+            val updatedUser = _authUser.value!!.updateFromFieldMap(userFields)
+            userRepository.saveUser(updatedUser)
+            _authUser.value = updatedUser
         }
+    }
+
+    private suspend fun deleteUserCache() {
+        userRepository.deleteUserCache(_authUser.value!!)
+        _authUser.value = null
     }
 
     private suspend fun fetchUser() {
@@ -73,32 +73,57 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?)
         // observe flow returned from networkBoundFetcher and change state upon emitted value
         userRepository.getUser().catch { e ->
             e.printStackTrace()
-            _mainState.value = if(e is Repository.ReauthenticationException)
-                UserState.Error(Constants.reauthError, shouldReauth = true) else UserState.Error(e.message)
+            _mainState.value = when(e) {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException, is CancellationException -> {
+                    UserState.Error(
+                        e.message,
+                        shouldReauth = true
+                    )
+                }
+                else -> UserState.Error(
+                    e.message
+                )
+            }
         }.collect {
             if(it != null) {
+                setUser(it)
                 _mainState.value = UserState.OnData.UserResult(it)
             }
         }
     }
 
     private suspend fun updateUser(userFields: Map<String?, String?>) {
+        val userIsUpdatingTags = userFields.containsKey(Constants.TAGS + "[]")
         _mainState.value = UserState.Loading
 
         _mainState.value = try {
-            UserState.OnData.UserUpdateResult(
+            val result = UserState.OnData.UserUpdateResult(
                 userRepository.editUser(userFields),
                 userFields
             )
-        } catch(reauthEx: Repository.ReauthenticationException) {
-            UserState.Error(
-                Constants.reauthError,
-                shouldReauth = true
-            )
+
+            if(userIsUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
+                _latestTagUpdateFail.value = false
+            }
+
+            result
         } catch(ex: Exception) {
-            UserState.Error(
-                ex.message
-            )
+            if(userIsUpdatingTags) {
+                _latestTagUpdateFail.value = true
+            }
+
+            ex.printStackTrace()
+            when(ex) {
+                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
+                    UserState.Error(
+                        ex.message,
+                        shouldReauth = true
+                    )
+                }
+                else -> UserState.Error(
+                    ex.message
+                )
+            }
         }
     }
 
@@ -106,9 +131,13 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?)
         _mainState.value = UserState.Loading
 
         _mainState.value = try {
-            UserState.OnData.UserDeleteResult(
-                userRepository.deleteUser()
+            val response = UserState.OnData.UserDeleteResult(
+                userRepository.deleteUserCache()
             )
+
+            deleteUserCache()
+
+            response
         } catch(reauthEx: Repository.ReauthenticationException) {
             UserState.Error(
                 Constants.reauthError,

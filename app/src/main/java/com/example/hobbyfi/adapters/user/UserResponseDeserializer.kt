@@ -32,7 +32,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
             deserializeJSONField(Constants.DESCRIPTION, DeserializeOption.AS_STRING) as String?,
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
             gson.fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
-            deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_INT) as Int?
+            deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_LONG) as Long?
         )
 
         var response = deserializeJSONField(
