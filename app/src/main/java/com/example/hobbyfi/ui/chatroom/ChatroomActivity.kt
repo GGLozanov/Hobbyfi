@@ -43,7 +43,8 @@ class ChatroomActivity : BaseActivity() {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
-    private lateinit var binding: ActivityChatroomBinding
+
+    lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,9 +158,6 @@ class ChatroomActivity : BaseActivity() {
         viewModel.authChatroom.observe(this, Observer {
             if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
                 title = it?.name
-            } else {
-                // very, very hacky stuff but... that's life
-                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
             }
 
             if(viewModel.isAuthUserChatroomOwner.value == true) {

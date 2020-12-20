@@ -28,6 +28,8 @@ class EventEditDialogFragment : ChatroomDialogFragment() {
         binding = DataBindingUtil
             .inflate(layoutInflater, R.layout.fragment_event_edit_dialog, container, false)
 
+        binding.viewModel = viewModel
+
         with(binding) {
             return@onCreateView root
         }

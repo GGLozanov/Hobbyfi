@@ -4,11 +4,12 @@ import android.os.Bundle
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.navArgs
 import com.example.hobbyfi.ui.base.BaseFragment
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-abstract class ChatroomFragment : BaseFragment() {
+abstract class ChatroomFragment : BaseFragment(), TextFieldInputValidationOnus {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)

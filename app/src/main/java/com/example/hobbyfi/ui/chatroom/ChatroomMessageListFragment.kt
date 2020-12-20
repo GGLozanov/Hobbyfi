@@ -24,7 +24,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.util.Observer
 
 @ExperimentalCoroutinesApi
-class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidationOnus, BottomSheetImagePicker.OnImagesSelectedListener {
+class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.OnImagesSelectedListener {
     // TODO: Init adapter, loader
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding

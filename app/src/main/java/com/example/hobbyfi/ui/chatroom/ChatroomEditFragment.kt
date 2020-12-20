@@ -32,7 +32,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
+class ChatroomEditFragment : ChatroomModelFragment() {
     private lateinit var binding: FragmentChatroomEditBinding
     private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
         TagListViewModelFactory(requireActivity().application,
@@ -155,10 +155,6 @@ class ChatroomEditFragment : ChatroomFragment(), TextFieldInputValidationOnus {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
                     FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        menu.clear()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
