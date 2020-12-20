@@ -1,11 +1,18 @@
 package com.example.hobbyfi.services
 
+import android.content.Context
 import android.util.Log
+import com.example.hobbyfi.shared.PrefConfig
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.android.kodein
+import org.kodein.di.generic.instance
 
 // TODO: Architecture built only on data notifications with push notifications created locally here
 class NotificationMessagingService : FirebaseMessagingService() {
+
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         Log.i("NotificationMService", "WOOOOOOOOOO, FCM MESSAGE RECEIVED BEYBEEEE: ${message}")
@@ -25,6 +32,7 @@ class NotificationMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        // dunno what to do here for now; not using specifics tokens for now so /shrug
     }
 
     override fun onDeletedMessages() {

@@ -63,7 +63,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         }
     }
 
-    fun setChatroom(chatroom: Chatroom) {
+    fun setChatroom(chatroom: Chatroom?) {
         _authChatroom.value = chatroom
         _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
     }
@@ -126,7 +126,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
             throw Exception(Constants.cacheDeletionError)
         }
 
-        _authChatroom.value = null
         updateAndSaveUser(mapOf(
             Pair(Constants.CHATROOM_ID, "0")
         )) // nullify chatroom for cache user after deletion

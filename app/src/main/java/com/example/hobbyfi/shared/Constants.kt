@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
 import android.util.Patterns
+import android.widget.Toast
 import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.models.Tag
@@ -32,6 +33,7 @@ object Constants {
     const val cacheDeletionError: String = "Couldn't clear old (cached) data!"
     const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
+    const val fcmTopicError: String = "Couldn't perform operation! Please check your connection or consult with Google, as this error is not ours!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     const val imagePermissionsRequestCode = 200
@@ -161,6 +163,10 @@ object Constants {
     fun chatroomProfileImageDir(chatroomId: Long): String {
         return "chatroom_imgs_$chatroomId"
     }
+    const val chatroomTopicPrefix = "chatroom_"
+    fun chatroomTopic(chatroomId: Long): String {
+        return chatroomTopicPrefix + chatroomId
+    }
 
     fun buildDeleteAlertDialog(context: Context,
                                dialogMessage: String,
@@ -172,4 +178,5 @@ object Constants {
             .create()
             .show()
     }
+
 }

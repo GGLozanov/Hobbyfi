@@ -30,10 +30,13 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.android.synthetic.main.activity_chatroom.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : BaseActivity() {
@@ -43,6 +46,8 @@ class ChatroomActivity : BaseActivity() {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
+
+    private val fcmTopicErrorFallback: OnFailureListener by instance(tag = "fcmTopicErrorFallback", this)
 
     lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
@@ -119,9 +124,13 @@ class ChatroomActivity : BaseActivity() {
                     is ChatroomState.OnData.ChatroomResult -> {
                         // TODO: UI or smth
                     }
-                    is ChatroomState.OnData.ChatroomDeleteResult -> {
+                    is ChatroomState.OnData.ChatroomDeleteResult, is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
                             .show()
+                        FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants
+                            .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback)
+                        viewModel.setChatroom(null) // clear chatroom in any case
+                        finish()
                         // TODO: Should only show toast or something here in the future and have exiting chatroom and
                         //  nullifying user chatroom ID be handled by DeleteChatroomCacheResult STATE
                     }
@@ -131,10 +140,6 @@ class ChatroomActivity : BaseActivity() {
                         // TODO: Should only show toast or something here in the future and have exiting chatroom
                         //  updates be handled by UpdateChatroomNotification
                         // TODO: Update chatroom cache
-                    }
-                    is ChatroomState.OnData.DeleteChatroomCacheResult -> {
-                        // can be called by both owner and other users
-                        finish()
                     }
                     is ChatroomState.Error -> {
                         Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! ${it.error}", Toast.LENGTH_LONG)

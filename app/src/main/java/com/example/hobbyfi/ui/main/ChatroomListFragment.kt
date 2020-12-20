@@ -1,18 +1,19 @@
 package com.example.hobbyfi.ui.main
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadState
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
@@ -24,13 +25,16 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.kodein.di.generic.instance
+import org.kodein.di.generic.on
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class ChatroomListFragment : MainFragment() {
-    // TODO: Refresh chatroom callback with REFRESH in remoteMediator
     private val viewModel: ChatroomListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomListBinding
     private val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter({ _, chatroom ->
@@ -63,6 +67,8 @@ class ChatroomListFragment : MainFragment() {
 
     private var searchJob: Job? = null
     private var updateJob: Job? = null
+
+    private val fcmTopicErrorFallback: OnFailureListener by instance(tag = "fcmTopicErrorFallback", MainApplication.applicationContext)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -101,8 +107,11 @@ class ChatroomListFragment : MainFragment() {
             .observe(viewLifecycleOwner, Observer { joined ->
                 if(joined) {
                     updateJob = lifecycleScope.launch {
-                        // TODO: Subscribe to FCM
-                        joinChatroom()
+                        // TODO: Handle variable network connection with this and all the other request with WorkManager
+                        FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
+                            viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
+                            joinChatroom()
+                        }.addOnFailureListener(fcmTopicErrorFallback)
                     }
                 } else {
                     Log.i("ChatroomListFragment", "Observing user joined chatroom false")
@@ -112,8 +121,10 @@ class ChatroomListFragment : MainFragment() {
         activityViewModel.leftChatroom
             .observe(viewLifecycleOwner, Observer { left ->
                 if(left) {
-                    // TODO: Unsubscribe from FCM
-                    leaveChatroom()
+                    FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(
+                        viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
+                        leaveChatroom()
+                    }.addOnFailureListener(fcmTopicErrorFallback)
                 }  else {
                     Log.i("ChatroomListFragment", "Observing user left chatroom false")
                 }
@@ -231,7 +242,7 @@ class ChatroomListFragment : MainFragment() {
     }
 
     private fun setChatroomLeaveButtonVisibility(userHasChatroom: Boolean, userId: Long) {
-        var userNotOwner: Boolean? = null
+        var userNotOwner = false
         try {
             userNotOwner = chatroomListAdapter.peek(0)?.ownerId != userId
         } catch(ex: IndexOutOfBoundsException) {
@@ -242,7 +253,7 @@ class ChatroomListFragment : MainFragment() {
         Log.i("ChatroomListFragment", "USER HAS CHATROOM??? ${userHasChatroom}")
 
         chatroomListAdapter.setLeaveChatroomButtonVisibility(
-            userHasChatroom && userNotOwner == true
+            userHasChatroom && userNotOwner
         )
     }
 

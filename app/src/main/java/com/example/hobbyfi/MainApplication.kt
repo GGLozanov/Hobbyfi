@@ -6,6 +6,7 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.os.Build
 import android.util.Patterns
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.multidex.MultiDexApplication
@@ -13,6 +14,7 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingSource
 import androidx.paging.RemoteMediator
 import androidx.room.Room
+import com.example.hobbyfi.MainApplication.Companion.applicationContext
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
@@ -24,17 +26,18 @@ import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.*
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.GsonBuilder
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
-import org.kodein.di.generic.bind
-import org.kodein.di.generic.instance
-import org.kodein.di.generic.provider
-import org.kodein.di.generic.singleton
+import org.kodein.di.generic.*
+import java.lang.Exception
 
 // TODO: Notification channel setup
 @ExperimentalPagingApi
@@ -105,11 +108,22 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "api") as HobbyfiAPI
             )
         }
+        bind(tag = "fcmTopicErrorFallback") from factory { context: Context ->
+            OnFailureListener {
+                Toast.makeText(baseContext, Constants.fcmTopicError, Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
         FacebookSdk.sdkInitialize(applicationContext)
         AppEventsLogger.activateApp(this)
+        MainApplication.applicationContext = applicationContext
+    }
+
+    companion object {
+        lateinit var applicationContext: Context
     }
 }
