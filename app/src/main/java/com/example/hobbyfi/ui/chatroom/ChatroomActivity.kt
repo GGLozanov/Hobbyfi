@@ -122,10 +122,8 @@ class ChatroomActivity : BaseActivity() {
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
                             .show()
-                        onBackPressed()
                         // TODO: Should only show toast or something here in the future and have exiting chatroom and
-                        //  nullifying user chatroom ID be handled by DeleteChatroomNotification STATE
-                        // TODO: Delete chatroom from cache and clear user chatroom id
+                        //  nullifying user chatroom ID be handled by DeleteChatroomCacheResult STATE
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
@@ -135,8 +133,8 @@ class ChatroomActivity : BaseActivity() {
                         // TODO: Update chatroom cache
                     }
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
-                        // can be called by both owner
-                        onBackPressed()
+                        // can be called by both owner and other users
+                        finish()
                     }
                     is ChatroomState.Error -> {
                         Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! ${it.error}", Toast.LENGTH_LONG)

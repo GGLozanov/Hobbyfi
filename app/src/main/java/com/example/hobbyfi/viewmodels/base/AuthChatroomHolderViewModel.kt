@@ -122,11 +122,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
     private suspend fun deleteChatroomCache(setState: Boolean = false) {
         val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!)
-        if(setState) {
-            _chatroomState.value = if(success) ChatroomState.OnData.DeleteChatroomCacheResult
-                else ChatroomState.Error(Constants.cacheDeletionError)
-        }
-
         if(!success) {
             throw Exception(Constants.cacheDeletionError)
         }
@@ -135,6 +130,11 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         updateAndSaveUser(mapOf(
             Pair(Constants.CHATROOM_ID, "0")
         )) // nullify chatroom for cache user after deletion
+
+        if(setState) {
+            _chatroomState.value = if(success) ChatroomState.OnData.DeleteChatroomCacheResult
+            else ChatroomState.Error(Constants.cacheDeletionError)
+        }
     }
 
     private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
