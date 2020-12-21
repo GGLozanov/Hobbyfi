@@ -32,7 +32,7 @@ import com.google.gson.reflect.TypeToken
 import androidx.fragment.app.Fragment
 import com.google.android.material.textfield.TextInputLayout
 
-inline fun <reified T> Gson.fromJson(json: String) = fromJson<T>(json, object: TypeToken<T>() {}.type)
+inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
 inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 

@@ -16,10 +16,6 @@ import java.lang.reflect.Type
 // will probably need this
 class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom>>() {
 
-    val gson = GsonBuilder()
-        .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
-        .create() // TODO: Extract into singleton
-
     override fun deserialize(
         json: JsonElement,
         typeOfT: Type?,
@@ -32,9 +28,10 @@ class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom
             deserializeJSONField(Constants.NAME, DeserializeOption.AS_STRING) as String,
             deserializeJSONField(Constants.DESCRIPTION, DeserializeOption.AS_STRING) as String?,
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
-            gson.fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
+            Constants.tagJsonConverter
+                .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
             deserializeJSONField(Constants.OWNER_ID, DeserializeOption.AS_INT) as Long,
-            deserializeJSONField(Constants.LAST_EVENT_ID, DeserializeOption.AS_INT) as Int?
+            deserializeJSONField(Constants.LAST_EVENT_ID, DeserializeOption.AS_LONG) as Long?
         )
 
         var response = deserializeJSONField(

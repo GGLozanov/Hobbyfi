@@ -67,6 +67,8 @@ class ChatroomActivity : BaseActivity() {
             }
         }
 
+
+
         // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
         //  => triggers REFRESH loadstate in Mediator => check if users last fetch time is too long
         //  => doesn't delete old users (if no connection or time isn't long enough) => fetches users if time is long enough
@@ -89,6 +91,7 @@ class ChatroomActivity : BaseActivity() {
         // https://stackoverflow.com/questions/41793525/how-to-get-fcm-onmessagereceived-event-in-activity-without-pendingintent
         // TODO: Do the same with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
+
 
         lifecycleScope.launch {
             viewModel.mainState.collect {
@@ -240,5 +243,9 @@ class ChatroomActivity : BaseActivity() {
         }
 
         return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 }

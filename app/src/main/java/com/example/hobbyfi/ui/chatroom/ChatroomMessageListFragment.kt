@@ -7,21 +7,21 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
 import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.shared.currentNavigationFragment
-import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
 import kotlinx.android.synthetic.main.activity_chatroom.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import java.util.Observer
 
 @ExperimentalCoroutinesApi
 class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.OnImagesSelectedListener {
@@ -29,7 +29,28 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
-    private val adapter: ChatroomMessageListAdapter = ChatroomMessageListAdapter()
+    private val messageListAdapter: ChatroomMessageListAdapter = ChatroomMessageListAdapter(
+        { view, message ->  },
+        { view, message ->
+            binding.sendMessageButton.setOnClickListener(onEditSendMessage)
+            // TODO: Discord-like banner while editing message with "cancel" materialtextview to swithc back
+            // to the original onClickListener for send button
+        }
+    )
+
+    private val onNormalSendMessage = View.OnClickListener {
+
+    }
+
+    private val onEditSendMessage = View.OnClickListener {
+
+    }
+
+    private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
+        { messageListAdapter.retry() },
+        null,
+        userHasChatroom = true
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,9 +83,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
                     .show(parentFragmentManager)
             }
 
-            sendMessageButton.setOnClickListener {
-
-            }
+            sendMessageButton.setOnClickListener(onNormalSendMessage)
 
             return@onCreateView root
         }
@@ -93,10 +112,13 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
     }
 
     override fun initTextFieldValidators() {
-        TODO("Not yet implemented")
+        binding.messageInputField.addTextChangedListener(
+            Constants.messageInputError,
+            Constants.messagePredicate
+        )
     }
 
     override fun assertTextFieldsInvalidity(): Boolean {
-        TODO("Not yet implemented")
+        return FieldUtils.isTextFieldInvalid(binding.messageInputField, Constants.messageInputError)
     }
 }

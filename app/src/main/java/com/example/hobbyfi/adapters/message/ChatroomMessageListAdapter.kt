@@ -13,7 +13,10 @@ import com.example.hobbyfi.databinding.MessageCardTimelineBinding
 import com.example.hobbyfi.models.Message
 
 
-class ChatroomMessageListAdapter : PagingDataAdapter<Message, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
+class ChatroomMessageListAdapter(
+    private inline val onDeleteMessage: (view: View, message: Message) -> Unit,
+    private inline val onEditMessageSelect: (view: View, message: Message) -> Unit)
+    : PagingDataAdapter<Message, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomSendMessageViewHolder {
         // TODO: databinding & switch viewType for different message cards!

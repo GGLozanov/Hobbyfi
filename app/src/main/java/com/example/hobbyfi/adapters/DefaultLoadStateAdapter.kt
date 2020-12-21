@@ -11,14 +11,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 
+// FIXME: ever-so slightly coupled here
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
-    private inline val onCreateChatroomButton: (view: View) -> Unit) :
+    private inline val onCreateChatroomButton: ((view: View) -> Unit)?,
+    private var userHasChatroom: Boolean = false) :
     LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
-    private var userHasChatroom: Boolean = false
-
-    class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, view: View, private inline val retry: () -> Unit) : RecyclerView.ViewHolder(view) {
+    class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, private inline val retry: () -> Unit) : RecyclerView.ViewHolder(binding.root) {
 
         companion object {
             fun getInstance(parent: ViewGroup, retry: () -> Unit): DefaultLoaderViewHolder {
@@ -26,7 +26,7 @@ class DefaultLoadStateAdapter(
                     .inflate(R.layout.default_refresh_list_header, parent, false)
                 val binding = DefaultRefreshListHeaderBinding.bind(view)
 
-                return DefaultLoaderViewHolder(binding, binding.root, retry)
+                return DefaultLoaderViewHolder(binding, retry)
             }
         }
 
@@ -53,7 +53,7 @@ class DefaultLoadStateAdapter(
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
         holder.bind(loadState, userHasChatroom)
         holder.binding.chatroomCreateButton.setOnClickListener {
-            onCreateChatroomButton.invoke(it)
+            onCreateChatroomButton?.invoke(it)
         }
     }
 

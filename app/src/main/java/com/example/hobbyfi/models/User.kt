@@ -32,6 +32,16 @@ data class User(
     @SerializedName(Constants.CHATROOM_ID)
     var chatroomId: Long?,
 ) : ExpandedModel, Parcelable {
+    constructor(data: Map<String, String>) : this(
+        (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
+        data[Constants.EMAIL],
+        data[Constants.USERNAME] ?: error("User username must not be null!"),
+        data[Constants.DESCRIPTION],
+        data[Constants.PHOTO_URL],
+        Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
+        data[Constants.CHATROOM_ID]?.toLong()
+    )
+
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
         for((key, value) in fieldMap.entries) {
             when(key) {

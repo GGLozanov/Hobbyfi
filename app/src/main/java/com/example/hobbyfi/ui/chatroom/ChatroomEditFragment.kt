@@ -71,9 +71,7 @@ class ChatroomEditFragment : ChatroomModelFragment() {
                 }
 
                 if((activityViewModel.authChatroom.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
-                    fieldMap[Constants.TAGS + "[]"] = (GsonBuilder()
-                        .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
-                        .create()) // TODO: Extract into DI/singleton/static var
+                    fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 

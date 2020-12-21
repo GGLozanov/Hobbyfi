@@ -1,7 +1,13 @@
 package com.example.hobbyfi.services
 
-import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.util.ArrayMap
 import android.util.Log
+import androidx.annotation.RequiresApi
+import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.Model
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -18,6 +24,42 @@ class NotificationMessagingService : FirebaseMessagingService() {
         Log.i("NotificationMService", "WOOOOOOOOOO, FCM MESSAGE RECEIVED BEYBEEEE: ${message}")
         // message has `type` key in data payload that specifies the message type (ex: `EDIT_CHATROOM`, `DELETE_CHATROOM`, etc.)
 
+        val notificationType = message.data[Constants.TYPE]
+        val intent = Intent(notificationType) // action to trigger registered receivers for given notification types
+
+        when(notificationType) {
+            Constants.CREATE_MESSAGE_TYPE -> {
+                // TODO: Push Notification
+            }
+            Constants.CREATE_EVENT_TYPE ->  {
+                // TODO: Push Notification
+            }
+            Constants.EDIT_CHATROOM_TYPE -> {
+
+            }
+            Constants.EDIT_MESSAGE_TYPE -> {
+
+            }
+            Constants.EDIT_EVENT_TYPE -> {
+
+            }
+            Constants.DELETE_CHATROOM_TYPE -> {
+                // TODO: Push Notification
+            }
+            Constants.DELETE_MESSAGE_TYPE -> {
+
+            }
+            Constants.DELETE_EVENT_TYPE -> {
+                // TODO: Push Notification
+            }
+            Constants.JOIN_USER_TYPE -> {
+                // TODO: Push Notification
+            }
+            Constants.LEAVE_USER_TYPE -> {
+                // TODO: Push Notification
+            }
+        }
+
         // try each model's `canBeModelledFromMap` method on RemoteMessage map payload to see if it can be directly mapped
         // if it can then model it directly (first check if `type` key is prefixed with `CREATE_`)
         // otherwise if it can't be mapped and not all the fields are present AND the notification is of type EDIT (prefixed with "EDIT_")
@@ -33,9 +75,33 @@ class NotificationMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         // dunno what to do here for now; not using specifics tokens for now so /shrug
+        // redo subscriptions to topics here somehow...
+        // ...send broadcast?
+        // or schedule tasks with WorkManager to reissue subscriptions there with the db
     }
 
     override fun onDeletedMessages() {
         super.onDeletedMessages()
+    }
+
+    private fun addDestructedMapToIntentExtras(intent: Intent, data: Map<String, String>) {
+        intent.putExtra(Constants.DATA_KEYS, data.keys.toTypedArray())
+        intent.putExtra(Constants.DATA_VALUES, data.values.toTypedArray())
+    }
+
+    private fun addDeletedModelIdToIntentExtras(intent: Intent, data: Map<String, String>) =
+        intent.putExtra(Constants.DELETED_MODEL_ID, (data[Constants.ID] ?: error("Data ID must not be null!"))
+            .toLong())
+
+    private fun addParcelableUserToIntent(intent: Intent, data: Map<String, String>) {
+
+    }
+
+    private fun addParcelableMessageToIntent(intent: Intent, data: Map<String, String>) {
+
+    }
+
+    private fun addParcelableChatroomToIntent(intent: Intent, data: Map<String, String>) {
+
     }
 }

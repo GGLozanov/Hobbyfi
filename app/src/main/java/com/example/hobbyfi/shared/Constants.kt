@@ -1,17 +1,21 @@
 package com.example.hobbyfi.shared
 
+import android.R.string
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
 import android.util.Patterns
-import android.widget.Toast
 import androidx.core.util.Predicate
 import androidx.paging.PagingConfig
+import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+
 
 object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
@@ -21,6 +25,7 @@ object Constants {
     const val confirmPasswordInputError: String = "Enter the same password!"
     const val emailInputError: String = "Enter a non-empty valid e-mail address!"
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
+    const val messageInputError: String = "Enter a valid, non-empty message!"
 
     const val reauthError: String = "Logging out! Your session may have expired!"
     const val resourceExistsError: String = "This user/thing already exists!"
@@ -84,6 +89,10 @@ object Constants {
     val descriptionPredicate = Predicate<String> {
         return@Predicate it.length >= 30
     }
+    
+    val messagePredicate = Predicate<String> {
+        return@Predicate it.isEmpty() || it.length >= 200
+    }
 
     const val chatroomPageSize: Int = 5
 
@@ -139,6 +148,10 @@ object Constants {
     const val DATA = "data"
     const val DATA_LIST = "data_list"
     const val MESSAGE = "message"
+    const val TYPE = "type"
+    const val CREATE_TIME = "create_time"
+    const val USER_SENT_ID = "user_sent_id"
+    const val CHATROOM_SENT_ID = "chatroom_sent_id"
 
     const val PHOTO_URL = "photo_url"
 
@@ -168,9 +181,11 @@ object Constants {
         return chatroomTopicPrefix + chatroomId
     }
 
-    fun buildDeleteAlertDialog(context: Context,
-                               dialogMessage: String,
-               onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener) {
+    fun buildDeleteAlertDialog(
+        context: Context,
+        dialogMessage: String,
+        onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
+    ) {
         AlertDialog.Builder(context)
             .setMessage(dialogMessage)
             .setPositiveButton("Yes", onConfirm)
@@ -179,4 +194,31 @@ object Constants {
             .show()
     }
 
+    // dupped from API and whenever that changes, this needs to as well, but...
+    // how else? Getting it from the server each time?
+    const val CREATE_MESSAGE_TYPE: String = "CREATE_MESSAGE"
+    const val EDIT_MESSAGE_TYPE: String = "EDIT_MESSAGE"
+    const val DELETE_MESSAGE_TYPE: String = "DELETE_MESSAGE"
+    const val JOIN_USER_TYPE: String = "JOIN_USER"
+    const val LEAVE_USER_TYPE: String = "LEAVE_USER"
+    const val DELETE_CHATROOM_TYPE: String = "DELETE_CHATROOM"
+    const val EDIT_CHATROOM_TYPE: String = "EDIT_CHATROOM"
+    const val CREATE_EVENT_TYPE: String = "CREATE_EVENT"
+    const val EDIT_EVENT_TYPE: String = "EDIT_EVENT"
+    const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
+
+    // TODO: Move to DI and use it somehow...?!??
+    // Process death go brrr :(((
+    val tagJsonConverter: Gson = GsonBuilder()
+        .registerTypeAdapter(
+            Tag::class.java,
+            TagTypeAdapter()
+        )
+    .create()
+
+    // intent extra keys
+    // data = FCM message data payload
+    const val DATA_KEYS: String = "data_keys"
+    const val DATA_VALUES: String = "data_values"
+    const val DELETED_MODEL_ID: String = "deleted_model_id"
 }

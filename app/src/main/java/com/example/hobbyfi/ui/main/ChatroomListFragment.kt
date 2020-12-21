@@ -68,7 +68,8 @@ class ChatroomListFragment : MainFragment() {
     private var searchJob: Job? = null
     private var updateJob: Job? = null
 
-    private val fcmTopicErrorFallback: OnFailureListener by instance(tag = "fcmTopicErrorFallback", MainApplication.applicationContext)
+    private val fcmTopicErrorFallback: OnFailureListener by instance(
+        tag = "fcmTopicErrorFallback", MainApplication.applicationContext)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

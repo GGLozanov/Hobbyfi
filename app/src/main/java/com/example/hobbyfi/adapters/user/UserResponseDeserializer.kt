@@ -13,10 +13,6 @@ import com.example.hobbyfi.shared.fromJson
 
 class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
 
-    val gson = GsonBuilder()
-        .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
-        .create()
-
     @Throws(JsonParseException::class)
     override fun deserialize(
         json: JsonElement,
@@ -31,7 +27,8 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
             deserializeJSONField(Constants.USERNAME, DeserializeOption.AS_STRING) as String,
             deserializeJSONField(Constants.DESCRIPTION, DeserializeOption.AS_STRING) as String?,
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
-            gson.fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
+            Constants.tagJsonConverter
+                .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
             deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_LONG) as Long?
         )
 

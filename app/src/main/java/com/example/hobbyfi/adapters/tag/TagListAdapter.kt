@@ -19,7 +19,6 @@ class TagListAdapter(
     private var tags: MutableList<Tag>,
     private var selectedTags: MutableList<Tag>
 ) : RecyclerView.Adapter<TagListAdapter.TagViewHolder>() {
-    
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagViewHolder {
         return TagViewHolder.getInstance(parent)

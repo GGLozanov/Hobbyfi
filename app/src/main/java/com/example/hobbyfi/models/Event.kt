@@ -1,9 +1,14 @@
 package com.example.hobbyfi.models
 
+import android.os.Parcelable
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.android.parcel.Parcelize
 
 @Entity(tableName = "events")
+@Keep
+@Parcelize
 data class Event(
     @PrimaryKey
     override val id: Long,
@@ -14,8 +19,9 @@ data class Event(
     override var photoUrl: String?,
     val latitude: Double,
     val longitude: Double
-) : ExpandedModel {
+) : ExpandedModel, Parcelable {
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Event {
         TODO("Not implemented yet")
     }
+
 }

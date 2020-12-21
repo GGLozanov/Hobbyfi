@@ -89,7 +89,7 @@ object Callbacks {
     fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
         ex.printStackTrace()
         when(ex) {
-            is HobbyfiAPI.NoConnectivityException -> throw Exception(Constants.noConnectionError)
+            is HobbyfiAPI.NoConnectivityException -> throw Repository.NetworkException(Constants.noConnectionError)
             is HttpException -> {
                 ex.printStackTrace()
 
@@ -118,9 +118,9 @@ object Callbacks {
                     else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
             is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException, is InstantiationException -> throw ex
-            else -> throw if(ex.message?.contentEquals("failed to connect to /") == true)
+            else -> throw if(ex.message?.contains("failed to connect to") == true)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
-                else Exception(Constants.unknownError(ex.message))
+                    else Exception(Constants.unknownError(ex.message))
         }
     }
 }
