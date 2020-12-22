@@ -164,7 +164,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         }
     }
 
-    private suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
+    suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
         val updatedUser = _authChatroom.value?.updateFromFieldMap(chatroomFields)
 
         chatroomRepository.saveChatroom(updatedUser!!)

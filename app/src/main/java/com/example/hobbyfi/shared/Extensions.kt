@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Tag
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.textfield.TextInputEditText
@@ -30,6 +29,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import androidx.fragment.app.Fragment
+import com.example.hobbyfi.models.*
 import com.google.android.material.textfield.TextInputLayout
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
@@ -110,6 +110,32 @@ fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
     val params = layoutParams
     params.height = totalHeight
     layoutParams = params
+}
+
+fun android.content.Intent.putDestructedMapExtra(data: Map<String, String>) {
+    putExtra(Constants.DATA_KEYS, data.keys.toTypedArray())
+    putExtra(Constants.DATA_VALUES, data.values.toTypedArray())
+}
+
+fun android.content.Intent.putDeletedModelIdExtra(data: Map<String, String>) =
+    putExtra(Constants.DELETED_MODEL_ID, (data[Constants.ID] ?: error("Data ID must not be null!"))
+        .toLong())
+
+// generic go rippppp
+fun android.content.Intent.putParcelableUserExtra(data: Map<String, String>) {
+    putExtra(Constants.PARCELABLE_MODEL, User(data))
+}
+
+fun android.content.Intent.putParcelableMessageExtra(data: Map<String, String>) {
+    putExtra(Constants.PARCELABLE_MODEL, Message(data))
+}
+
+fun android.content.Intent.putParcelableChatroomExtra(data: Map<String, String>) {
+    putExtra(Constants.PARCELABLE_MODEL, Chatroom(data))
+}
+
+fun android.content.Intent.putParcelableEventExtra(data: Map<String, String>) {
+    putExtra(Constants.PARCELABLE_MODEL, Event(data))
 }
 
 /**

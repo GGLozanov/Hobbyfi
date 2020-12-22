@@ -152,6 +152,10 @@ object Constants {
     const val CREATE_TIME = "create_time"
     const val USER_SENT_ID = "user_sent_id"
     const val CHATROOM_SENT_ID = "chatroom_sent_id"
+    const val START_DATE = "start_date"
+    const val DATE = "date"
+    const val LATITUDE = "latitude"
+    const val LONGITUDE = "longitude"
 
     const val PHOTO_URL = "photo_url"
 
@@ -221,4 +225,5 @@ object Constants {
     const val DATA_KEYS: String = "data_keys"
     const val DATA_VALUES: String = "data_values"
     const val DELETED_MODEL_ID: String = "deleted_model_id"
+    const val PARCELABLE_MODEL: String = "parcelable_model"
 }

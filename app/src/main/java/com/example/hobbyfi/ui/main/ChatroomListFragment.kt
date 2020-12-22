@@ -51,6 +51,11 @@ class ChatroomListFragment : MainFragment() {
             }
         } else {
             // otherwise simply allow the user to join their chatroom
+                // TODO: THIS WON'T BE NEEDED SINCE JOIN/LEAVE SUBSCRIPTION IS IMPLEMENTED CORRECTLY!! ONLY FOR TESTING!!!
+            FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
+                viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
+                joinChatroom()
+            }.addOnFailureListener(fcmTopicErrorFallback)
             updateJob = lifecycleScope.launch {
                 navigateToChatroom()
             }

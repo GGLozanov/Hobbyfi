@@ -84,4 +84,11 @@
     <string name="delete_chatroom">Delete Chatroom</string>
     <string name="delete_event">Delete Event</string>
     <string name="pick_single">Pick only one image</string>
+
+    <string name="create_message_notification_title">New message received!</string>
+    <string name="create_event_notification_title">New event created!</string>
+    <string name="delete_chatroom_notification_title">Chatroom deleted!</string>
+    <string name="delete_chatroom_notification_body">Looks like the chatroom you were apart of was deleted. Don\'t worry, just find (or create) a new one!</string>
+    <string name="join_user_notification_title">New user!</string>
+    <string name="leave_user_notification_title">User left!</string>
 </resources>

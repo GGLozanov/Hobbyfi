@@ -1,6 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.content.DialogInterface
+import android.content.*
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -32,7 +32,6 @@ import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.messaging.FirebaseMessaging
-import kotlinx.android.synthetic.main.activity_chatroom.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -52,11 +51,29 @@ class ChatroomActivity : BaseActivity() {
     lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
 
+    private val editChatroomReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == Constants.EDIT_CHATROOM_TYPE) {
+                // people do checks here ^; idk why given the intent filter
+                // TODO: Update backing chatroom
+                Log.i("ChatroomActivity", "Got me a broadcast receievrino for EDIT CHATROOOOOM")
+            }
+        }
+    }
+
+
+    private val deleteChatroomReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            // TODO: Delete backing chatroom
+            Log.i("ChatroomActivity", "Got me a broadcast receievrino for DELETE CHATROOOOOM")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatroomBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         assertGooglePlayAvailability()
 
         if(viewModel.authUser.value == null && viewModel.authChatroom.value == null) {
@@ -67,7 +84,8 @@ class ChatroomActivity : BaseActivity() {
             }
         }
 
-
+        registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
+        registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
 
         // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
         //  => triggers REFRESH loadstate in Mediator => check if users last fetch time is too long
@@ -85,13 +103,12 @@ class ChatroomActivity : BaseActivity() {
     override fun onStart() {
         super.onStart()
 
-        nav_view_chatroom.setupWithNavController(navController)
+        binding.navViewAdmin.setupWithNavController(navController)
 
         // TODO: Register delete/update BroadcastReceiver here that sends DeleteChatroomCache/UpdateChatroomCache intents and responds accordingly
         // https://stackoverflow.com/questions/41793525/how-to-get-fcm-onmessagereceived-event-in-activity-without-pendingintent
         // TODO: Do the same with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
-
 
         lifecycleScope.launch {
             viewModel.mainState.collect {
@@ -167,11 +184,11 @@ class ChatroomActivity : BaseActivity() {
             }
 
             if(viewModel.isAuthUserChatroomOwner.value == true) {
-                nav_view_admin.menu.clear()
+                binding.navViewAdmin.menu.clear()
                 if(it?.lastEventId == null) {
-                    nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
+                    binding.navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
                 } else {
-                    nav_view_admin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
+                    binding.navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
                 }
             }
         })
@@ -189,8 +206,8 @@ class ChatroomActivity : BaseActivity() {
             if(chatroomOwner) {
                 Log.i("ChatroomActivity", "Current auth user is chatroom owner")
                 // FIXME: Randomly unresolvable bad Kotlin synthetics
-                nav_view_admin.setupWithNavController(navController)
-                nav_view_admin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
+                navViewAdmin.setupWithNavController(navController)
+                navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
                     Constants.buildDeleteAlertDialog(
                         this@ChatroomActivity,
                         Constants.confirmChatroomDeletionMessage,
@@ -247,5 +264,7 @@ class ChatroomActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        unregisterReceiver(editChatroomReceiver)
+        unregisterReceiver(deleteChatroomReceiver)
     }
 }

@@ -12,6 +12,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
     class AuthorisedRequestException(message: String? = null) : Exception(message)
     class ReauthenticationException(message: String? = null) : Exception(message)
     class NetworkException(message: String? = null) : Exception(message)
+    class UnknownErrorException(message: String? = null) : Exception(message)
 
     protected suspend fun getNewTokenWithRefresh(): TokenResponse? {
         return try {

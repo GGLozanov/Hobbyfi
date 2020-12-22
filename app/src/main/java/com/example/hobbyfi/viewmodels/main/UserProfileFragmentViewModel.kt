@@ -14,7 +14,6 @@ import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.generic.instance
 
-// TODO: Fix code dup with AuthFragmentViewModel through fake mixins or something
 @ExperimentalCoroutinesApi
 class UserProfileFragmentViewModel(application: Application, initialTags: List<Tag>) : BaseViewModel(application),
     NameDescriptionBindable by NameDescriptionBindableViewModel() {

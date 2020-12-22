@@ -16,6 +16,13 @@ abstract class ChatroomModelFragment : ChatroomFragment() {
         // hacky way to fix drawer but... so is life. Use toolbars and navviews on individual fragemnts, kids!
     }
 
+    @ExperimentalCoroutinesApi
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (requireActivity() as ChatroomActivity)
+            .binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+    }
+
     override fun onPrepareOptionsMenu(menu: Menu) {
         menu.clear()
     }

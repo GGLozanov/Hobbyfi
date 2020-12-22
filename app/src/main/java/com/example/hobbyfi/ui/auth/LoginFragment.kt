@@ -1,20 +1,14 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
-import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.Patterns
 import android.view.*
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.ui.onNavDestinationSelected
 import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
@@ -30,17 +24,12 @@ import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
-import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
-import com.example.spendidly.utils.PredicateTextWatcher
 import com.facebook.*
 import com.facebook.login.LoginResult
-import kotlinx.android.synthetic.main.activity_auth.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
@@ -105,7 +94,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         Log.i("LoginFragment", "Facebook state loading")
                     }
                     is FacebookState.OnData.ExistenceResultReceived -> {
-                        if(it.exists) {
+                        if (it.exists) {
                             login(
                                 LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                     null,
@@ -132,7 +121,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
                             .show()
 
-                        if(it.error != Constants.noConnectionError) {
+                        if (it.error != Constants.noConnectionError) {
                             // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                             val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                 viewModel.tagBundle.selectedTags.toTypedArray(),
@@ -157,9 +146,12 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.Error -> {
                         // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
-                        when(it.error) {
+                        when (it.error) {
                             Constants.missingDataError -> {
-                                Log.wtf(LoginFragment.tag, "Should never reach here if everything is ok, wtf")
+                                Log.wtf(
+                                    LoginFragment.tag,
+                                    "Should never reach here if everything is ok, wtf"
+                                )
                                 throw RuntimeException()
                             }
                             else -> {
@@ -181,41 +173,53 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
                         login(
-                            LoginFragmentDirections.actionLoginFragmentToMainActivity(User(
-                                profile.id.toLong(), // this will freaking die if Facebook changes their ID schema
-                                viewModel.email.value,
-                                profile.name,
-                                null,
-                                BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
-                                viewModel.tagBundle.selectedTags,
-                                null
-                            ))
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                                User(
+                                    profile.id.toLong(), // this will freaking die if Facebook changes their ID schema
+                                    viewModel.email.value,
+                                    profile.name,
+                                    null,
+                                    BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                    viewModel.tagBundle.selectedTags,
+                                    null
+                                )
+                            )
                         )
                     }
                 }
             }
         }
 
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(viewLifecycleOwner) {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(
+            viewLifecycleOwner
+        ) {
             viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()
 
-                val drawable: Drawable = Glide.with(this@LoginFragment)
-                    .load(profile.getProfilePictureUri(Constants.profileImageWidth, Constants.profileImageHeight))
-                    .submit().get()
-                val image = ImageUtils.encodeImage(
-                    drawable.toBitmap()
-                ) // FIXME: Might not be correct sizes
-
-                viewModel.sendIntent(
-                    TokenIntent.FetchFacebookRegisterToken(
-                        AccessToken.getCurrentAccessToken().token,
-                        profile.name,
-                        image
-                    )
-                )
+                withContext(Dispatchers.IO) {
+                    val drawable = Glide.with(this@LoginFragment)
+                        .load(
+                            profile.getProfilePictureUri(
+                                Constants.profileImageWidth,
+                                Constants.profileImageHeight
+                            )
+                        )
+                        .submit().get()
+                    withContext(Dispatchers.Main) {
+                        val image = ImageUtils.encodeImage(
+                            drawable.toBitmap()
+                        ) // FIXME: Might not be correct sizes
+                        viewModel.sendIntent(
+                            TokenIntent.FetchFacebookRegisterToken(
+                                AccessToken.getCurrentAccessToken().token,
+                                profile.name,
+                                image
+                            )
+                        )
+                    }
+                }
             }
         }
     }
@@ -236,7 +240,10 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(emailInputField, Constants.emailInputError) ||
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(
+                emailInputField,
+                Constants.emailInputError
+            ) ||
                     FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
         }
     }
@@ -246,13 +253,31 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             setPermissions(listOf("email", "user_likes"))
             fragment = this@LoginFragment
             registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
-                override fun onSuccess(loginResult: LoginResult?) {
-                    Log.i("LoginFragment", "Triggered w/ user profile name ${Profile.getCurrentProfile().name}")
-
+                private fun validateProfileExistence() {
                     lifecycleScope.launch {
-                        viewModel.sendFacebookIntent(FacebookIntent.ValidateFacebookUserExistence(
-                            Profile.getCurrentProfile().id.toLong()
-                        ))
+                        Log.i("ID", Profile.getCurrentProfile().id)
+                        viewModel.sendFacebookIntent(
+                            FacebookIntent.ValidateFacebookUserExistence(
+                                Profile.getCurrentProfile().id.toLong()
+                            )
+                        )
+                    }
+                }
+
+                override fun onSuccess(loginResult: LoginResult?) {
+                    if(Profile.getCurrentProfile() == null) {
+                        object : ProfileTracker() {
+                            override fun onCurrentProfileChanged(
+                                oldProfile: Profile?,
+                                profile: Profile
+                            ) {
+                                stopTracking()
+                                Profile.setCurrentProfile(profile)
+                                validateProfileExistence()
+                            }
+                        }
+                    } else {
+                        validateProfileExistence()
                     }
                 }
 
@@ -262,7 +287,11 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 }
 
                 override fun onError(exception: FacebookException) {
-                    Toast.makeText(context, "Facebook login error! ${exception.message}", Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        context,
+                        "Facebook login error! ${exception.message}",
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             })

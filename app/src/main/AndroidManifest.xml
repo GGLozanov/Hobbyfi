@@ -58,7 +58,7 @@
         </service>
 
         <service
-            android:name=".services.LocationPollingService"
+            android:name=".services.LocationService"
             android:exported="false">
             <!--TODO: Proper intent filters-->
         </service>
@@ -95,13 +95,16 @@
         </activity>
         <activity
             android:name=".ui.chatroom.ChatroomActivity"
+            android:parentActivityName=".ui.main.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_chatroom" />
         <activity
             android:name=".ui.chatroom.EventMapsActivity"
+            android:parentActivityName=".ui.chatroom.ChatroomActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_event_maps" />
         <activity android:name=".ui.main.MainActivity"
+            android:parentActivityName=".ui.auth.AuthActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustPan" />
         <activity

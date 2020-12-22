@@ -33,7 +33,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     private val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
         AuthUserViewModelFactory(application, args.user)
     })
-    private lateinit var binding: ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
 
     private var poppedFromNavController: Boolean = false

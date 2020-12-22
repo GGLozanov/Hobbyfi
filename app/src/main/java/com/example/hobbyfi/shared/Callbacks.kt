@@ -120,7 +120,7 @@ object Callbacks {
             is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException, is InstantiationException -> throw ex
             else -> throw if(ex.message?.contains("failed to connect to") == true)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
-                    else Exception(Constants.unknownError(ex.message))
+                    else Repository.UnknownErrorException(Constants.unknownError(ex.message))
         }
     }
 }

@@ -9,7 +9,6 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
-import kotlinx.android.synthetic.main.activity_chatroom.*
 
 class EventCreateFragment : ChatroomModelFragment() {
     private val viewModel: EventCreateFragmentViewModel by viewModels()

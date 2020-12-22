@@ -24,7 +24,6 @@ import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -36,7 +35,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        (requireActivity() as MainActivity).bottom_nav.isVisible = false
+        (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
     }
 
     override fun onCreateView(
@@ -151,7 +150,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        (requireActivity() as MainActivity).bottom_nav.isVisible = true // hacky solution but oh well, nested nav graphs do that
+        (requireActivity() as MainActivity).binding.bottomNav.isVisible = true // hacky solution but oh well, nested nav graphs do that
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

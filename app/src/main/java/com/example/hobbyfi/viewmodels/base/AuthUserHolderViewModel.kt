@@ -74,7 +74,9 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         userRepository.getUser().catch { e ->
             e.printStackTrace()
             _mainState.value = when(e) {
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException, is CancellationException -> {
+                is Repository.ReauthenticationException, is InstantiationException,
+                is InstantiationError, is Repository.NetworkException,
+                is CancellationException, is Repository.UnknownErrorException -> {
                     UserState.Error(
                         e.message,
                         shouldReauth = true
@@ -114,7 +116,9 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
             ex.printStackTrace()
             when(ex) {
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
+                is Repository.ReauthenticationException, is InstantiationException,
+                is InstantiationError, is Repository.NetworkException,
+                is Repository.UnknownErrorException -> {
                     UserState.Error(
                         ex.message,
                         shouldReauth = true
@@ -138,15 +142,21 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             deleteUserCache()
 
             response
-        } catch(reauthEx: Repository.ReauthenticationException) {
-            UserState.Error(
-                Constants.reauthError,
-                shouldReauth = true
-            )
         } catch(ex: Exception) {
-            UserState.Error(
-                ex.message
-            )
+            when(ex) {
+                is Repository.ReauthenticationException, is Repository.NetworkException,
+                is CancellationException, is Repository.UnknownErrorException  -> {
+                    UserState.Error(
+                        Constants.reauthError,
+                        shouldReauth = true
+                    )
+                }
+                else -> {
+                    UserState.Error(
+                        ex.message
+                    )
+                }
+            }
         }
     }
 }

@@ -20,7 +20,6 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewMo
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
-import kotlinx.android.synthetic.main.activity_chatroom.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
@@ -91,19 +90,20 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
 
     override fun onStart() {
         super.onStart()
+        val activity = requireActivity() as ChatroomActivity
+
         activityViewModel.authChatroom.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
-            setToolbarProperties(it)
+            setToolbarProperties(it, activity)
         })
         activityViewModel.isAuthUserChatroomOwner.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
             if(it) {
-                activity?.toolbar
-                    ?.navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
+                activity.binding.toolbar
+                    .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
             }
         })
     }
 
-    private fun setToolbarProperties(chatroom: Chatroom?) {
-        val activity = requireActivity() as ChatroomActivity
+    private fun setToolbarProperties(chatroom: Chatroom?, activity: ChatroomActivity) {
         activity.title = chatroom?.name
     }
 
