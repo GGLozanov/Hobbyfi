@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.repositories.ChatroomRepository
@@ -37,15 +38,17 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
         _base64Image = base64Image
     }
 
+    override val mainStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
+        override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
+    }
+
     init {
         handleIntent()
     }
 
-    override val _mainState: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
-
     override fun handleIntent() {
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
+            mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is ChatroomIntent.CreateChatroom -> {
                         createChatroom()
@@ -57,8 +60,8 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
     }
 
     private suspend fun createChatroom() {
-        _mainState.value = ChatroomState.Loading
-        _mainState.value = try {
+        mainStateIntent.setState(ChatroomState.Loading)
+        mainStateIntent.setState(try {
             ChatroomState.OnData.ChatroomCreateResult(
                 chatroomRepository.createChatroom(
                     name.value!!,
@@ -73,6 +76,6 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
                 ex.message,
                 ex is Repository.ReauthenticationException
             )
-        }
+        })
     }
 }

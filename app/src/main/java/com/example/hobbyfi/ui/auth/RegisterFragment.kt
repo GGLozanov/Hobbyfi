@@ -8,7 +8,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -28,7 +27,6 @@ import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import pub.devrel.easypermissions.EasyPermissions
 
 
 @ExperimentalCoroutinesApi
@@ -183,7 +181,6 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(
-            this,
             requireActivity(),
             requestCode,
             resultCode,

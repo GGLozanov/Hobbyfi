@@ -7,6 +7,7 @@ import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.state.EventState
@@ -21,16 +22,13 @@ import kotlinx.coroutines.launch
 class ChatroomActivityViewModel(application: Application, user: User?, chatroom: Chatroom?)
     : AuthChatroomHolderViewModel(application, user, chatroom) {
 
-    // BIG TODO: Fix code dup around viewmodels with multiple states/intents by bundling these 3 properties into an object
-    // Composition ftw...!
-    private val _eventState: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
-    val eventState: StateFlow<EventState> get() = _eventState
-    private val eventIntent: Channel<EventIntent> = Channel(Channel.UNLIMITED)
+    private val eventStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
+        override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
+    }
 
-
-    private val _userState: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
-    val userState: StateFlow<UserListState> get() = _userState
-    private val userIntent: Channel<UserListIntent> = Channel(Channel.UNLIMITED)
+    private val userStateIntent: StateIntent<UserListState, UserListIntent> = object : StateIntent<UserListState, UserListIntent>() {
+        override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
+    }
 
     init {
         handleIntent()

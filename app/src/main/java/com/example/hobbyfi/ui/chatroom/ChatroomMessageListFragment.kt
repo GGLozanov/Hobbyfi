@@ -8,21 +8,27 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
+import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.utils.FieldUtils
+import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
+@ExperimentalPagingApi
 class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.OnImagesSelectedListener {
     // TODO: Init adapter, loader
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
@@ -76,7 +82,11 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
                     .cameraButton(ButtonType.Button)
                     .galleryButton(ButtonType.Button)
                     .multiSelect(1, 4)
-                    .singleSelectTitle(R.string.pick_single)
+                    .multiSelectTitles(
+                        R.plurals.pick_multi,
+                        R.plurals.pick_multi_more,
+                        R.string.pick_multi_limit
+                    )
                     .peekHeight(R.dimen.peekHeight)
                     .columnSize(R.dimen.columnSize)
                     .show(parentFragmentManager)
@@ -107,8 +117,19 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         activity.title = chatroom?.name
     }
 
+    // FIXME: might, like, totally not work
     override fun onImagesSelected(uris: List<Uri>, tag: String?) {
-        TODO("Not yet implemented")
+        lifecycleScope.launch {
+            uris.forEach {
+                viewModel.sendMessageIntent(
+                    MessageIntent.CreateMessage(
+                        ImageUtils.getEncodedImageFromUri(requireActivity(), it),
+                        activityViewModel.authUser.value!!.id,
+                        activityViewModel.authChatroom.value!!.id
+                    )
+                )
+            }
+        }
     }
 
     override fun initTextFieldValidators() {

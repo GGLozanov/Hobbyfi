@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChangePasswordDialogBinding
@@ -42,9 +43,9 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             container, false
         )
 
+        binding.viewModel = viewModel
         initTextFieldValidators()
 
-        binding.viewModel = viewModel
         with(binding) {
             lifecycleOwner = this@ChangePasswordDialogFragment
 
@@ -101,10 +102,12 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                 Constants.passwordInputError,
                 Constants.passwordPredicate
             )
-            confirmNewPasswordInputField.addTextChangedListener(
-                Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(viewModel!!.password.value)
-            )
+            viewModel!!.password.observe(viewLifecycleOwner, Observer {
+                confirmNewPasswordInputField.addTextChangedListener(
+                    Constants.confirmPasswordInputError,
+                    Constants.confirmPasswordPredicate(it)
+                )
+            })
         }
     }
 

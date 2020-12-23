@@ -140,7 +140,8 @@ class UserRepository @ExperimentalPagingApi constructor(
     }
 
     // return livedata of pagedlist for users
-    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultChatroomPageConfig()): LiveData<PagingData<User>> {
+    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.usersPageSize)):
+            LiveData<PagingData<User>> {
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
 

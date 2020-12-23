@@ -16,12 +16,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
+import com.example.hobbyfi.shared.getDestructedMapExtra
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
@@ -38,6 +40,7 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
+@ExperimentalPagingApi
 class ChatroomActivity : BaseActivity() {
     // TODO: Have this be the deeplink activity. Register it and handle intent extras and facebook/default user
     // TODO: If user leaves chatroom (not exits), delete entire chatroom + cached other users (rip foreign key relations)
@@ -55,8 +58,12 @@ class ChatroomActivity : BaseActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.EDIT_CHATROOM_TYPE) {
                 // people do checks here ^; idk why given the intent filter
-                // TODO: Update backing chatroom
                 Log.i("ChatroomActivity", "Got me a broadcast receievrino for EDIT CHATROOOOOM")
+                lifecycleScope.launch {
+                    viewModel.sendChatroomIntent(
+                        ChatroomIntent.UpdateChatroomCache(intent.getDestructedMapExtra())
+                    )
+                }
             }
         }
     }
@@ -64,8 +71,14 @@ class ChatroomActivity : BaseActivity() {
 
     private val deleteChatroomReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            // TODO: Delete backing chatroom
-            Log.i("ChatroomActivity", "Got me a broadcast receievrino for DELETE CHATROOOOOM")
+            if(intent.action == Constants.DELETE_CHATROOM_TYPE) {
+                Log.i("ChatroomActivity", "Got me a broadcast receievrino for DELETE CHATROOOOOM")
+                lifecycleScope.launch {
+                    viewModel.sendChatroomIntent(
+                        ChatroomIntent.DeleteChatroomCache
+                    )
+                }
+            }
         }
     }
 

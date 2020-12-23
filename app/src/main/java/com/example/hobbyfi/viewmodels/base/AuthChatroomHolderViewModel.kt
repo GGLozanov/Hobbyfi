@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.models.User
@@ -27,11 +28,11 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
-    protected val _chatroomState: MutableStateFlow<ChatroomState>
-            = MutableStateFlow(ChatroomState.Idle)
-    val chatroomState: StateFlow<ChatroomState> get() = _chatroomState
+    private val chatroomStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
+        override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
+    }
 
-    protected val chatroomIntent: Channel<ChatroomIntent> = Channel(Channel.UNLIMITED)
+    val chatroomState get() = chatroomStateIntent.state
 
     private var _isAuthUserChatroomOwner = MutableLiveData(authUser.value?.id ==
             authChatroom.value?.ownerId) // initial check; updated every time auth user or auth chatroom changes
@@ -40,7 +41,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
-            chatroomIntent.consumeAsFlow().collectLatest {
+            chatroomStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is ChatroomIntent.FetchChatroom -> {
                         fetchChatroom()
@@ -69,7 +70,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     }
 
     suspend fun sendChatroomIntent(i: ChatroomIntent) {
-        chatroomIntent.send(i)
+        chatroomStateIntent.sendIntent(i)
     }
 
     override fun setUser(user: User) {
@@ -79,24 +80,24 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
     private suspend fun fetchChatroom() {
         // TODO: If this doesn't work or seems too coupled, make a separate fetch chatroom method and add it to ChatroomState/ChatroomIntent
-        _chatroomState.value = ChatroomState.Loading
+        chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomRepository.getChatroom().catch { e ->
             e.printStackTrace()
-            _chatroomState.value = if(e is Repository.ReauthenticationException)
-                ChatroomState.Error(Constants.reauthError, shouldExit = true) else ChatroomState.Error(e.message)
+            chatroomStateIntent.setState(if(e is Repository.ReauthenticationException)
+                ChatroomState.Error(Constants.reauthError, shouldExit = true) else ChatroomState.Error(e.message))
         }.collect {
             if(it != null) {
                 setChatroom(it)
-                _chatroomState.value = ChatroomState.OnData.ChatroomResult(it)
+                chatroomStateIntent.setState(ChatroomState.OnData.ChatroomResult(it))
             }
         }
     }
 
     private suspend fun deleteChatroom() {
-        _chatroomState.value = ChatroomState.Loading
+        chatroomStateIntent.setState(ChatroomState.Loading)
 
-        _chatroomState.value = try {
+        chatroomStateIntent.setState(try {
             val response = ChatroomState.OnData.ChatroomDeleteResult(
                 chatroomRepository.deleteChatroom()
             )
@@ -117,7 +118,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                     ex.message
                 )
             }
-        }
+        })
     }
 
     private suspend fun deleteChatroomCache(setState: Boolean = false) {
@@ -131,16 +132,16 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         )) // nullify chatroom for cache user after deletion
 
         if(setState) {
-            _chatroomState.value = if(success) ChatroomState.OnData.DeleteChatroomCacheResult
-            else ChatroomState.Error(Constants.cacheDeletionError)
+            chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult
+                else ChatroomState.Error(Constants.cacheDeletionError))
         }
     }
 
     private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
-        _chatroomState.value = ChatroomState.Loading
+        chatroomStateIntent.setState(ChatroomState.Loading)
 
         // TODO: Handle fail tags request and reset back to original selected tags
-        _chatroomState.value = try {
+        chatroomStateIntent.setState(try {
             val response = ChatroomState.OnData.ChatroomUpdateResult(
                 chatroomRepository.editChatroom(updateFields),
                 updateFields
@@ -161,7 +162,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                     ex.message
                 )
             }
-        }
+        })
     }
 
     suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {

@@ -34,7 +34,7 @@ data class Message(
     // is a timeline notification (set to true if received from notification broadcastreceiver)
     val isTimeline: Boolean get() = message == null
 
-    constructor(data: Map<String, String>) : this((data[Constants.ID] ?: error("Message ID must not be null!")).toLong(),
+    constructor(data: Map<String, String?>) : this((data[Constants.ID] ?: error("Message ID must not be null!")).toLong(),
         data[Constants.MESSAGE],
         data[Constants.CREATE_TIME] ?: error("Message create time must not be null!"),
         (data[Constants.USER_SENT_ID] ?: error("Message user sent ID must not be null!")).toLong(),

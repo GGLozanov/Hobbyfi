@@ -1,26 +1,20 @@
 package com.example.hobbyfi.ui.main
 
-import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
@@ -32,11 +26,8 @@ import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
-import com.google.gson.GsonBuilder
-import io.grpc.Context.key
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
 class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
@@ -229,7 +220,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(
-            this,
             requireActivity(),
             requestCode,
             resultCode,

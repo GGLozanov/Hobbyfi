@@ -16,17 +16,15 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.fragment.app.Fragment
 import io.jsonwebtoken.lang.InstantiationException
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.android.closestKodein
-import org.kodein.di.android.kodein
 
 
 object Callbacks {
 
-    fun handleImageRequestWithPermission(callingFragment: Fragment, activity: Activity,
-                                         requestCode: Int, resultCode: Int,
-                                         data: Intent?, onImageSuccess: (bitmap: Bitmap) -> Unit) {
+    fun handleImageRequestWithPermission(
+        activity: Activity, requestCode: Int,
+        resultCode: Int, data: Intent?,
+        onImageSuccess: (bitmap: Bitmap) -> Unit
+    ) {
         getBitmapFromImageOnActivityResult(
             activity,
             Constants.imageRequestCode,
@@ -89,7 +87,7 @@ object Callbacks {
     fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
         ex.printStackTrace()
         when(ex) {
-            is HobbyfiAPI.NoConnectivityException -> throw Repository.NetworkException(Constants.noConnectionError)
+            is HobbyfiAPI.NoConnectivityException -> throw Exception(Constants.noConnectionError)
             is HttpException -> {
                 ex.printStackTrace()
 

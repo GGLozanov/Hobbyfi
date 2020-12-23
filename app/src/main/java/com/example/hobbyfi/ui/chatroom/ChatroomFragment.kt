@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.chatroom
 import android.os.Bundle
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.navArgs
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
@@ -15,6 +16,7 @@ abstract class ChatroomFragment : BaseFragment(), TextFieldInputValidationOnus {
         setHasOptionsMenu(true)
     }
 
+    @ExperimentalPagingApi
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {
         val activityArgs: ChatroomActivityArgs by (activity as ChatroomActivity).navArgs()

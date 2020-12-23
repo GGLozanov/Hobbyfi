@@ -1,6 +1,6 @@
 package com.example.hobbyfi.intents
 
-sealed class FacebookIntent {
+sealed class FacebookIntent : Intent {
     object FetchFacebookUserTags : FacebookIntent()
     object FetchFacebookUserEmail : FacebookIntent()
 

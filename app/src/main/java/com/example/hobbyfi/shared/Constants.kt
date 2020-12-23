@@ -95,9 +95,11 @@ object Constants {
     }
 
     const val chatroomPageSize: Int = 5
+    const val messagesPageSize: Int = 20
+    const val usersPageSize: Int = 30
 
-    fun getDefaultChatroomPageConfig(): PagingConfig { // used in pager init
-        return PagingConfig(pageSize = chatroomPageSize, enablePlaceholders = false)
+    fun getDefaultPageConfig(pageSize: Int): PagingConfig { // used in pager init
+        return PagingConfig(pageSize = pageSize, enablePlaceholders = false)
     }
 
     // should be in prefconfig but... eh
@@ -205,6 +207,7 @@ object Constants {
     const val DELETE_MESSAGE_TYPE: String = "DELETE_MESSAGE"
     const val JOIN_USER_TYPE: String = "JOIN_USER"
     const val LEAVE_USER_TYPE: String = "LEAVE_USER"
+    const val EDIT_USER_TYPE: String = "EDIT_USER"
     const val DELETE_CHATROOM_TYPE: String = "DELETE_CHATROOM"
     const val EDIT_CHATROOM_TYPE: String = "EDIT_CHATROOM"
     const val CREATE_EVENT_TYPE: String = "CREATE_EVENT"
@@ -226,4 +229,6 @@ object Constants {
     const val DATA_VALUES: String = "data_values"
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
+
+    class ImageFetchException(message: String? = null) : Exception(message)
 }

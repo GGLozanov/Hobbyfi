@@ -32,7 +32,7 @@ data class User(
     @SerializedName(Constants.CHATROOM_ID)
     var chatroomId: Long?,
 ) : ExpandedModel, Parcelable {
-    constructor(data: Map<String, String>) : this(
+    constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
         data[Constants.EMAIL],
         data[Constants.USERNAME] ?: error("User username must not be null!"),
@@ -67,8 +67,12 @@ data class User(
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_ID -> {
-                    val chatroomId = value!!.toLong()
-                    this.chatroomId = if(chatroomId.compareTo(0) == 0) null else chatroomId
+                    if(value != null) {
+                        val chatroomId = value.toLong()
+                        this.chatroomId = if(chatroomId.compareTo(0) == 0) null else chatroomId
+                    } else {
+                        this.chatroomId = null
+                    }
                 }
             }
         }

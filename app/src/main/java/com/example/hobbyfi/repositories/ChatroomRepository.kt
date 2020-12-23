@@ -15,7 +15,8 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants.getDefaultChatroomPageConfig
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,8 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
     : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
-    fun getChatrooms(pagingConfig: PagingConfig = getDefaultChatroomPageConfig(), shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
+    fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
+                     shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
         Log.i("ChatroomRepository", "getChatrooms -> getting current chatrooms with shouldFetchAuthChatroom: ${shouldFetchAuthChatroom}")
         val pagingSource = { hobbyfiDatabase.chatroomDao().getChatrooms() }
         return Pager(
@@ -136,7 +138,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         Log.i("TokenRepository", "deleteChatroom -> deleting current chatroom")
 
         return try {
-            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
+            prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
 
             hobbyfiAPI.deleteChatroom(
                 prefConfig.getAuthUserToken()!!,

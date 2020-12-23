@@ -54,4 +54,6 @@ object ImageUtils {
             )
         }
     }
+
+    suspend fun getEncodedImageFromUri(activity: Activity, uri: Uri) = encodeImage(getBitmapFromUri(activity, uri))
 }

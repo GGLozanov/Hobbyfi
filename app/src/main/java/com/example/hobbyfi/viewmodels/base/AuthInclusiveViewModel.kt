@@ -5,6 +5,7 @@ import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.TokenIntent
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.state.TokenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,8 +21,9 @@ abstract class AuthInclusiveViewModel(application: Application) : StateIntentVie
 
     protected val tokenRepository: TokenRepository by instance(tag = "tokenRepository")
 
-    override val _mainState: MutableStateFlow<TokenState>
-            = MutableStateFlow(TokenState.Idle)
+    override val mainStateIntent: StateIntent<TokenState, TokenIntent> = object : StateIntent<TokenState, TokenIntent>() {
+        override val _state: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
+    }
 
     @Bindable
     val email: MutableLiveData<String> = MutableLiveData()
@@ -30,8 +32,8 @@ abstract class AuthInclusiveViewModel(application: Application) : StateIntentVie
     val password: MutableLiveData<String> = MutableLiveData()
 
     protected suspend fun fetchLoginToken() {
-        _mainState.value = TokenState.Loading
-        _mainState.value = try {
+        mainStateIntent.setState(TokenState.Loading)
+        mainStateIntent.setState(try {
             TokenState.TokenReceived(tokenRepository.getLoginToken(
                 email.value!!,
                 password.value!!
@@ -39,6 +41,6 @@ abstract class AuthInclusiveViewModel(application: Application) : StateIntentVie
         } catch(ex: Exception) {
             ex.printStackTrace()
             TokenState.Error(ex.localizedMessage)
-        }
+        })
     }
 }

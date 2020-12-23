@@ -138,6 +138,13 @@ fun android.content.Intent.putParcelableEventExtra(data: Map<String, String>) {
     putExtra(Constants.PARCELABLE_MODEL, Event(data))
 }
 
+fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
+    val keys = extras?.get(Constants.DATA_KEYS) as Array<String>
+    val values = extras?.get(Constants.DATA_VALUES) as Array<String>
+    return keys.zip(values)
+        .toMap()
+}
+
 /**
  * Manages the various graphs needed for a [BottomNavigationView].
  *

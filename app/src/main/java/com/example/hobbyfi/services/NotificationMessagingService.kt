@@ -11,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
@@ -19,6 +20,7 @@ import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
+@ExperimentalPagingApi
 class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver {
     private var isAppInForeground: Boolean = false
 
@@ -46,7 +48,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         super.onMessageReceived(message)
         Log.i("NotificationMService", "WOOOOOOOOOO, FCM MESSAGE RECEIVED BEYBEEEE: ${message}")
         // message has `type` key in data payload that specifies the message type (ex: `EDIT_CHATROOM`, `DELETE_CHATROOM`, etc.)
-        val data = message.data
+        val data = message.data // nullable types like 'description', etc. are sent as empty string or "0" and handled by the models
         val notificationType = data[Constants.TYPE]
         val intent = Intent(notificationType) // action to trigger registered receivers for given notification types
 
@@ -67,7 +69,8 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 // TODO: Finish
                 body = "Take a look at <EVENT_NAME> and try to join in!"
             }
-            Constants.EDIT_CHATROOM_TYPE, Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE  -> {
+            Constants.EDIT_CHATROOM_TYPE, Constants.EDIT_USER_TYPE,
+            Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE -> {
                 intent.putDestructedMapExtra(data)
             }
             Constants.DELETE_CHATROOM_TYPE, Constants.DELETE_EVENT_TYPE -> {

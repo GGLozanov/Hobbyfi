@@ -20,7 +20,10 @@ class UserMediator(
 ) : ModelRemoteMediator<Int, User>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.USER) {
 
     // TODO: get user token, get cached auth user from id, check his chatroom id and make request based on that
-    override suspend fun load(loadType: LoadType, state: PagingState<Int, User>): MediatorResult {
+    override suspend fun load(
+        loadType: LoadType,
+        state: PagingState<Int, User>
+    ): MediatorResult {
         TODO("Not yet implemented")
         // get remote keys & try network request & check for NoConnectivityException; if present, just return no success mediator result
         // and fetch whatever you can from old cache

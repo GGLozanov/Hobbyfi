@@ -24,7 +24,7 @@ data class Event(
     val latitude: Double,
     val longitude: Double
 ) : ExpandedModel, Parcelable {
-    constructor(data: Map<String, String>) : this(
+    constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("Event ID must not be null!")).toLong(),
         data[Constants.NAME] ?: error("Event name must not be null!"),
         data[Constants.DESCRIPTION],

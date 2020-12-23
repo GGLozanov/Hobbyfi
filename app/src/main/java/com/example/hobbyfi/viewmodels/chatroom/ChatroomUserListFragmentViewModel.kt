@@ -3,6 +3,7 @@ package com.example.hobbyfi.viewmodels.chatroom
 import android.app.Application
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.intents.UserListIntent
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.state.UserListState
 import com.example.hobbyfi.state.UserState
@@ -18,7 +19,9 @@ class ChatroomUserListFragmentViewModel(application: Application) : StateIntentV
         handleIntent()
     }
 
-    override val _mainState: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
+    override val mainStateIntent: StateIntent<UserListState, UserListIntent> = object : StateIntent<UserListState, UserListIntent>() {
+        override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
+    }
 
     override fun handleIntent() {
     }

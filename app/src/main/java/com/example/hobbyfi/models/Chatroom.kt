@@ -27,7 +27,7 @@ data class Chatroom(
     @SerializedName(Constants.LAST_EVENT_ID)
     var lastEventId: Long?
 ) : ExpandedModel, Parcelable {
-    constructor(data: Map<String, String>) :
+    constructor(data: Map<String, String?>) :
             this((data[Constants.ID] ?: error("Chatroom ID must not be null!")).toLong(),
                 data[Constants.NAME] ?: error("Chatroom name must not be null!"),
                 data[Constants.DESCRIPTION],
@@ -54,8 +54,12 @@ data class Chatroom(
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(id) + "/" + id + ".jpg"
                 }
                 Constants.LAST_EVENT_ID -> {
-                    val eventId = value!!.toLong()
-                    this.lastEventId = if(eventId.compareTo(0) == 0) null else eventId
+                    if(value != null) {
+                        val eventId = value.toLong()
+                        this.lastEventId = if(eventId.compareTo(0) == 0) null else eventId
+                    } else {
+                        this.lastEventId = null
+                    }
                 }
             }
         }

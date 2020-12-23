@@ -27,7 +27,7 @@ class MainActivityViewModel(application: Application, user: User?)
     val leftChatroom: LiveData<Boolean> get() = _leftChatroom
 
     fun resetState() {
-        _mainState.value = UserState.Idle
+        mainStateIntent.setState(UserState.Idle)
     }
 
     init {

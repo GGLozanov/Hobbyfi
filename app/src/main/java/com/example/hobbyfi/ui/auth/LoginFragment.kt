@@ -1,6 +1,8 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -10,6 +12,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
@@ -27,6 +31,7 @@ import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginResult
+import com.squareup.okhttp.Dispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -197,29 +202,38 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()
-
-                withContext(Dispatchers.IO) {
-                    val drawable = Glide.with(this@LoginFragment)
+                val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
+                    Glide.with(this@LoginFragment)
+                        .asBitmap()
                         .load(
                             profile.getProfilePictureUri(
                                 Constants.profileImageWidth,
                                 Constants.profileImageHeight
                             )
-                        )
-                        .submit().get()
-                    withContext(Dispatchers.Main) {
-                        val image = ImageUtils.encodeImage(
-                            drawable.toBitmap()
-                        ) // FIXME: Might not be correct sizes
-                        viewModel.sendIntent(
-                            TokenIntent.FetchFacebookRegisterToken(
-                                AccessToken.getCurrentAccessToken().token,
-                                profile.name,
-                                image
-                            )
-                        )
-                    }
+                        ).into(object : CustomTarget<Bitmap>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap>?
+                            ) {
+                                continuation.resume(resource, null)
+                            }
+
+                            override fun onLoadCleared(placeholder: Drawable?) {
+                                continuation.cancel(Constants.ImageFetchException())
+                            }
+                        })
                 }
+
+                val image = ImageUtils.encodeImage(
+                    bitmap
+                )
+                viewModel.sendIntent(
+                    TokenIntent.FetchFacebookRegisterToken(
+                        AccessToken.getCurrentAccessToken().token,
+                        profile.name,
+                        image
+                    )
+                )
             }
         }
     }
@@ -242,8 +256,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         with(binding) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(
                 emailInputField,
-                Constants.emailInputError
-            ) ||
+                Constants.emailInputError) ||
                     FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
         }
     }
@@ -291,8 +304,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         context,
                         "Facebook login error! ${exception.message}",
                         Toast.LENGTH_LONG
-                    )
-                        .show()
+                    ).show()
                 }
             })
         }
