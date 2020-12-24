@@ -16,6 +16,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -30,12 +31,21 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
         override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
     }
 
-    init {
-        handleIntent()
-    }
-
     override fun handleIntent() {
         super.handleIntent()
+        viewModelScope.launch {
+            eventStateIntent.intentAsFlow().collectLatest {
 
+            }
+        }
+        viewModelScope.launch {
+            userStateIntent.intentAsFlow().collectLatest {
+
+            }
+        }
+    }
+
+    init {
+        handleIntent()
     }
 }

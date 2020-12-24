@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 // can allow foreign keys here since if messages are received, there are ALWAYS chatrooms/users in cache
 @Entity(tableName = "messages", foreignKeys = [
@@ -26,7 +26,7 @@ data class Message(
     val createTime: String, // iso string?
     @SerializedName(Constants.USER_SENT_ID)
     @ColumnInfo(name = "userSentId", index = true)
-    val userSentId: Long?,
+    val userSentId: Long,
     @SerializedName(Constants.CHATROOM_SENT_ID)
     @ColumnInfo(name = "chatroomSentId", index = true)
     val chatroomSentId: Long,

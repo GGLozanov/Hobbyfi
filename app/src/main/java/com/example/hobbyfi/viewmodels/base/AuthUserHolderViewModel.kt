@@ -76,19 +76,11 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         // observe flow returned from networkBoundFetcher and change state upon emitted value
         userRepository.getUser().catch { e ->
             e.printStackTrace()
-            mainStateIntent.setState(when(e) {
-                is Repository.ReauthenticationException, is InstantiationException,
-                is InstantiationError, is Repository.NetworkException,
-                is CancellationException, is Repository.UnknownErrorException -> {
-                    UserState.Error(
-                        e.message,
-                        shouldReauth = true
-                    )
-                }
-                else -> UserState.Error(
-                    e.message
-                )
-            })
+            mainStateIntent.setState(
+                UserState.Error(
+                    e.message,
+                    shouldReauth = isExceptionCritical(e as Exception)
+                ))
         }.collect {
             if(it != null) {
                 setUser(it)
@@ -118,19 +110,10 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             }
 
             ex.printStackTrace()
-            when(ex) {
-                is Repository.ReauthenticationException, is InstantiationException,
-                is InstantiationError, is Repository.NetworkException,
-                is Repository.UnknownErrorException -> {
-                    UserState.Error(
-                        ex.message,
-                        shouldReauth = true
-                    )
-                }
-                else -> UserState.Error(
-                    ex.message
-                )
-            }
+            UserState.Error(
+                ex.message,
+                shouldReauth = isExceptionCritical(ex)
+            )
         })
     }
 
@@ -146,20 +129,10 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
             response
         } catch(ex: Exception) {
-            when(ex) {
-                is Repository.ReauthenticationException, is Repository.NetworkException,
-                is CancellationException, is Repository.UnknownErrorException  -> {
-                    UserState.Error(
-                        Constants.reauthError,
-                        shouldReauth = true
-                    )
-                }
-                else -> {
-                    UserState.Error(
-                        ex.message
-                    )
-                }
-            }
+            UserState.Error(
+                Constants.reauthError,
+                shouldReauth = isExceptionCritical(ex)
+            )
         })
     }
 }

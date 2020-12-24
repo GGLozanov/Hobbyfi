@@ -14,7 +14,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "users")
 @Keep

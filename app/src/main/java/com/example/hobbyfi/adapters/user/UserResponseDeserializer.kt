@@ -19,7 +19,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): CacheResponse<User> {
-        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA)
+        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA_LIST)
 
         val entity = User(
             deserializeJSONField(Constants.ID, DeserializeOption.AS_LONG) as Long,

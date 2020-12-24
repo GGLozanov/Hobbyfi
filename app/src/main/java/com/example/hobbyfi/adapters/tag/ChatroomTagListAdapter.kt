@@ -12,7 +12,8 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.utils.ColourUtils
 
 
-class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Context, resource: Int) : ArrayAdapter<Tag>(context, resource) {
+class ChatroomTagListAdapter(private var chatroomTags: List<Tag>, context: Context, resource: Int) :
+        ArrayAdapter<Tag>(context, resource) {
     override fun getCount(): Int {
         return chatroomTags.size
     }

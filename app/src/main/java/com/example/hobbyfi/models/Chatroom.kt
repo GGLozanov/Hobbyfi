@@ -8,7 +8,7 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 // TODO: Room embed fields & typeconverters for saving tag lists in chatroom/user entity
 @Entity(tableName = "chatrooms")

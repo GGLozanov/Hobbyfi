@@ -79,14 +79,15 @@ interface HobbyfiAPI {
     ): TokenResponse?
 
     /**
-     * GET request to retrieve a single user and their info from the server
+     * GET request to retrieve a user's/users' info from the server
      * @param token - JWT for the given auth user used to validate requests to secure endpoints
      * @return - a User model containing all the necessary information and the appropriate response from server
      */
-    @GET("api/v1.0/user/read")
-    suspend fun fetchUser(
-        @Header(Constants.AUTH_HEADER) token: String // id inside token for DB query; token inside auth header
-    ): CacheResponse<User>?
+    @GET("api/v1.0/users/read")
+    suspend fun fetchUsers(
+        @Header(Constants.AUTH_HEADER) token: String, // id inside token for DB query; token inside auth header
+        @Query(Constants.PAGE) page: Int?
+    ): CacheListResponse<User>?
 
     /**
      * POST request to update a given user with the params specified in the body
@@ -148,18 +149,7 @@ interface HobbyfiAPI {
     suspend fun fetchChatrooms(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.PAGE) page: Int?
-    ) : CacheListResponse<Chatroom>
-
-    /**
-     * GET request to fetch all other users apart from the authenticated (auth'd) one
-     * @param token - JWT for the given auth user used to validate requests to secure endpoints (contains auth user's id)
-     * @return - a map of "user" string (+ their id - i.e. "user1") and user models (no string response; if something goes awry, blame it on the user's connection)
-     */
-    @GET("api/v1.0/users/read")
-    suspend fun fetchChatroomUsers(
-        @Header(Constants.AUTH_HEADER) token: String,
-        @Query(Constants.PAGE) page: Int
-    ): List<User>? // FIXME: Modify to List<UserResponse> for new API
+    ): CacheListResponse<Chatroom>
 
     /**
      *
@@ -169,7 +159,7 @@ interface HobbyfiAPI {
     suspend fun createMessage(
         @Header(Constants.AUTH_HEADER) token: String,
         @Field(Constants.MESSAGE) message: String
-    ): IdResponse?
+    ): CreateTimeIdResponse?
 
     /**
      *
@@ -178,7 +168,7 @@ interface HobbyfiAPI {
     suspend fun fetchMessages(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.PAGE) page: Int
-    )
+    ): CacheListResponse<Message>
 
     /**
      *
@@ -186,6 +176,7 @@ interface HobbyfiAPI {
     @POST("api/v1.0/message/edit")
     @FormUrlEncoded
     suspend fun editMessage(
+        @Header(Constants.AUTH_HEADER) token: String,
         @FieldMap body: Map<String?, String?> // ALWAYS takes Id
     ): Response?
 
@@ -260,13 +251,13 @@ interface HobbyfiAPI {
                                 ChatroomResponseDeserializer()
                             )
                             .registerTypeAdapter(
-                                TypeToken.getParameterized(CacheListResponse::class.java, Message::class.java).type,
+                                TypeToken.getParameterized(CacheResponse::class.java, Message::class.java).type,
                                 MessageResponseDeserializer()
                             )
                             .registerTypeAdapter(
                                 Tag::class.java,
                                 TagTypeAdapter()
-                            ) // FIXME: unnecessary registration since this is only used in other type adapters?
+                            )
                             .create()
                     )
                 )

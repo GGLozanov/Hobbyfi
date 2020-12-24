@@ -40,6 +40,7 @@ class UserRepository @ExperimentalPagingApi constructor(
 
             override suspend fun loadFromDb(): Flow<User?> {
                 Log.i("UserRepository", "getUser -> ${prefConfig.readToken()}")
+                // TODO: Edit a bit to use performAuthorisedRequest() method
                 return try {
                     val userId = prefConfig.getAuthUserIdFromToken()
 
@@ -60,53 +61,45 @@ class UserRepository @ExperimentalPagingApi constructor(
             override suspend fun fetchFromNetwork(): CacheResponse<User>? {
                 Log.i("UserRepository", "getUser => fetchFromNetwork() => fetching current auth user from network")
                 return try {
-                    val token = prefConfig.getAuthUserToken()
-                    if(token != null) {
-                        val response = hobbyfiAPI.fetchUser(token)
-                        Log.i("UserRepository", "getUser -> ${response?.model}")
-                        response
-                    } else null
+                    val response = hobbyfiAPI.fetchUsers(
+                        prefConfig.getAuthUserToken()!!,
+                        null
+                    )
+                    Log.i("UserRepository", "getUser -> ${response?.modelList}")
+                    with(response) {
+                        CacheResponse(response = this!!.response, this.modelList[0])
+                    }
                 } catch(ex: Exception) {
                     ex.printStackTrace()
+
                     Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true) // no need for authorised request handling here because token parsing already handles expired token exceptions
                 }
             }
         }.asFlow()
     }
 
+    // TODO: Find a way to extract this "try->extract->recursion" block into func that takes variable lambdas as execution blocks
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editUser -> editing current user")
-        return try {
-            prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
+        return performAuthorisedRequest({
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
                 userFields
             )
-        } catch(ex: Exception) {
-            try {
-                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-            } catch(authEx: AuthorisedRequestException) {
-                getNewTokenWithRefresh()
-                editUser(userFields) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
-            }
-        }
+        }, {
+            editUser(userFields) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
+        })
     }
 
     suspend fun deleteUserCache(): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
-        return try {
+        return performAuthorisedRequest({
             hobbyfiAPI.deleteUser(
                 prefConfig.getAuthUserToken()!!
             )
-        } catch(ex: Exception) {
-            try {
-                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-            } catch(authEx: AuthorisedRequestException) {
-                getNewTokenWithRefresh()
-                    // if this ^ throws exception => user reauth; invalid refresh token & can't fetch response
-                deleteUserCache()
-            }
-        }
+        }, {
+            deleteUserCache()
+        })
     }
 
     suspend fun saveUser(user: User) {
@@ -118,6 +111,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     }
 
     suspend fun deleteUserCache(user: User): Boolean {
+        Log.i("UserRepository", "deleteUser -> deleting auth user: $user")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
@@ -129,6 +123,7 @@ class UserRepository @ExperimentalPagingApi constructor(
 
     // called when user leaves chatroom (voluntarily or not - leave chatroom button or yeeted from chatroom)
     suspend fun deleteUsers(authId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
+        Log.i("UserRepository", "deleteUsers -> deleting auth users with auth id: $authId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {

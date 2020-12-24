@@ -8,36 +8,31 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
+import com.example.hobbyfi.databinding.UserCardBinding
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.User
 
 class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.ChatroomUserViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomUserViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.user_card, parent, false)
-        return ChatroomUserViewHolder(view)
+        return ChatroomUserViewHolder.getInstance(parent)
     }
 
     override fun onBindViewHolder(holder: ChatroomUserViewHolder, position: Int) {
-//        holder.idView.text = item.id
-//        holder.contentView.text = item.content
+
     }
 
-    class ChatroomUserViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    class ChatroomUserViewHolder(binding: UserCardBinding) : RecyclerView.ViewHolder(binding.root) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): ChatroomUserViewHolder {
-                val inflater = LayoutInflater.from(parent.context)
-                val view = inflater.inflate(R.layout.message_card_send, parent, false)
-                return ChatroomUserViewHolder(view)
+                val binding = UserCardBinding.inflate(LayoutInflater.from(parent.context))
+                return ChatroomUserViewHolder(binding)
             }
         }
 
 
-        fun bind(chatroom: Chatroom?) {
-            //loads image from network using coil extension function
-            // todo: databinding init here
+        fun bind(user: User?) {
         }
     }
 

@@ -15,14 +15,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class ChatroomUserListFragmentViewModel(application: Application) : StateIntentViewModel<UserListState, UserListIntent>(application) {
     // TODO: Upon fetching pagingdata, set the UserState to onData and pass in the pagingdata in order to trigger observer in view
     // TODO: Kodein data source instance
-    init {
-        handleIntent()
-    }
 
     override val mainStateIntent: StateIntent<UserListState, UserListIntent> = object : StateIntent<UserListState, UserListIntent>() {
         override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
     }
 
     override fun handleIntent() {
+    }
+
+    init {
+        handleIntent()
     }
 }

@@ -106,18 +106,10 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
             response
         } catch(ex: Exception) {
-            // FIXME: code dup exception handling (have to because states are somewhat unrelated and assignments/instance generation can't be done with reflections
-            when(ex) {
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
-                    ChatroomState.Error(
-                        ex.message,
-                        shouldExit = true
-                    )
-                }
-                else -> ChatroomState.Error(
-                    ex.message
-                )
-            }
+            ChatroomState.Error(
+                ex.message,
+                shouldExit = isExceptionCritical(ex)
+            )
         })
     }
 
@@ -140,7 +132,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
         chatroomStateIntent.setState(ChatroomState.Loading)
 
-        // TODO: Handle fail tags request and reset back to original selected tags
         chatroomStateIntent.setState(try {
             val response = ChatroomState.OnData.ChatroomUpdateResult(
                 chatroomRepository.editChatroom(updateFields),
@@ -151,17 +142,10 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
             response
         } catch(ex: Exception) {
-            when(ex) {
-                is Repository.ReauthenticationException, is InstantiationException, is InstantiationError, is Repository.NetworkException -> {
-                    ChatroomState.Error(
-                        ex.message,
-                        shouldExit = true
-                    )
-                }
-                else -> ChatroomState.Error(
-                    ex.message
-                )
-            }
+            ChatroomState.Error(
+                ex.message,
+                shouldExit = isExceptionCritical(ex)
+            )
         })
     }
 

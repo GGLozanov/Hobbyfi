@@ -9,4 +9,5 @@ class EventRepository(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
     hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
     : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+        // TODO: Cloud Firestore records here
 }

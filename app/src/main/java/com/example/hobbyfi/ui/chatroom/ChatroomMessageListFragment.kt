@@ -117,15 +117,13 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         activity.title = chatroom?.name
     }
 
-    // FIXME: might, like, totally not work
+    // FIXME: might, like, totally not work. Maybe just send one intent and parse the URIs there and make them seperate requests
     override fun onImagesSelected(uris: List<Uri>, tag: String?) {
         lifecycleScope.launch {
             uris.forEach {
                 viewModel.sendMessageIntent(
                     MessageIntent.CreateMessage(
-                        ImageUtils.getEncodedImageFromUri(requireActivity(), it),
-                        activityViewModel.authUser.value!!.id,
-                        activityViewModel.authChatroom.value!!.id
+                        ImageUtils.getEncodedImageFromUri(requireActivity(), it)
                     )
                 )
             }

@@ -28,7 +28,6 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
 
     protected val remoteKeysDao: RemoteKeysDao = hobbyfiDatabase.remoteKeysDao()
 
-
     protected suspend fun getPage(loadType: LoadType, state: PagingState<Key, Value>): Any {
         return when (loadType) {
             LoadType.REFRESH -> {
@@ -70,30 +69,21 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
         }
     }
 
-    /**
-     * get the last remote key inserted which had the data
-     */
-    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
             ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
     }
 
-    /**
-     * get the first remote key inserted which had the data
-     */
-    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
             ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
     }
 
-    /**
-     * get the closest remote key inserted which had the data
-     */
-    protected suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
                 remoteKeysDao.getRemoteKeysByIdAndType(modelId, remoteKeyType)

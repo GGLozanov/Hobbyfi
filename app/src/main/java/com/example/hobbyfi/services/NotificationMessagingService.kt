@@ -63,7 +63,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 body = "YOUR MESSAGE SHOULD BE HERE BUT APP IS STILL WIP"
             }
             Constants.CREATE_EVENT_TYPE ->  {
-                // TODO: Push Notification
                 intent.putParcelableEventExtra(data)
                 title = resources.getString(R.string.create_event_notification_title)
                 // TODO: Finish
@@ -82,13 +81,11 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 intent.putDeletedModelIdExtra(data)
             }
             Constants.JOIN_USER_TYPE -> {
-                // TODO: Push Notification
                 intent.putParcelableUserExtra(data)
                 title = resources.getString(R.string.join_user_notification_title)
                 body = "<USERNAME> just joined the chatroom!"
             }
             Constants.LEAVE_USER_TYPE -> {
-                // TODO: Push Notification
                 intent.putDeletedModelIdExtra(data)
                 title = resources.getString(R.string.leave_user_notification_title)
                 body = "<USERNAME> just left the chatroom!"
@@ -106,18 +103,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             // not push notification
             sendBroadcast(intent)
         }
-
-
-        // try each model's `canBeModelledFromMap` method on RemoteMessage map payload to see if it can be directly mapped
-        // if it can then model it directly (first check if `type` key is prefixed with `CREATE_`)
-        // otherwise if it can't be mapped and not all the fields are present AND the notification is of type EDIT (prefixed with "EDIT_")
-        // send the data payload (even the `type` key) with the proper action for the broadcastreceiver intent garnered from the `type` key
-
-        // TODO: Might not need all of these checks from models and missing fields; just check the notification `type` key and act upon that no matter what
-
-        // update chatroom message => has ONLY updated fields in notification
-        // if update chatroom message is last event id change update the cache and don't do anything special; else => show toast
-        // event create notification should be triggered after that
     }
 
     override fun onNewToken(token: String) {

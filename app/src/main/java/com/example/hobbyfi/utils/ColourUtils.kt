@@ -6,13 +6,6 @@ import kotlin.random.Random
 
 object ColourUtils {
     fun getRandomHex(): String {
-//        val letters = "0123456789ABCDEF"
-//        var colour = "#"
-//
-//        for(i in 0..6) {
-//            colour += letters[Random.nextInt(letters.length)]
-//        }
-//        return colour
         return String.format("#{0:X6}", Random.nextInt(0x1000000))
     }
 
