@@ -45,7 +45,7 @@ class MainApplication : MultiDexApplication(), KodeinAware {
     override val kodein: Kodein = Kodein.lazy {
         import(androidXModule(this@MainApplication))
 
-        // todo: put these strings in constants obj
+        // todo: remove these service bindings and replace them with the bindings from Kodein's module.kt
         bind(tag = "connectivityManager") from singleton { applicationContext!!.getSystemService(
             Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         }

@@ -29,6 +29,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import androidx.fragment.app.Fragment
+import androidx.paging.PagingData
 import com.example.hobbyfi.models.*
 import com.google.android.material.textfield.TextInputLayout
 
@@ -143,6 +144,17 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
     val values = extras?.get(Constants.DATA_VALUES) as Array<String>
     return keys.zip(values)
         .toMap()
+}
+
+fun<T: Model> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
+    val list = mutableListOf<T>()
+    for(i in 0..itemCount) {
+        val model = peek(i)
+        if(model != null) {
+            list.add(model)
+        }
+    }
+    return list
 }
 
 /**

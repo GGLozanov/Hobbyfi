@@ -1,13 +1,17 @@
 package com.example.hobbyfi.shared
 
-import android.R.string
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
 import android.util.Patterns
+import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.core.util.Predicate
+import androidx.databinding.BindingAdapter
 import androidx.paging.PagingConfig
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.Repository
@@ -231,4 +235,9 @@ object Constants {
     const val PARCELABLE_MODEL: String = "parcelable_model"
 
     class ImageFetchException(message: String? = null) : Exception(message)
+
+    val imageRegex = Regex(
+        Regex.escape(BuildConfig.BASE_URL) +
+                "\\/uploads\\/[^.]+\\.jpg"
+    )
 }

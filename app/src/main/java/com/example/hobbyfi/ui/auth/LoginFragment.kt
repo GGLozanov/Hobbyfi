@@ -203,25 +203,37 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             lifecycleScope.launch {
                 val profile = Profile.getCurrentProfile()
                 val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
-                    Glide.with(this@LoginFragment)
+                    val glide = Glide.with(this@LoginFragment)
+
+                    var bmapResource: Bitmap? = null
+
+                    val target = object : CustomTarget<Bitmap>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap>?
+                        ) {
+                            bmapResource = resource
+                            continuation.resume(resource, null)
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            bmapResource?.recycle()
+                            continuation.cancel(Constants.ImageFetchException())
+                        }
+                    }
+
+                    glide
                         .asBitmap()
                         .load(
                             profile.getProfilePictureUri(
                                 Constants.profileImageWidth,
                                 Constants.profileImageHeight
                             )
-                        ).into(object : CustomTarget<Bitmap>() {
-                            override fun onResourceReady(
-                                resource: Bitmap,
-                                transition: Transition<in Bitmap>?
-                            ) {
-                                continuation.resume(resource, null)
-                            }
+                        ).into(target)
 
-                            override fun onLoadCleared(placeholder: Drawable?) {
-                                continuation.cancel(Constants.ImageFetchException())
-                            }
-                        })
+                    continuation.invokeOnCancellation {
+                        glide.clear(target)
+                    }
                 }
 
                 val image = ImageUtils.encodeImage(

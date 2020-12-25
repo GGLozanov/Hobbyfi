@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
@@ -34,14 +35,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
-    private val messageListAdapter: ChatroomMessageListAdapter = ChatroomMessageListAdapter(
-        { view, message ->  },
-        { view, message ->
-            binding.sendMessageButton.setOnClickListener(onEditSendMessage)
-            // TODO: Discord-like banner while editing message with "cancel" materialtextview to swithc back
-            // to the original onClickListener for send button
-        }
-    )
+    private lateinit var messageListAdapter: ChatroomMessageListAdapter
 
     private val onNormalSendMessage = View.OnClickListener {
 
@@ -64,6 +58,16 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         binding = DataBindingUtil
             .inflate(inflater, R.layout.fragment_chatroom_message_list, container, false)
         binding.viewModel = viewModel
+
+        messageListAdapter = ChatroomMessageListAdapter(
+            activityViewModel.currentAdapterUsers.value!!,
+            { view, message ->  },
+            { view, message ->
+                binding.sendMessageButton.setOnClickListener(onEditSendMessage)
+                // TODO: Discord-like banner while editing message with "cancel" materialtextview to switch back
+                // to the original onClickListener for send button
+            }
+        )
 
         // TODO: Handle expired token error & logout
 
@@ -110,6 +114,9 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
                 activity.binding.toolbar
                     .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
             }
+        })
+        activityViewModel.currentAdapterUsers.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
+            messageListAdapter.setCurrentUsers(it)
         })
     }
 

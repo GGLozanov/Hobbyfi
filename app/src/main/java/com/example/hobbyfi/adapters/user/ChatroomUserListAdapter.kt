@@ -7,10 +7,12 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
 import com.example.hobbyfi.databinding.UserCardBinding
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.viewmodels.base.BaseViewModel
 
 class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.ChatroomUserViewHolder>(DIFF_CALLBACK) {
 
@@ -22,7 +24,7 @@ class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.
 
     }
 
-    class ChatroomUserViewHolder(binding: UserCardBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ChatroomUserViewHolder(binding: UserCardBinding) : BaseViewHolder<User>(binding.root) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): ChatroomUserViewHolder {
@@ -32,7 +34,7 @@ class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.
         }
 
 
-        fun bind(user: User?) {
+        override fun bind(user: User?, position: Int) {
         }
     }
 

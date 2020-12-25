@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <import type="android.view.Gravity" />
+
         <variable
             name="message"
             type="com.example.hobbyfi.models.Message" />
@@ -9,24 +12,11 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <!--TODO: card layout with imageview and text to the right-->
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@{message.message}" />
-
-        <ImageView
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_marginStart="8dp" /> <!--TODO: Open image view fragment on message select-->
-
+        android:layout_height="wrap_content">
+        <include
+            android:id="@+id/message_card_send"
+            layout="@layout/message_card"
+            app:message="@{message}"
+            app:gravity="@{Gravity.START}" />
     </LinearLayout>
 </layout>

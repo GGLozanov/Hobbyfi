@@ -51,11 +51,6 @@ class ChatroomListFragment : MainFragment() {
             }
         } else {
             // otherwise simply allow the user to join their chatroom
-                // TODO: THIS WON'T BE NEEDED SINCE JOIN/LEAVE SUBSCRIPTION IS IMPLEMENTED CORRECTLY!! ONLY FOR TESTING!!!
-            FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
-                viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
-                joinChatroom()
-            }.addOnFailureListener(fcmTopicErrorFallback)
             updateJob = lifecycleScope.launch {
                 navigateToChatroom()
             }
@@ -100,15 +95,14 @@ class ChatroomListFragment : MainFragment() {
 
             initChatroomListAdapter()
 
+            observeChatroomState()
             observeAuthUser()
 
             return@onCreateView root
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+    private fun observeChatroomState() {
         activityViewModel.joinedChatroom
             .observe(viewLifecycleOwner, Observer { joined ->
                 if(joined) {
@@ -147,7 +141,7 @@ class ChatroomListFragment : MainFragment() {
 
                     loadStateAdapter?.setUserHasChatroom(userHasChatroom)
 
-                    if(userHasChatroom && !viewModel.hasDeletedCacheForSession) {
+                    if(userHasChatroom) {
                         viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))
                     } else {
                         viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
@@ -190,11 +184,16 @@ class ChatroomListFragment : MainFragment() {
                                     Log.i("ChatroomListFragment", "User joined chatroom: Navigating to chatroom!")
                                     navigateToChatroom()
                                     activityViewModel.setJoinedChatroom(false)
+
                                 } else {
-                                    viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(true))
+                                    viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
                                 }
                             }
                             is ChatroomListState.Error -> {
+                                if(state.error == Constants.cacheDeletionError && viewModel.hasDeletedCacheForSession) {
+                                    return@collectLatest
+                                }
+
                                 Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG)
                                     .show()
                             }
@@ -228,7 +227,6 @@ class ChatroomListFragment : MainFragment() {
     }
 
     private fun joinChatroom() {
-        viewModel.setHasDeletedCacheForSession(false) // trigger for authUser observer. . .
         viewModel.setCurrentChatrooms(null) // reinit list trigger. . .
     }
 

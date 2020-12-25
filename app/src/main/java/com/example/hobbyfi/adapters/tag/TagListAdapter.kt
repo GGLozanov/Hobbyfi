@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.databinding.TagCardBinding
 import com.example.hobbyfi.models.Tag
 
@@ -26,17 +27,17 @@ class TagListAdapter(
 
     override fun onBindViewHolder(holder: TagViewHolder, position: Int) {
         val tag = tags[position]
-        holder.bind(tag)
+        holder.bind(tag, position)
 
         Log.i("SelectedTags", selectedTags.toString())
         Log.i("Tags", tags.toString())
 
         var color: Int
-        try {
-            color = Color.parseColor(tag.colour)
+        color = try {
+            Color.parseColor(tag.colour)
         } catch(ex: IllegalArgumentException) {
             Log.w("TagListAdapter" , "Invalid color for tag! Reverting to default colour")
-            color = Color.GREEN // default colour, idk
+            Color.GREEN // default colour, idk
         }
 
         val wasSelected = selectedTags.contains(tag)
@@ -65,7 +66,7 @@ class TagListAdapter(
         }
     }
 
-    class TagViewHolder(val binding: TagCardBinding) : RecyclerView.ViewHolder(binding.root) {
+    class TagViewHolder(val binding: TagCardBinding) : BaseViewHolder<Tag>(binding.root) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): TagViewHolder {
@@ -78,7 +79,7 @@ class TagListAdapter(
         }
 
 
-        fun bind(tag: Tag?) {
+        override fun bind(tag: Tag?, position: Int) {
             binding.tag = tag
         }
     }
