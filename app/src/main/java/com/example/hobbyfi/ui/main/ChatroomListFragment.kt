@@ -22,6 +22,7 @@ import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.findItemFromCurrentPagingData
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
@@ -65,11 +66,12 @@ class ChatroomListFragment : MainFragment() {
     })
     private var loadStateAdapter: DefaultLoadStateAdapter? = null
 
-    private var searchJob: Job? = null
     private var updateJob: Job? = null
 
     private val fcmTopicErrorFallback: OnFailureListener by instance(
-        tag = "fcmTopicErrorFallback", MainApplication.applicationContext)
+        tag = "fcmTopicErrorFallback",
+        MainApplication.applicationContext
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -89,8 +91,7 @@ class ChatroomListFragment : MainFragment() {
                     .distinctUntilChangedBy { loadState -> loadState.refresh }
                     // Only react to cases where Remote REFRESH completes i.e., NotLoading.
                     .filter { loadState -> loadState.refresh is LoadState.NotLoading }
-                    .collect { chatroomList.scrollToPosition(0)
-                    binding.swiperefresh.isRefreshing = false }
+                    .collect { binding.swiperefresh.isRefreshing = false }
             }
 
             initChatroomListAdapter()
@@ -111,6 +112,7 @@ class ChatroomListFragment : MainFragment() {
                         FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
                             viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
                             joinChatroom()
+                            activityViewModel.updateUserWithLatestFields()
                         }.addOnFailureListener(fcmTopicErrorFallback)
                     }
                 } else {
@@ -124,6 +126,7 @@ class ChatroomListFragment : MainFragment() {
                     FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(
                         viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
                         leaveChatroom()
+                        activityViewModel.updateUserWithLatestFields()
                     }.addOnFailureListener(fcmTopicErrorFallback)
                 }  else {
                     Log.i("ChatroomListFragment", "Observing user left chatroom false")
@@ -141,7 +144,7 @@ class ChatroomListFragment : MainFragment() {
 
                     loadStateAdapter?.setUserHasChatroom(userHasChatroom)
 
-                    if(userHasChatroom) {
+                    if(userHasChatroom && activityViewModel.joinedChatroom.value == true) {
                         viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))
                     } else {
                         viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
@@ -156,7 +159,6 @@ class ChatroomListFragment : MainFragment() {
 
                             }
                             is ChatroomListState.ChatroomsResult -> {
-                                binding.swiperefresh.isRefreshing = false
                                 lifecycleScope.launch {
                                     state.chatrooms.catch { e ->
                                         e.printStackTrace()
@@ -169,10 +171,9 @@ class ChatroomListFragment : MainFragment() {
                                             Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
                                                 .show()
                                         }
+                                    }.onEach {
+                                        setChatroomLeaveButtonVisibility(userHasChatroom)
                                     }.collectLatest { data ->
-                                        // can't use user.hasChatroom here because it differs in the different `collectLatest`-s
-                                        setChatroomLeaveButtonVisibility(state.isJustAuthChatroom, user.id)  // account for user owner of room
-
                                         chatroomListAdapter.submitData(data)
                                     }
                                 }
@@ -180,20 +181,13 @@ class ChatroomListFragment : MainFragment() {
                             is ChatroomListState.DeleteChatroomsCacheResult -> {
                                 Log.i("ChatroomListFragment", "Deleted chatrooms cache. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
 
-                                if(activityViewModel.joinedChatroom.value == true) {
+                                if(activityViewModel.joinedChatroom.value == true) { // slight race condition here
                                     Log.i("ChatroomListFragment", "User joined chatroom: Navigating to chatroom!")
                                     navigateToChatroom()
                                     activityViewModel.setJoinedChatroom(false)
-
-                                } else {
-                                    viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
                                 }
                             }
                             is ChatroomListState.Error -> {
-                                if(state.error == Constants.cacheDeletionError && viewModel.hasDeletedCacheForSession) {
-                                    return@collectLatest
-                                }
-
                                 Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG)
                                     .show()
                             }
@@ -202,6 +196,21 @@ class ChatroomListFragment : MainFragment() {
                 }
             }
         })
+    }
+
+    private fun setChatroomLeaveButtonVisibility(userHasChatroom: Boolean) {
+        try {
+            // TODO: findItemFromCurrentPagingData uses method that generates list for current paging data each time
+            // TODO: This might cause performance issues later on but solves bugs related to button visibility
+            // TODO: Optimise the method
+            val userNotOwner = chatroomListAdapter.findItemFromCurrentPagingData { it.id == activityViewModel.authUser.value?.chatroomId }
+                ?.ownerId != activityViewModel.authUser.value!!.id
+            chatroomListAdapter.setLeaveChatroomButtonVisibility(userHasChatroom && userNotOwner &&
+                    activityViewModel.leftChatroom.value == false)
+        } catch(ex: IndexOutOfBoundsException) {
+            Log.i("ChatroomListFragment", "Index out of bounds for current unloaded chatrooms => not setting chatroom visibility")
+            chatroomListAdapter.setLeaveChatroomButtonVisibility(false)
+        }
     }
 
     private fun initChatroomListAdapter() {
@@ -227,7 +236,9 @@ class ChatroomListFragment : MainFragment() {
     }
 
     private fun joinChatroom() {
-        viewModel.setCurrentChatrooms(null) // reinit list trigger. . .
+        activityViewModel.setLeftChatroom(false)
+        viewModel.setHasDeletedCacheForSession(false)
+        viewModel.setCurrentChatrooms(null) // account for user owner of room
     }
 
     private fun leaveChatroom() {
@@ -245,24 +256,7 @@ class ChatroomListFragment : MainFragment() {
         )
     }
 
-    private fun setChatroomLeaveButtonVisibility(userHasChatroom: Boolean, userId: Long) {
-        var userNotOwner = false
-        try {
-            userNotOwner = chatroomListAdapter.peek(0)?.ownerId != userId
-        } catch(ex: IndexOutOfBoundsException) {
-            Log.i("ChatroomListFragment", "Index out of bounds for current unloaded chatrooms => not setting chatroom visibility")
-        }
-
-        Log.i("ChatroomListFragment", "USER IS NOT OWNER??? ${userNotOwner}")
-        Log.i("ChatroomListFragment", "USER HAS CHATROOM??? ${userHasChatroom}")
-
-        chatroomListAdapter.setLeaveChatroomButtonVisibility(
-            userHasChatroom && userNotOwner
-        )
-    }
-
     override fun onDestroy() {
-        searchJob?.cancel() // cancel job once we need to yeet from the fragment
         updateJob?.cancel()
         super.onDestroy()
     }

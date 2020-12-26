@@ -149,12 +149,20 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
 fun<T: Model> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
-        val model = peek(i)
-        if(model != null) {
-            list.add(model)
+        try {
+            val model = peek(i)
+            if(model != null) {
+                list.add(model)
+            }
+        } catch(ex: IndexOutOfBoundsException) {
+            Log.i("extractListFromPData", "Skipping out of bounds")
         }
     }
     return list
+}
+
+fun<T: Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
+    return extractListFromCurrentPagingData().find(predicate)
 }
 
 /**

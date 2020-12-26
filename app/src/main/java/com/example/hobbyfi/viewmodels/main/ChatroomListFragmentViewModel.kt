@@ -7,18 +7,19 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.hobbyfi.intents.ChatroomListIntent
-import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
-import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.ChatroomListState
-import com.example.hobbyfi.state.UserListState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -87,13 +88,13 @@ class ChatroomListFragmentViewModel(application: Application) :
         var state: ChatroomListState = ChatroomListState.Error(Constants.cacheDeletionError)
 
         // deletes other cached chatrooms (not auth'd) for user
-        if(viewModelScope.async {
-                chatroomRepository.deleteChatrooms(authChatroomId)
-            }.await()) {
-            _hasDeletedCacheForSession = true
-            state = ChatroomListState.DeleteChatroomsCacheResult
-        }
+        withContext(viewModelScope.coroutineContext) {
+            if(chatroomRepository.deleteChatrooms(authChatroomId)) {
+                _hasDeletedCacheForSession = true
+                state = ChatroomListState.DeleteChatroomsCacheResult
+            }
 
-        mainStateIntent.setState(state)
+            mainStateIntent.setState(state)
+        }
     }
 }

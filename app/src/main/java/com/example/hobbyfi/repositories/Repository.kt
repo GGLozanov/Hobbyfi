@@ -17,8 +17,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
 
     protected suspend fun getNewTokenWithRefresh(): TokenResponse? {
         return try {
-            // TODO: Constants
-            if (prefConfig.readToken() != "invalid" && prefConfig.readRefreshToken() != "invalid") {
+            if (prefConfig.readRefreshToken() != "invalid") {
                 withContext(Dispatchers.IO) {
                     val token = hobbyfiAPI.fetchNewTokenWithRefresh(prefConfig.readRefreshToken()!!)
                     prefConfig.writeToken(token?.jwt!!)

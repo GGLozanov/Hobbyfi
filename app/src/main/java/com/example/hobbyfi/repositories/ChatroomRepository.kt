@@ -155,6 +155,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             hobbyfiDatabase.withTransaction {
                 val deletedChatrooms = hobbyfiDatabase.chatroomDao().deleteChatroomsExceptId(authChatroomId)
                 val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authChatroomId, RemoteKeyType.CHATROOM)
+                Log.i("ChatroomRepository", "Deleted chatrooms ${deletedChatrooms} and deleted RMKeys ${deletedRemoteKeys}")
                 deletedChatrooms > 0 && deletedRemoteKeys >= 0
             }
         }
