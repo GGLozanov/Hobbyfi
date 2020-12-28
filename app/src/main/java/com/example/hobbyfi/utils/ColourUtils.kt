@@ -10,6 +10,10 @@ object ColourUtils {
     }
 
     fun getColourOrGreen(colourHex: String?): Int {
+        if(colourHex == null) {
+            return Color.GREEN
+        }
+
         return try {
             Color.parseColor(colourHex)
         } catch(ex: IllegalArgumentException) {

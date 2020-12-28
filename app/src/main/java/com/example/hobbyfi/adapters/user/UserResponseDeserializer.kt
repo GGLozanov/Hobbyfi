@@ -11,7 +11,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.fromJson
 
-class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
+class UserResponseDeserializer(private val forList: Boolean = false) : BaseJsonDeserializer<CacheResponse<User>>() {
 
     @Throws(JsonParseException::class)
     override fun deserialize(
@@ -19,7 +19,7 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): CacheResponse<User> {
-        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA_LIST)
+        outerJsonObject = json.asJsonObject.getAsJsonObject(if(forList) Constants.DATA_LIST else Constants.DATA)
 
         val entity = User(
             deserializeJSONField(Constants.ID, DeserializeOption.AS_LONG) as Long,

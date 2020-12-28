@@ -29,7 +29,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-@ExperimentalPagingApi
 class ChatroomEditFragment : ChatroomModelFragment() {
     private lateinit var binding: FragmentChatroomEditBinding
     private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
@@ -119,7 +118,6 @@ class ChatroomEditFragment : ChatroomModelFragment() {
         }
     }
 
-    @ExperimentalPagingApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)

@@ -32,9 +32,10 @@ object Constants {
     const val messageInputError: String = "Enter a valid, non-empty message!"
 
     const val reauthError: String = "Logging out! Your session may have expired!"
-    const val resourceExistsError: String = "This user/thing already exists!"
+    const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
     const val invalidCredentialsError: String = "Invalid credentials!"
+    const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
     const val invalidTokenError: String = "Invalid access! Please login again!"
     const val unauthorisedAccessError: String = "Unauthorised access!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
@@ -100,7 +101,6 @@ object Constants {
 
     const val chatroomPageSize: Int = 5
     const val messagesPageSize: Int = 20
-    const val usersPageSize: Int = 30
 
     fun getDefaultPageConfig(pageSize: Int): PagingConfig { // used in pager init
         return PagingConfig(pageSize = pageSize, enablePlaceholders = false)
@@ -218,6 +218,8 @@ object Constants {
     const val EDIT_EVENT_TYPE: String = "EDIT_EVENT"
     const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
 
+    const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
+
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr :(((
     val tagJsonConverter: Gson = GsonBuilder()
@@ -238,6 +240,6 @@ object Constants {
 
     val imageRegex = Regex(
         Regex.escape(BuildConfig.BASE_URL) +
-                "\\/uploads\\/[^.]+\\.jpg"
+                "uploads\\/[^.]+\\.jpg"
     )
 }

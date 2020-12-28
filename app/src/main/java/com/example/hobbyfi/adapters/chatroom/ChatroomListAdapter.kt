@@ -131,7 +131,7 @@ class ChatroomListAdapter(
                                          newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
 
             override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom== newChatroom
+                                            newChatroom: Chatroom) = oldChatroom == newChatroom
         }
 
     }

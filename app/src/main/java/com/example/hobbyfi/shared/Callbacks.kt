@@ -34,7 +34,7 @@ object Callbacks {
         ).also { if(it != null) { onImageSuccess.invoke(it) } }
     }
 
-    fun getBitmapFromImageOnActivityResult(
+    private fun getBitmapFromImageOnActivityResult(
         activity: Activity,
         requiredRequestCode: Int,
         requestCode: Int, resultCode: Int, data: Intent?
@@ -101,6 +101,9 @@ object Callbacks {
                                 Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
                             else Repository.ReauthenticationException(Constants.reauthError)
                     }
+                    406 -> { // not acceptable
+                        throw Exception(Constants.resourceExistsError)
+                    }
                     409 -> { // conflict
                         throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk
                     }
@@ -109,7 +112,7 @@ object Callbacks {
                     }
                 }
 
-                throw Repository.NetworkException(ex.message().toString() + " ; code: " + ex.code())
+                throw Repository.NetworkException(ex.message().toString() + "; code: " + ex.code())
             }
             is ExpiredJwtException -> {
                 throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()

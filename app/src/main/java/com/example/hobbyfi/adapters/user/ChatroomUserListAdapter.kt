@@ -14,7 +14,10 @@ import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 
-class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.ChatroomUserViewHolder>(DIFF_CALLBACK) {
+// Discord doesn't do pagination for their guild users...
+// ...so neither will I!
+class ChatroomUserListAdapter(private val users: List<User>) :
+    RecyclerView.Adapter<ChatroomUserListAdapter.ChatroomUserViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomUserViewHolder {
         return ChatroomUserViewHolder.getInstance(parent)
@@ -22,6 +25,10 @@ class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.
 
     override fun onBindViewHolder(holder: ChatroomUserViewHolder, position: Int) {
 
+    }
+
+    override fun getItemCount(): Int {
+        return users.size
     }
 
     class ChatroomUserViewHolder(binding: UserCardBinding) : BaseViewHolder<User>(binding.root) {
@@ -36,21 +43,5 @@ class ChatroomUserListAdapter : PagingDataAdapter<User, ChatroomUserListAdapter.
 
         override fun bind(user: User?, position: Int) {
         }
-    }
-
-    companion object {
-        private val DIFF_CALLBACK = object :
-            DiffUtil.ItemCallback<User>() {
-            // Chatroom details may have changed if reloaded from the database,
-            // but ID is fixed.
-            override fun areItemsTheSame(oldUser: User,
-                                         newUser: User
-            ) = oldUser.id == newUser.id
-
-            override fun areContentsTheSame(oldUser: User,
-                                            newUser: User
-            ) = oldUser == newUser
-        }
-
     }
 }

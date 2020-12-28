@@ -21,6 +21,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
+import com.example.hobbyfi.shared.ChatroomBroadcastReceiverFactory
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.getDestructedMapExtra
@@ -28,6 +29,7 @@ import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.gms.common.ConnectionResult.*
@@ -40,7 +42,6 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-@ExperimentalPagingApi
 class ChatroomActivity : BaseActivity() {
     // TODO: Have this be the deeplink activity. Register it and handle intent extras and facebook/default user
     // TODO: If user leaves chatroom (not exits), delete entire chatroom + cached other users (rip foreign key relations)
@@ -54,33 +55,15 @@ class ChatroomActivity : BaseActivity() {
     lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
 
-    private val editChatroomReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == Constants.EDIT_CHATROOM_TYPE) {
-                // people do checks here ^; idk why given the intent filter
-                Log.i("ChatroomActivity", "Got me a broadcast receievrino for EDIT CHATROOOOOM")
-                lifecycleScope.launch {
-                    viewModel.sendChatroomIntent(
-                        ChatroomIntent.UpdateChatroomCache(intent.getDestructedMapExtra())
-                    )
-                }
-            }
-        }
-    }
-
-
-    private val deleteChatroomReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == Constants.DELETE_CHATROOM_TYPE) {
-                Log.i("ChatroomActivity", "Got me a broadcast receievrino for DELETE CHATROOOOOM")
-                lifecycleScope.launch {
-                    viewModel.sendChatroomIntent(
-                        ChatroomIntent.DeleteChatroomCache
-                    )
-                }
-            }
-        }
-    }
+    private lateinit var chatroomReceiverFactory: ChatroomBroadcastReceiverFactory
+    private lateinit var editChatroomReceiver: BroadcastReceiver
+    private lateinit var deleteChatroomReceiver: BroadcastReceiver
+    private lateinit var editUserReceiver: BroadcastReceiver
+    private lateinit var joinUserReceiver: BroadcastReceiver
+    private lateinit var leaveUserReceiver: BroadcastReceiver
+    private lateinit var deleteEventReceiver: BroadcastReceiver
+    private lateinit var editEventReceiver: BroadcastReceiver
+    private lateinit var createEventReceiver: BroadcastReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,9 +80,6 @@ class ChatroomActivity : BaseActivity() {
             }
         }
 
-        registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
-        registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
-
         // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
         //  => triggers REFRESH loadstate in Mediator => check if users last fetch time is too long
         //  => doesn't delete old users (if no connection or time isn't long enough) => fetches users if time is long enough
@@ -113,6 +93,7 @@ class ChatroomActivity : BaseActivity() {
         // TODO: Ask for permission upon event card press for access to location
     }
 
+    @ExperimentalPagingApi
     override fun onStart() {
         super.onStart()
 
@@ -124,6 +105,12 @@ class ChatroomActivity : BaseActivity() {
         // TODO: User paging fetching here + setting currentAdapterUsers in viewmodel for messageListFragment
         //  through PageDataAdapter exxtension func in Extensions.kt
 
+        observeChatroomState()
+        observeChatroom()
+        observeChatroomOwnRights()
+    }
+
+    private fun observeUserState() {
         lifecycleScope.launch {
             viewModel.mainState.collect {
                 when(it) {
@@ -144,7 +131,9 @@ class ChatroomActivity : BaseActivity() {
                 // no need for UserState.OnData.UserUpdateResult for null chatroom because user gets nulled chatroom in backend when it's deleted
             }
         }
+    }
 
+    private fun observeChatroomState() {
         // whenever broadcast receiver triggered => sets the state in the viewmodel
         lifecycleScope.launch {
             viewModel.chatroomState.collect {
@@ -161,6 +150,7 @@ class ChatroomActivity : BaseActivity() {
                     is ChatroomState.OnData.ChatroomDeleteResult, is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
                             .show()
+                        sendBroadcast(Intent(Constants.CHATROOM_DELETED))
                         FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants
                             .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback)
                         viewModel.setChatroom(null) // clear chatroom in any case
@@ -186,11 +176,9 @@ class ChatroomActivity : BaseActivity() {
                 }
             }
         }
-
-        observeChatroom()
-        observeChatroomOwnRights()
     }
 
+    @ExperimentalPagingApi
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer {
             if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
@@ -219,7 +207,7 @@ class ChatroomActivity : BaseActivity() {
             toolbar.setNavigationIconTint(Color.WHITE)
             if(chatroomOwner) {
                 Log.i("ChatroomActivity", "Current auth user is chatroom owner")
-                // FIXME: Randomly unresolvable bad Kotlin synthetics
+
                 navViewAdmin.setupWithNavController(navController)
                 navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
                     Constants.buildDeleteAlertDialog(
@@ -250,6 +238,47 @@ class ChatroomActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         assertGooglePlayAvailability()
+
+        // TODO: Move register to after state received IF deeplink situation
+        // TODO: Also send any broadcasts from push notification intents received after receiving state in deeplink
+        when(intent.action) {
+            // TODO: Handle push notification intents here with broadcastreceiver callbacks
+            // TODO: Handle deeplink situation (per se) wherein there is no chatroom/user
+            // TODO: And broadcastreceiver/notification routines have to wait until data is fetched and then updated
+            // sendBroadcast(intent)
+        }
+
+
+        chatroomReceiverFactory = ChatroomBroadcastReceiverFactory.getInstance(viewModel, this)
+        editChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_CHATROOM_TYPE)
+        deleteChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.DELETE_CHATROOM_TYPE)
+        editUserReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_USER_TYPE)
+        joinUserReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.JOIN_USER_TYPE)
+        leaveUserReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.LEAVE_USER_TYPE)
+        deleteEventReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
+        editEventReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
+        createEventReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.CREATE_EVENT_TYPE)
+
+        registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
+        registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
+        registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
+        registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
+        registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
+        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
+        registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
+        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        unregisterReceiver(editChatroomReceiver)
+        unregisterReceiver(deleteChatroomReceiver)
+        unregisterReceiver(joinUserReceiver)
+        unregisterReceiver(leaveUserReceiver)
+        unregisterReceiver(deleteEventReceiver)
+        unregisterReceiver(createEventReceiver)
+        unregisterReceiver(editEventReceiver)
     }
 
     private fun assertGooglePlayAvailability() {
@@ -276,9 +305,4 @@ class ChatroomActivity : BaseActivity() {
         return true
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(editChatroomReceiver)
-        unregisterReceiver(deleteChatroomReceiver)
-    }
 }

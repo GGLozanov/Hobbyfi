@@ -26,7 +26,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
     @ExperimentalPagingApi
     fun getMessages(pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize)):
             Flow<PagingData<Message>> {
-        Log.i("ChatroomRepository", "getMessages -> getting current messages")
+        Log.i("MessageRepository", "getMessages -> getting current messages")
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = { hobbyfiDatabase.messageDao().getMessages() }, // TODO: DI
@@ -54,10 +54,10 @@ class MessageRepository @ExperimentalPagingApi constructor(
         }, { deleteMessage(id) })
     }
 
-    suspend fun deleteMessageCache(message: Message) {
-        Log.i("MessageRepository", "deleteMessageCache -> deleting cached message: $message")
+    suspend fun deleteMessageCache(id: Int) {
+        Log.i("MessageRepository", "deleteMessageCache -> deleting cached message w/ id: $id")
         return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().delete(message) > 0
+            hobbyfiDatabase.messageDao().deleteMessageById(id) > 0
         }
     }
 
@@ -90,5 +90,12 @@ class MessageRepository @ExperimentalPagingApi constructor(
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.messageDao().insertList(messages)
         }
+    }
+
+    suspend fun calculateLatestRemoteKeys() {
+        // TODO: Calculate latest remote key here by inserting
+        // TODO: nextKey == null (always)
+        // TODO: Somehow account for page shifting with remote key insertion and make all pages change
+        // TODO: Ex: 21 messages for 1 remotekey pair => shift it to next page => shift all pages if exceeds page capacity (20)
     }
 }

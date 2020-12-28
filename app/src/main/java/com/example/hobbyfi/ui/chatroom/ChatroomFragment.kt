@@ -16,7 +16,6 @@ abstract class ChatroomFragment : BaseFragment(), TextFieldInputValidationOnus {
         setHasOptionsMenu(true)
     }
 
-    @ExperimentalPagingApi
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {
         val activityArgs: ChatroomActivityArgs by (activity as ChatroomActivity).navArgs()

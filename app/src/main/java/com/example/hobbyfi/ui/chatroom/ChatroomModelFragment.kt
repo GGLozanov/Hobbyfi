@@ -9,7 +9,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 abstract class ChatroomModelFragment : ChatroomFragment() {
 
-    @ExperimentalPagingApi
+    // TODO: Refactor with navdestinationchanged for navcontroller
     @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -18,7 +18,6 @@ abstract class ChatroomModelFragment : ChatroomFragment() {
         // hacky way to fix drawer but... so is life. Use toolbars and navviews on individual fragemnts, kids!
     }
 
-    @ExperimentalPagingApi
     @ExperimentalCoroutinesApi
     override fun onDestroyView() {
         super.onDestroyView()

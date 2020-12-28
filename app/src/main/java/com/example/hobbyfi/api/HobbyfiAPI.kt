@@ -83,10 +83,17 @@ interface HobbyfiAPI {
      * @param token - JWT for the given auth user used to validate requests to secure endpoints
      * @return - a User model containing all the necessary information and the appropriate response from server
      */
+    @GET("api/v1.0/user/read")
+    suspend fun fetchUser(
+        @Header(Constants.AUTH_HEADER) token: String // id inside token for DB query; token inside auth header
+    ): CacheResponse<User>?
+
+    /**
+     *
+     */
     @GET("api/v1.0/users/read")
     suspend fun fetchUsers(
-        @Header(Constants.AUTH_HEADER) token: String, // id inside token for DB query; token inside auth header
-        @Query(Constants.PAGE) page: Int?
+        @Header(Constants.AUTH_HEADER) token: String
     ): CacheListResponse<User>?
 
     /**
@@ -245,6 +252,10 @@ interface HobbyfiAPI {
                             .registerTypeAdapter(
                                 TypeToken.getParameterized(CacheResponse::class.java, User::class.java).type,
                                 UserResponseDeserializer()
+                            )
+                            .registerTypeAdapter(
+                                TypeToken.getParameterized(CacheListResponse::class.java, User::class.java).type,
+                                UserResponseDeserializer(true)
                             )
                             .registerTypeAdapter(
                                 TypeToken.getParameterized(CacheResponse::class.java, Chatroom::class.java).type,

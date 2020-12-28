@@ -23,9 +23,9 @@ class MessageResponseDeserializer : BaseJsonDeserializer<CacheResponse<Message>>
 
         val entity = Message(
             deserializeJSONField(Constants.ID, DeserializeOption.AS_LONG) as Long,
-            deserializeJSONField(Constants.MESSAGE, DeserializeOption.AS_STRING) as String?,
+            deserializeJSONField(Constants.MESSAGE, DeserializeOption.AS_STRING) as String,
             deserializeJSONField(Constants.CREATE_TIME, DeserializeOption.AS_STRING) as String,
-            deserializeJSONField(Constants.USER_SENT_ID, DeserializeOption.AS_LONG) as Long,
+            deserializeJSONField(Constants.USER_SENT_ID, DeserializeOption.AS_LONG) as Long?,
             deserializeJSONField(Constants.CHATROOM_SENT_ID, DeserializeOption.AS_LONG) as Long
         )
 

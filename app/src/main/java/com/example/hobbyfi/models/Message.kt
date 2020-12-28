@@ -21,24 +21,23 @@ import kotlinx.parcelize.Parcelize
 data class Message(
     @PrimaryKey
     override val id: Long,
-    var message: String?,
+    var message: String,
     @SerializedName(Constants.CREATE_TIME)
     val createTime: String, // iso string?
     @SerializedName(Constants.USER_SENT_ID)
     @ColumnInfo(name = "userSentId", index = true)
-    val userSentId: Long,
+    val userSentId: Long?,
     @SerializedName(Constants.CHATROOM_SENT_ID)
     @ColumnInfo(name = "chatroomSentId", index = true)
     val chatroomSentId: Long,
 ) : Model, Parcelable {
-    // is a timeline notification (set to true if received from notification broadcastreceiver)
-    val isTimeline: Boolean get() = message == null
+    val isTimeline: Boolean get() = userSentId == null
 
     constructor(data: Map<String, String?>) : this((data[Constants.ID] ?: error("Message ID must not be null!")).toLong(),
-        data[Constants.MESSAGE],
+        data[Constants.MESSAGE] ?: error("Message message must not be null!"),
         data[Constants.CREATE_TIME] ?: error("Message create time must not be null!"),
-        (data[Constants.USER_SENT_ID] ?: error("Message user sent ID must not be null!")).toLong(),
-        (data[Constants.CHATROOM_SENT_ID] ?: error("Message chatroom sent ID must not be null!")).toLong()
+        data[Constants.USER_SENT_ID]?.toLong(),
+        (data[Constants.CHATROOM_SENT_ID] ?: error("Message chatroom sent ID must not be null!")).toLong(),
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Message {

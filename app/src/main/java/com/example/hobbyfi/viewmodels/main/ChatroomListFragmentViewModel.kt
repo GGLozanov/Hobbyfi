@@ -85,16 +85,12 @@ class ChatroomListFragmentViewModel(application: Application) :
     }
 
     private suspend fun deleteChatroomsCache(authChatroomId: Long) {
-        var state: ChatroomListState = ChatroomListState.Error(Constants.cacheDeletionError)
 
         // deletes other cached chatrooms (not auth'd) for user
         withContext(viewModelScope.coroutineContext) {
-            if(chatroomRepository.deleteChatrooms(authChatroomId)) {
-                _hasDeletedCacheForSession = true
-                state = ChatroomListState.DeleteChatroomsCacheResult
-            }
-
-            mainStateIntent.setState(state)
+            chatroomRepository.deleteChatrooms(authChatroomId) // ignore result for now because, c'mon, where could it go wrong?
+            _hasDeletedCacheForSession = true
+            mainStateIntent.setState(ChatroomListState.DeleteChatroomsCacheResult)
         }
     }
 }

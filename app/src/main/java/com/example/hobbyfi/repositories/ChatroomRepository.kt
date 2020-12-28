@@ -116,7 +116,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     }
 
     suspend fun deleteChatroom(): Response? {
-        Log.i("TokenRepository", "deleteChatroom -> deleting current chatroom")
+        Log.i("ChatroomRepository", "deleteChatroom -> deleting current chatroom")
 
         return performAuthorisedRequest({
             hobbyfiAPI.deleteChatroom(

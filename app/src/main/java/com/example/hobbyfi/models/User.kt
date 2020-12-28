@@ -54,13 +54,9 @@ data class User(
                 Constants.DESCRIPTION -> {
                     description = value
                 }
-                Constants.TAGS + "[]" -> {
-                    tags = GsonBuilder()
-                        .registerTypeAdapter(
-                            Tag::class.java,
-                            TagTypeAdapter()
-                        ) // FIXME: Extract into singleton
-                        .create().fromJson(value!!)
+                Constants.TAGS, Constants.TAGS + "[]" -> {
+                    tags = Constants.tagJsonConverter
+                        .fromJson(value!!)
                 }
                 Constants.IMAGE -> {
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"

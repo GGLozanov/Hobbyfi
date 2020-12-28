@@ -36,6 +36,8 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
     private val messageRepository: MessageRepository by instance(tag = "messageRepository")
     private var currentMessages: Flow<PagingData<Message>>? = null
 
+    val areCurrentMessagesNull get() = currentMessages == null
+
     @Bindable
     val message: MutableLiveData<String> = MutableLiveData()
 
@@ -46,6 +48,8 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
     val messageStateIntent: StateIntent<MessageState, MessageIntent> = object : StateIntent<MessageState, MessageIntent>() {
         override val _state: MutableStateFlow<MessageState> = MutableStateFlow(MessageState.Idle)
     }
+
+    val messageState get() = messageStateIntent.state
 
     suspend fun sendMessageIntent(intent: MessageIntent) {
         messageStateIntent.sendIntent(intent)
@@ -127,7 +131,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
 
     }
 
-    private suspend fun deleteMessageCache(message: Message) {
+    private suspend fun deleteMessageCache(id: Int) {
 
     }
 

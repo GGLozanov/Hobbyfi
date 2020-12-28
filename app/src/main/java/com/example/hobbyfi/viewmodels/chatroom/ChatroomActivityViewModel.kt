@@ -27,8 +27,6 @@ import kotlinx.coroutines.launch
 class ChatroomActivityViewModel(application: Application, user: User?, chatroom: Chatroom?)
     : AuthChatroomHolderViewModel(application, user, chatroom) {
 
-    private var currentUsers: Flow<PagingData<User>>? = null
-
     private var _currentAdapterUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
     val currentAdapterUsers: LiveData<List<User>> get() = _currentAdapterUsers
 
@@ -44,12 +42,16 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
         super.handleIntent()
         viewModelScope.launch {
             eventStateIntent.intentAsFlow().collectLatest {
+                when(it) {
 
+                }
             }
         }
         viewModelScope.launch {
             userStateIntent.intentAsFlow().collectLatest {
+                when(it) {
 
+                }
             }
         }
     }
@@ -58,7 +60,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
         handleIntent()
     }
 
-    private fun fetchUsers() {
+    private suspend fun fetchUsers() {
 
     }
 
@@ -69,6 +71,5 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
             mUsers.add(authUser.value!!)
         }
         _currentAdapterUsers.value = mUsers
-
     }
 }

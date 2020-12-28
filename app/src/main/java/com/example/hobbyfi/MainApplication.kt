@@ -40,8 +40,8 @@ import org.kodein.di.generic.*
 import java.lang.Exception
 
 // TODO: Notification channel setup
-@ExperimentalPagingApi
 class MainApplication : MultiDexApplication(), KodeinAware {
+    @ExperimentalPagingApi
     override val kodein: Kodein = Kodein.lazy {
         import(androidXModule(this@MainApplication))
 

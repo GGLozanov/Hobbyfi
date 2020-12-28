@@ -10,7 +10,6 @@ import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 abstract class ChatroomDialogFragment : BaseDialogFragment(), TextFieldInputValidationOnus {
-    @ExperimentalPagingApi
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {
         val activityArgs: ChatroomActivityArgs by (activity as ChatroomActivity).navArgs()

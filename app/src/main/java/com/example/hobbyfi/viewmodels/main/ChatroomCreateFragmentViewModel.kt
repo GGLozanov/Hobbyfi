@@ -5,8 +5,10 @@ import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.multidex.MultiDexApplication
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
+import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.TagBundle
@@ -46,12 +48,16 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
         handleIntent()
     }
 
+    fun resetState() {
+        mainStateIntent.setState(ChatroomState.Idle)
+    }
+
     override fun handleIntent() {
         viewModelScope.launch {
             mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is ChatroomIntent.CreateChatroom -> {
-                        createChatroom()
+                        createChatroom(it.ownerId)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -59,23 +65,40 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
         }
     }
 
-    private suspend fun createChatroom() {
+    private suspend fun createChatroom(ownerId: Long) {
         mainStateIntent.setState(ChatroomState.Loading)
         mainStateIntent.setState(try {
+            val response = chatroomRepository.createChatroom(
+                name.value!!,
+                description.value!!,
+                base64Image,
+                tagBundle.selectedTags
+            )
+
+            val chatroom = Chatroom(
+                response!!.id,
+                name.value!!,
+                description.value,
+                if(base64Image != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
+                        + "/" + response.id + ".jpg" else null,
+                if(tagBundle.selectedTags.isEmpty()) null else tagBundle.selectedTags,
+                ownerId,
+                null
+            )
+
+            saveChatroom(chatroom)
+
             ChatroomState.OnData.ChatroomCreateResult(
-                chatroomRepository.createChatroom(
-                    name.value!!,
-                    description.value!!,
-                    base64Image,
-                    tagBundle.selectedTags
-                )
+                chatroom
             )
         } catch(ex: Exception) {
             ex.printStackTrace()
             ChatroomState.Error(
                 ex.message,
-                ex is Repository.ReauthenticationException
+                shouldExit = isExceptionCritical(ex)
             )
         })
     }
+
+    private suspend fun saveChatroom(chatroom: Chatroom) = chatroomRepository.saveChatroom(chatroom)
 }

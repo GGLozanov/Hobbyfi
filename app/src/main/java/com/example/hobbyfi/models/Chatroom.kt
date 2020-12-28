@@ -46,7 +46,7 @@ data class Chatroom(
                 Constants.DESCRIPTION -> {
                     description = value
                 }
-                Constants.TAGS + "[]" -> {
+                Constants.TAGS, Constants.TAGS + "[]" -> {
                     tags = Constants.tagJsonConverter
                         .fromJson(value)
                 }

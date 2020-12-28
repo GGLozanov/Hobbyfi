@@ -12,17 +12,26 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.paging.ExperimentalPagingApi
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
+import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.android.kodein
+import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver {
+class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver, KodeinAware {
     private var isAppInForeground: Boolean = false
+
+    override val kodein: Kodein by kodein(MainApplication.applicationContext)
+    private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
     override fun onCreate() {
         super.onCreate()
@@ -47,6 +56,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         Log.i("NotificationMService", "WOOOOOOOOOO, FCM MESSAGE RECEIVED BEYBEEEE: ${message}")
+        Log.i("NotificationMService", "FCM MESSAGE DATA BEYBEEEE: ${message.data}")
         // message has `type` key in data payload that specifies the message type (ex: `EDIT_CHATROOM`, `DELETE_CHATROOM`, etc.)
         val data = message.data // nullable types like 'description', etc. are sent as empty string or "0" and handled by the models
         val notificationType = data[Constants.TYPE]
@@ -107,6 +117,12 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        val oldToken = prefConfig.readDeviceToken() // old device token for unsubscription
+        // ping IID (instance ID) endpoint for topic unsubscription?
+
+        prefConfig.writeDeviceToken(token) // save new device token and resubscribe
+
+
         // dunno what to do here for now; not using specifics tokens for now so /shrug
         // redo subscriptions to topics here somehow...
         // ...send broadcast?

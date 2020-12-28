@@ -14,5 +14,5 @@ sealed class MessageListState : State {
 
     object DeleteMessagesCacheResult : MessageListState()
 
-    data class Error(val error: String?, val shouldReauth: Boolean = false) : MessageListState()
+    data class Error(val error: String?, val shouldExit: Boolean = false) : MessageListState()
 }

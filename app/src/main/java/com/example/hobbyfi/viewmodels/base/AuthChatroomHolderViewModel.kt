@@ -38,6 +38,20 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
             authChatroom.value?.ownerId) // initial check; updated every time auth user or auth chatroom changes
     val isAuthUserChatroomOwner get() = _isAuthUserChatroomOwner
 
+    fun setChatroom(chatroom: Chatroom?) {
+        _authChatroom.value = chatroom
+        _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
+    }
+
+    suspend fun sendChatroomIntent(i: ChatroomIntent) {
+        chatroomStateIntent.sendIntent(i)
+    }
+
+    override fun setUser(user: User) {
+        super.setUser(user)
+        _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
+    }
+
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
@@ -64,28 +78,14 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         }
     }
 
-    fun setChatroom(chatroom: Chatroom?) {
-        _authChatroom.value = chatroom
-        _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
-    }
-
-    suspend fun sendChatroomIntent(i: ChatroomIntent) {
-        chatroomStateIntent.sendIntent(i)
-    }
-
-    override fun setUser(user: User) {
-        super.setUser(user)
-        _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
-    }
-
     private suspend fun fetchChatroom() {
         // TODO: If this doesn't work or seems too coupled, make a separate fetch chatroom method and add it to ChatroomState/ChatroomIntent
         chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomRepository.getChatroom().catch { e ->
             e.printStackTrace()
-            chatroomStateIntent.setState(if(e is Repository.ReauthenticationException)
-                ChatroomState.Error(Constants.reauthError, shouldExit = true) else ChatroomState.Error(e.message))
+            chatroomStateIntent.setState(
+                ChatroomState.Error(Constants.reauthError, shouldExit = isExceptionCritical(e as Exception)))
         }.collect {
             if(it != null) {
                 setChatroom(it)
@@ -150,10 +150,10 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     }
 
     suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
-        val updatedUser = _authChatroom.value?.updateFromFieldMap(chatroomFields)
+        val updatedChatroom = _authChatroom.value?.updateFromFieldMap(chatroomFields)
 
-        chatroomRepository.saveChatroom(updatedUser!!)
-        _authChatroom.value = updatedUser
+        chatroomRepository.saveChatroom(updatedChatroom!!)
+        _authChatroom.value = updatedChatroom
     }
 
     // evaluates current auth room and auth user ownership
@@ -162,4 +162,5 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         return authUser.value?.id ==
                 authChatroom.value?.ownerId
     }
+
 }

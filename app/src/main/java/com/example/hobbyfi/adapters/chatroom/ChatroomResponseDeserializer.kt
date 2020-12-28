@@ -13,7 +13,6 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonElement
 import java.lang.reflect.Type
 
-// will probably need this
 class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom>>() {
 
     override fun deserialize(

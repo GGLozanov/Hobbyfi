@@ -16,7 +16,7 @@ abstract class HobbyfiDatabase : RoomDatabase() {
         @Volatile
         private var instance: HobbyfiDatabase? = null
 
-        fun getInstance(context: Context) : HobbyfiDatabase {
+        fun getInstance(context: Context): HobbyfiDatabase {
             synchronized(this) {
                 var instance = this.instance
                 if(instance == null) {

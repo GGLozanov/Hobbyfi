@@ -2,7 +2,6 @@ package com.example.hobbyfi.repositories
 
 import android.net.ConnectivityManager
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.paging.*
 import androidx.room.withTransaction
 import com.example.hobbyfi.R
@@ -61,14 +60,11 @@ class UserRepository @ExperimentalPagingApi constructor(
             override suspend fun fetchFromNetwork(): CacheResponse<User>? {
                 Log.i("UserRepository", "getUser => fetchFromNetwork() => fetching current auth user from network")
                 return try {
-                    val response = hobbyfiAPI.fetchUsers(
+                    val response = hobbyfiAPI.fetchUser(
                         prefConfig.getAuthUserToken()!!,
-                        null
                     )
-                    Log.i("UserRepository", "getUser -> ${response?.modelList}")
-                    with(response) {
-                        CacheResponse(response = this!!.response, this.modelList[0])
-                    }
+                    Log.i("UserRepository", "getUser -> ${response?.model}")
+                    response
                 } catch(ex: Exception) {
                     ex.printStackTrace()
 
@@ -135,16 +131,12 @@ class UserRepository @ExperimentalPagingApi constructor(
     }
 
     // return livedata of pagedlist for users
-    suspend fun getUsers(pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.usersPageSize)):
-            LiveData<PagingData<User>> {
+    suspend fun getUsers():
+            Flow<List<User>> {
         return withContext(Dispatchers.IO) {
             Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
+            // NetworkBoundFetcher here (no pagination for Users)
 
-//        return Pager(
-//            config = pagingConfig,
-//            pagingSourceFactory = { pagingSource }, // TODO: DI
-//            remoteMediator = remoteMediator
-//        ).liveData
             throw Exception() // stub
         }
     }

@@ -14,5 +14,5 @@ sealed class MessageState : State {
         data class MessageDeleteResult(val response: Response?) : OnData()
     }
 
-    data class Error(val error: String?, val shouldReauth: Boolean = false) : MessageState()
+    data class Error(val error: String?, val shouldExit: Boolean = false) : MessageState()
 }

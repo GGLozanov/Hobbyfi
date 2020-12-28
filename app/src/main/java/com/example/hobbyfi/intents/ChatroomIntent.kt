@@ -8,7 +8,7 @@ import com.example.hobbyfi.models.Chatroom
 // and includes instant delete chatroom intent
 sealed class ChatroomIntent : Intent {
     object FetchChatroom : ChatroomIntent()
-    object CreateChatroom : ChatroomIntent()
+    data class CreateChatroom(val ownerId: Long) : ChatroomIntent()
 
     data class UpdateChatroom(val chatroomUpdateFields: Map<String?, String?>) : ChatroomIntent()
 

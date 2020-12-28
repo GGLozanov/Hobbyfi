@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.main
 
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.navArgs
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel

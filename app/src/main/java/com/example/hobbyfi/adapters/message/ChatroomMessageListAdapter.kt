@@ -41,7 +41,6 @@ class ChatroomMessageListAdapter(
     private inline val onEditMessageSelect: (view: View, message: Message) -> Unit)
 : PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
 
-    @ExperimentalPagingApi
     override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
 
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
