@@ -20,7 +20,6 @@ class MessageMediator(
     hobbyfiAPI: HobbyfiAPI,
 ) : ModelRemoteMediator<Int, Message>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.MESSAGE) {
 
-    // TODO: get user token, get cached auth user from id, check his chatroom id and make request based on that
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, Message>

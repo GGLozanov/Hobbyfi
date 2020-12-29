@@ -56,7 +56,9 @@ class MainActivityViewModel(application: Application, user: User?)
 
     fun updateUserWithLatestFields() {
         if(latestUserUpdateFields != null) {
-            updateAndSaveUser(latestUserUpdateFields!!)
+            viewModelScope.launch {
+                updateAndSaveUser(latestUserUpdateFields!!)
+            }
         } else {
             Log.wtf("MainActivityVM", "Called updateUserWithLatestFields incorrectly!")
         }

@@ -37,8 +37,7 @@ import org.kodein.di.generic.instance
 
 class ChatroomMessageListAdapter(
     private var currentUsers: List<User>,
-    private inline val onDeleteMessage: (view: View, message: Message) -> Unit,
-    private inline val onEditMessageSelect: (view: View, message: Message) -> Unit)
+    private inline val onMessageLongPress: (View, Message) -> Boolean)
 : PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
@@ -56,10 +55,10 @@ class ChatroomMessageListAdapter(
                 viewHolder = ChatroomTimelineMessageViewHolder.getInstance(parent)
             }
             MessageType.RECEIVE.ordinal -> {
-                viewHolder = ChatroomReceiveMessageViewHolder.getInstance(parent)
+                viewHolder = ChatroomReceiveMessageViewHolder.getInstance(parent, onMessageLongPress)
             }
             MessageType.SEND.ordinal -> {
-                viewHolder = ChatroomSendMessageViewHolder.getInstance(parent)
+                viewHolder = ChatroomSendMessageViewHolder.getInstance(parent, onMessageLongPress)
             }
         }
 
@@ -94,41 +93,48 @@ class ChatroomMessageListAdapter(
             else MessageType.RECEIVE.ordinal
     }
 
-    abstract class ChatroomMessageViewHolder(itemView: View) : BaseViewHolder<Message>(itemView) {
+    abstract class ChatroomMessageViewHolder(
+        private val binding: MessageCardBinding,
+        private val onMessageLongPress: (View, Message) -> Boolean
+    ) : BaseViewHolder<Message>(binding.root) {
         abstract val messageBinding: MessageCardBinding
-    }
-
-    // TODO: Gesture detection for edit message and delete message callbacks
-    class ChatroomSendMessageViewHolder(private val binding: MessageCardSendBinding) : ChatroomMessageViewHolder(binding.root) {
-        companion object {
-            fun getInstance(parent: ViewGroup): ChatroomSendMessageViewHolder {
-                val inflater = LayoutInflater.from(parent.context)
-                val binding: MessageCardSendBinding =
-                    DataBindingUtil.inflate(inflater, R.layout.message_card_send, parent, false)
-                return ChatroomSendMessageViewHolder(binding)
-            }
-        }
-
 
         override fun bind(message: Message?, position: Int) {
             binding.message = message
+            binding.messageCardLayout.setOnLongClickListener {
+                onMessageLongPress(it, message!!)
+            }
+        }
+    }
+
+    // TODO: Gesture detection for edit message and delete message callbacks
+    class ChatroomSendMessageViewHolder(
+        private val binding: MessageCardSendBinding,
+        onMessageLongPress: (View, Message) -> Boolean
+    ) : ChatroomMessageViewHolder(binding.messageCardSend, onMessageLongPress) {
+        companion object {
+            fun getInstance(parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean): ChatroomSendMessageViewHolder {
+                val inflater = LayoutInflater.from(parent.context)
+                val binding: MessageCardSendBinding =
+                    DataBindingUtil.inflate(inflater, R.layout.message_card_send, parent, false)
+                return ChatroomSendMessageViewHolder(binding, onMessageLongPress)
+            }
         }
 
         override val messageBinding get() = binding.messageCardSend
     }
 
-    class ChatroomReceiveMessageViewHolder(private val binding: MessageCardReceiveBinding) : ChatroomMessageViewHolder(binding.root) {
+    class ChatroomReceiveMessageViewHolder(
+        private val binding: MessageCardReceiveBinding,
+        onMessageLongPress: (View, Message) -> Boolean
+    ) : ChatroomMessageViewHolder(binding.messageCardReceive, onMessageLongPress) {
         companion object {
             //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup): ChatroomReceiveMessageViewHolder {
+            fun getInstance(parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean): ChatroomReceiveMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding = MessageCardReceiveBinding.inflate(inflater, parent, false)
-                return ChatroomReceiveMessageViewHolder(binding)
+                return ChatroomReceiveMessageViewHolder(binding, onMessageLongPress)
             }
-        }
-
-        override fun bind(message: Message?, position: Int) {
-            binding.message = message
         }
 
         override val messageBinding get() = binding.messageCardReceive
@@ -139,12 +145,14 @@ class ChatroomMessageListAdapter(
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup): ChatroomTimelineMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val binding = MessageCardTimelineBinding.inflate(inflater, parent, false)
+                val binding: MessageCardTimelineBinding =
+                    DataBindingUtil.inflate(inflater, R.layout.message_card_timeline, parent, false)
                 return ChatroomTimelineMessageViewHolder(binding)
             }
         }
 
         override fun bind(message: Message?, position: Int) {
+            binding.message = message
         }
     }
 

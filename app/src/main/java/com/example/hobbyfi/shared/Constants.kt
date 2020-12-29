@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
 import android.util.Patterns
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -219,6 +220,7 @@ object Constants {
     const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
 
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
+    const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
 
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr :(((

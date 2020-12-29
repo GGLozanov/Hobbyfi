@@ -9,16 +9,13 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
-import com.example.hobbyfi.intents.UserListIntent
-import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.MessageRepository
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.state.ChatroomListState
+import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
-import com.example.hobbyfi.state.UserListState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
@@ -61,14 +58,10 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
 
     override fun handleIntent() {
         viewModelScope.launch {
-            // TODO: Initialise stateintents which are not main here because NPE
             mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is MessageListIntent.FetchMessages -> {
                         fetchMessages()
-                    }
-                    is MessageListIntent.DeleteMessagesCache -> {
-
                     }
                 }
             }
@@ -76,7 +69,28 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         viewModelScope.launch {
             messageStateIntent.intentAsFlow().collect {
                 when(it) {
-
+                    is MessageIntent.CreateMessage -> {
+                        createMessage(
+                            it.message ?: message.value!!,
+                            it.userSentId,
+                            it.chatroomSentId
+                        )
+                    }
+                    is MessageIntent.CreateMessageCache -> {
+                        saveNewMessage(it.message)
+                    }
+                    is MessageIntent.UpdateMessage -> {
+                        updateMessage(it.messageUpdateFields)
+                    }
+                    is MessageIntent.UpdateMessageCache -> {
+                        updateAndSaveMessage(it.messageUpdateFields)
+                    }
+                    is MessageIntent.DeleteMessage -> {
+                        deleteMessage(it.messageId)
+                    }
+                    is MessageIntent.DeleteMessageCache -> {
+                        deleteMessageCache(it.messageId, true)
+                    }
                 }
             }
         }
@@ -86,7 +100,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         handleIntent()
     }
 
-    private suspend fun fetchMessages() {
+    private fun fetchMessages() {
         mainStateIntent.setState(MessageListState.Loading)
 
         if(currentMessages == null) {
@@ -95,10 +109,10 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
                 .cachedIn(viewModelScope)
         }
 
-        mainStateIntent.setState(MessageListState.MessagesResult(currentMessages!!))
+        mainStateIntent.setState(MessageListState.OnData.MessagesResult(currentMessages!!))
     }
 
-    private suspend fun createMessage(message: String) {
+    private suspend fun createMessage(message: String, userSentId: Long, chatroomSentId: Long) {
         messageStateIntent.setState(MessageState.Loading)
 
         messageStateIntent.setState(try {
@@ -106,7 +120,13 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
                 messageRepository.createMessage(message)
             )
 
-            // TODO: Save message in cache
+            saveNewMessage(Message(
+                state.response!!.id,
+                message,
+                state.response.createTime,
+                userSentId,
+                chatroomSentId
+            ))
 
             state
         } catch(ex: Exception) {
@@ -117,24 +137,67 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         })
     }
 
-    private suspend fun updateMessage(id: Int) {
+    private suspend fun updateMessage(messageUpdateFields: Map<String?, String?>) {
         messageStateIntent.setState(MessageState.Loading)
 
+        messageStateIntent.setState(try {
+            val state = MessageState.OnData.MessageUpdateResult(
+                messageRepository.editMessage(messageUpdateFields)
+            )
+
+            updateAndSaveMessage(messageUpdateFields)
+
+            state
+        } catch(ex: Exception) {
+            MessageState.Error(
+                ex.message,
+                isExceptionCritical(ex)
+            )
+        })
     }
 
-    private suspend fun updateAndSaveMessage(message: Message) {
-
+    private suspend fun updateAndSaveMessage(messageUpdateFields: Map<String?, String?>) {
+        messageRepository.updateMessage((messageUpdateFields[Constants.ID] ?: error("Message ID must not be null in updateAndSaveMessage call!"))
+            .toLong(), messageUpdateFields[Constants.MESSAGE] ?: error("Message message must not be null in updateAndSaveMessage call!")
+        )
     }
 
-    private suspend fun deleteMessage(id: Int) {
+    private suspend fun saveNewMessage(message: Message) {
+        messageRepository.saveNewMessage(message)
+    }
+
+    private suspend fun deleteMessage(id: Long) {
         messageStateIntent.setState(MessageState.Loading)
 
+        messageStateIntent.setState(try {
+            val state = MessageState.OnData.MessageDeleteResult(
+                messageRepository.deleteMessage(id)
+            )
+
+            deleteMessageCache(id)
+
+            state
+        } catch(ex: Exception) {
+            MessageState.Error(
+                ex.message,
+                isExceptionCritical(ex)
+            )
+        })
     }
 
-    private suspend fun deleteMessageCache(id: Int) {
+    // code duuuuuuup because generics and blablabla go brr
+    private suspend fun deleteMessageCache(id: Long, setState: Boolean = false) {
+        val success = messageRepository.deleteMessageCache(id)
 
+        if(setState) {
+            messageStateIntent.setState(if(success) MessageState.OnData.DeleteMessageCacheResult
+                else MessageState.Error(Constants.cacheDeletionError))
+        } else if(!success) {
+            throw Exception(Constants.cacheDeletionError)
+        }
     }
 
+    // might not need this method because Room foreign keys & oncascade deletion
     private suspend fun deleteMessagesCache() {
         var state: MessageListState = MessageListState.Error(Constants.cacheDeletionError)
 
@@ -142,7 +205,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         if(viewModelScope.async {
                 messageRepository.deleteMessagesCache()
             }.await()) {
-            state = MessageListState.DeleteMessagesCacheResult
+            // state = MessageListState.OnData.DeleteMessagesCacheResult
         }
 
         mainStateIntent.setState(state)

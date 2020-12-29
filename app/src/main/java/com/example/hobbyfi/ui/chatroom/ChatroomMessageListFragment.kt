@@ -1,15 +1,15 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -22,7 +22,7 @@ import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.shared.ChatroomBroadcastReceiverFactory
+import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.ChatroomMessageBroadacastReceiverFactory
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
@@ -35,24 +35,33 @@ import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.OnImagesSelectedListener {
-    // TODO: Init adapter, loader
+class ChatroomMessageListFragment : ChatroomFragment(),
+        BottomSheetImagePicker.OnImagesSelectedListener, ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected {
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
     private lateinit var messageListAdapter: ChatroomMessageListAdapter
 
     private val onNormalSendMessage = View.OnClickListener {
+        if(assertTextFieldsInvalidity()) {
+            return@OnClickListener
+        }
 
+        lifecycleScope.launch {
+            createMessage()
+        }
     }
 
-    private val onEditSendMessage = View.OnClickListener {
-
+    private val onEditSendMessage = { editedMessage: Message ->
+        View.OnClickListener {
+            // TODO: Add/use message ID for update field map
+        }
     }
 
     private lateinit var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadacastReceiverFactory
@@ -67,6 +76,22 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         userHasChatroom = true
     )
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        val activity = requireActivity() as ChatroomActivity
+
+        // TODO: Move receiver registration in after chatroom messages fetch!!!
+        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadacastReceiverFactory
+            .getInstance(viewModel, activityViewModel, activity)
+        createMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
+        editMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
+        deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
+
+        activity.registerReceiver(createMessageReceiver, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
+        activity.registerReceiver(editMessageReceiver, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
+        activity.registerReceiver(deleteMessageReceiver, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -76,17 +101,12 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         binding.viewModel = viewModel
 
         messageListAdapter = ChatroomMessageListAdapter(
-            activityViewModel.currentAdapterUsers.value!!,
-            { view, message ->
-                lifecycleScope.launch {
-                    viewModel.sendMessageIntent(MessageIntent.DeleteMessage(message.id))
-                } },
-            { view, message ->
-                binding.sendMessageButton.setOnClickListener(onEditSendMessage)
-                // TODO: Discord-like banner while editing message with "cancel" materialtextview to switch back
-                // to the original onClickListener for send button
-            }
-        )
+            activityViewModel.currentAdapterUsers.value ?: emptyList()
+        ) { _, message ->
+            val bottomSheet = ChatroomMessageBottomSheetDialogFragment.newInstance(message)
+            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+            return@ChatroomMessageListAdapter true
+        }
 
         // TODO: BroadcastReceiver here triggered => insert message and remote keys (calculate them based on adapter dataset itemCount divided by page size)
         // TODO: They will be used later in the RemoteMediator
@@ -94,19 +114,6 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         // TODO: In RemoteMediator, check if REFRESH loadstate => has new message in database with its remote key =>
         // TODO: return Mediator Success and load new list with new message?
         // TODO: Append message to room db so that it can be pushed to the paging data automatically;
-
-        // broadcastreceiver init had to be done here... hopefully it doesn't
-        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadacastReceiverFactory
-            .getInstance(viewModel, activityViewModel, viewLifecycleOwner)
-        createMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
-        editMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
-        deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
-
-        val activity = requireActivity() as ChatroomActivity
-
-        activity.registerReceiver(createMessageReceiver, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
-        activity.registerReceiver(editMessageReceiver, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
-        activity.registerReceiver(deleteMessageReceiver, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
 
         with(binding) {
             lifecycleOwner = this@ChatroomMessageListFragment
@@ -126,6 +133,9 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
             }
 
             sendMessageButton.setOnClickListener(onNormalSendMessage)
+            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(onNormalSendMessage)
+                cancelHeader.isVisible = false
+            }
 
             initMessageListAdapter()
             observeUsers()
@@ -160,11 +170,13 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
                     is MessageListState.Loading -> {
 
                     }
-                    is MessageListState.MessagesResult -> {
+                    is MessageListState.OnData.MessagesResult -> {
+                        binding.swipeRefresh.isRefreshing = false
+                        it.messages.catch { e ->
 
-                    }
-                    is MessageListState.DeleteMessagesCacheResult -> {
-
+                        }.collectLatest { data ->
+                            messageListAdapter.submitData(data)
+                        }
                     }
                     is MessageListState.Error -> {
 
@@ -185,13 +197,18 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
 
                     }
                     is MessageState.OnData.MessageCreateResult -> {
-
+                        viewModel.message.value = null // reset msg
                     }
-                    is MessageState.OnData.MessageEditResult -> {
+                    is MessageState.OnData.MessageUpdateResult -> {
 
+                        viewModel.message.value = null
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
-
+                        Toast.makeText(requireContext(), "Successfully deleted message!", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                    is MessageState.OnData.DeleteMessageCacheResult -> {
+                        // prolly don't do much, if anything here
                     }
                     is MessageState.Error -> {
 
@@ -240,11 +257,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
     override fun onImagesSelected(uris: List<Uri>, tag: String?) {
         lifecycleScope.launch {
             uris.forEach {
-                viewModel.sendMessageIntent(
-                    MessageIntent.CreateMessage(
-                        ImageUtils.getEncodedImageFromUri(requireActivity(), it)
-                    )
-                )
+                createMessage(ImageUtils.getEncodedImageFromUri(requireActivity(), it))
             }
         }
     }
@@ -267,5 +280,28 @@ class ChatroomMessageListFragment : ChatroomFragment(), BottomSheetImagePicker.O
         activity.unregisterReceiver(createMessageReceiver)
         activity.unregisterReceiver(editMessageReceiver)
         activity.unregisterReceiver(deleteMessageReceiver)
+    }
+
+    override fun onEditMessageSelect(view: View, message: Message) {
+        viewModel.message.value = message.message // set to edit current message from bottom sheet
+        binding.sendMessageButton.setOnClickListener(onEditSendMessage(message))
+        binding.cancelHeader.isVisible = true
+        // to the original onClickListener for send button
+    }
+
+    override fun onDeleteMessageSelect(view: View, message: Message) {
+        lifecycleScope.launch {
+            viewModel.sendMessageIntent(MessageIntent.DeleteMessage(message.id))
+        }
+    }
+
+    private suspend fun createMessage(message: String? = null) {
+        viewModel.sendMessageIntent(
+            MessageIntent.CreateMessage(
+                message,
+                activityViewModel.authUser.value!!.id,
+                activityViewModel.authChatroom.value!!.id
+            )
+        )
     }
 }

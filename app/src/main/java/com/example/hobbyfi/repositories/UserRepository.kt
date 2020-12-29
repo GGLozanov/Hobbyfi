@@ -10,6 +10,7 @@ import com.example.hobbyfi.fetchers.NetworkBoundFetcher
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
+import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
@@ -87,14 +88,14 @@ class UserRepository @ExperimentalPagingApi constructor(
         })
     }
 
-    suspend fun deleteUserCache(): Response? {
+    suspend fun deleteUser(): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return performAuthorisedRequest({
             hobbyfiAPI.deleteUser(
                 prefConfig.getAuthUserToken()!!
             )
         }, {
-            deleteUserCache()
+            deleteUser()
         })
     }
 
@@ -106,25 +107,25 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun deleteUserCache(user: User): Boolean {
-        Log.i("UserRepository", "deleteUser -> deleting auth user: $user")
+    suspend fun deleteUserCache(userId: Long): Boolean {
+        Log.i("UserRepository", "deleteUser -> deleting auth user w/ id: $userId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
-                val deletedUser = hobbyfiDatabase.userDao().delete(user)
+                val deletedUser = hobbyfiDatabase.userDao().deleteUserById(userId)
                 return@withTransaction deletedUser > 0 // auth user should not have remote keys stored
             }
         }
     }
 
     // called when user leaves chatroom (voluntarily or not - leave chatroom button or yeeted from chatroom)
-    suspend fun deleteUsers(authId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
-        Log.i("UserRepository", "deleteUsers -> deleting auth users with auth id: $authId")
+    suspend fun deleteUsers(userId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
+        Log.i("UserRepository", "deleteUsers -> deleting auth users with id: $userId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
-                val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(authId)
-                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authId, RemoteKeyType.USER)
+                val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(userId)
+                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(userId, RemoteKeyType.USER)
                 return@withTransaction deletedUsers > 0 && deletedRemoteKeys >= 0
             }
         }
@@ -132,12 +133,24 @@ class UserRepository @ExperimentalPagingApi constructor(
 
     // return livedata of pagedlist for users
     suspend fun getUsers():
-            Flow<List<User>> {
-        return withContext(Dispatchers.IO) {
-            Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
-            // NetworkBoundFetcher here (no pagination for Users)
+            Flow<List<User>?> {
+        Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
+        return object : NetworkBoundFetcher<List<User>, CacheListResponse<User>>() {
+            override suspend fun saveNetworkResult(response: CacheListResponse<User>) {
+                TODO("Not yet implemented")
+            }
 
-            throw Exception() // stub
-        }
+            override fun shouldFetch(cache: List<User>?): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun loadFromDb(): Flow<List<User>?> {
+                TODO("Not yet implemented")
+            }
+
+            override suspend fun fetchFromNetwork(): CacheListResponse<User>? {
+                TODO("Not yet implemented")
+            }
+        }.asFlow()
     }
 }

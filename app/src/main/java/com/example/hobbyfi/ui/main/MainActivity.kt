@@ -19,6 +19,7 @@ import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
+import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
@@ -51,6 +52,16 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         MainApplication.applicationContext
     )
 
+    private val authStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == Constants.LOGOUT) {
+                logout()
+            } else {
+                Log.wtf("MainActivity", "MainActivity authStateReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!")
+            }
+        }
+    }
+
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.CHATROOM_DELETED) {
@@ -69,6 +80,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
+        registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
 
         with(binding) {
             val view = root
@@ -129,7 +141,9 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                             }
                             viewModel.setLatestUserUpdateFields(it.userFields) // update later in observers in fragment
                         } else {
-                            viewModel.updateAndSaveUser(it.userFields)
+                            viewModel.sendIntent(
+                                UserIntent.UpdateUserCache(it.userFields)
+                            )
                             Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
                                 .show()
                         }
@@ -205,5 +219,6 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(chatroomDeletedReceiver)
+        unregisterReceiver(authStateReceiver)
     }
 }

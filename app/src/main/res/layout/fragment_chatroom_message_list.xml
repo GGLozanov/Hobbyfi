@@ -9,7 +9,6 @@
             type="com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel" />
     </data>
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/messages_layout"
         android:layout_width="match_parent"
@@ -20,7 +19,7 @@
             android:id="@+id/swipe_refresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="78dp"
+            android:layout_marginBottom="77dp"
             app:layout_constraintBottom_toTopOf="@id/message_input_layout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -33,8 +32,9 @@
                 android:layout_height="match_parent"
                 app:layoutManager="LinearLayoutManager"
                 app:reverseLayout="true"
-                app:stackFromEnd="true"
-                tools:context=".ui.chatroom.ChatroomMessageListFragment" />
+                app:stackFromEnd="false"
+                tools:context=".ui.chatroom.ChatroomMessageListFragment"
+                tools:listitem="@layout/message_card_receive" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <LinearLayout
@@ -44,7 +44,8 @@
             android:background="@drawable/rounded_container"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/edit_message_options_layout">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/message_input_field"
@@ -62,6 +63,7 @@
                     android:id="@+id/text_input_message"
                     android:layout_width="250dp"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:includeFontPadding="true"
                     android:inputType="textEmailAddress"
                     android:singleLine="true"
@@ -94,6 +96,32 @@
                 android:background="@null"
                 android:src="@drawable/ic_baseline_send_42"
                 tools:src="@drawable/ic_baseline_send_42" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/edit_message_options_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:background="@color/colorBackground"
+            android:gravity="end"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/message_input_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/swipe_refresh">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/cancel_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginEnd="20dp"
+                android:text="@string/cancel"
+                android:textSize="16sp"
+                android:textStyle="bold">
+
+            </com.google.android.material.textview.MaterialTextView>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

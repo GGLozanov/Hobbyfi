@@ -16,7 +16,7 @@ import com.example.hobbyfi.viewmodels.base.BaseViewModel
 
 // Discord doesn't do pagination for their guild users...
 // ...so neither will I!
-class ChatroomUserListAdapter(private val users: List<User>) :
+class ChatroomUserListAdapter(private var users: List<User>) :
     RecyclerView.Adapter<ChatroomUserListAdapter.ChatroomUserViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomUserViewHolder {
@@ -43,5 +43,9 @@ class ChatroomUserListAdapter(private val users: List<User>) :
 
         override fun bind(user: User?, position: Int) {
         }
+    }
+
+    fun setUsers(users: List<User>) {
+        this.users = users
     }
 }

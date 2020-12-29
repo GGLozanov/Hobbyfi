@@ -15,7 +15,7 @@ import java.lang.IllegalArgumentException
 // not *exactly* a factory...? but... eh???
 @ExperimentalCoroutinesApi
 open class ChatroomBroadcastReceiverFactory(
-    protected val chatroomActivityViewModel: ChatroomActivityViewModel? = null,
+    private val chatroomActivityViewModel: ChatroomActivityViewModel? = null,
     protected val lifecycleOwner: LifecycleOwner
 ) {
 

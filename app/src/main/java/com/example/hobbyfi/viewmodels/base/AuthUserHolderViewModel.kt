@@ -8,11 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.UserState
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -44,6 +42,9 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
                         Log.i("AuthUserHolderVM", "Update User intent sent")
                         updateUser(it.userUpdateFields)
                     }
+                    is UserIntent.UpdateUserCache -> {
+                        updateAndSaveUser(it.userUpdateFields)
+                    }
                     is UserIntent.DeleteUser -> {
                         Log.i("AuthUserHolderVM", "Delete User intent sent")
                         deleteUser()
@@ -58,16 +59,18 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         _authUser.value = user
     }
 
-    fun updateAndSaveUser(userFields: Map<String?, String?>) {
+    protected fun updateAndSaveUser(userFields: Map<String?, String?>) {
         viewModelScope.launch {
             val updatedUser = _authUser.value!!.updateFromFieldMap(userFields)
-            userRepository.saveUser(updatedUser)
+            saveUser(updatedUser)
             _authUser.value = updatedUser
         }
     }
 
+    protected suspend fun saveUser(updatedUser: User) = userRepository.saveUser(updatedUser)
+
     private suspend fun deleteUserCache() {
-        userRepository.deleteUserCache(_authUser.value!!)
+        userRepository.deleteUserCache(_authUser.value!!.id)
         _authUser.value = null
     }
 
@@ -122,7 +125,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
         mainStateIntent.setState(try {
             val response = UserState.OnData.UserDeleteResult(
-                userRepository.deleteUserCache()
+                userRepository.deleteUser()
             )
 
             deleteUserCache()

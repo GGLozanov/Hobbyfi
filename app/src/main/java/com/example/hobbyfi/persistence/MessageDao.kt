@@ -14,5 +14,8 @@ interface MessageDao : BaseDao<Message> {
     fun deleteMessages(): Int
 
     @Query("DELETE FROM messages WHERE id = :id")
-    fun deleteMessageById(id: Int): Int
+    fun deleteMessageById(id: Long): Int
+
+    @Query("UPDATE messages SET message = :message WHERE id = :id")
+    fun updateMessageById(id: Long, message: String)
 }

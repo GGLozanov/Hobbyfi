@@ -191,7 +191,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun deleteMessage(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Field(Constants.ID) id: Int
+        @Field(Constants.ID) id: Long
     ): Response?
 
     /**

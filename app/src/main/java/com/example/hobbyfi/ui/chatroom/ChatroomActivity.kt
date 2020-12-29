@@ -2,6 +2,8 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.*
 import android.graphics.Color
+import android.graphics.ColorSpace
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -17,19 +19,23 @@ import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
+import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.UserIntent
+import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.shared.ChatroomBroadcastReceiverFactory
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
-import com.example.hobbyfi.shared.getDestructedMapExtra
-import com.example.hobbyfi.state.ChatroomState
-import com.example.hobbyfi.state.State
-import com.example.hobbyfi.state.UserState
+import com.example.hobbyfi.state.*
 import com.example.hobbyfi.ui.base.BaseActivity
-import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.gms.common.ConnectionResult.*
@@ -55,6 +61,8 @@ class ChatroomActivity : BaseActivity() {
     lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
 
+    private lateinit var userListAdapter: ChatroomUserListAdapter
+
     private lateinit var chatroomReceiverFactory: ChatroomBroadcastReceiverFactory
     private lateinit var editChatroomReceiver: BroadcastReceiver
     private lateinit var deleteChatroomReceiver: BroadcastReceiver
@@ -64,6 +72,8 @@ class ChatroomActivity : BaseActivity() {
     private lateinit var deleteEventReceiver: BroadcastReceiver
     private lateinit var editEventReceiver: BroadcastReceiver
     private lateinit var createEventReceiver: BroadcastReceiver
+
+    private var currentEventGlideTarget: CustomTarget<Drawable>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +88,21 @@ class ChatroomActivity : BaseActivity() {
                 viewModel.sendIntent(UserIntent.FetchUser)
                 viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
             }
+        }
+
+        userListAdapter = ChatroomUserListAdapter(
+            viewModel.currentAdapterUsers.value ?: emptyList()
+        )
+
+        with(binding) {
+            eventCard.background.alpha = 255 * (75 / 100) // 75% of 255 (255 = max alpha value)
+            joinLeaveEventButtonBar.leftButton.setOnClickListener { // leave event
+                // unsubscribe from cloud firestore (through eventrepository, eventintent, etc.)
+            }
+            joinLeaveEventButtonBar.rightButton.setOnClickListener { // join event
+                // navigate to maps activity
+            }
+            // TODO: add user recyclerview onclick + view user profile bottomsheet fragment
         }
 
         // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
@@ -102,12 +127,20 @@ class ChatroomActivity : BaseActivity() {
         // TODO: Register delete/update BroadcastReceive with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
 
-        // TODO: User paging fetching here + setting currentAdapterUsers in viewmodel for messageListFragment
-        //  through PageDataAdapter exxtension func in Extensions.kt
-
         observeChatroomState()
+        observeUserState()
+        observeUsersState()
+        observeEventState()
         observeChatroom()
         observeChatroomOwnRights()
+
+        if(viewModel.currentAdapterUsers.value == null) {
+            lifecycleScope.launch {
+                viewModel.sendUsersIntent(
+                    UserListIntent.FetchUsers
+                )
+            }
+        }
     }
 
     private fun observeUserState() {
@@ -124,11 +157,12 @@ class ChatroomActivity : BaseActivity() {
                         viewModel.setUser(it.user)
                     }
                     is UserState.Error -> {
-
+                        handleAuthActionableError(it.error, it.shouldReauth)
                     }
                     else -> throw State.InvalidStateException()
                 }
-                // no need for UserState.OnData.UserUpdateResult for null chatroom because user gets nulled chatroom in backend when it's deleted
+                // no need for UserState.OnData.UserUpdateResult for null chatroom
+                // because user gets nulled chatroom in backend when it's deleted
             }
         }
     }
@@ -155,24 +189,74 @@ class ChatroomActivity : BaseActivity() {
                             .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback)
                         viewModel.setChatroom(null) // clear chatroom in any case
                         finish()
-                        // TODO: Should only show toast or something here in the future and have exiting chatroom and
-                        //  nullifying user chatroom ID be handled by DeleteChatroomCacheResult STATE
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
                             .show()
-                        // TODO: Should only show toast or something here in the future and have exiting chatroom
-                        //  updates be handled by UpdateChatroomNotification
-                        // TODO: Update chatroom cache
                     }
                     is ChatroomState.Error -> {
-                        Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! ${it.error}", Toast.LENGTH_LONG)
-                            .show()
-                        if(it.shouldExit) {
-                            finish()
-                        }
+                        handleAuthActionableError(it.error, it.shouldExit)
                     }
                     else -> throw State.InvalidStateException()
+                }
+            }
+        }
+    }
+
+    private fun observeUsersState() {
+        lifecycleScope.launch {
+            viewModel.usersState.collect {
+                when(it) {
+                   is UserListState.Idle -> {
+
+                   }
+                    is UserListState.Loading -> {
+                        // TODO: Progressbar on RecyclerView
+                    }
+                    is UserListState.OnData.UsersResult -> {
+                        userListAdapter.setUsers(it.users)
+                    }
+                    is UserListState.Error -> {
+                        handleAuthActionableError(it.error, it.shouldReauth)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeEventState() {
+        lifecycleScope.launch {
+            viewModel.eventState.collect {
+                when(it) {
+                    is EventState.Idle -> {
+
+                    }
+                    is EventState.Loading -> {
+                        // TODO: Progressbar on event card
+                    }
+                    is EventState.OnData.OnEventReceived -> {
+                        if(it.event.photoUrl != null) {
+                            // FIXME: Is it bad to keep this in activity like this?
+                            currentEventGlideTarget = Glide.with(this@ChatroomActivity)
+                                .asDrawable()
+                                .load(it.event.photoUrl)
+                                .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_event_fetch_time)))
+                                .into(object : CustomTarget<Drawable>() {
+                                    override fun onResourceReady(
+                                        resource: Drawable,
+                                        transition: Transition<in Drawable>?
+                                    ) {
+                                        binding.eventCard.background = resource
+                                    }
+
+                                    override fun onLoadCleared(placeholder: Drawable?) {
+                                    }
+                                })
+                        }
+                    }
+                    is EventState.Error -> {
+                        handleAuthActionableError(it.error, it.shouldReauth)
+                    }
                 }
             }
         }
@@ -186,11 +270,21 @@ class ChatroomActivity : BaseActivity() {
             }
 
             if(viewModel.isAuthUserChatroomOwner.value == true) {
-                binding.navViewAdmin.menu.clear()
-                if(it?.lastEventId == null) {
-                    binding.navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
-                } else {
-                    binding.navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
+                with(binding) {
+                    navViewAdmin.menu.clear()
+                    if(it?.lastEventId == null) {
+                        navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
+                    } else {
+                        navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
+                    }
+                }
+            }
+
+            if(it?.lastEventId != null && viewModel.authEvent.value == null) {
+                lifecycleScope.launch {
+                    viewModel.sendEventIntent(
+                        EventIntent.FetchEvent
+                    )
                 }
             }
         })
@@ -215,7 +309,7 @@ class ChatroomActivity : BaseActivity() {
                         Constants.confirmChatroomDeletionMessage,
                         { dialogInterface: DialogInterface, _: Int ->
                             lifecycleScope.launch {
-                                viewModel.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                                viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
                             }
                             dialogInterface.dismiss()
                         },
@@ -249,6 +343,7 @@ class ChatroomActivity : BaseActivity() {
         }
 
 
+        // TODO: Move receiver registration after chatroom/users/event fetches!!!
         chatroomReceiverFactory = ChatroomBroadcastReceiverFactory.getInstance(viewModel, this)
         editChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_CHATROOM_TYPE)
         deleteChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.DELETE_CHATROOM_TYPE)
@@ -281,6 +376,14 @@ class ChatroomActivity : BaseActivity() {
         unregisterReceiver(editEventReceiver)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if(currentEventGlideTarget != null) {
+            Log.i("ChatroomActivity", "ChatroomActivity onDestroy -> clearing glide event card target")
+            Glide.with(this).clear(currentEventGlideTarget)
+        }
+    }
+
     private fun assertGooglePlayAvailability() {
         val googleApiInstance = GoogleApiAvailability.getInstance()
         val availability = googleApiInstance.isGooglePlayServicesAvailable(this)
@@ -305,4 +408,13 @@ class ChatroomActivity : BaseActivity() {
         return true
     }
 
+    private fun handleAuthActionableError(error: String?, shouldExit: Boolean) {
+        Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG)
+            .show()
+        if(shouldExit) {
+            finish()
+            // TODO: Add another field (shouldReauth) for REALLY bad errors
+            sendBroadcast(Intent(Constants.LOGOUT))
+        }
+    }
 }

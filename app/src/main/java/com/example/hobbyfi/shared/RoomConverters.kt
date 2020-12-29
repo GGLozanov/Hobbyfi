@@ -13,7 +13,7 @@ class RoomConverters {
     fun fromRemoteKeyType(value: RemoteKeyType): String = value.name
 
     @TypeConverter
-    fun toRemoteKeyType(value: String): RemoteKeyType = enumValueOf<RemoteKeyType>(value)
+    fun toRemoteKeyType(value: String): RemoteKeyType = enumValueOf(value)
 
     @TypeConverter
     fun fromTagList(value: List<Tag>?): String {

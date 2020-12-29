@@ -164,7 +164,7 @@ class ChatroomListFragment : MainFragment() {
                     val userHasChatroom = user.chatroomId != null
 
                     loadStateAdapter?.setUserHasChatroom(userHasChatroom)
-                    setChatroomLeaveButtonVisibility(userHasChatroom)
+                    setChatroomLeaveButtonVisibility(userHasChatroom) // possible performance issues here
 
                     if(userHasChatroom && chatroomListAdapter.itemCount != 0) {
                         if(!viewModel.hasDeletedCacheForSession) {
@@ -189,7 +189,7 @@ class ChatroomListFragment : MainFragment() {
                 is ChatroomListState.Loading -> {
 
                 }
-                is ChatroomListState.ChatroomsResult -> {
+                is ChatroomListState.OnData.ChatroomsResult -> {
                     lifecycleScope.launch {
                         state.chatrooms.catch { e ->
                             e.printStackTrace()
@@ -207,7 +207,7 @@ class ChatroomListFragment : MainFragment() {
                         }
                     }
                 }
-                is ChatroomListState.DeleteChatroomsCacheResult -> {
+                is ChatroomListState.OnData.DeleteChatroomsCacheResult -> {
                     Log.i("ChatroomListFragment", "Deleted chatrooms cache. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
                 }
                 is ChatroomListState.Error -> {

@@ -7,6 +7,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CreateTimeIdResponse
@@ -15,6 +16,7 @@ import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.RemoteKeyType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -44,7 +46,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
         }, { createMessage(message) })
     }
 
-    suspend fun deleteMessage(id: Int): Response? {
+    suspend fun deleteMessage(id: Long): Response? {
         Log.i("MessageRepository", "deleteMessage -> Deleting auth user (or chatroom owner) message with id $id")
         return performAuthorisedRequest({
             hobbyfiAPI.deleteMessage(
@@ -54,7 +56,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
         }, { deleteMessage(id) })
     }
 
-    suspend fun deleteMessageCache(id: Int) {
+    suspend fun deleteMessageCache(id: Long): Boolean {
         Log.i("MessageRepository", "deleteMessageCache -> deleting cached message w/ id: $id")
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.messageDao().deleteMessageById(id) > 0
@@ -80,9 +82,17 @@ class MessageRepository @ExperimentalPagingApi constructor(
         }, { editMessage(messageFields) })
     }
 
-    suspend fun saveMessage(message: Message) =
+    suspend fun saveNewMessage(message: Message) =
         withContext(Dispatchers.IO) {
+            // set to the beginning of the page remote key and wake SQL page shift trigger
+            hobbyfiDatabase.remoteKeysDao().insert(RemoteKeys(message.id, 2, null, RemoteKeyType.MESSAGE))
             hobbyfiDatabase.messageDao().insert(message)
+        }
+
+    // message is the only mutable property (FOR NOW)
+    suspend fun updateMessage(id: Long, message: String) =
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.messageDao().updateMessageById(id, message)
         }
 
     suspend fun saveMessages(messages: List<Message>) {
@@ -90,12 +100,5 @@ class MessageRepository @ExperimentalPagingApi constructor(
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.messageDao().insertList(messages)
         }
-    }
-
-    suspend fun calculateLatestRemoteKeys() {
-        // TODO: Calculate latest remote key here by inserting
-        // TODO: nextKey == null (always)
-        // TODO: Somehow account for page shifting with remote key insertion and make all pages change
-        // TODO: Ex: 21 messages for 1 remotekey pair => shift it to next page => shift all pages if exceeds page capacity (20)
     }
 }

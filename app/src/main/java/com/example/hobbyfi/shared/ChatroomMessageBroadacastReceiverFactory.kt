@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.intents.MessageIntent
+import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,7 +20,7 @@ class ChatroomMessageBroadacastReceiverFactory(
 ) : ChatroomBroadcastReceiverFactory(chatroomActivityViewModel, lifecycleOwner) {
 
     override fun createActionatedReceiver(action: String): BroadcastReceiver = when(action) {
-            Constants.CREATE_MESSAGE_TYPE, Constants.EDIT_MESSAGE_TYPE -> {
+            Constants.CREATE_MESSAGE_TYPE -> {
                 // CREATE used by both timeline and normal messages
                 // TODO: Handle auth user created/edited message (pass in intent to isNotChatroomOwnerOrShouldSee())
                 // so that message sent user id can be acccessed and checked
@@ -28,15 +29,32 @@ class ChatroomMessageBroadacastReceiverFactory(
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenCreated {
                             viewModel.messageStateIntent.sendIntent(
-                                MessageIntent.UpdateMessageCache(
+                                MessageIntent.CreateMessageCache(
                                     it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
                                 )
                             )
                         }
                     },
-                    onReceiveLog = "Got me a broadcast receievrino for CREATE/EDIT MESSAGE",
-                    onNoNotifyLog = "Current broadcastreceiver for create/edit message has targeted auth user AS owner of message. " +
-                            "Aborting CREATE/UPDATE message intent"
+                    onReceiveLog = "Got me a broadcast receievrino for CREATE MESSAGE",
+                    onNoNotifyLog = "Current broadcastreceiver for create message has targeted auth user AS owner of message. " +
+                            "Aborting CREATE message intent"
+                )
+            }
+            Constants.EDIT_MESSAGE_TYPE -> {
+                createReceiver(
+                    action,
+                    onCorrectAction = {
+                        lifecycleOwner.lifecycleScope.launchWhenCreated {
+                            viewModel.messageStateIntent.sendIntent(
+                                MessageIntent.UpdateMessageCache(
+                                    it.getDestructedMapExtra()
+                                )
+                            )
+                        }
+                    },
+                    onReceiveLog = "Got me a broadcast receievrino for UPDATE MESSAGE",
+                    onNoNotifyLog = "Current broadcastreceiver for update message has targeted auth user AS owner of message. " +
+                            "Aborting UPDATE message intent"
                 )
             }
             Constants.DELETE_MESSAGE_TYPE -> {
@@ -52,7 +70,7 @@ class ChatroomMessageBroadacastReceiverFactory(
                             )
                         }
                     },
-                    onReceiveLog = null,
+                    onReceiveLog = "Got me a broadcast receievrino for DELETE MESSAGE",
                     onNoNotifyLog = "Current broadcastreceiver for DELETE message has targeted auth user AS owner of message. " +
                             "Aborting DELETE message intent"
                 )

@@ -10,9 +10,9 @@ sealed class MessageListState : State {
     object Idle : MessageListState()
     object Loading : MessageListState()
 
-    data class MessagesResult(val messages: Flow<PagingData<Message>>) : MessageListState()
-
-    object DeleteMessagesCacheResult : MessageListState()
+    sealed class OnData : MessageListState() {
+        data class MessagesResult(val messages: Flow<PagingData<Message>>) : MessageListState()
+    }
 
     data class Error(val error: String?, val shouldExit: Boolean = false) : MessageListState()
 }

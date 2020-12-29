@@ -19,4 +19,7 @@ interface UserDao : BaseDao<User> {
 
     @Query("DELETE FROM users WHERE id != :userId")
     fun deleteUsersExceptId(userId: Long): Int
+
+    @Query("DELETE FROM users WHERE id = :userId")
+    fun deleteUserById(userId: Long): Int
 }

@@ -8,7 +8,9 @@ sealed class EventState : State {
     object Idle : EventState()
     object Loading : EventState()
 
-    data class OnEventReceived(val event: Event) : EventState()
+    sealed class OnData : EventState() {
+        data class OnEventReceived(val event: Event) : EventState()
+    }
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : EventState()
 }

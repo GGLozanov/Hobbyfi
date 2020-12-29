@@ -17,6 +17,6 @@
             android:id="@+id/message_card_send"
             layout="@layout/message_card"
             app:message="@{message}"
-            app:gravity="@{Gravity.START}" />
+            app:gravity="@{Gravity.END}" />
     </LinearLayout>
 </layout>

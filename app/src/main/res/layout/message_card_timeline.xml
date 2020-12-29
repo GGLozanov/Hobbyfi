@@ -7,11 +7,17 @@
             type="com.example.hobbyfi.models.Message" />
     </data>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/timeline_message"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/rounded_container_grey"
+        android:gravity="center"
+        android:padding="10dp"
+        android:textSize="20sp"
+        android:textStyle="bold">
 
-        <!--TODO: Centered text card-->
+    </com.google.android.material.textview.MaterialTextView>
 
-    </LinearLayout>
 </layout>

@@ -89,6 +89,8 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         }.collect {
             if(it != null) {
                 setChatroom(it)
+                // TODO: somehow calculate remotekeys for pagination or just refresh the list again?
+                saveChatroom(it)
                 chatroomStateIntent.setState(ChatroomState.OnData.ChatroomResult(it))
             }
         }
@@ -115,9 +117,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
     private suspend fun deleteChatroomCache(setState: Boolean = false) {
         val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!)
-        if(!success) {
-            throw Exception(Constants.cacheDeletionError)
-        }
 
         updateAndSaveUser(mapOf(
             Pair(Constants.CHATROOM_ID, "0")
@@ -126,6 +125,8 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         if(setState) {
             chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult
                 else ChatroomState.Error(Constants.cacheDeletionError))
+        } else if(!success) {
+            throw Exception(Constants.cacheDeletionError)
         }
     }
 
@@ -149,12 +150,14 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         })
     }
 
-    suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
+    private suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
         val updatedChatroom = _authChatroom.value?.updateFromFieldMap(chatroomFields)
 
-        chatroomRepository.saveChatroom(updatedChatroom!!)
+        saveChatroom(updatedChatroom!!)
         _authChatroom.value = updatedChatroom
     }
+
+    private suspend fun saveChatroom(chatroom: Chatroom) = chatroomRepository.saveChatroom(chatroom)
 
     // evaluates current auth room and auth user ownership
     // (for when user and chatroom aren't passed and need to be fetched async - i.e. deeplink)
