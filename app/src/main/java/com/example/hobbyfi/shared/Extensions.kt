@@ -2,11 +2,13 @@ package com.example.hobbyfi.shared
 
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
+import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
@@ -55,6 +57,15 @@ fun ConnectivityManager.isConnected(): Boolean {
     } else {
         return activeNetworkInfo?.isConnected == true // null safety requires explicit check
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+fun ConnectivityManager.registerNetworkCallbackOnCurrentConnection(connectivityCallback: ConnectivityManager.NetworkCallback) {
+    registerNetworkCallback(
+        NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build(), connectivityCallback
+    )
 }
 
 fun<T> MutableList<T>.addAllDistinct(selectedTags: List<T>) {

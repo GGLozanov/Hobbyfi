@@ -1,6 +1,5 @@
 package com.example.hobbyfi.ui.main
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,11 +19,11 @@ import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.findItemFromCurrentPagingData
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.ChatroomListState
+import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.tasks.OnFailureListener
@@ -32,7 +31,6 @@ import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.kodein.di.generic.instance
-import org.kodein.di.generic.on
 import java.lang.Exception
 
 @ExperimentalCoroutinesApi
@@ -78,6 +76,7 @@ class ChatroomListFragment : MainFragment() {
         MainApplication.applicationContext
     )
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -103,6 +102,7 @@ class ChatroomListFragment : MainFragment() {
 
             observeChatroomState()
             observeAuthUser()
+            observeConnectionRefresh()
 
             return@onCreateView root
         }
@@ -176,13 +176,24 @@ class ChatroomListFragment : MainFragment() {
                         viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
                     }
 
-                    observeChatrooms()
+                    observeChatroomsState()
                 }
             }
         })
     }
 
-    private suspend fun observeChatrooms() {
+    private fun observeConnectionRefresh() {
+        (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+            if(connectionRefreshed) {
+                Log.i("ChatroomListFragment", "ChatroomListFragment CONNECTED")
+                chatroomListAdapter.refresh()
+            } else {
+                Log.i("ChatroomListFragment", "ChatroomListFragment DIS-CONNECTED")
+            }
+        })
+    }
+
+    private suspend fun observeChatroomsState() {
         viewModel.mainState.collectLatest { state ->
             when(state) {
                 is ChatroomListState.Idle -> {

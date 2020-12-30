@@ -31,6 +31,7 @@ import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
+import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -164,6 +165,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             observeUsers()
             observeMessageState()
             observeMessagesState()
+            observeConnectionRefresh()
 
             return@onCreateView root
         }
@@ -230,6 +232,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
                     }
                     is MessageState.OnData.MessageCreateResult -> {
+
                         viewModel.message.value = null // reset msg
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
@@ -249,6 +252,18 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                 }
             }
         }
+    }
+
+
+    private fun observeConnectionRefresh() {
+        (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+            if(connectionRefreshed) {
+                Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
+                messageListAdapter.refresh()
+            } else {
+                Log.i("ChatroomMListFragment", "ChatroomMessageListFragment DIS-CONNECTED")
+            }
+        })
     }
 
     private fun initMessageListAdapter() {

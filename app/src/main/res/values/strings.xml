@@ -107,4 +107,6 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="delete_message">Are you sure you want to delete your message?</string>
+    <string name="admin_panel">Admin Panel</string>
+    <string name="admin_description">This is the admin panel. You can edit the chatroom\'s info here.</string>
 </resources>

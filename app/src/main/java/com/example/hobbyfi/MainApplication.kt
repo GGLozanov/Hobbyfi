@@ -21,7 +21,6 @@ import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
 import org.kodein.di.generic.*
 
-// TODO: Notification channel setup
 class MainApplication : MultiDexApplication(), KodeinAware {
     @ExperimentalPagingApi
     override val kodein: Kodein = Kodein.lazy {
@@ -71,12 +70,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "connectivityManager") as ConnectivityManager
             )
         }
-//        bind(tag = "chatroomMediator") from singleton { ChatroomMediator(
-//                instance(tag = "database") as HobbyfiDatabase,
-//                instance(tag = "prefConfig") as PrefConfig,
-//                instance(tag = "api") as HobbyfiAPI
-//            )
-//        } // FIXME: symmetry with mediator DI
         bind(tag = "messageMediator") from singleton { MessageMediator(
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "prefConfig") as PrefConfig,
@@ -91,7 +84,7 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         }
         bind(tag = "fcmTopicErrorFallback") from factory { context: Context ->
             OnFailureListener {
-                Toast.makeText(baseContext, Constants.fcmTopicError, Toast.LENGTH_LONG)
+                Toast.makeText(context, Constants.fcmTopicError, Toast.LENGTH_LONG)
                     .show()
             }
         }

@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
+import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
@@ -32,7 +33,7 @@ data class Chatroom(
                 data[Constants.NAME] ?: error("Chatroom name must not be null!"),
                 data[Constants.DESCRIPTION],
                 data[Constants.PHOTO_URL],
-                Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
+                Gson().fromJson(data[Constants.TAGS]),
                 (data[Constants.OWNER_ID] ?: error("Chatroom owner ID must not be null!")).toLong(),
                 data[Constants.LAST_EVENT_ID]?.toLong()
             )

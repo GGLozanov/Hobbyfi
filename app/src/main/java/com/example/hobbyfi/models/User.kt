@@ -12,6 +12,7 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
@@ -38,7 +39,7 @@ data class User(
         data[Constants.USERNAME] ?: error("User username must not be null!"),
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
-        Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
+        Gson().fromJson(data[Constants.TAGS]),
         data[Constants.CHATROOM_ID]?.toLong()
     )
 

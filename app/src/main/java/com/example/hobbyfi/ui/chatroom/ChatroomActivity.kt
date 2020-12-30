@@ -133,6 +133,7 @@ class ChatroomActivity : BaseActivity() {
         observeEventState()
         observeChatroom()
         observeChatroomOwnRights()
+        observeConnectionRefresh()
 
         if(viewModel.currentAdapterUsers.value == null) {
             lifecycleScope.launch {
@@ -250,6 +251,7 @@ class ChatroomActivity : BaseActivity() {
                                     }
 
                                     override fun onLoadCleared(placeholder: Drawable?) {
+                                        Glide.with(this@ChatroomActivity).clear(currentEventGlideTarget)
                                     }
                                 })
                         }
@@ -309,6 +311,27 @@ class ChatroomActivity : BaseActivity() {
     private fun observeChatroomOwnRights() {
         viewModel.isAuthUserChatroomOwner.observe(this, Observer {
             initTopNavigation(it)
+        })
+    }
+
+    private fun observeConnectionRefresh() {
+        refreshConnectivityMonitor.observe(this, Observer { connectionRefreshed ->
+            if(connectionRefreshed) {
+                Log.i("ChatroomActivity", "ChatroomActivity CONNECTED")
+                lifecycleScope.launch {
+                    viewModel.sendUsersIntent(
+                        UserListIntent.FetchUsers
+                    )
+                    viewModel.sendChatroomIntent(
+                        ChatroomIntent.FetchChatroom
+                    )
+                    viewModel.sendEventIntent(
+                        EventIntent.FetchEvent
+                    )
+                }
+            } else {
+                Log.i("ChatroomActivity", "ChatroomActivity DIS-CONNECTED")
+            }
         })
     }
 

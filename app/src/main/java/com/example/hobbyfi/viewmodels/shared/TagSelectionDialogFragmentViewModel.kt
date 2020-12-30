@@ -11,8 +11,6 @@ import com.example.hobbyfi.viewmodels.base.BaseViewModel
 class TagSelectionDialogFragmentViewModel(application: Application, val initialSelectedTags: List<Tag>) : BaseViewModel(application) {
 
     var customTagCreateCounter: Int = 0
-    // TODO: Change to List<Int> for tag ids?
-    // respond to recyclerview clicks here and update tags list
 
     fun incrementCustomTagCounter() {
         customTagCreateCounter++

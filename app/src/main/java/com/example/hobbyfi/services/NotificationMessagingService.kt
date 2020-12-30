@@ -111,6 +111,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             )
         } else {
             // not push notification
+            Log.i("NotificationMService", "Normal notification detected. Simply sending broadcast!")
             sendBroadcast(intent)
         }
     }
@@ -136,9 +137,11 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     private fun handlePushMessageForChatroomByLifecycle(intent: Intent, pushTitle: String, pushBody: String) {
         if(isAppInForeground) {
             // send broadcast
+            Log.i("NotificationMService", "App is in FOREGROUND. Sending broadcast for current intent: ${intent}")
             sendBroadcast(intent)
         } else {
             // handle background the same way as killed state (hopefully)
+            Log.i("NotificationMService", "App is in BACKGROUND. Sending push notification for current intent: ${intent}")
             intent.setClass(this, ChatroomActivity::class.java)
             sendPushNotificationForChatroom(intent, pushTitle, pushBody)
         }
