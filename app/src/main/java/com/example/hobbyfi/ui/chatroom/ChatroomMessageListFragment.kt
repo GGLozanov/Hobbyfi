@@ -1,9 +1,11 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
+import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,14 +28,17 @@ import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.ChatroomMessageBroadacastReceiverFactory
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
+import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -60,7 +65,25 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     private val onEditSendMessage = { editedMessage: Message ->
         View.OnClickListener {
-            // TODO: Add/use message ID for update field map
+            val messageMap = mutableMapOf<String?, String?>()
+
+            if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
+                messageMap[Constants.MESSAGE] = viewModel.message.value
+            } else {
+                Toast.makeText(requireContext(), "You can't edit a message with the same message!", Toast.LENGTH_LONG)
+                    .show()
+                return@OnClickListener
+            }
+
+            messageMap[Constants.ID] = editedMessage.id.toString()
+
+            lifecycleScope.launch {
+                viewModel.sendMessageIntent(
+                    MessageIntent.UpdateMessage(
+                        messageMap
+                    )
+                )
+            }
         }
     }
 
@@ -173,7 +196,17 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     is MessageListState.OnData.MessagesResult -> {
                         binding.swipeRefresh.isRefreshing = false
                         it.messages.catch { e ->
-
+                            e.printStackTrace()
+                            if((e as Exception).isCritical) {
+                                Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
+                                    .show()
+                                // TODO: Switch to `startActivityForResult` calls cuz process death
+                                (requireActivity()).sendBroadcast(Intent(Constants.LOGOUT))
+                            } else if(e !is CancellationException) {
+                                Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
+                                Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
+                                    .show()
+                            }
                         }.collectLatest { data ->
                             messageListAdapter.submitData(data)
                         }

@@ -96,18 +96,16 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         with(binding) {
             passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate
+                Constants.passwordPredicate()
             )
             newPasswordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate
+                Constants.passwordPredicate(passwordInputField.editText)
             )
-            viewModel!!.password.observe(viewLifecycleOwner, Observer {
-                confirmNewPasswordInputField.addTextChangedListener(
-                    Constants.confirmPasswordInputError,
-                    Constants.confirmPasswordPredicate(it)
-                )
-            })
+            confirmNewPasswordInputField.addTextChangedListener(
+                Constants.confirmPasswordInputError,
+                Constants.confirmPasswordPredicate(newPasswordInputField.editText!!)
+            )
         }
     }
 

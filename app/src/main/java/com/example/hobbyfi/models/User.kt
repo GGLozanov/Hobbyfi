@@ -31,7 +31,7 @@ data class User(
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_ID)
     var chatroomId: Long?,
-) : ExpandedModel, Parcelable {
+) : ExpandedModel {
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
         data[Constants.EMAIL],

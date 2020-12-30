@@ -75,7 +75,7 @@ class ChatroomListAdapter(
                 Log.i("ChatroomListAdapter", "Chatroom w/ id ${chatroom?.id} profile picture url: ${chatroom?.photoUrl}")
                 if(chatroom?.photoUrl != null) {
                     Glide.with(itemView.context)
-                        .load(chatroom.photoUrl) // TODO: Find a way to inject PrefConfig's singleton instance
+                        .load(chatroom.photoUrl)
                         .signature(
                             GlideUtils.getPagingObjectKey(
                                 prefConfig,

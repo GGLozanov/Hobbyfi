@@ -1,7 +1,6 @@
 package com.example.hobbyfi.api
 
 import android.net.ConnectivityManager
-import android.util.Log
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
 import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
@@ -19,6 +18,7 @@ import com.google.gson.reflect.TypeToken
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
@@ -222,9 +222,13 @@ interface HobbyfiAPI {
                     throw NoConnectivityException()
                 }
 
-                val headers = it.request().headers()
+                val headers = it.request().headers
                     .newBuilder()
-                    .add("content-type", "application/json")
+                    .add("Content-Type", if(it.request().method == "POST") "application/x-www-form-urlencoded"
+                        else
+                        "application/json")
+                    .add("Accept", "*/*")
+                    .add("Connection", "keep-alive")
                     .build()
 
                 val request = it.request()
@@ -235,9 +239,13 @@ interface HobbyfiAPI {
                 return@Interceptor it.proceed(request)
             }
 
+            val loggingInterceptor = HttpLoggingInterceptor()
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+
             val client: OkHttpClient = OkHttpClient()
                 .newBuilder()
                 .addInterceptor(requestInterceptor)
+                .addInterceptor(loggingInterceptor)
                 .build()
 
             return Retrofit.Builder()
@@ -250,19 +258,31 @@ interface HobbyfiAPI {
                             .serializeNulls()
                             .setLenient()
                             .registerTypeAdapter(
-                                TypeToken.getParameterized(CacheResponse::class.java, User::class.java).type,
+                                TypeToken.getParameterized(
+                                    CacheResponse::class.java,
+                                    User::class.java
+                                ).type,
                                 UserResponseDeserializer()
                             )
                             .registerTypeAdapter(
-                                TypeToken.getParameterized(CacheListResponse::class.java, User::class.java).type,
+                                TypeToken.getParameterized(
+                                    CacheListResponse::class.java,
+                                    User::class.java
+                                ).type,
                                 UserResponseDeserializer(true)
                             )
                             .registerTypeAdapter(
-                                TypeToken.getParameterized(CacheResponse::class.java, Chatroom::class.java).type,
+                                TypeToken.getParameterized(
+                                    CacheResponse::class.java,
+                                    Chatroom::class.java
+                                ).type,
                                 ChatroomResponseDeserializer()
                             )
                             .registerTypeAdapter(
-                                TypeToken.getParameterized(CacheResponse::class.java, Message::class.java).type,
+                                TypeToken.getParameterized(
+                                    CacheResponse::class.java,
+                                    Message::class.java
+                                ).type,
                                 MessageResponseDeserializer()
                             )
                             .registerTypeAdapter(

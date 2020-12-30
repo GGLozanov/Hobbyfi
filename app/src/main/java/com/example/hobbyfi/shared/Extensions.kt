@@ -15,36 +15,34 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.paging.LoadState
-import androidx.paging.LoadStateAdapter
 import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.ConcatAdapter
-import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
-import com.example.hobbyfi.intents.Intent
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import androidx.fragment.app.Fragment
-import androidx.paging.PagingData
 import com.example.hobbyfi.models.*
+import com.example.hobbyfi.repositories.Repository
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.CancellationException
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
 inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
-fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predicate<String>) =
-    this.editText!!.addTextChangedListener(
-        PredicateTextWatcher(
-            this,
-            errorText,
-            predicate
-        )
+fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predicate<String>): PredicateTextWatcher {
+    val watcher = PredicateTextWatcher(
+        this,
+        errorText,
+        predicate
     )
+    this.editText!!.addTextChangedListener(
+        watcher
+    )
+    return watcher
+}
 
 fun ConnectivityManager.isConnected(): Boolean {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -59,7 +57,7 @@ fun ConnectivityManager.isConnected(): Boolean {
     }
 }
 
-fun MutableList<Tag>.appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
+fun<T> MutableList<T>.addAllDistinct(selectedTags: List<T>) {
     selectedTags.forEach {
         if(!this.contains(it)) {
             this.add(it)
@@ -67,16 +65,11 @@ fun MutableList<Tag>.appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
     }
 }
 
-fun List<Tag>.getNewSelectedTagsWithTags(selectedTags: List<Tag>): MutableList<Tag> {
+fun<T> List<T>.newListWithDistinct(selectedTags: List<T>): MutableList<T> {
     val newTags = this.toMutableList()
-    Log.i("getNewSelectedTagsWTags", "Original tags: ${newTags}")
-    selectedTags.forEach {
-        if(!newTags.contains(it)) {
-            Log.i("getNewSelectedTagsWTags", "Adding tag: $it")
-            newTags.add(it)
-        }
-    }
-    return newTags
+    Log.i("getNewListWith", "Original list: $newTags")
+    newTags.addAll(selectedTags)
+    return newTags.distinct().toMutableList()
 }
 
 val FragmentManager.currentNavigationFragment: Fragment?
@@ -146,7 +139,13 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
         .toMap()
 }
 
-fun<T: Model> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
+fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
+
+val Exception.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
+        this is InstantiationError || this is Repository.NetworkException ||
+        this is Repository.UnknownErrorException
+
+fun<T: Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
         try {
@@ -162,7 +161,7 @@ fun<T: Model> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T
 }
 
 fun<T: Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
-    return extractListFromCurrentPagingData().find(predicate)
+    return extractModelListFromCurrentPagingData().find(predicate)
 }
 
 /**

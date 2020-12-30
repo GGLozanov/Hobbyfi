@@ -164,11 +164,9 @@ class ChatroomEditFragment : ChatroomModelFragment() {
             data
         ) {
             binding.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 }

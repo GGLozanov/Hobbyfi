@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -140,16 +141,13 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
             passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate
+                Constants.passwordPredicate(confirmPasswordInputField.editText)
             )
 
-            viewModel!!.password.observe(viewLifecycleOwner, Observer {
-                confirmPasswordInputField.error = null
-                confirmPasswordInputField.addTextChangedListener(
-                    Constants.confirmPasswordInputError,
-                    Constants.confirmPasswordPredicate(it)
-                )
-            })
+            confirmPasswordInputField.addTextChangedListener(
+                Constants.confirmPasswordInputError,
+                Constants.confirmPasswordPredicate(passwordInputField.editText!!)
+            )
 
             usernameInputField.addTextChangedListener(
                 Constants.usernameInputError,
@@ -187,11 +185,9 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             data
         ) {
             binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 

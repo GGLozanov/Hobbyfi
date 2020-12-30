@@ -26,7 +26,7 @@ data class Chatroom(
     val ownerId: Long,
     @SerializedName(Constants.LAST_EVENT_ID)
     var lastEventId: Long?
-) : ExpandedModel, Parcelable {
+) : ExpandedModel {
     constructor(data: Map<String, String?>) :
             this((data[Constants.ID] ?: error("Chatroom ID must not be null!")).toLong(),
                 data[Constants.NAME] ?: error("Chatroom name must not be null!"),

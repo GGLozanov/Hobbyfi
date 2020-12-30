@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Event
@@ -13,6 +14,7 @@ import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.UserListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,9 +60,6 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
         viewModelScope.launch {
             eventStateIntent.intentAsFlow().collectLatest {
                 when(it) {
-                    is EventIntent.CreateEvent -> {
-
-                    }
                     is EventIntent.DeleteEvent -> {
                         deleteEvent()
                     }
@@ -70,9 +69,13 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
                     is EventIntent.UpdateEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
                     }
+                    is EventIntent.CreateEventCache -> {
+                        saveEvent(it.event)
+                    }
                     is EventIntent.FetchEvent -> {
                         fetchEvent()
                     }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -109,7 +112,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
-                    isExceptionCritical(e as Exception)
+                    (e as Exception).isCritical
                 )
             )
         }.collect {
@@ -131,7 +134,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
             eventStateIntent.setState(
                 EventState.Error(
                     e.message,
-                    isExceptionCritical(e as Exception)
+                    (e as Exception).isCritical
                 )
             )
         }.collect {
@@ -151,7 +154,12 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     }
 
     private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
+        val updatedEvent = _authEvent.value!!.updateFromFieldMap(eventFields)
+    }
 
+    private suspend fun saveEvent(updatedEvent: Event) {
+        eventRepository.saveEvent(updatedEvent)
+        _authEvent.value = updatedEvent
     }
 
     private suspend fun deleteEvent() {
@@ -165,10 +173,6 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     private suspend fun deleteUserCache(id: Long) {
         // TODO: Add setState bool?
         userRepository.deleteUserCache(id)
-    }
-
-    private suspend fun deleteUsersCache() {
-
     }
 
     // TODO: Hide behind intent? Also, bruh conversions

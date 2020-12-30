@@ -1,11 +1,13 @@
 package com.example.hobbyfi.shared
 
 import android.content.BroadcastReceiver
+import android.content.Intent
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,6 +20,8 @@ class ChatroomMessageBroadacastReceiverFactory(
     chatroomActivityViewModel: ChatroomActivityViewModel? = null,
     lifecycleOwner: LifecycleOwner
 ) : ChatroomBroadcastReceiverFactory(chatroomActivityViewModel, lifecycleOwner) {
+
+    private val authUserIdMessageChecker = generateAuthUserIdModelChecker<Message>()
 
     override fun createActionatedReceiver(action: String): BroadcastReceiver = when(action) {
             Constants.CREATE_MESSAGE_TYPE -> {
@@ -37,7 +41,8 @@ class ChatroomMessageBroadacastReceiverFactory(
                     },
                     onReceiveLog = "Got me a broadcast receievrino for CREATE MESSAGE",
                     onNoNotifyLog = "Current broadcastreceiver for create message has targeted auth user AS owner of message. " +
-                            "Aborting CREATE message intent"
+                            "Aborting CREATE message intent",
+                    isNotChatroomOwnerOrShouldSee = authUserIdMessageChecker
                 )
             }
             Constants.EDIT_MESSAGE_TYPE -> {
@@ -54,25 +59,26 @@ class ChatroomMessageBroadacastReceiverFactory(
                     },
                     onReceiveLog = "Got me a broadcast receievrino for UPDATE MESSAGE",
                     onNoNotifyLog = "Current broadcastreceiver for update message has targeted auth user AS owner of message. " +
-                            "Aborting UPDATE message intent"
+                            "Aborting UPDATE message intent",
+                    isNotChatroomOwnerOrShouldSee = authUserIdMapChecker
                 )
             }
             Constants.DELETE_MESSAGE_TYPE -> {
-                // TODO: Handle auth user delete message and not show action; otherwise show.
                 createReceiver(
                     action,
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenCreated {
                             viewModel.messageStateIntent.sendIntent(
                                 MessageIntent.DeleteMessageCache(
-                                    it.getParcelableExtra(Constants.DELETED_MODEL_ID)!!
+                                    it.getDeletedModelIdExtra()
                                 )
                             )
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for DELETE MESSAGE",
                     onNoNotifyLog = "Current broadcastreceiver for DELETE message has targeted auth user AS owner of message. " +
-                            "Aborting DELETE message intent"
+                            "Aborting DELETE message intent",
+                    isNotChatroomOwnerOrShouldSee = authUserIdDeleteChecker
                 )
             }
             else -> throw IllegalArgumentException(Constants.invalidBroadcastAction)

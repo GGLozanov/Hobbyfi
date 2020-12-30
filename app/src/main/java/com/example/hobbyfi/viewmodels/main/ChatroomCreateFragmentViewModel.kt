@@ -1,28 +1,21 @@
 package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
-import androidx.databinding.Bindable
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.repositories.ChatroomRepository
-import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.appendNewSelectedTagsToTags
-import com.example.hobbyfi.shared.getNewSelectedTagsWithTags
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
@@ -95,7 +88,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
             ex.printStackTrace()
             ChatroomState.Error(
                 ex.message,
-                shouldExit = isExceptionCritical(ex)
+                shouldExit = ex.isCritical
             )
         })
     }

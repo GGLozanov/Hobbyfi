@@ -11,8 +11,4 @@ import org.kodein.di.android.kodein
 
 abstract class BaseViewModel(application: Application) : AndroidViewModel(application), KodeinAware {
     override val kodein: Kodein by kodein(application.applicationContext) // delegate Kodein instance through appcontext
-
-    protected fun isExceptionCritical(ex: Exception) = ex is Repository.ReauthenticationException || ex is InstantiationException ||
-            ex is InstantiationError || ex is Repository.NetworkException ||
-        ex is Repository.UnknownErrorException || ex is CancellationException
 }

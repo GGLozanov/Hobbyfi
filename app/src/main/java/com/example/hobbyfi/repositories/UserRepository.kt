@@ -8,7 +8,6 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
@@ -20,9 +19,9 @@ import kotlinx.coroutines.withContext
 
 // fetches both auth users & chatroom users
 class UserRepository @ExperimentalPagingApi constructor(
-    private val remoteMediator: UserMediator, prefConfig: PrefConfig,
-    hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
-    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+    prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
+    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
+): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
 
     suspend fun getUser(): Flow<User?> {
         Log.i("UserRepository", "getUser -> getting current user")
@@ -77,7 +76,7 @@ class UserRepository @ExperimentalPagingApi constructor(
 
     // TODO: Find a way to extract this "try->extract->recursion" block into func that takes variable lambdas as execution blocks
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
-        Log.i("TokenRepository", "editUser -> editing current user")
+        Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
@@ -119,14 +118,14 @@ class UserRepository @ExperimentalPagingApi constructor(
     }
 
     // called when user leaves chatroom (voluntarily or not - leave chatroom button or yeeted from chatroom)
-    suspend fun deleteUsers(userId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
+    suspend fun deleteUsersCache(userId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
         Log.i("UserRepository", "deleteUsers -> deleting auth users with id: $userId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
                 val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(userId)
                 val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(userId, RemoteKeyType.USER)
-                return@withTransaction deletedUsers > 0 && deletedRemoteKeys >= 0
+                return@withTransaction deletedUsers >= 0 && deletedRemoteKeys >= 0 // account for user alone in chatroom (rip); that's why >= 0
             }
         }
     }

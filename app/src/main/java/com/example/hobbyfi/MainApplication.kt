@@ -1,27 +1,12 @@
 package com.example.hobbyfi
 
-import android.app.Application
 import android.content.Context
 import android.location.LocationManager
 import android.net.ConnectivityManager
-import android.os.Build
-import android.util.Patterns
 import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.core.util.Predicate
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
-import androidx.paging.PagingSource
-import androidx.paging.RemoteMediator
-import androidx.room.Room
-import com.example.hobbyfi.MainApplication.Companion.applicationContext
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
@@ -31,13 +16,10 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.tasks.OnFailureListener
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.gson.GsonBuilder
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
 import org.kodein.di.generic.*
-import java.lang.Exception
 
 // TODO: Notification channel setup
 class MainApplication : MultiDexApplication(), KodeinAware {
@@ -61,12 +43,11 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "userRepository") from singleton { UserRepository(
-                instance(tag = "userMediator") as UserMediator,
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "connectivityManager") as ConnectivityManager
-            )
+            instance(tag = "prefConfig") as PrefConfig,
+            instance(tag = "api") as HobbyfiAPI,
+            instance(tag = "database") as HobbyfiDatabase,
+            instance(tag = "connectivityManager") as ConnectivityManager
+        )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
                 instance(tag = "prefConfig") as PrefConfig,

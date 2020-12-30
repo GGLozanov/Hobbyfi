@@ -259,7 +259,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
             passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate
+                Constants.passwordPredicate()
             )
         }
     }

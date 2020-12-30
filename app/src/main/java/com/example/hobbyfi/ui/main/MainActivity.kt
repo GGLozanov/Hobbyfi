@@ -155,6 +155,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         if(it.shouldReauth) {
                             logout()
                         }
+                        viewModel.resetState()
                     }
                 }
             }
@@ -199,6 +200,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         return true
     }
 
+    // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
         if(poppedFromNavController) {
             resetAuth()

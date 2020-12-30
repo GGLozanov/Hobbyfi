@@ -90,7 +90,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
         }
 
     // message is the only mutable property (FOR NOW)
-    suspend fun updateMessage(id: Long, message: String) =
+    suspend fun updateMessageCache(id: Long, message: String) =
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.messageDao().updateMessageById(id, message)
         }

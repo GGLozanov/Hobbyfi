@@ -30,7 +30,7 @@ data class Message(
     @SerializedName(Constants.CHATROOM_SENT_ID)
     @ColumnInfo(name = "chatroomSentId", index = true)
     val chatroomSentId: Long,
-) : Model, Parcelable {
+) : Model {
     val isTimeline: Boolean get() = userSentId == null
 
     constructor(data: Map<String, String?>) : this((data[Constants.ID] ?: error("Message ID must not be null!")).toLong(),
@@ -41,6 +41,13 @@ data class Message(
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Message {
-        TODO("Not yet implemented")
+        for((key, value) in fieldMap.entries) {
+            when(key) {
+                Constants.MESSAGE -> {
+                    this.message = value!!
+                }
+            }
+        }
+        return this
     }
 }

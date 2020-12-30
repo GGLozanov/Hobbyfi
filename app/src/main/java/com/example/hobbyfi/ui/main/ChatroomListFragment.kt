@@ -23,6 +23,7 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.findItemFromCurrentPagingData
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
@@ -32,6 +33,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.kodein.di.generic.instance
 import org.kodein.di.generic.on
+import java.lang.Exception
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -158,14 +160,14 @@ class ChatroomListFragment : MainFragment() {
     private fun observeAuthUser() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
+                Log.i("ChatroomListFragment", "user chatroom id: ${user.chatroomId}")
+
+                val userHasChatroom = user.chatroomId != null
+
+                loadStateAdapter?.setUserHasChatroom(userHasChatroom)
+                setChatroomLeaveButtonVisibility(userHasChatroom) // possible performance issues here
+
                 lifecycleScope.launch {
-                    Log.i("ChatroomListFragment", "user chatroom id: ${user.chatroomId}")
-
-                    val userHasChatroom = user.chatroomId != null
-
-                    loadStateAdapter?.setUserHasChatroom(userHasChatroom)
-                    setChatroomLeaveButtonVisibility(userHasChatroom) // possible performance issues here
-
                     if(userHasChatroom && chatroomListAdapter.itemCount != 0) {
                         if(!viewModel.hasDeletedCacheForSession) {
                             viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))
@@ -193,7 +195,7 @@ class ChatroomListFragment : MainFragment() {
                     lifecycleScope.launch {
                         state.chatrooms.catch { e ->
                             e.printStackTrace()
-                            if(e is Repository.ReauthenticationException) {
+                            if((e as Exception).isCritical) {
                                 Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
                                     .show()
                                 (requireActivity() as MainActivity).logout()

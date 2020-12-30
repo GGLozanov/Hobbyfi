@@ -85,7 +85,6 @@ class ChatroomListFragmentViewModel(application: Application) :
     }
 
     private suspend fun deleteChatroomsCache(authChatroomId: Long) {
-
         // deletes other cached chatrooms (not auth'd) for user
         withContext(viewModelScope.coroutineContext) {
             chatroomRepository.deleteChatrooms(authChatroomId) // ignore result for now because, c'mon, where could it go wrong?

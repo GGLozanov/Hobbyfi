@@ -8,6 +8,7 @@ import android.util.Patterns
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.LinearLayout
 import androidx.core.util.Predicate
 import androidx.databinding.BindingAdapter
@@ -18,6 +19,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
+import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 
@@ -26,7 +28,7 @@ object Constants {
     const val descriptionInputError: String = "Enter a shorter description!"
     const val usernameInputError: String = "Enter a non-empty/shorter username!"
     const val nameInputError: String = "Enter a non-empty/shorter name!"
-    const val passwordInputError: String = "Enter a non-empty/longer password!"
+    const val passwordInputError: String = "Invalid password or doesn't match!"
     const val confirmPasswordInputError: String = "Enter the same password!"
     const val emailInputError: String = "Enter a non-empty valid e-mail address!"
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
@@ -80,12 +82,14 @@ object Constants {
                 originalEmail == it
     }
 
-    val passwordPredicate = Predicate<String> {
-        return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15
+    fun passwordPredicate(confirmPasswordField: EditText? = null) = Predicate<String> {
+        return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15 ||
+                if(confirmPasswordField == null ||
+                    confirmPasswordField.text.toString().isEmpty()) false else it != confirmPasswordField.text.toString()
     }
 
-    fun confirmPasswordPredicate(originalPassword: String?) = Predicate<String> {
-        return@Predicate it.isEmpty() || it != originalPassword
+    fun confirmPasswordPredicate(passwordField: EditText) = Predicate<String> {
+        return@Predicate it.isEmpty() || it != passwordField.text.toString()
     }
 
     val namePredicate = Predicate<String> {

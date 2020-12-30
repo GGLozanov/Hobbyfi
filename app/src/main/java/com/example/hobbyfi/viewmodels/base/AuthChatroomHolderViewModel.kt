@@ -13,6 +13,7 @@ import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isCritical
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -85,7 +86,11 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         chatroomRepository.getChatroom().catch { e ->
             e.printStackTrace()
             chatroomStateIntent.setState(
-                ChatroomState.Error(Constants.reauthError, shouldExit = isExceptionCritical(e as Exception)))
+                ChatroomState.Error(
+                    Constants.reauthError,
+                    shouldExit = (e as Exception).isCritical
+                )
+            )
         }.collect {
             if(it != null) {
                 setChatroom(it)
@@ -110,13 +115,14 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         } catch(ex: Exception) {
             ChatroomState.Error(
                 ex.message,
-                shouldExit = isExceptionCritical(ex)
+                shouldExit = ex.isCritical
             )
         })
     }
 
     private suspend fun deleteChatroomCache(setState: Boolean = false) {
-        val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!)
+        val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
+                userRepository.deleteUsersCache(_authUser.value!!.id)
 
         updateAndSaveUser(mapOf(
             Pair(Constants.CHATROOM_ID, "0")
@@ -145,7 +151,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         } catch(ex: Exception) {
             ChatroomState.Error(
                 ex.message,
-                shouldExit = isExceptionCritical(ex)
+                shouldExit = ex.isCritical
             )
         })
     }

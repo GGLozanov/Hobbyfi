@@ -49,9 +49,6 @@ import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : BaseActivity() {
-    // TODO: Have this be the deeplink activity. Register it and handle intent extras and facebook/default user
-    // TODO: If user leaves chatroom (not exits), delete entire chatroom + cached other users (rip foreign key relations)
-
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
@@ -82,6 +79,8 @@ class ChatroomActivity : BaseActivity() {
         setSupportActionBar(binding.toolbar)
         assertGooglePlayAvailability()
 
+        binding.viewModel = viewModel
+
         if(viewModel.authUser.value == null && viewModel.authChatroom.value == null) {
             // deeplink situation
             lifecycleScope.launch {
@@ -96,6 +95,7 @@ class ChatroomActivity : BaseActivity() {
 
         with(binding) {
             eventCard.background.alpha = 255 * (75 / 100) // 75% of 255 (255 = max alpha value)
+            // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user join
             joinLeaveEventButtonBar.leftButton.setOnClickListener { // leave event
                 // unsubscribe from cloud firestore (through eventrepository, eventintent, etc.)
             }
@@ -277,6 +277,22 @@ class ChatroomActivity : BaseActivity() {
                     } else {
                         navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
                     }
+                    navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
+                        Constants.buildDeleteAlertDialog(
+                            this@ChatroomActivity,
+                            Constants.confirmChatroomDeletionMessage,
+                            { dialogInterface: DialogInterface, _: Int ->
+                                lifecycleScope.launch {
+                                    viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                                }
+                                dialogInterface.dismiss()
+                            },
+                            { dialogInterface: DialogInterface, _: Int ->
+                                dialogInterface.dismiss()
+                            }
+                        )
+                        return@setOnMenuItemClickListener true
+                    }
                 }
             }
 
@@ -303,22 +319,6 @@ class ChatroomActivity : BaseActivity() {
                 Log.i("ChatroomActivity", "Current auth user is chatroom owner")
 
                 navViewAdmin.setupWithNavController(navController)
-                navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
-                    Constants.buildDeleteAlertDialog(
-                        this@ChatroomActivity,
-                        Constants.confirmChatroomDeletionMessage,
-                        { dialogInterface: DialogInterface, _: Int ->
-                            lifecycleScope.launch {
-                                viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
-                            }
-                            dialogInterface.dismiss()
-                        },
-                        { dialogInterface: DialogInterface, _: Int ->
-                            dialogInterface.dismiss()
-                        }
-                    )
-                    return@setOnMenuItemClickListener true
-                }
                 toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.chatroomMessageListFragment), drawerLayout))
                 toolbar.navigationIcon = ContextCompat.getDrawable(this@ChatroomActivity, R.drawable.ic_baseline_admin_panel_settings_24)
             } else {

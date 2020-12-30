@@ -23,7 +23,7 @@ data class Event(
     override var photoUrl: String?,
     val latitude: Double,
     val longitude: Double
-) : ExpandedModel, Parcelable {
+) : ExpandedModel {
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("Event ID must not be null!")).toLong(),
         data[Constants.NAME] ?: error("Event name must not be null!"),

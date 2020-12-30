@@ -226,11 +226,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             data
         ) {
             binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 }

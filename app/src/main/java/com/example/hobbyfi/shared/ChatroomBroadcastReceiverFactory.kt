@@ -7,9 +7,12 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.intents.ChatroomIntent
+import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.UserListIntent
+import com.example.hobbyfi.models.Model
+import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
 // not *exactly* a factory...? but... eh???
@@ -19,8 +22,29 @@ open class ChatroomBroadcastReceiverFactory(
     protected val lifecycleOwner: LifecycleOwner
 ) {
 
+    protected val authUserIdChecker = { idGenerator: (Intent) -> Long? -> { intent: Intent ->
+        idGenerator(intent) !=
+                (chatroomActivityViewModel!!.authUser.value ?:
+                error("Auth user in ViewModel ID must not be null in call to Create Message from BroadcastReceiver!"))
+                    .id
+        }
+    }
+
+    protected fun<T: Model> generateAuthUserIdModelChecker(): (Intent) -> Boolean =
+        authUserIdChecker {
+            it.getParcelableExtra<T>(Constants.PARCELABLE_MODEL)!!.id
+        }
+
+    private val authUserIdModelChecker = generateAuthUserIdModelChecker<User>()
+
+    protected val authUserIdDeleteChecker = authUserIdChecker { it.getDeletedModelIdExtra() }
+
+    protected val authUserIdMapChecker = authUserIdChecker { (it.getDestructedMapExtra()[Constants.ID]
+        ?: error("User ID must not be null in call to Edit user or BroadcastReceiver callbacks which use map"))
+        .toLong() }
+
     fun createReceiver(intentAction: String, onCorrectAction: (intent: Intent) -> Unit, onReceiveLog: String? = null,
-                       onNoNotifyLog: String? = null, isNotChatroomOwnerOrShouldSee: (() -> Boolean) = {
+                       onNoNotifyLog: String? = null, isNotChatroomOwnerOrShouldSee: ((intent: Intent) -> Boolean) = {
             if(chatroomActivityViewModel != null)
                 !chatroomActivityViewModel.isAuthUserChatroomOwner.value!!
             else true }): BroadcastReceiver = object : BroadcastReceiver() {
@@ -32,7 +56,7 @@ open class ChatroomBroadcastReceiverFactory(
                 }
 
                 // if nothing passed => even the chatroom owner will be notified!
-                if(isNotChatroomOwnerOrShouldSee()) {
+                if(isNotChatroomOwnerOrShouldSee(intent)) {
                     onCorrectAction(intent)
                 } else {
                     if (onNoNotifyLog != null) {
@@ -49,36 +73,54 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        TODO("Add user IN list intent")
+                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                            chatroomActivityViewModel!!.sendUsersIntent(
+                                UserListIntent.AddAUserCache(
+                                    it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
+                                )
+                            )
+                        }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for JOIN USEEEEEEER",
                     onNoNotifyLog = "Current broadcastreceiver for joinuser should be visible to EVEN the owner. " +
                         "Something is wrong and onReceive proper action was NOT performed",
-                    isNotChatroomOwnerOrShouldSee = { true }
+                    isNotChatroomOwnerOrShouldSee = authUserIdModelChecker
                 )
             }
             Constants.LEAVE_USER_TYPE -> {
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        TODO("Remove user IN list intent")
+                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                            chatroomActivityViewModel!!.sendUsersIntent(
+                                UserListIntent.DeleteAUserCache(
+                                    it.getDeletedModelIdExtra()
+                                )
+                            )
+                        }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for LEAVE USEEEEEEER",
                     onNoNotifyLog = "Current broadcastreceiver for leaveuser should be visible to EVEN the owner. " +
                             "Something is wrong and onReceive proper action was NOT performed",
-                    isNotChatroomOwnerOrShouldSee = { true }
+                    isNotChatroomOwnerOrShouldSee = authUserIdDeleteChecker
                 )
             }
             Constants.EDIT_USER_TYPE -> {
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        TODO("Update user IN list intent")
+                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                            chatroomActivityViewModel!!.sendUsersIntent(
+                                UserListIntent.UpdateAUserCache(
+                                    it.getDestructedMapExtra()
+                                )
+                            )
+                        }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for EDIT USEEEEEEER",
                     onNoNotifyLog = "Current broadcastreceiver for edituser should be visible to EVEN the owner. " +
                             "Something is wrong and onReceive proper action was NOT performed",
-                    isNotChatroomOwnerOrShouldSee = { true }
+                    isNotChatroomOwnerOrShouldSee = authUserIdMapChecker
                 )
             }
             Constants.EDIT_CHATROOM_TYPE -> {
@@ -87,7 +129,9 @@ open class ChatroomBroadcastReceiverFactory(
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenResumed {
                             chatroomActivityViewModel!!.sendChatroomIntent(
-                                ChatroomIntent.UpdateChatroomCache(it.getDestructedMapExtra())
+                                ChatroomIntent.UpdateChatroomCache(
+                                    it.getDestructedMapExtra()
+                                )
                             )
                         }
                     },
@@ -116,7 +160,11 @@ open class ChatroomBroadcastReceiverFactory(
                     action,
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenResumed {
-                            TODO("Create event in cache")
+                            chatroomActivityViewModel!!.sendEventIntent(
+                                EventIntent.CreateEventCache(
+                                    it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
+                                )
+                            )
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for DELETE CHATROOOOOM",
@@ -129,7 +177,11 @@ open class ChatroomBroadcastReceiverFactory(
                     action,
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenResumed {
-                            TODO("Edit event cache")
+                            chatroomActivityViewModel!!.sendEventIntent(
+                                EventIntent.UpdateEventCache(
+                                    it.getDestructedMapExtra()
+                                )
+                            )
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for DELETE CHATROOOOOM",
@@ -142,7 +194,9 @@ open class ChatroomBroadcastReceiverFactory(
                     action,
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenResumed {
-                            TODO("Delete event cache")
+                            chatroomActivityViewModel!!.sendEventIntent(
+                                EventIntent.DeleteEventCache
+                            )
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for DELETE EVEEEENT",

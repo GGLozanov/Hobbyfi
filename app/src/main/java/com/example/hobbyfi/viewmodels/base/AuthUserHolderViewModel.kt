@@ -10,6 +10,7 @@ import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.UserState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -82,7 +83,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             mainStateIntent.setState(
                 UserState.Error(
                     e.message,
-                    shouldReauth = isExceptionCritical(e as Exception)
+                    shouldReauth = (e as Exception).isCritical
                 ))
         }.collect {
             if(it != null) {
@@ -115,7 +116,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             ex.printStackTrace()
             UserState.Error(
                 ex.message,
-                shouldReauth = isExceptionCritical(ex)
+                shouldReauth = ex.isCritical
             )
         })
     }
@@ -134,7 +135,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         } catch(ex: Exception) {
             UserState.Error(
                 Constants.reauthError,
-                shouldReauth = isExceptionCritical(ex)
+                shouldReauth = ex.isCritical
             )
         })
     }

@@ -13,7 +13,7 @@ import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.MessageRepository
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.state.ChatroomState
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
@@ -132,7 +132,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         } catch(ex: Exception) {
             MessageState.Error(
                 ex.message,
-                isExceptionCritical(ex)
+                ex.isCritical
             )
         })
     }
@@ -151,13 +151,13 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         } catch(ex: Exception) {
             MessageState.Error(
                 ex.message,
-                isExceptionCritical(ex)
+                ex.isCritical
             )
         })
     }
 
     private suspend fun updateAndSaveMessage(messageUpdateFields: Map<String?, String?>) {
-        messageRepository.updateMessage((messageUpdateFields[Constants.ID] ?: error("Message ID must not be null in updateAndSaveMessage call!"))
+        messageRepository.updateMessageCache((messageUpdateFields[Constants.ID] ?: error("Message ID must not be null in updateAndSaveMessage call!"))
             .toLong(), messageUpdateFields[Constants.MESSAGE] ?: error("Message message must not be null in updateAndSaveMessage call!")
         )
     }
@@ -180,7 +180,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         } catch(ex: Exception) {
             MessageState.Error(
                 ex.message,
-                isExceptionCritical(ex)
+                ex.isCritical
             )
         })
     }

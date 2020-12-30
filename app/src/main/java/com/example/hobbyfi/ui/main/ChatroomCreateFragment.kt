@@ -169,11 +169,9 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
             binding.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.setProfileImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.setProfileImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 }
