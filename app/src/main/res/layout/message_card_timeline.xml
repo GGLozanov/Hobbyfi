@@ -13,6 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/rounded_container_grey"
+        android:text="@{message.message}"
         android:gravity="center"
         android:padding="10dp"
         android:textSize="20sp"

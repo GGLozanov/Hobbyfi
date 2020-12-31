@@ -90,4 +90,15 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
             }
         }
     }
+
+    protected fun mapRemoteKeysFromModelList(modelList: List<Value>, page: Int, isEndOfList: Boolean): List<RemoteKeys> {
+        val prevKey = if (page == DEFAULT_PAGE_INDEX) null else page - 1
+        val nextKey = if (isEndOfList) null else page + 1
+        Log.i("ModelRemoteM", "RemoteKeys calculated. Previous page: ${prevKey}; Next page: ${nextKey}")
+        return modelList.map {
+            RemoteKeys(id = it.id, prevKey = prevKey, nextKey = nextKey,
+                modelType = remoteKeyType
+            )
+        }
+    }
 }

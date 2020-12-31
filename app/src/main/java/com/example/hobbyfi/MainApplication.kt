@@ -8,7 +8,6 @@ import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.paging.mediators.MessageMediator
-import com.example.hobbyfi.paging.mediators.UserMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.*
 import com.example.hobbyfi.shared.Constants
@@ -71,12 +70,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "messageMediator") from singleton { MessageMediator(
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI
-            )
-        }
-        bind(tag = "userMediator") from singleton { UserMediator(
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI

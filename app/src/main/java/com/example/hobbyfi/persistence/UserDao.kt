@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDao : BaseDao<User> {
     @Query("SELECT * FROM users")
-    fun getUsers(): PagingSource<Int, User>
+    fun getUsers(): Flow<List<User>?>
+
+    @Query("SELECT * FROM users WHERE chatroomId = :chatroomId")
+    fun getUsersByChatroomId(chatroomId: Long): Flow<List<User>?>
 
     @Query("UPDATE users SET chatroomId = :chatroomId WHERE id = :userId")
     suspend fun updateUserChatroomId(userId: Long, chatroomId: Int?)

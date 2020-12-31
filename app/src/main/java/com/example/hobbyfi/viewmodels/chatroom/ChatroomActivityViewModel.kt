@@ -108,7 +108,9 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     private suspend fun fetchUsers() {
         usersStateIntent.setState(UserListState.Loading)
 
-        userRepository.getUsers().catch { e ->
+        userRepository.getChatroomUsers(
+            authChatroom.value!!.id
+        ).catch { e ->
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,

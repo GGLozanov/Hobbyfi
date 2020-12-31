@@ -1,14 +1,9 @@
 package com.example.hobbyfi.adapters.message
 
 import com.example.hobbyfi.adapters.BaseJsonDeserializer
-import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.fromJson
-import com.google.gson.JsonArray
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonElement
 import java.lang.reflect.Type

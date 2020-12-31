@@ -19,16 +19,14 @@
             android:id="@+id/swipe_refresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="77dp"
             app:layout_constraintBottom_toTopOf="@id/message_input_layout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintStart_toStartOf="parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/message_list"
                 android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 app:layoutManager="LinearLayoutManager"
                 app:reverseLayout="true"

@@ -266,13 +266,6 @@ interface HobbyfiAPI {
                             )
                             .registerTypeAdapter(
                                 TypeToken.getParameterized(
-                                    CacheListResponse::class.java,
-                                    User::class.java
-                                ).type,
-                                UserResponseDeserializer(true)
-                            )
-                            .registerTypeAdapter(
-                                TypeToken.getParameterized(
                                     CacheResponse::class.java,
                                     Chatroom::class.java
                                 ).type,

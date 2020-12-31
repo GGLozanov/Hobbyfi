@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -45,6 +46,8 @@ import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import com.example.hobbyfi.models.User
+import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -90,10 +93,15 @@ class ChatroomActivity : BaseActivity() {
         }
 
         userListAdapter = ChatroomUserListAdapter(
-            viewModel.currentAdapterUsers.value ?: emptyList()
+            viewModel.currentAdapterUsers.value ?: emptyList(),
+            { view: View, user: User ->
+                // TODO: Open bottomsheet fragment
+            }
         )
 
         with(binding) {
+            usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
+            usersList.adapter = userListAdapter
             eventCard.background.alpha = 255 * (75 / 100) // 75% of 255 (255 = max alpha value)
             // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user join
             joinLeaveEventButtonBar.leftButton.setOnClickListener { // leave event
@@ -135,7 +143,7 @@ class ChatroomActivity : BaseActivity() {
         observeChatroomOwnRights()
         observeConnectionRefresh()
 
-        if(viewModel.currentAdapterUsers.value == null) {
+        if(viewModel.currentAdapterUsers.value!!.isEmpty()) {
             lifecycleScope.launch {
                 viewModel.sendUsersIntent(
                     UserListIntent.FetchUsers

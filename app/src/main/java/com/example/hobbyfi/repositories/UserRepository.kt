@@ -59,22 +59,17 @@ class UserRepository @ExperimentalPagingApi constructor(
             // this request should proceed without much/any fail for expired tokens, which is why they aren't validated here
             override suspend fun fetchFromNetwork(): CacheResponse<User>? {
                 Log.i("UserRepository", "getUser => fetchFromNetwork() => fetching current auth user from network")
-                return try {
+                return performAuthorisedRequest({
                     val response = hobbyfiAPI.fetchUser(
                         prefConfig.getAuthUserToken()!!,
                     )
                     Log.i("UserRepository", "getUser -> ${response?.model}")
                     response
-                } catch(ex: Exception) {
-                    ex.printStackTrace()
-
-                    Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true) // no need for authorised request handling here because token parsing already handles expired token exceptions
-                }
+                }, { fetchFromNetwork() })
             }
         }.asFlow()
     }
 
-    // TODO: Find a way to extract this "try->extract->recursion" block into func that takes variable lambdas as execution blocks
     suspend fun editUser(userFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
@@ -106,6 +101,14 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
+    suspend fun saveUsers(users: List<User>) {
+        prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_users_fetch_time)
+
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.userDao().insertList(users)
+        }
+    }
+
     suspend fun deleteUserCache(userId: Long): Boolean {
         Log.i("UserRepository", "deleteUser -> deleting auth user w/ id: $userId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
@@ -124,32 +127,38 @@ class UserRepository @ExperimentalPagingApi constructor(
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
                 val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(userId)
-                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(userId, RemoteKeyType.USER)
-                return@withTransaction deletedUsers >= 0 && deletedRemoteKeys >= 0 // account for user alone in chatroom (rip); that's why >= 0
+                return@withTransaction deletedUsers >= 0 // account for user alone in chatroom (rip); that's why >= 0
             }
         }
     }
 
     // return livedata of pagedlist for users
-    suspend fun getUsers():
+    suspend fun getChatroomUsers(chatroomId: Long):
             Flow<List<User>?> {
-        Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
+        Log.i("UserRepository", "getChatroomUsers -> getting current chatroom users")
         return object : NetworkBoundFetcher<List<User>, CacheListResponse<User>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<User>) {
-                TODO("Not yet implemented")
+                saveUsers(response.modelList)
             }
 
             override fun shouldFetch(cache: List<User>?): Boolean {
-                TODO("Not yet implemented")
+                Log.i("UserRepository", "getUserS => cache: $cache")
+                Log.i("UserRepository", "getUserS => isConnected: " + connectivityManager.isConnected())
+                Log.i("UserRepository", "getUserS => shouldFetch: " + (cache == null ||
+                        Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_users_fetch_time) || connectivityManager.isConnected()))
+                return adheresToDefaultCachePolicy(cache, R.string.pref_last_chatroom_users_fetch_time)
             }
 
-            override suspend fun loadFromDb(): Flow<List<User>?> {
-                TODO("Not yet implemented")
-            }
+            override suspend fun loadFromDb(): Flow<List<User>?> = hobbyfiDatabase.userDao().getUsersByChatroomId(chatroomId)
 
-            override suspend fun fetchFromNetwork(): CacheListResponse<User>? {
-                TODO("Not yet implemented")
-            }
+            override suspend fun fetchFromNetwork(): CacheListResponse<User>? = performAuthorisedRequest(
+                {
+                    val response = hobbyfiAPI.fetchUsers(
+                        prefConfig.getAuthUserToken()!!,
+                    )
+                    Log.i("UserRepository", "getUserS -> ${response?.modelList}")
+                    response
+                }, { fetchFromNetwork() })
         }.asFlow()
     }
 }

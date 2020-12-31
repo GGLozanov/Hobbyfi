@@ -242,6 +242,8 @@ object Constants {
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
 
+    const val USER = "USER"
+
     class ImageFetchException(message: String? = null) : Exception(message)
 
     val imageRegex = Regex(

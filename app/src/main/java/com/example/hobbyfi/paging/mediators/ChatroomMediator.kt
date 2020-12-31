@@ -15,12 +15,7 @@ import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
-import com.facebook.AccessToken
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.single
-import java.io.InvalidObjectException
 
 @ExperimentalPagingApi
 class ChatroomMediator(
@@ -39,32 +34,31 @@ class ChatroomMediator(
         Log.i("ChatroomMediator", "Loading all chatrooms based on shouldFetchAuthChatroom set to ${shouldFetchAuthChatroom}")
 
         return try {
-            getChatrooms(loadType, state)
-        } catch (exception: Exception) {
-            exception.printStackTrace()
+            fetchChatrooms(loadType, state)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
             try {
-                Callbacks.dissectRepositoryExceptionAndThrow(exception)
+                Callbacks.dissectRepositoryExceptionAndThrow(ex)
             } catch(parsedEx: Exception) {
                 MediatorResult.Error(parsedEx)
             }
-            MediatorResult.Error(exception) // uncaught by repository handler error
+            MediatorResult.Error(ex) // uncaught by repository handler error
         }
     }
 
-    private suspend fun getChatrooms(loadType: LoadType, state: PagingState<Int, Chatroom>): MediatorResult {
+    private suspend fun fetchChatrooms(loadType: LoadType, state: PagingState<Int, Chatroom>): MediatorResult {
         var page: Int? = null
 
         if(!shouldFetchAuthChatroom) {
             page = getPage(loadType, state).let {
                 when(it) {
                     is MediatorResult.Success -> {
-                        return@getChatrooms it
+                        return@fetchChatrooms it
                     }
                     else -> {
                         it as Int
                     }
                 }
-
             }
         }
 
@@ -91,22 +85,14 @@ class ChatroomMediator(
 
         hobbyfiDatabase.withTransaction {
             // clear all rows in chatroom and remote keys table (for chatrooms)
-            // TODO: Extract cache check in view and call refresh() whenever cache has expired
             val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatrooms_fetch_time)
             if (loadType == LoadType.REFRESH || cacheTimedOut) {
-                Log.i("ChatroomMediator", "Chatroom triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
+                Log.i("ChatroomMediator", "CHATROOM triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
                 remoteKeysDao.deleteRemoteKeyByType(remoteKeyType)
                 chatroomDao.deleteChatrooms()
             }
-            val prevKey = if (page == DEFAULT_PAGE_INDEX) null else page - 1
-            val nextKey = if (isEndOfList) null else page + 1
-            Log.i("ChatroomMediator", "Chatroom RemoteKeys calculated. Previous page: ${prevKey}; Next page: ${nextKey}")
-            val keys = chatroomsResponse.modelList.map {
-                RemoteKeys(id = it.id, prevKey = prevKey, nextKey = nextKey,
-                    modelType = remoteKeyType
-                )
-            }
-            Log.i("ChatroomMediator", "Chatroom RemoteKeys created. RemoteKeys: ${keys}")
+            val keys = mapRemoteKeysFromModelList(chatroomsResponse.modelList, page, isEndOfList)
+            Log.i("ChatroomMediator", "CHATROOM RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("ChatroomMediator", "Inserting ChatroomList and RemoteKeys")
             remoteKeysDao.insertList(keys)
             chatroomDao.insertList(chatroomsResponse.modelList)

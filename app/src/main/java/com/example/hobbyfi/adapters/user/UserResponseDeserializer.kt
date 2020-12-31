@@ -1,9 +1,6 @@
 package com.example.hobbyfi.adapters.user
 
-import android.util.Log
 import com.example.hobbyfi.adapters.BaseJsonDeserializer
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
-import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
 import java.lang.reflect.Type
@@ -11,7 +8,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.fromJson
 
-class UserResponseDeserializer(private val forList: Boolean = false) : BaseJsonDeserializer<CacheResponse<User>>() {
+class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
 
     @Throws(JsonParseException::class)
     override fun deserialize(
@@ -19,7 +16,7 @@ class UserResponseDeserializer(private val forList: Boolean = false) : BaseJsonD
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): CacheResponse<User> {
-        outerJsonObject = json.asJsonObject.getAsJsonObject(if(forList) Constants.DATA_LIST else Constants.DATA)
+        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA)
 
         val entity = User(
             deserializeJSONField(Constants.ID, DeserializeOption.AS_LONG) as Long,
