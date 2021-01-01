@@ -244,7 +244,7 @@ class ChatroomActivity : BaseActivity() {
                     is EventState.Loading -> {
                         // TODO: Progressbar on event card
                     }
-                    is EventState.OnData.OnEventReceived -> {
+                    is EventState.OnData.EventResult -> {
                         if(it.event.photoUrl != null) {
                             // FIXME: Is it bad to keep this in activity like this?
                             currentEventGlideTarget = Glide.with(this@ChatroomActivity)
