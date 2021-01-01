@@ -11,12 +11,13 @@
     </data>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <include
             android:id="@+id/message_card_send"
             layout="@layout/message_card"
-            app:message="@{message}"
-            app:gravity="@{Gravity.END}" />
+            app:gravity="@{Gravity.END}"
+            app:message="@{message}" />
     </LinearLayout>
 </layout>

@@ -26,8 +26,10 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
+import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
+import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.UserIntent
@@ -47,6 +49,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.setHeightBasedOnChildren
+import com.example.hobbyfi.utils.GlideUtils
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import org.kodein.di.generic.instance
 
@@ -275,43 +279,66 @@ class ChatroomActivity : BaseActivity() {
 
     @ExperimentalPagingApi
     private fun observeChatroom() {
-        viewModel.authChatroom.observe(this, Observer {
-            if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
-                title = it?.name
-            }
+        viewModel.authChatroom.observe(this, Observer { chatroom ->
+            if(chatroom != null) {
+                if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+                    title = chatroom.name
+                }
 
-            if(viewModel.isAuthUserChatroomOwner.value == true) {
-                with(binding) {
-                    navViewAdmin.menu.clear()
-                    if(it?.lastEventId == null) {
-                        navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
-                    } else {
-                        navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
-                    }
-                    navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
-                        Constants.buildDeleteAlertDialog(
-                            this@ChatroomActivity,
-                            Constants.confirmChatroomDeletionMessage,
-                            { dialogInterface: DialogInterface, _: Int ->
-                                lifecycleScope.launch {
-                                    viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                if(viewModel.isAuthUserChatroomOwner.value == true) {
+                    with(binding) {
+                        navViewAdmin.menu.clear()
+                        if(chatroom.lastEventId == null) {
+                            navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
+                        } else {
+                            navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
+                        }
+                        navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
+                            Constants.buildDeleteAlertDialog(
+                                this@ChatroomActivity,
+                                Constants.confirmChatroomDeletionMessage,
+                                { dialogInterface: DialogInterface, _: Int ->
+                                    lifecycleScope.launch {
+                                        viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                                    }
+                                    dialogInterface.dismiss()
+                                },
+                                { dialogInterface: DialogInterface, _: Int ->
+                                    dialogInterface.dismiss()
                                 }
-                                dialogInterface.dismiss()
-                            },
-                            { dialogInterface: DialogInterface, _: Int ->
-                                dialogInterface.dismiss()
-                            }
-                        )
-                        return@setOnMenuItemClickListener true
+                            )
+                            return@setOnMenuItemClickListener true
+                        }
                     }
                 }
-            }
 
-            if(it?.lastEventId != null && viewModel.authEvent.value == null) {
-                lifecycleScope.launch {
-                    viewModel.sendEventIntent(
-                        EventIntent.FetchEvent
-                    )
+                if(chatroom.lastEventId != null && viewModel.authEvent.value == null) {
+                    lifecycleScope.launch {
+                        viewModel.sendEventIntent(
+                            EventIntent.FetchEvent
+                        )
+                    }
+                }
+
+                val headerBinding: NavHeaderChatroomBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
+                with(headerBinding) {
+                    chatroom.photoUrl?.let {
+                        Glide.with(this@ChatroomActivity)
+                            .load(it)
+                            .signature(
+                                ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
+                            )
+                            // calculate current page based on item position
+                            .into(chatroomImage)
+                    }
+
+                    // FIXME: Small coderino duperino with ChatroomTagAdapter
+                    chatroom.tags?.let {
+                        val adapter = ChatroomTagListAdapter(chatroom.tags!!, this@ChatroomActivity, R.layout.chatroom_tag_card)
+                        tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
+
+                        tagsGridView.adapter = adapter
+                    }
                 }
             }
         })

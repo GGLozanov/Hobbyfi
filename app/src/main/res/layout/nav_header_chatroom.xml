@@ -1,7 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <!--Display chatroom name + description + tags here-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <data>
+        <import type="android.view.View"/>
+
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/colorPrimaryDark">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/chatroom_image"
+            android:layout_width="175dp"
+            android:layout_height="135dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/chatroom_default_pic"
+            app:civ_border_color="@color/colorSecondary"
+            app:civ_border_width="3dp" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/chatroom_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@{viewModel.authChatroom.name}"
+            android:textSize="20sp"
+            android:textStyle="bold">
+
+        </com.google.android.material.textview.MaterialTextView>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/chatroom_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="@{viewModel.authChatroom.description}"
+            android:textSize="20sp"></com.google.android.material.textview.MaterialTextView>
+
+        <GridView
+            android:id="@+id/tags_grid_view"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:clickable="false"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="10dp"
+            android:visibility="@{viewModel.authChatroom.tags == null ? View.GONE : View.VISIBLE}" />
+    </LinearLayout>
+</layout>
