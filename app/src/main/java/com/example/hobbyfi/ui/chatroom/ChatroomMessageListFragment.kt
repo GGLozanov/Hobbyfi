@@ -186,7 +186,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     }
 
     private fun observeMessagesState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.mainState.collectLatest {
                 when(it) {
                     is MessageListState.Idle -> {
@@ -222,7 +222,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     }
 
     private fun observeMessageState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.messageState.collectLatest {
                 when(it) {
                     is MessageState.Idle -> {

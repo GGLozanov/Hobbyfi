@@ -111,7 +111,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onStart() {
         super.onStart()
 
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
                     is UserState.Idle -> {

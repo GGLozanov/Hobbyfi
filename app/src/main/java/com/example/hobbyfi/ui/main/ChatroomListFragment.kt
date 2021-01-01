@@ -167,7 +167,7 @@ class ChatroomListFragment : MainFragment() {
                 loadStateAdapter?.setUserHasChatroom(userHasChatroom)
                 setChatroomLeaveButtonVisibility(userHasChatroom) // possible performance issues here
 
-                lifecycleScope.launch {
+                lifecycleScope.launchWhenStarted {
                     if(userHasChatroom && chatroomListAdapter.itemCount != 0) {
                         if(!viewModel.hasDeletedCacheForSession) {
                             viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))

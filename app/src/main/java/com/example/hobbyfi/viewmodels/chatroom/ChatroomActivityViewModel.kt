@@ -15,6 +15,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.UserListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -132,7 +133,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     private suspend fun fetchEvent() {
         eventStateIntent.setState(EventState.Loading)
 
-        eventRepository.getEvent().catch { e ->
+        eventRepository.getEvent(_authChatroom.value!!.id).catch { e ->
             eventStateIntent.setState(
                 EventState.Error(
                     e.message,
@@ -143,7 +144,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
             if(it != null) {
                 _authEvent.value = it
                 eventStateIntent.setState(
-                    EventState.OnData.OnEventReceived(
+                    EventState.OnData.EventResult(
                         it
                     )
                 )
@@ -152,11 +153,30 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     }
 
     private suspend fun updateEvent(updateFields: Map<String?, String?>) {
+        eventStateIntent.setState(EventState.Loading)
 
+        eventStateIntent.setState(try {
+            val state = EventState.OnData.EventEditResult(eventRepository.editEvent(
+                updateFields
+            ))
+
+            updateAndSaveEvent(updateFields)
+
+            state
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+
+            EventState.Error(
+                ex.message,
+                ex.isCritical
+            )
+        })
     }
 
     private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
         val updatedEvent = _authEvent.value!!.updateFromFieldMap(eventFields)
+        eventRepository.saveEvent(updatedEvent)
+        _authEvent.value = updatedEvent
     }
 
     private suspend fun saveEvent(updatedEvent: Event) {
@@ -165,11 +185,39 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     }
 
     private suspend fun deleteEvent() {
+        eventStateIntent.setState(EventState.Loading)
 
+        eventStateIntent.setState(try {
+            val state = EventState.OnData.EventDeleteResult(
+                eventRepository.deleteEvent()
+            )
+
+            deleteEventCache()
+
+            state
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+
+            EventState.Error(
+                ex.message
+            )
+        })
     }
 
-    private suspend fun deleteEventCache() {
+    // FIXME: Ge. Ne. RIIIIICS. Well, not really but still code dup with other deleteCache methods. Mitigate that
+    private suspend fun deleteEventCache(setState: Boolean = false) {
+        val success = eventRepository.deleteEventCache(_authEvent.value!!.id)
 
+        updateAndSaveChatroom(mapOf(
+            Pair(Constants.LAST_EVENT_ID, "0")
+        ))
+
+        if(setState) {
+            eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
+                else EventState.Error(Constants.cacheDeletionError))
+        } else if(!success) {
+            throw Exception(Constants.cacheDeletionError)
+        }
     }
 
     private suspend fun deleteUserCache(id: Long) {

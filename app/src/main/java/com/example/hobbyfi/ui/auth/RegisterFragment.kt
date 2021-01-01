@@ -89,7 +89,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             navController.navigate(action)
         }
 
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
                     is TokenState.Idle -> {

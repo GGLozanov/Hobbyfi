@@ -69,7 +69,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 }
             }
 
-            lifecycleScope.launch {
+            lifecycleScope.launchWhenCreated {
                 viewModel!!.mainState.collect {
                     when(it) {
                         is TokenState.Idle -> {

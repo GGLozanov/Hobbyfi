@@ -6,10 +6,8 @@ import com.example.hobbyfi.adapters.chatroom.ChatroomResponseDeserializer
 import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.adapters.user.UserResponseDeserializer
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.*
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
@@ -194,17 +192,31 @@ interface HobbyfiAPI {
         @Field(Constants.ID) id: Long
     ): Response?
 
+    @GET("api/v1.0/event/read")
+    suspend fun fetchEvent(
+        @Header(Constants.AUTH_HEADER) token: String
+    ): CacheResponse<Event>
+
     /**
      *
      */
     @POST("api/v1.0/event/create")
+    @FormUrlEncoded
     suspend fun createEvent(
-
-    ): IdResponse?
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.NAME) name: String,
+        @Field(Constants.DESCRIPTION) description: String?,
+        @Field(Constants.DATE) date: String,
+        @Field(Constants.IMAGE) image: String?,
+        @Field(Constants.LATITUDE) lat: Double,
+        @Field(Constants.LONGITUDE) long: Double
+    ): StartDateIdResponse?
 
     @POST("api/v1.0/event/edit")
+    @FormUrlEncoded
     suspend fun editEvent(
-
+        @Header(Constants.AUTH_HEADER) token: String,
+        @FieldMap body: Map<String?, String?>
     ): Response?
 
     /**
@@ -212,7 +224,7 @@ interface HobbyfiAPI {
      */
     @DELETE("api/v1.0/event/delete")
     suspend fun deleteEvent(
-
+        @Header(Constants.AUTH_HEADER) token: String
     ): Response?
 
     companion object {

@@ -250,4 +250,7 @@ object Constants {
         Regex.escape(BuildConfig.BASE_URL) +
                 "uploads\\/[^.]+\\.jpg"
     )
+
+    const val LOCATIONS_COLLECTION: String = "locations"
+    const val LOCATION: String = "location"
 }

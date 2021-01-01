@@ -94,8 +94,9 @@ class ChatroomActivity : BaseActivity() {
 
         userListAdapter = ChatroomUserListAdapter(
             viewModel.currentAdapterUsers.value ?: emptyList(),
-            { view: View, user: User ->
-                // TODO: Open bottomsheet fragment
+            { _: View, user: User ->
+                val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
+                bottomSheet.show(supportFragmentManager, bottomSheet.tag)
             }
         )
 
@@ -153,7 +154,7 @@ class ChatroomActivity : BaseActivity() {
     }
 
     private fun observeUserState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
                     is UserState.Idle -> {
@@ -178,7 +179,7 @@ class ChatroomActivity : BaseActivity() {
 
     private fun observeChatroomState() {
         // whenever broadcast receiver triggered => sets the state in the viewmodel
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.chatroomState.collect {
                 when(it) {
                     is ChatroomState.Idle -> {

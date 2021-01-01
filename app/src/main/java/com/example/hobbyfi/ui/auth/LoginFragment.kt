@@ -88,166 +88,9 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             navController.navigate(R.id.action_loginFragment_to_registerFragment)
         }
 
-        lifecycleScope.launch {
-            viewModel.facebookState.collectLatest {
-                when(it) {
-                    is FacebookState.Idle -> {
-
-                    }
-                    is FacebookState.Loading -> {
-                        // TODO: Progressbar
-                        Log.i("LoginFragment", "Facebook state loading")
-                    }
-                    is FacebookState.OnData.ExistenceResultReceived -> {
-                        if (it.exists) {
-                            login(
-                                LoginFragmentDirections.actionLoginFragmentToMainActivity(
-                                    null,
-                                )
-                            )
-                        } else {
-                            viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserEmail)
-                        }
-                    }
-                    is FacebookState.OnData.EmailReceived -> {
-                        Log.i("LoginFragment", "Email received ${it.email}")
-                        viewModel.email.value = it.email
-                        viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
-                    }
-                    is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
-                        val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                            viewModel.tagBundle.selectedTags.toTypedArray(),
-                            viewModel.tagBundle.tags
-                                .toTypedArray() + it.tags
-                        )
-                        navController.navigate(action)
-                    }
-                    is FacebookState.Error -> {
-                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                            .show()
-
-                        if (it.error != Constants.noConnectionError) {
-                            // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
-                            val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                                viewModel.tagBundle.selectedTags.toTypedArray(),
-                                viewModel.tagBundle.tags
-                                    .toTypedArray()
-                            )
-                            navController.navigate(action)
-                        }
-                    }
-                }
-            }
-        }
-
-        lifecycleScope.launch {
-            viewModel.mainState.collect {
-                when(it) {
-                    is TokenState.Idle -> {
-
-                    }
-                    is TokenState.Loading -> {
-                        // TODO: Progressbar
-                    }
-                    is TokenState.Error -> {
-                        // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
-                        when (it.error) {
-                            Constants.missingDataError -> {
-                                Log.wtf(
-                                    LoginFragment.tag,
-                                    "Should never reach here if everything is ok, wtf"
-                                )
-                                throw RuntimeException()
-                            }
-                            else -> {
-                                Toast.makeText(context, it.error, Toast.LENGTH_LONG)
-                                    .show() // means we've simply entered incorrect info for the normal login or something else is wrong
-                            }
-                        }
-                    }
-                    is TokenState.TokenReceived -> {
-                        Log.i("LoginFragment", "${navController.currentBackStackEntry}")
-                        login(
-                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
-                                null
-                            ),
-                            it.token?.jwt,
-                            it.token?.refreshJwt,
-                        )
-                    }
-                    is TokenState.FacebookRegisterTokenSuccess -> {
-                        val profile = Profile.getCurrentProfile()
-                        login(
-                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
-                                User(
-                                    profile.id.toLong(), // this will freaking die if Facebook changes their ID schema
-                                    viewModel.email.value,
-                                    profile.name,
-                                    null,
-                                    BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
-                                    viewModel.tagBundle.selectedTags,
-                                    null
-                                )
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(
-            viewLifecycleOwner
-        ) {
-            viewModel.tagBundle.setSelectedTags(it)
-            Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
-            lifecycleScope.launch {
-                val profile = Profile.getCurrentProfile()
-                val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
-                    val glide = Glide.with(this@LoginFragment)
-
-                    var bmapResource: Bitmap? = null
-
-                    val target = object : CustomTarget<Bitmap>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap>?
-                        ) {
-                            bmapResource = resource
-                            continuation.resume(resource, null)
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            bmapResource?.recycle()
-                            continuation.cancel(Constants.ImageFetchException())
-                        }
-                    }
-
-                    glide
-                        .asBitmap()
-                        .load(
-                            profile.getProfilePictureUri(
-                                Constants.profileImageWidth,
-                                Constants.profileImageHeight
-                            )
-                        ).into(target)
-
-                    continuation.invokeOnCancellation {
-                        glide.clear(target)
-                    }
-                }
-
-                val image = ImageUtils.encodeImage(
-                    bitmap
-                )
-                viewModel.sendIntent(
-                    TokenIntent.FetchFacebookRegisterToken(
-                        AccessToken.getCurrentAccessToken().token,
-                        profile.name,
-                        image
-                    )
-                )
-            }
-        }
+        observeFacebookState()
+        observeTokenState()
+        observePotentialTags()
     }
 
     override fun initTextFieldValidators() {
@@ -319,6 +162,173 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     ).show()
                 }
             })
+        }
+    }
+
+    private fun observeFacebookState() {
+        lifecycleScope.launchWhenStarted {
+            viewModel.facebookState.collectLatest {
+                when(it) {
+                    is FacebookState.Idle -> {
+
+                    }
+                    is FacebookState.Loading -> {
+                        // TODO: Progressbar
+                        Log.i("LoginFragment", "Facebook state loading")
+                    }
+                    is FacebookState.OnData.ExistenceResultReceived -> {
+                        if (it.exists) {
+                            login(
+                                LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                                    null,
+                                )
+                            )
+                        } else {
+                            viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserEmail)
+                        }
+                    }
+                    is FacebookState.OnData.EmailReceived -> {
+                        Log.i("LoginFragment", "Email received ${it.email}")
+                        viewModel.email.value = it.email
+                        viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
+                    }
+                    is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
+                        val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
+                            viewModel.tagBundle.selectedTags.toTypedArray(),
+                            viewModel.tagBundle.tags
+                                .toTypedArray() + it.tags
+                        )
+                        navController.navigate(action)
+                    }
+                    is FacebookState.Error -> {
+                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
+                            .show()
+
+                        if (it.error != Constants.noConnectionError) {
+                            // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
+                            val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
+                                viewModel.tagBundle.selectedTags.toTypedArray(),
+                                viewModel.tagBundle.tags
+                                    .toTypedArray()
+                            )
+                            navController.navigate(action)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeTokenState() {
+        lifecycleScope.launchWhenStarted {
+            viewModel.mainState.collect {
+                when(it) {
+                    is TokenState.Idle -> {
+
+                    }
+                    is TokenState.Loading -> {
+                        // TODO: Progressbar
+                    }
+                    is TokenState.Error -> {
+                        // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
+                        when (it.error) {
+                            Constants.missingDataError -> {
+                                Log.wtf(
+                                    LoginFragment.tag,
+                                    "Should never reach here if everything is ok, wtf"
+                                )
+                                throw RuntimeException()
+                            }
+                            else -> {
+                                Toast.makeText(context, it.error, Toast.LENGTH_LONG)
+                                    .show() // means we've simply entered incorrect info for the normal login or something else is wrong
+                            }
+                        }
+                    }
+                    is TokenState.TokenReceived -> {
+                        Log.i("LoginFragment", "${navController.currentBackStackEntry}")
+                        login(
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                                null
+                            ),
+                            it.token?.jwt,
+                            it.token?.refreshJwt,
+                        )
+                    }
+                    is TokenState.FacebookRegisterTokenSuccess -> {
+                        val profile = Profile.getCurrentProfile()
+                        login(
+                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                                User(
+                                    profile.id.toLong(), // this will freaking die if Facebook changes their ID schema
+                                    viewModel.email.value,
+                                    profile.name,
+                                    null,
+                                    BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                    viewModel.tagBundle.selectedTags,
+                                    null
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observePotentialTags() {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(
+            viewLifecycleOwner
+        ) {
+            viewModel.tagBundle.setSelectedTags(it)
+            Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
+            lifecycleScope.launch {
+                val profile = Profile.getCurrentProfile()
+                val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
+                    val glide = Glide.with(this@LoginFragment)
+
+                    var bmapResource: Bitmap? = null
+
+                    val target = object : CustomTarget<Bitmap>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap>?
+                        ) {
+                            bmapResource = resource
+                            continuation.resume(resource, null)
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            bmapResource?.recycle()
+                            continuation.cancel(Constants.ImageFetchException())
+                        }
+                    }
+
+                    glide
+                        .asBitmap()
+                        .load(
+                            profile.getProfilePictureUri(
+                                Constants.profileImageWidth,
+                                Constants.profileImageHeight
+                            )
+                        ).into(target)
+
+                    continuation.invokeOnCancellation {
+                        glide.clear(target)
+                    }
+                }
+
+                val image = ImageUtils.encodeImage(
+                    bitmap
+                )
+                viewModel.sendIntent(
+                    TokenIntent.FetchFacebookRegisterToken(
+                        AccessToken.getCurrentAccessToken().token,
+                        profile.name,
+                        image
+                    )
+                )
+            }
         }
     }
 

@@ -8,8 +8,9 @@ import android.view.ViewGroup
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Constants
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class ChatroomUserBottomSheetDialogFragment : Fragment() {
+class ChatroomUserBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
