@@ -29,7 +29,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
     protected val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
-    private val chatroomStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
+    protected val chatroomStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
         override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
     }
 

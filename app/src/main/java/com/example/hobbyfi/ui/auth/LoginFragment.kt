@@ -166,7 +166,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     private fun observeFacebookState() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.facebookState.collectLatest {
                 when(it) {
                     is FacebookState.Idle -> {
@@ -220,7 +220,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     }
 
     private fun observeTokenState() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launch {
             viewModel.mainState.collect {
                 when(it) {
                     is TokenState.Idle -> {

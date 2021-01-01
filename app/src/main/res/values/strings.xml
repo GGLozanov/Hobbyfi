@@ -103,6 +103,7 @@
     <string name="pick_multi_limit">You have more than %1$d images selected…</string>
     <string name="no_event_description">You can wait for the owner to create one.</string>
     <string name="no_event_title">Currently, there\'s no event scheduled.</string>
+    <string name="no_event_description_owner">But you can make one in the admin panel.</string>
     <string name="users">Users</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>

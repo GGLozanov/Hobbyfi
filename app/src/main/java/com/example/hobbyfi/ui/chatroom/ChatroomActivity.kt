@@ -65,6 +65,8 @@ class ChatroomActivity : BaseActivity() {
     lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
 
+    private lateinit var headerBinding: NavHeaderChatroomBinding
+
     private lateinit var userListAdapter: ChatroomUserListAdapter
 
     private lateinit var chatroomReceiverFactory: ChatroomBroadcastReceiverFactory
@@ -88,6 +90,9 @@ class ChatroomActivity : BaseActivity() {
 
         binding.viewModel = viewModel
 
+        headerBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
+        headerBinding.viewModel = viewModel
+
         if(viewModel.authUser.value == null && viewModel.authChatroom.value == null) {
             // deeplink situation
             lifecycleScope.launch {
@@ -97,12 +102,10 @@ class ChatroomActivity : BaseActivity() {
         }
 
         userListAdapter = ChatroomUserListAdapter(
-            viewModel.currentAdapterUsers.value ?: emptyList(),
-            { _: View, user: User ->
-                val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
-                bottomSheet.show(supportFragmentManager, bottomSheet.tag)
-            }
-        )
+            viewModel.currentAdapterUsers.value ?: emptyList()) { _: View, user: User ->
+            val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
+            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+        }
 
         with(binding) {
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
@@ -207,6 +210,7 @@ class ChatroomActivity : BaseActivity() {
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
                             .show()
+                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.Error -> {
                         handleAuthActionableError(it.error, it.shouldExit)
@@ -320,26 +324,25 @@ class ChatroomActivity : BaseActivity() {
                     }
                 }
 
-                val headerBinding: NavHeaderChatroomBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
-                with(headerBinding) {
-                    chatroom.photoUrl?.let {
-                        Glide.with(this@ChatroomActivity)
-                            .load(it)
-                            .signature(
-                                ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
-                            )
-                            // calculate current page based on item position
-                            .into(chatroomImage)
-                    }
-
-                    // FIXME: Small coderino duperino with ChatroomTagAdapter
-                    chatroom.tags?.let {
-                        val adapter = ChatroomTagListAdapter(chatroom.tags!!, this@ChatroomActivity, R.layout.chatroom_tag_card)
-                        tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
-
-                        tagsGridView.adapter = adapter
-                    }
+                chatroom.photoUrl?.let {
+                    Glide.with(this@ChatroomActivity)
+                        .load(it)
+                        .signature(
+                            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
+                        )
+                        // calculate current page based on item position
+                        .into(headerBinding.chatroomImage)
                 }
+
+                // FIXME: Small coderino duperino with ChatroomTagAdapter
+                chatroom.tags?.let {
+                    val adapter = ChatroomTagListAdapter(chatroom.tags!!, this@ChatroomActivity, R.layout.chatroom_tag_card)
+                    binding.tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
+
+                    binding.tagsGridView.adapter = adapter
+                }
+
+                headerBinding.executePendingBindings()
             }
         })
     }

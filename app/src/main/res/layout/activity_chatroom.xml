@@ -51,7 +51,10 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            app:headerLayout="@layout/nav_header_admin">
+            android:background="@color/colorPrimary"
+            app:headerLayout="@layout/nav_header_admin"
+            app:itemIconTint="@android:color/white"
+            app:itemTextColor="@android:color/white">
 
         </com.google.android.material.navigation.NavigationView>
 
@@ -59,91 +62,107 @@
             android:id="@+id/nav_view_chatroom"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="end"
-            app:headerLayout="@layout/nav_header_chatroom">
+            android:background="@color/colorPrimary"
+            app:headerLayout="@layout/nav_header_chatroom"
+            android:layout_gravity="end">
 
-            <LinearLayout
+            <androidx.core.widget.NestedScrollView
+                android:layout_marginTop="@dimen/nav_header_height"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/event_card"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:animateLayoutChanges="true"
-                    app:cardBackgroundColor="@color/colorBackground">
+                    android:orientation="vertical">
 
-                    <LinearLayout
+                    <GridView
+                        android:id="@+id/tags_grid_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="125dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:clickable="false"
+                        android:numColumns="auto_fit"
+                        android:stretchMode="columnWidth"
+                        android:verticalSpacing="10dp"
+                        android:visibility="visible" />
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/event_card"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:animateLayoutChanges="true"
+                        android:background="@color/colorBackground">
 
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/event_title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginStart="10dp"
-                            android:layout_marginEnd="10dp"
-                            android:layout_marginBottom="10dp"
-                            android:text="@{viewModel.authEvent.name ?? @string/no_event_title}"
-                            android:textSize="25sp"
-                            android:textStyle="bold">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
 
-                        </com.google.android.material.textview.MaterialTextView>
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/event_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="10dp"
+                                android:layout_marginBottom="10dp"
+                                android:ellipsize="end"
+                                android:gravity="center"
+                                android:maxWidth="400dp"
+                                android:text="@{viewModel.authEvent.name ??  @string/no_event_title}"
+                                android:textSize="25sp"
+                                android:textStyle="bold">
 
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/event_description"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginStart="10dp"
-                            android:layout_marginTop="10dp"
-                            android:layout_marginEnd="10dp"
-                            android:gravity="center"
-                            android:text="@{viewModel.authEvent.description ?? @string/no_event_description}"
-                            android:textSize="18sp"
-                            android:textStyle="bold">
+                            </com.google.android.material.textview.MaterialTextView>
 
-                        </com.google.android.material.textview.MaterialTextView>
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/event_description"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginTop="10dp"
+                                android:layout_marginEnd="10dp"
+                                android:layout_marginBottom="10dp"
+                                android:ellipsize="end"
+                                android:gravity="center"
+                                android:maxWidth="480dp"
+                                android:text="@{viewModel.authEvent.description ?? (viewModel.isAuthUserChatroomOwner() ? @string/no_event_description_owner : @string/no_event_description)}"
+                                android:textSize="18sp"
+                                android:textStyle="bold">
 
-                        <include
-                            android:id="@+id/join_leave_event_button_bar"
-                            layout="@layout/button_bar_pair"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginTop="10dp"
-                            android:visibility="@{viewModel.authEvent == null ? View.GONE : View.VISIBLE}" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                            </com.google.android.material.textview.MaterialTextView>
 
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/users_header"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="10dp"
-                    android:text="@string/users"
-                    android:textSize="24sp"
-                    android:textStyle="bold">
+                            <include
+                                android:id="@+id/join_leave_event_button_bar"
+                                layout="@layout/button_bar_pair"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:visibility="@{viewModel.authEvent == null ? View.GONE : View.VISIBLE}" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
-                </com.google.android.material.textview.MaterialTextView>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/users_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginEnd="5dp"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        tools:listitem="@layout/user_card">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/users_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="5dp"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    tools:listitem="@layout/user_card">
-
-                </androidx.recyclerview.widget.RecyclerView>
-            </LinearLayout>
+                    </androidx.recyclerview.widget.RecyclerView>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
         </com.google.android.material.navigation.NavigationView>
     </androidx.drawerlayout.widget.DrawerLayout>
 </layout>

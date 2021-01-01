@@ -56,6 +56,8 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
 
     suspend fun sendUsersIntent(intent: UserListIntent) = usersStateIntent.sendIntent(intent)
 
+    fun resetChatroomState() = chatroomStateIntent.setState(ChatroomState.Idle)
+
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {

@@ -73,7 +73,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendUsersIntent(
                                 UserListIntent.AddAUserCache(
                                     it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
@@ -91,7 +91,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendUsersIntent(
                                 UserListIntent.DeleteAUserCache(
                                     it.getDeletedModelIdExtra()
@@ -109,7 +109,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendUsersIntent(
                                 UserListIntent.UpdateAUserCache(
                                     it.getDestructedMapExtra()
@@ -127,7 +127,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendChatroomIntent(
                                 ChatroomIntent.UpdateChatroomCache(
                                     it.getDestructedMapExtra()
@@ -144,7 +144,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendChatroomIntent(
                                 ChatroomIntent.DeleteChatroomCache
                             )
@@ -159,7 +159,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendEventIntent(
                                 EventIntent.CreateEventCache(
                                     it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
@@ -176,7 +176,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendEventIntent(
                                 EventIntent.UpdateEventCache(
                                     it.getDestructedMapExtra()
@@ -193,7 +193,7 @@ open class ChatroomBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenResumed {
+                        lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendEventIntent(
                                 EventIntent.DeleteEventCache
                             )

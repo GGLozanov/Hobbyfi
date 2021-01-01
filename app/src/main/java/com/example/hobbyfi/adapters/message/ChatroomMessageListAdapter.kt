@@ -38,7 +38,7 @@ import org.kodein.di.generic.instance
 class ChatroomMessageListAdapter(
     private var currentUsers: List<User>,
     private inline val onMessageLongPress: (View, Message) -> Boolean)
-: PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
+    : PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
 
@@ -90,7 +90,7 @@ class ChatroomMessageListAdapter(
         if(message?.isTimeline == true) return MessageType.TIMELINE.ordinal
 
         return if(message?.userSentId == prefConfig.getAuthUserIdFromToken()) MessageType.SEND.ordinal
-            else MessageType.RECEIVE.ordinal
+        else MessageType.RECEIVE.ordinal
     }
 
     abstract class ChatroomMessageViewHolder(
@@ -157,8 +157,8 @@ class ChatroomMessageListAdapter(
     }
 
     private fun handleImageMessageBind(message: Message?,
-                       position: Int, messageBinding: MessageCardBinding,
-                       itemViewContext: Context) {
+                                       position: Int, messageBinding: MessageCardBinding,
+                                       itemViewContext: Context) {
         val isMessageImage = Constants.imageRegex
             .matches(message?.message!!)
 

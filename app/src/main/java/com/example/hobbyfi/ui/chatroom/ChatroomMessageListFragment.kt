@@ -173,20 +173,20 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     private fun observeUsers() {
         activityViewModel.currentAdapterUsers.observe(viewLifecycleOwner, Observer {
-            if(viewModel.areCurrentMessagesNull) {
+            if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent
                 lifecycleScope.launch {
                     viewModel.sendIntent(MessageListIntent.FetchMessages)
                 }
             } else {
                 // update chatroomlistadapter users
-                messageListAdapter.setCurrentUsers(it)
+                 messageListAdapter.setCurrentUsers(it)
             }
         })
     }
 
     private fun observeMessagesState() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatest {
                 when(it) {
                     is MessageListState.Idle -> {
@@ -210,7 +210,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                                     .show()
                             }
                         }.collectLatest { data ->
-                            messageListAdapter.submitData(data)
+                            // messageListAdapter.submitData(data)
                         }
                     }
                     is MessageListState.Error -> {
@@ -222,7 +222,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     }
 
     private fun observeMessageState() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launchWhenCreated {
             viewModel.messageState.collectLatest {
                 when(it) {
                     is MessageState.Idle -> {
