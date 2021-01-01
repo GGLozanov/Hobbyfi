@@ -1,6 +1,7 @@
 package com.example.hobbyfi.adapters.message
 
 import android.content.Context
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -33,6 +34,7 @@ import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.android.x.androidXContextTranslators
 import org.kodein.di.generic.instance
+import java.lang.IllegalArgumentException
 
 
 class ChatroomMessageListAdapter(
@@ -49,20 +51,18 @@ class ChatroomMessageListAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Message> {
-        var viewHolder: BaseViewHolder<Message>? = null
-        when(viewType) {
+        return when(viewType) {
             MessageType.TIMELINE.ordinal -> {
-                viewHolder = ChatroomTimelineMessageViewHolder.getInstance(parent)
+                ChatroomTimelineMessageViewHolder.getInstance(parent)
             }
             MessageType.RECEIVE.ordinal -> {
-                viewHolder = ChatroomReceiveMessageViewHolder.getInstance(parent, onMessageLongPress)
+                ChatroomReceiveMessageViewHolder.getInstance(parent, onMessageLongPress)
             }
             MessageType.SEND.ordinal -> {
-                viewHolder = ChatroomSendMessageViewHolder.getInstance(parent, onMessageLongPress)
+                ChatroomSendMessageViewHolder.getInstance(parent, onMessageLongPress)
             }
+            else -> throw IllegalArgumentException(Constants.invalidViewType)
         }
-
-        return viewHolder!!
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder<Message>, position: Int) {
@@ -74,7 +74,7 @@ class ChatroomMessageListAdapter(
                 handleImageMessageBind(
                     message,
                     position,
-                    (holder as ChatroomMessageViewHolder).messageBinding,
+                    (holder as ChatroomMessageViewHolder).messageCardBinding,
                     holder.itemView.context
                 )
             }
@@ -90,18 +90,17 @@ class ChatroomMessageListAdapter(
         if(message?.isTimeline == true) return MessageType.TIMELINE.ordinal
 
         return if(message?.userSentId == prefConfig.getAuthUserIdFromToken()) MessageType.SEND.ordinal
-        else MessageType.RECEIVE.ordinal
+            else MessageType.RECEIVE.ordinal
     }
 
     abstract class ChatroomMessageViewHolder(
-        private val binding: MessageCardBinding,
+        rootView: View,
+        val messageCardBinding: MessageCardBinding,
         private val onMessageLongPress: (View, Message) -> Boolean
-    ) : BaseViewHolder<Message>(binding.root) {
-        abstract val messageBinding: MessageCardBinding
-
+    ) : BaseViewHolder<Message>(rootView) {
         override fun bind(message: Message?, position: Int) {
-            binding.message = message
-            binding.messageCardLayout.setOnLongClickListener {
+            messageCardBinding.message = message
+            messageCardBinding.messageCardLayout.setOnLongClickListener {
                 onMessageLongPress(it, message!!)
             }
         }
@@ -109,9 +108,9 @@ class ChatroomMessageListAdapter(
 
     // TODO: Gesture detection for edit message and delete message callbacks
     class ChatroomSendMessageViewHolder(
-        private val binding: MessageCardSendBinding,
+        binding: MessageCardSendBinding,
         onMessageLongPress: (View, Message) -> Boolean
-    ) : ChatroomMessageViewHolder(binding.messageCardSend, onMessageLongPress) {
+    ) : ChatroomMessageViewHolder(binding.root, binding.messageCardSend, onMessageLongPress) {
         companion object {
             fun getInstance(parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean): ChatroomSendMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
@@ -120,24 +119,21 @@ class ChatroomMessageListAdapter(
                 return ChatroomSendMessageViewHolder(binding, onMessageLongPress)
             }
         }
-
-        override val messageBinding get() = binding.messageCardSend
     }
 
     class ChatroomReceiveMessageViewHolder(
-        private val binding: MessageCardReceiveBinding,
+        binding: MessageCardReceiveBinding,
         onMessageLongPress: (View, Message) -> Boolean
-    ) : ChatroomMessageViewHolder(binding.messageCardReceive, onMessageLongPress) {
+    ) : ChatroomMessageViewHolder(binding.root, binding.messageCardReceive, onMessageLongPress) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean): ChatroomReceiveMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
-                val binding = MessageCardReceiveBinding.inflate(inflater, parent, false)
+                val binding: MessageCardReceiveBinding =
+                    DataBindingUtil.inflate(inflater, R.layout.message_card_receive, parent, false)
                 return ChatroomReceiveMessageViewHolder(binding, onMessageLongPress)
             }
         }
-
-        override val messageBinding get() = binding.messageCardReceive
     }
 
     class ChatroomTimelineMessageViewHolder(private val binding: MessageCardTimelineBinding) : BaseViewHolder<Message>(binding.root) {
@@ -146,7 +142,8 @@ class ChatroomMessageListAdapter(
             fun getInstance(parent: ViewGroup): ChatroomTimelineMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding: MessageCardTimelineBinding =
-                    DataBindingUtil.inflate(inflater, R.layout.message_card_timeline, parent, false)
+                    DataBindingUtil.inflate(inflater, R.layout.message_card_timeline,
+                        parent, false)
                 return ChatroomTimelineMessageViewHolder(binding)
             }
         }

@@ -47,6 +47,7 @@ object Constants {
     const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
     const val fcmTopicError: String = "Couldn't perform operation! Please check your connection or consult with Google, as this error is not ours!"
+    const val invalidViewType: String = "Invalid view type for ViewHolder!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     const val imagePermissionsRequestCode = 200

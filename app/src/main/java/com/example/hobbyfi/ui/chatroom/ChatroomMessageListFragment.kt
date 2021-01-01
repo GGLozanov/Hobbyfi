@@ -210,7 +210,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                                     .show()
                             }
                         }.collectLatest { data ->
-                            // messageListAdapter.submitData(data)
+                            Log.i("ChatroomMListFragment", "Collecting message paging data $data")
+                            messageListAdapter.submitData(data)
                         }
                     }
                     is MessageListState.Error -> {
