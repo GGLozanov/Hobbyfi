@@ -68,18 +68,16 @@ class ChatroomMessageListAdapter(
     override fun onBindViewHolder(holder: BaseViewHolder<Message>, position: Int) {
         val message = getItem(position)
 
+        holder.bind(message, position)
+
         when(holder) {
             is ChatroomReceiveMessageViewHolder, is ChatroomSendMessageViewHolder -> {
-                holder.bind(message, position)
                 handleImageMessageBind(
                     message,
                     position,
                     (holder as ChatroomMessageViewHolder).messageCardBinding,
                     holder.itemView.context
                 )
-            }
-            is ChatroomTimelineMessageViewHolder -> {
-                holder.bind(message, position)
             }
         }
     }
@@ -99,7 +97,7 @@ class ChatroomMessageListAdapter(
         private val onMessageLongPress: (View, Message) -> Boolean
     ) : BaseViewHolder<Message>(rootView) {
         override fun bind(message: Message?, position: Int) {
-            messageCardBinding.message = message
+            messageCardBinding.message = message // DATA BINDING GO BRRRRRR????
             messageCardBinding.messageCardLayout.setOnLongClickListener {
                 onMessageLongPress(it, message!!)
             }
@@ -156,41 +154,42 @@ class ChatroomMessageListAdapter(
     private fun handleImageMessageBind(message: Message?,
                                        position: Int, messageBinding: MessageCardBinding,
                                        itemViewContext: Context) {
+        Log.i("ChatroomMListAdapter", "MESSAGE: $message")
         val isMessageImage = Constants.imageRegex
             .matches(message?.message!!)
+        Log.i("ChatroomMListAdapter", "MESSAGE ISIMAGE: $isMessageImage")
 
         val glide = Glide.with(itemViewContext)
         if(isMessageImage) {
-            loadCachedPagingImageInto(glide, message.message, position, messageBinding.userImage)
+            loadCachedPagingImageInto(glide, message.message,
+                position, messageBinding.userImage, R.string.pref_last_chatroom_messages_fetch_time)
         }
-        // TODO: See if need this code and act accordingly
-//        else {
-//            Glide.with(itemViewContext)
-//                .load(
-//                    R.drawable.chatroom_default_pic
-//                )
-//                .into(imageView)
-//        }
 
         messageBinding.userImage.isVisible = isMessageImage
         messageBinding.userMessage.isVisible = !isMessageImage
 
+        val userSentMessage = currentUsers.find { message.userSentId == it.id }
+        messageBinding.userName.text = userSentMessage?.name ?: "[Unknown User]"
+
         loadCachedPagingImageInto(
             glide,
-            currentUsers.find { message.userSentId == it.id }?.photoUrl,
+            userSentMessage?.photoUrl,
             position,
-            messageBinding.userProfileImage
+            messageBinding.userProfileImage,
+            R.string.pref_last_chatroom_users_fetch_time
         )
     }
 
-    private fun loadCachedPagingImageInto(glide: RequestManager, url: String?, position: Int, imageView: ImageView) {
+    private fun loadCachedPagingImageInto(glide: RequestManager, url: String?,
+                                          position: Int, imageView: ImageView, cachePrefId: Int) {
         glide
             .load(url)
+            .placeholder(R.drawable.default_pic)
             .signature(
                 GlideUtils.getPagingObjectKey(
                     prefConfig,
                     position,
-                    R.string.pref_last_chatroom_messages_fetch_time,
+                    cachePrefId,
                     Constants.messagesPageSize
                 )
             )

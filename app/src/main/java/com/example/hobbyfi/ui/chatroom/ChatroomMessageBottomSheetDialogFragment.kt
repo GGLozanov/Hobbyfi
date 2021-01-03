@@ -4,10 +4,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.DisplayMetrics
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navArgs
@@ -17,10 +20,14 @@ import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment() {
+class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), NavigationView.OnNavigationItemSelectedListener {
+
+    private lateinit var binding: FragmentChatroomMessageBottomSheetDialogBinding
 
     companion object {
         fun newInstance(message: Message): ChatroomMessageBottomSheetDialogFragment {
@@ -45,36 +52,20 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
-        val binding = FragmentChatroomMessageBottomSheetDialogBinding.inflate(
+        binding = FragmentChatroomMessageBottomSheetDialogBinding.inflate(
             inflater,
             container,
             false
         )
 
-        with(binding) {
-            deleteMessageLayout.setOnClickListener {
-                Constants.buildDeleteAlertDialog(
-                    requireContext(),
-                    resources.getString(R.string.delete_message),
-                    { dialogInterface, _ ->
-                        dialogInterface.dismiss()
-                        onMessageOptionSelected.onDeleteMessageSelect(
-                            it,
-                            requireArguments().getParcelable(Constants.MESSAGE)!!
-                        )
-                    },
-                    {  dialogInterface, _ ->
-                        dialogInterface.dismiss()
-                        dismiss()
-                    }
-                )
+        with(binding.bottomSheet) {
+            BottomSheetBehavior.from(this).apply {
+                peekHeight = 1 / 4 * (DisplayMetrics().heightPixels)
+                state = BottomSheetBehavior.STATE_EXPANDED
             }
-            editMessageLayout.setOnClickListener {
-                onMessageOptionSelected.onEditMessageSelect(
-                    it,
-                    requireArguments().getParcelable(Constants.MESSAGE)!!
-                )
-            }
+
+            binding.root.requestLayout()
+            setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
         }
 
         return binding.root
@@ -89,5 +80,36 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment() {
             throw ClassCastException(context.toString()
                     + " must implement OnMessageOptionSelected")
         }
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.action_delete_message -> {
+                Constants.buildDeleteAlertDialog(
+                    requireContext(),
+                    resources.getString(R.string.delete_message),
+                    { dialogInterface, _ ->
+                        dialogInterface.dismiss()
+                        onMessageOptionSelected.onDeleteMessageSelect(
+                            binding.root,
+                            requireArguments().getParcelable(Constants.MESSAGE)!!
+                        )
+                        dismiss()
+                    },
+                    {  dialogInterface, _ ->
+                        dialogInterface.dismiss()
+                        dismiss()
+                    }
+                )
+            }
+            R.id.action_edit_message -> {
+                onMessageOptionSelected.onEditMessageSelect(
+                    binding.root,
+                    requireArguments().getParcelable(Constants.MESSAGE)!!
+                )
+                dismiss()
+            }
+        }
+        return true
     }
 }

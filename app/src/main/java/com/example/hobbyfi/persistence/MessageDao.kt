@@ -6,16 +6,16 @@ import androidx.room.Query
 import com.example.hobbyfi.models.Message
 
 @Dao
-interface MessageDao : BaseDao<Message> {
+abstract class MessageDao : BaseDao<Message>() {
     @Query("SELECT * FROM messages")
-    fun getMessages(): PagingSource<Int, Message>
+    abstract fun getMessages(): PagingSource<Int, Message>
 
     @Query("DELETE FROM messages")
-    fun deleteMessages(): Int
+    abstract fun deleteMessages(): Int
 
     @Query("DELETE FROM messages WHERE id = :id")
-    fun deleteMessageById(id: Long): Int
+    abstract fun deleteMessageById(id: Long): Int
 
     @Query("UPDATE messages SET message = :message WHERE id = :id")
-    fun updateMessageById(id: Long, message: String)
+    abstract fun updateMessageById(id: Long, message: String)
 }

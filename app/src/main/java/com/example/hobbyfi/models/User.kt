@@ -39,7 +39,7 @@ data class User(
         data[Constants.USERNAME] ?: error("User username must not be null!"),
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
-        Gson().fromJson(data[Constants.TAGS]),
+        Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
         data[Constants.CHATROOM_ID]?.toLong()
     )
 

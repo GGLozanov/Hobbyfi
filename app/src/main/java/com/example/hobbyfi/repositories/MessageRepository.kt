@@ -5,18 +5,13 @@ import android.util.Log
 import androidx.paging.*
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CreateTimeIdResponse
-import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
-import com.example.hobbyfi.shared.RemoteKeyType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -29,9 +24,10 @@ class MessageRepository @ExperimentalPagingApi constructor(
     fun getMessages(pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize)):
             Flow<PagingData<Message>> {
         Log.i("MessageRepository", "getMessages -> getting current messages")
+        val pagingSource = { hobbyfiDatabase.messageDao().getMessages() }
         return Pager(
             config = pagingConfig,
-            pagingSourceFactory = { hobbyfiDatabase.messageDao().getMessages() }, // TODO: DI
+            pagingSourceFactory = pagingSource,
             remoteMediator = remoteMediator
         ).flow
     }
@@ -85,8 +81,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
     suspend fun saveNewMessage(message: Message) =
         withContext(Dispatchers.IO) {
             // set to the beginning of the page remote key and wake SQL page shift trigger
-            hobbyfiDatabase.remoteKeysDao().insert(RemoteKeys(message.id, 2, null, RemoteKeyType.MESSAGE))
-            hobbyfiDatabase.messageDao().insert(message)
+            hobbyfiDatabase.messageDao().upsert(message)
         }
 
     // message is the only mutable property (FOR NOW)
@@ -98,7 +93,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
     suspend fun saveMessages(messages: List<Message>) {
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_messages_fetch_time)
         withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().insertList(messages)
+            hobbyfiDatabase.messageDao().upsert(messages)
         }
     }
 }

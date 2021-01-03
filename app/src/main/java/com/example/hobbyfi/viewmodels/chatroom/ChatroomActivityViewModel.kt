@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -19,10 +20,7 @@ import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.UserListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
@@ -55,6 +53,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
     val usersState get() = usersStateIntent.state
 
     suspend fun sendUsersIntent(intent: UserListIntent) = usersStateIntent.sendIntent(intent)
+    fun resetUserListState() = usersStateIntent.setState(UserListState.Idle)
 
     fun resetChatroomState() = chatroomStateIntent.setState(ChatroomState.Idle)
 
@@ -86,15 +85,16 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
             usersStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is UserListIntent.AddAUserCache -> {
-                        saveUser(it.user)
+                        saveUser(it.user, false)
                     }
                     is UserListIntent.DeleteAUserCache -> {
-                        deleteUserCache(it.userId)
+                        deleteUserCache(it.userId, false)
                     }
                     is UserListIntent.UpdateAUserCache -> {
+                        // TODO: Update lastUsersFetchTime or something similar for Glide signature caching
                         saveUser(currentAdapterUsers.value!!.find { user -> user.id ==
                                 (it.userUpdateFields[Constants.ID] ?: error("User ID must not be null in saveUser call!")).toLong() }!!
-                            .updateFromFieldMap(it.userUpdateFields))
+                            .updateFromFieldMap(it.userUpdateFields), false)
                     }
                     is UserListIntent.FetchUsers -> {
                         fetchUsers()
@@ -113,7 +113,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
 
         userRepository.getChatroomUsers(
             authChatroom.value!!.id
-        ).catch { e ->
+        ).distinctUntilChanged().catch { e ->
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
@@ -122,6 +122,7 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
             )
         }.collect {
             if(it != null) {
+                Log.i("ChatroomActivityVM", "Collecting new users from SSOT cache!!! $it")
                 setCurrentUsers(it)
                 usersStateIntent.setState(
                     UserListState.OnData.UsersResult(
@@ -222,17 +223,13 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
         }
     }
 
-    private suspend fun deleteUserCache(id: Long) {
+    private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {
         // TODO: Add setState bool?
-        userRepository.deleteUserCache(id)
+        userRepository.deleteUserCache(id, shouldWritePrefTime)
     }
 
     // TODO: Hide behind intent? Also, bruh conversions
     private fun setCurrentUsers(users: List<User>) {
-        val mUsers = users.toMutableList()
-        if(authUser.value != null && !mUsers.contains(authUser.value)) {
-            mUsers.add(authUser.value!!)
-        }
-        _currentAdapterUsers.value = mUsers
+        _currentAdapterUsers.value = users
     }
 }

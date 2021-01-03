@@ -8,7 +8,6 @@ import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.shared.Callbacks
@@ -94,8 +93,8 @@ class ChatroomMediator(
             val keys = mapRemoteKeysFromModelList(chatroomsResponse.modelList, page, isEndOfList)
             Log.i("ChatroomMediator", "CHATROOM RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("ChatroomMediator", "Inserting ChatroomList and RemoteKeys")
-            remoteKeysDao.insertList(keys)
-            chatroomDao.insertList(chatroomsResponse.modelList)
+            remoteKeysDao.upsert(keys)
+            chatroomDao.upsert(chatroomsResponse.modelList)
         }
 
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)
@@ -108,7 +107,7 @@ class ChatroomMediator(
             Log.i("ChatroomMediator", "Deleting RemoteKeys and cached chatrooms")
             remoteKeysDao.deleteRemoteKeyByType(remoteKeyType) // delete any saved chatrooms + remote keys
             chatroomDao.deleteChatrooms()
-            chatroomDao.insert(chatroom) // insert first (and only) fetched chatroom
+            chatroomDao.upsert(chatroom) // insert first (and only) fetched chatroom
         }
 
         return MediatorResult.Success(endOfPaginationReached = true)

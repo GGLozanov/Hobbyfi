@@ -16,42 +16,52 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="@{gravity}"
-        android:rotation="@{gravity == Gravity.END ? 180 : 0}">
+        android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_profile_image"
             android:layout_width="40dp"
-            android:layout_height="40dp" />
+            android:layout_height="40dp"
+            android:translationX="@{gravity == Gravity.END ? 370 : 0}" />
 
         <LinearLayout
-            android:id="@+id/message_card_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/rounded_container_primary_col"
-            android:orientation="vertical"
-            android:padding="5dp">
+            android:orientation="vertical">
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/user_name"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
                 android:layout_marginBottom="5dp"
-                android:textSize="28sp"
-                android:textStyle="bold"
+                android:gravity="@{gravity}"
+                android:textSize="14sp"
                 android:visibility="visible" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/user_message"
-                android:layout_width="120dp"
+            <LinearLayout
+                android:id="@+id/message_card_layout"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="visible" />
+                android:background="@drawable/rounded_container_primary_col"
+                android:orientation="vertical"
+                android:padding="5dp">
 
-            <ImageView
-                android:id="@+id/user_image"
-                android:layout_width="150dp"
-                android:layout_height="150dp" />
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/user_message"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="@{gravity}"
+                    android:text="@{message.message}"
+                    android:layout_marginEnd="5dp"
+                    android:visibility="visible" />
+
+                <ImageView
+                    android:id="@+id/user_image"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </layout>

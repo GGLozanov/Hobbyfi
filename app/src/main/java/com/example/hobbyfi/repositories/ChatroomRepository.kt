@@ -33,7 +33,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         val pagingSource = { hobbyfiDatabase.chatroomDao().getChatrooms() }
         return Pager(
             config = pagingConfig,
-            pagingSourceFactory = pagingSource, // TODO: DI & cache as SSOT
+            pagingSourceFactory = pagingSource,
             remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, shouldFetchAuthChatroom)
         ).flow
     }
@@ -44,7 +44,8 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
         return object : NetworkBoundFetcher<Chatroom, CacheListResponse<Chatroom>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<Chatroom>) {
-                hobbyfiDatabase.chatroomDao().insert(response.modelList[0])
+                // TODO: somehow calculate remotekeys for pagination or just refresh the list again?
+                hobbyfiDatabase.chatroomDao().upsert(response.modelList[0])
             }
 
             override fun shouldFetch(cache: Chatroom?): Boolean {
@@ -131,7 +132,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
         withContext(Dispatchers.IO) {
-            hobbyfiDatabase.chatroomDao().insert(chatroom)
+            hobbyfiDatabase.chatroomDao().upsert(chatroom)
         }
     }
 

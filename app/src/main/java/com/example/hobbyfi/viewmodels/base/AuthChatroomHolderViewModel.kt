@@ -94,8 +94,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         }.collect {
             if(it != null) {
                 setChatroom(it)
-                // TODO: somehow calculate remotekeys for pagination or just refresh the list again?
-                saveChatroom(it)
                 chatroomStateIntent.setState(ChatroomState.OnData.ChatroomResult(it))
             }
         }

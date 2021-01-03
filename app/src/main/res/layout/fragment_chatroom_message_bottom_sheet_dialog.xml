@@ -1,54 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout android:id="@+id/bottom_sheet_coordinator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground"
-    android:orientation="vertical"
-    tools:context=".ui.chatroom.ChatroomMessageBottomSheetDialogFragment">
-
-    <LinearLayout
-        android:id="@+id/edit_message_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_edit_24"></ImageView>
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="@string/edit"
-            android:textSize="18sp"
-            android:textStyle="bold">
-
-        </com.google.android.material.textview.MaterialTextView>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/delete_message_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_delete_forever_24"></ImageView>
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:text="@string/delete"
-            android:textSize="18sp"
-            android:textStyle="bold">
-
-        </com.google.android.material.textview.MaterialTextView>
-    </LinearLayout>
-
-</LinearLayout>
+        android:layout_height="match_parent"
+        app:menu="@menu/message_bottom_sheet_menu"
+        android:layout_gravity="start"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:itemIconTint="@android:color/white"
+        app:itemTextColor="@android:color/white"
+        android:background="@color/colorBackground"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

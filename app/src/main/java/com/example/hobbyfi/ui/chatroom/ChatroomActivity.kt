@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.app.Fragment
 import android.content.*
 import android.graphics.Color
 import android.graphics.ColorSpace
@@ -34,6 +35,7 @@ import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.intents.UserListIntent
+import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.ChatroomBroadcastReceiverFactory
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
@@ -55,7 +57,7 @@ import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class ChatroomActivity : BaseActivity() {
+class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
@@ -108,9 +110,10 @@ class ChatroomActivity : BaseActivity() {
         }
 
         with(binding) {
+            binding.eventCard.background.alpha = 255 * (75 / 100) // 75% of 255 (255 = max alpha value)
+
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
             usersList.adapter = userListAdapter
-            eventCard.background.alpha = 255 * (75 / 100) // 75% of 255 (255 = max alpha value)
             // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user join
             joinLeaveEventButtonBar.leftButton.setOnClickListener { // leave event
                 // unsubscribe from cloud firestore (through eventrepository, eventintent, etc.)
@@ -118,18 +121,7 @@ class ChatroomActivity : BaseActivity() {
             joinLeaveEventButtonBar.rightButton.setOnClickListener { // join event
                 // navigate to maps activity
             }
-            // TODO: add user recyclerview onclick + view user profile bottomsheet fragment
         }
-
-        // TODO: On right navdrawer press (through activity listener), refresh users data source in viewmodel and fetch new users
-        //  => triggers REFRESH loadstate in Mediator => check if users last fetch time is too long
-        //  => doesn't delete old users (if no connection or time isn't long enough) => fetches users if time is long enough
-        // TODO: Update users data source in Room upon notification (no need to refetch from network???)
-
-        // if not deeplink: fire off 3 requests/load from db here -> event, messages, user
-        // if deeplink: also fire off request/load from db here -> chatroom info
-
-        // TODO: If called from deeplink, use chatroomliststate and fetch single chatroom
 
         // TODO: Ask for permission upon event card press for access to location
     }
@@ -150,14 +142,6 @@ class ChatroomActivity : BaseActivity() {
         observeChatroom()
         observeChatroomOwnRights()
         observeConnectionRefresh()
-
-        if(viewModel.currentAdapterUsers.value!!.isEmpty()) {
-            lifecycleScope.launch {
-                viewModel.sendUsersIntent(
-                    UserListIntent.FetchUsers
-                )
-            }
-        }
     }
 
     private fun observeUserState() {
@@ -233,6 +217,7 @@ class ChatroomActivity : BaseActivity() {
                     }
                     is UserListState.OnData.UsersResult -> {
                         userListAdapter.setUsers(it.users)
+                        viewModel.resetUserListState()
                     }
                     is UserListState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
@@ -272,6 +257,11 @@ class ChatroomActivity : BaseActivity() {
                                     }
                                 })
                         }
+                    }
+                    is EventState.OnData.EventCreateResult -> TODO()
+                    is EventState.OnData.EventEditResult -> TODO()
+                    is EventState.OnData.EventDeleteResult, is EventState.OnData.DeleteEventCacheResult -> {
+                        // _authEvent should be nullified already here; do something else
                     }
                     is EventState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
@@ -342,7 +332,15 @@ class ChatroomActivity : BaseActivity() {
                     binding.tagsGridView.adapter = adapter
                 }
 
-                headerBinding.executePendingBindings()
+                headerBinding.chatroomDescription.text = chatroom.description // two-way data-binding, y u no work??
+
+                if(viewModel.currentAdapterUsers.value!!.isEmpty()) {
+                    lifecycleScope.launch {
+                        viewModel.sendUsersIntent(
+                            UserListIntent.FetchUsers
+                        )
+                    }
+                }
             }
         })
     }
@@ -364,9 +362,9 @@ class ChatroomActivity : BaseActivity() {
                     viewModel.sendChatroomIntent(
                         ChatroomIntent.FetchChatroom
                     )
-                    viewModel.sendEventIntent(
-                        EventIntent.FetchEvent
-                    )
+//                    viewModel.sendEventIntent(
+//                        EventIntent.FetchEvent
+//                    )
                 }
             } else {
                 Log.i("ChatroomActivity", "ChatroomActivity DIS-CONNECTED")
@@ -478,5 +476,19 @@ class ChatroomActivity : BaseActivity() {
             // TODO: Add another field (shouldReauth) for REALLY bad errors
             sendBroadcast(Intent(Constants.LOGOUT))
         }
+    }
+
+    // forward bottomsheet implementation to fragment one
+    // FIXME: Coupled kinda
+    @ExperimentalPagingApi
+    override fun onEditMessageSelect(view: View, message: Message) {
+        (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment)
+            .onDeleteMessageSelect(view, message)
+    }
+
+    @ExperimentalPagingApi
+    override fun onDeleteMessageSelect(view: View, message: Message) {
+        (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment)
+            .onDeleteMessageSelect(view, message)
     }
 }

@@ -93,11 +93,13 @@ class UserRepository @ExperimentalPagingApi constructor(
         })
     }
 
-    suspend fun saveUser(user: User) {
-        prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
+    suspend fun saveUser(user: User, shouldWritePrefTime: Boolean = true) {
+        if(shouldWritePrefTime) {
+            prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
+        }
 
         withContext(Dispatchers.IO) {
-            hobbyfiDatabase.userDao().insert(user)
+            hobbyfiDatabase.userDao().upsert(user)
         }
     }
 
@@ -105,13 +107,16 @@ class UserRepository @ExperimentalPagingApi constructor(
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_users_fetch_time)
 
         withContext(Dispatchers.IO) {
-            hobbyfiDatabase.userDao().insertList(users)
+            hobbyfiDatabase.userDao().upsert(users)
         }
     }
 
-    suspend fun deleteUserCache(userId: Long): Boolean {
+    suspend fun deleteUserCache(userId: Long, shouldWritePrefTime: Boolean = true): Boolean {
         Log.i("UserRepository", "deleteUser -> deleting auth user w/ id: $userId")
-        prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
+        if(shouldWritePrefTime) {
+            prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
+        }
+        
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
                 val deletedUser = hobbyfiDatabase.userDao().deleteUserById(userId)

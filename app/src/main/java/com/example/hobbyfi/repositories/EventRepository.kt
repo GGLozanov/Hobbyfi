@@ -98,7 +98,7 @@ class EventRepository(
     suspend fun saveEvent(event: Event) {
         Log.i("EventRepository", "saveEvent -> Saving event into cache. Event: $event!")
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_event_fetch_time)
-        hobbyfiDatabase.eventDao().insert(event)
+        hobbyfiDatabase.eventDao().upsert(event)
     }
 
     suspend fun deleteEventCache(id: Long): Boolean {

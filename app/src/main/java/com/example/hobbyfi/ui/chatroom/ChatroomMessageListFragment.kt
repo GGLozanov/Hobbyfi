@@ -173,15 +173,16 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     private fun observeUsers() {
         activityViewModel.currentAdapterUsers.observe(viewLifecycleOwner, Observer {
+            Log.i("ChatroomMListFragment", "Adapter users: $it")
             if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent
                 lifecycleScope.launch {
                     viewModel.sendIntent(MessageListIntent.FetchMessages)
                 }
-            } else {
-                // update chatroomlistadapter users
-                 messageListAdapter.setCurrentUsers(it)
             }
+
+            // update chatroomlistadapter users
+            messageListAdapter.setCurrentUsers(it)
         })
     }
 
@@ -196,7 +197,6 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
                     }
                     is MessageListState.OnData.MessagesResult -> {
-                        binding.swipeRefresh.isRefreshing = false
                         it.messages.catch { e ->
                             e.printStackTrace()
                             if((e as Exception).isCritical) {
@@ -212,6 +212,10 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                         }.collectLatest { data ->
                             Log.i("ChatroomMListFragment", "Collecting message paging data $data")
                             messageListAdapter.submitData(data)
+                            // TODO: Add on initial fetch scroll, not on every
+//                            if(messageListAdapter.itemCount != 0) {
+//                                binding.messageList.smoothScrollToPosition(messageListAdapter.itemCount - 1)
+//                            }
                         }
                     }
                     is MessageListState.Error -> {
@@ -255,7 +259,6 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         }
     }
 
-
     private fun observeConnectionRefresh() {
         (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
             if(connectionRefreshed) {
@@ -269,12 +272,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     private fun initMessageListAdapter() {
         with(binding) {
-            messageList.addItemDecoration(VerticalSpaceItemDecoration(10))
+            messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
             messageList.adapter = messageListAdapter.withLoadStateFooter(loadStateAdapter)
-
-            swipeRefresh.setOnRefreshListener {
-                messageListAdapter.refresh()
-            }
         }
     }
 
@@ -304,8 +303,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     // FIXME: might, like, totally not work. Maybe just send one intent and parse the URIs there and make them seperate requests
     override fun onImagesSelected(uris: List<Uri>, tag: String?) {
-        lifecycleScope.launch {
-            uris.forEach {
+        uris.forEach {
+            lifecycleScope.launch {
                 createMessage(ImageUtils.getEncodedImageFromUri(requireActivity(), it))
             }
         }
@@ -334,8 +333,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     override fun onEditMessageSelect(view: View, message: Message) {
         viewModel.message.value = message.message // set to edit current message from bottom sheet
         binding.sendMessageButton.setOnClickListener(onEditSendMessage(message))
-        binding.cancelHeader.isVisible = true
-        // to the original onClickListener for send button
+        binding.cancelHeader.isVisible = true // ...to the original onClickListener for send button
     }
 
     override fun onDeleteMessageSelect(view: View, message: Message) {

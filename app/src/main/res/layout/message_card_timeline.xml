@@ -16,7 +16,7 @@
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/timeline_message"
             android:layout_width="200dp"
-            android:layout_height="75dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/rounded_container_grey"
             android:gravity="center"

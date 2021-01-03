@@ -68,10 +68,11 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         }
     }
 
-    protected suspend fun saveUser(updatedUser: User) = userRepository.saveUser(updatedUser)
+    protected suspend fun saveUser(updatedUser: User, shouldWritePrefTime: Boolean = true)
+        = userRepository.saveUser(updatedUser, shouldWritePrefTime)
 
-    private suspend fun deleteUserCache() {
-        userRepository.deleteUserCache(_authUser.value!!.id)
+    private suspend fun deleteUserCache(shouldWritePrefTime: Boolean = true) {
+        userRepository.deleteUserCache(_authUser.value!!.id, shouldWritePrefTime)
         _authUser.value = null
     }
 

@@ -15,27 +15,23 @@
         android:layout_height="match_parent"
         android:background="@drawable/background_secondary_gradient">
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipe_refresh"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/message_list"
+            android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="73dp"
+            app:layoutManager="LinearLayoutManager"
             app:layout_constraintBottom_toTopOf="@id/message_input_layout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:reverseLayout="false"
+            app:stackFromEnd="false"
+            tools:context=".ui.chatroom.ChatroomMessageListFragment"
+            tools:listitem="@layout/message_card_receive" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/message_list"
-                android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                app:layoutManager="LinearLayoutManager"
-                app:reverseLayout="true"
-                app:stackFromEnd="false"
-                tools:context=".ui.chatroom.ChatroomMessageListFragment"
-                tools:listitem="@layout/message_card_receive" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-        <LinearLayout
+        <RelativeLayout
             android:id="@+id/message_input_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -49,8 +45,9 @@
                 android:id="@+id/message_input_field"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="8dp"
                 android:hint="@string/message_hint"
                 app:endIconMode="clear_text"
                 app:errorEnabled="true"
@@ -72,27 +69,36 @@
                     tools:layout_editor_absoluteY="4dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <ImageButton
-                android:id="@+id/select_image_button"
+            <LinearLayout
+                android:id="@+id/message_button_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center|end"
-                android:layout_marginStart="30dp"
-                android:background="@null"
-                android:maxWidth="50dp"
-                android:src="@drawable/ic_baseline_image_42"
-                tools:src="@drawable/ic_baseline_image_42" />
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:layout_marginEnd="15dp"
+                android:layout_toEndOf="@id/message_input_field"
+                android:gravity="end"
+                android:orientation="horizontal">
 
-            <ImageButton
-                android:id="@+id/send_message_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center|end"
-                android:layout_marginStart="5dp"
-                android:background="@null"
-                android:src="@drawable/ic_baseline_send_42"
-                tools:src="@drawable/ic_baseline_send_42" />
-        </LinearLayout>
+                <ImageButton
+                    android:id="@+id/select_image_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:src="@drawable/ic_baseline_image_42"
+                    tools:src="@drawable/ic_baseline_image_42" />
+
+                <ImageButton
+                    android:id="@+id/send_message_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|end"
+                    android:layout_marginStart="5dp"
+                    android:background="@null"
+                    android:src="@drawable/ic_baseline_send_42"
+                    tools:src="@drawable/ic_baseline_send_42" />
+            </LinearLayout>
+        </RelativeLayout>
 
         <LinearLayout
             android:id="@+id/edit_message_options_layout"
@@ -105,7 +111,7 @@
             app:layout_constraintBottom_toTopOf="@id/message_input_layout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/swipe_refresh">
+            app:layout_constraintTop_toBottomOf="@id/message_list">
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/cancel_header"

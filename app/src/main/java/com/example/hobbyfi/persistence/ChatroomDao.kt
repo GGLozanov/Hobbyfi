@@ -7,16 +7,16 @@ import com.example.hobbyfi.models.Chatroom
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ChatroomDao : BaseDao<Chatroom> {
+abstract class ChatroomDao : BaseDao<Chatroom>() {
     @Query("SELECT * FROM chatrooms")
-    fun getChatrooms(): PagingSource<Int, Chatroom>
+    abstract fun getChatrooms(): PagingSource<Int, Chatroom>
 
     @Query("DELETE FROM chatrooms")
-    suspend fun deleteChatrooms()
+    abstract suspend fun deleteChatrooms()
 
     @Query("DELETE FROM chatrooms WHERE id != :chatroomId")
-    suspend fun deleteChatroomsExceptId(chatroomId: Long): Int
+    abstract suspend fun deleteChatroomsExceptId(chatroomId: Long): Int
 
     @Query("SELECT * FROM chatrooms WHERE ownerId = :ownerId")
-    fun getChatroomByOwnerId(ownerId: Long): Flow<Chatroom?>
+    abstract fun getChatroomByOwnerId(ownerId: Long): Flow<Chatroom?>
 }
