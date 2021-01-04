@@ -1,12 +1,14 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import android.util.Base64.DEFAULT
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.models.Message
@@ -16,15 +18,16 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
+import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 import java.lang.Exception
+import java.lang.IllegalArgumentException
+import java.util.*
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -58,7 +61,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainStateIntent.intentAsFlow().collect {
+            mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageListIntent.FetchMessages -> {
                         fetchMessages()
@@ -67,7 +70,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
             }
         }
         viewModelScope.launch {
-            messageStateIntent.intentAsFlow().collect {
+            messageStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageIntent.CreateMessage -> {
                         createMessage(
@@ -75,6 +78,17 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
                             it.userSentId,
                             it.chatroomSentId
                         )
+                    }
+                    is MessageIntent.CreateMessageImages -> {
+                        it.base64s.forEach { base64Mesage ->
+                            viewModelScope.launch {
+                                createMessage(
+                                    base64Mesage,
+                                    it.userSentId,
+                                    it.chatroomSentId
+                                )
+                            }
+                        }
                     }
                     is MessageIntent.CreateMessageCache -> {
                         saveNewMessage(it.message)
@@ -115,26 +129,33 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
     private suspend fun createMessage(message: String, userSentId: Long, chatroomSentId: Long) {
         messageStateIntent.setState(MessageState.Loading)
 
-        messageStateIntent.setState(try {
-            val state = MessageState.OnData.MessageCreateResult(
-                messageRepository.createMessage(message)
-            )
+        messageStateIntent.setState(
+            try {
+                val state = MessageState.OnData.MessageCreateResult(
+                    messageRepository.createMessage(message)
+                )
 
-            saveNewMessage(Message(
-                state.response!!.id,
-                message,
-                state.response.createTime,
-                userSentId,
-                chatroomSentId
-            ))
+                saveNewMessage(
+                    Message(
+                        state.response!!.id,
+                        if(ImageUtils.isBase64(message))
+                            BuildConfig.BASE_URL + "uploads/" + Constants.chatroomMessagesProfileImageDir(
+                                chatroomSentId
+                            ) + "/" + state.response.id + ".jpg" else message,
+                        state.response.createTime,
+                        userSentId,
+                        chatroomSentId
+                    )
+                )
 
-            state
-        } catch(ex: Exception) {
-            MessageState.Error(
-                ex.message,
-                ex.isCritical
-            )
-        })
+                state
+            } catch (ex: Exception) {
+                MessageState.Error(
+                    ex.message,
+                    ex.isCritical
+                )
+            }
+        )
     }
 
     private suspend fun updateMessage(messageUpdateFields: Map<String?, String?>) {

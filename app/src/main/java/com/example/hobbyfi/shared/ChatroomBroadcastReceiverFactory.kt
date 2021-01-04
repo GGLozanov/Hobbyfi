@@ -55,7 +55,7 @@ open class ChatroomBroadcastReceiverFactory(
                     Log.i("ChatroomActivity", onReceiveLog)
                 }
 
-                // if nothing passed => even the chatroom owner will be notified!
+                // if nothing passed => even the chatroom owner and/or auth user will be notified!
                 if(isNotChatroomOwnerOrShouldSee(intent)) {
                     onCorrectAction(intent)
                 } else {

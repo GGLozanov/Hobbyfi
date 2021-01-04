@@ -26,7 +26,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:reverseLayout="false"
+            app:reverseLayout="true"
             app:stackFromEnd="false"
             tools:context=".ui.chatroom.ChatroomMessageListFragment"
             tools:listitem="@layout/message_card_receive" />

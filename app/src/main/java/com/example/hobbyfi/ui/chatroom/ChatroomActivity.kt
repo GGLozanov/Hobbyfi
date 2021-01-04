@@ -483,7 +483,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     @ExperimentalPagingApi
     override fun onEditMessageSelect(view: View, message: Message) {
         (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment)
-            .onDeleteMessageSelect(view, message)
+            .onEditMessageSelect(view, message)
     }
 
     @ExperimentalPagingApi

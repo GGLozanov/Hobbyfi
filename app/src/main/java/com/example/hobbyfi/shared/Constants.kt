@@ -192,6 +192,8 @@ object Constants {
     fun chatroomProfileImageDir(chatroomId: Long): String {
         return "chatroom_imgs_$chatroomId"
     }
+    fun chatroomMessagesProfileImageDir(chatroomId: Long) = chatroomProfileImageDir(chatroomId) + "/messages"
+    
     const val chatroomTopicPrefix = "chatroom_"
     fun chatroomTopic(chatroomId: Long): String {
         return chatroomTopicPrefix + chatroomId

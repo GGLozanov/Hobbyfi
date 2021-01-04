@@ -18,7 +18,7 @@
         <include
             android:id="@+id/message_card_receive"
             layout="@layout/message_card"
-            app:gravity="@{Gravity.START}"
+            app:gravity="@{Gravity.LEFT}"
             app:message="@{message}" />
     </LinearLayout>
 </layout>

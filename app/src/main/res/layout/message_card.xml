@@ -4,6 +4,7 @@
 
     <data>
         <import type="android.view.Gravity" />
+        <import type="android.view.View"/>
 
         <variable
             name="message"
@@ -17,13 +18,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="@{gravity}"
+        android:layoutDirection="@{gravity == Gravity.RIGHT ? 1 : 0}"
         android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_profile_image"
             android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:translationX="@{gravity == Gravity.END ? 370 : 0}" />
+            android:layout_height="40dp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -53,9 +54,8 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:gravity="@{gravity}"
-                    android:text="@{message.message}"
                     android:layout_marginEnd="5dp"
-                    android:visibility="visible" />
+                    android:text="@{message.message}" />
 
                 <ImageView
                     android:id="@+id/user_image"

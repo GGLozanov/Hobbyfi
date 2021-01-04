@@ -39,11 +39,9 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewMo
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -60,7 +58,13 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         }
 
         lifecycleScope.launch {
-            createMessage()
+            viewModel.sendMessageIntent(
+                MessageIntent.CreateMessage(
+                    null,
+                    activityViewModel.authUser.value!!.id,
+                    activityViewModel.authChatroom.value!!.id
+                )
+            )
         }
     }
 
@@ -125,6 +129,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         binding.viewModel = viewModel
 
         messageListAdapter = ChatroomMessageListAdapter(
+            activityViewModel.isAuthUserChatroomOwner.value == true,
             activityViewModel.currentAdapterUsers.value ?: emptyList()
         ) { _, message ->
             val bottomSheet = ChatroomMessageBottomSheetDialogFragment.newInstance(message)
@@ -153,12 +158,13 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     )
                     .peekHeight(R.dimen.peekHeight)
                     .columnSize(R.dimen.columnSize)
-                    .show(parentFragmentManager)
+                    .show(childFragmentManager)
             }
 
             sendMessageButton.setOnClickListener(onNormalSendMessage)
             cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(onNormalSendMessage)
-                cancelHeader.isVisible = false
+                viewModel!!.message.value = null
+                editMessageOptionsLayout.isVisible = false
             }
 
             initMessageListAdapter()
@@ -213,9 +219,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                             Log.i("ChatroomMListFragment", "Collecting message paging data $data")
                             messageListAdapter.submitData(data)
                             // TODO: Add on initial fetch scroll, not on every
-//                            if(messageListAdapter.itemCount != 0) {
-//                                binding.messageList.smoothScrollToPosition(messageListAdapter.itemCount - 1)
-//                            }
+                            binding.messageList.smoothScrollToPosition(0)
                         }
                     }
                     is MessageListState.Error -> {
@@ -242,6 +246,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
 
+                        binding.editMessageOptionsLayout.isVisible = false
                         viewModel.message.value = null
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
@@ -294,6 +299,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                 activity.binding.toolbar
                     .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
             }
+
+            messageListAdapter.setAuthUserChatromOwner(it)
         })
     }
 
@@ -301,12 +308,20 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         activity.title = chatroom?.name
     }
 
-    // FIXME: might, like, totally not work. Maybe just send one intent and parse the URIs there and make them seperate requests
     override fun onImagesSelected(uris: List<Uri>, tag: String?) {
-        uris.forEach {
-            lifecycleScope.launch {
-                createMessage(ImageUtils.getEncodedImageFromUri(requireActivity(), it))
-            }
+        Log.i("ChatroomMListFragment", "Received URIs for images: $uris")
+        lifecycleScope.launch {
+            viewModel.sendMessageIntent(
+                MessageIntent.CreateMessageImages(
+                    withContext(Dispatchers.IO) {
+                        uris.map {
+                            ImageUtils.getEncodedImageFromUri(requireActivity(), it)
+                        }
+                    },
+                    activityViewModel.authUser.value!!.id,
+                    activityViewModel.authChatroom.value!!.id
+                )
+            )
         }
     }
 
@@ -331,24 +346,17 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     }
 
     override fun onEditMessageSelect(view: View, message: Message) {
+        Log.i("ChatroomMListFragment", "onEditMessageSelect triggered in message list fragment for $message!")
+
         viewModel.message.value = message.message // set to edit current message from bottom sheet
         binding.sendMessageButton.setOnClickListener(onEditSendMessage(message))
-        binding.cancelHeader.isVisible = true // ...to the original onClickListener for send button
+        binding.editMessageOptionsLayout.isVisible = true // ...to the original onClickListener for send button
     }
 
     override fun onDeleteMessageSelect(view: View, message: Message) {
+        Log.i("ChatroomMListFragment", "onDeleteMessageSelect triggered in message list fragment for $message!")
         lifecycleScope.launch {
             viewModel.sendMessageIntent(MessageIntent.DeleteMessage(message.id))
         }
-    }
-
-    private suspend fun createMessage(message: String? = null) {
-        viewModel.sendMessageIntent(
-            MessageIntent.CreateMessage(
-                message,
-                activityViewModel.authUser.value!!.id,
-                activityViewModel.authChatroom.value!!.id
-            )
-        )
     }
 }

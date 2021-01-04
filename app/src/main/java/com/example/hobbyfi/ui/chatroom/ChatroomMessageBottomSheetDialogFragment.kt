@@ -28,6 +28,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var binding: FragmentChatroomMessageBottomSheetDialogBinding
+    private lateinit var message: Message
 
     companion object {
         fun newInstance(message: Message): ChatroomMessageBottomSheetDialogFragment {
@@ -58,14 +59,21 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
             false
         )
 
-        with(binding.bottomSheet) {
-            BottomSheetBehavior.from(this).apply {
-                peekHeight = 1 / 4 * (DisplayMetrics().heightPixels)
-                state = BottomSheetBehavior.STATE_EXPANDED
+        message = requireArguments().getParcelable(Constants.MESSAGE)!!
+
+        with(binding) {
+            bottomSheet.apply {
+                BottomSheetBehavior.from(this).apply {
+                    peekHeight = 1 / 4 * (DisplayMetrics().heightPixels)
+                    state = BottomSheetBehavior.STATE_EXPANDED
+                }
+
+                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex
+                    .matches(message.message) // TODO: Change when add text to image messages
+                setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
             }
 
-            binding.root.requestLayout()
-            setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
+            root.requestLayout()
         }
 
         return binding.root
@@ -92,7 +100,7 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
                         dialogInterface.dismiss()
                         onMessageOptionSelected.onDeleteMessageSelect(
                             binding.root,
-                            requireArguments().getParcelable(Constants.MESSAGE)!!
+                            message
                         )
                         dismiss()
                     },
@@ -105,7 +113,7 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
             R.id.action_edit_message -> {
                 onMessageOptionSelected.onEditMessageSelect(
                     binding.root,
-                    requireArguments().getParcelable(Constants.MESSAGE)!!
+                    message
                 )
                 dismiss()
             }

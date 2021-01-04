@@ -7,7 +7,7 @@ import com.example.hobbyfi.models.Message
 
 @Dao
 abstract class MessageDao : BaseDao<Message>() {
-    @Query("SELECT * FROM messages")
+    @Query("SELECT * FROM messages ORDER BY createTime DESC")
     abstract fun getMessages(): PagingSource<Int, Message>
 
     @Query("DELETE FROM messages")

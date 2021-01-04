@@ -17,7 +17,7 @@
         <include
             android:id="@+id/message_card_send"
             layout="@layout/message_card"
-            app:gravity="@{Gravity.END}"
+            app:gravity="@{Gravity.RIGHT}"
             app:message="@{message}" />
     </LinearLayout>
 </layout>

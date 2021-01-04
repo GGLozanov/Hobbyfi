@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.lang.IllegalArgumentException
 import java.util.*
 
 
@@ -54,4 +55,14 @@ object ImageUtils {
     }
 
     fun getEncodedImageFromUri(activity: Activity, uri: Uri) = encodeImage(getBitmapFromUri(activity, uri))
+
+    fun isBase64(str: String) = try {
+        android.util.Base64.decode(
+            str,
+            DEFAULT
+        )
+        true
+    } catch (ex: IllegalArgumentException) {
+        false
+    }
 }

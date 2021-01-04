@@ -163,7 +163,8 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun createMessage(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Field(Constants.MESSAGE) message: String
+        @Field(Constants.MESSAGE) message: String?,
+        @Field(Constants.IMAGE) imageMessage: String?
     ): CreateTimeIdResponse?
 
     /**
@@ -186,10 +187,9 @@ interface HobbyfiAPI {
     ): Response?
 
     @DELETE("api/v1.0/message/delete")
-    @FormUrlEncoded
     suspend fun deleteMessage(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Field(Constants.ID) id: Long
+        @Query(Constants.ID) id: Long
     ): Response?
 
     @GET("api/v1.0/event/read")

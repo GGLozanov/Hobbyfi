@@ -12,6 +12,7 @@ import com.example.hobbyfi.responses.CreateTimeIdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.utils.ImageUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -35,10 +36,19 @@ class MessageRepository @ExperimentalPagingApi constructor(
     suspend fun createMessage(message: String): CreateTimeIdResponse? {
         Log.i("MessageRepository", "createMessage -> Creating new message with auth user id")
         return performAuthorisedRequest({
-            hobbyfiAPI.createMessage(
-                prefConfig.getAuthUserToken()!!,
-                message
-            )
+            return@performAuthorisedRequest if(!ImageUtils.isBase64(message)) {
+                hobbyfiAPI.createMessage(
+                    prefConfig.getAuthUserToken()!!,
+                    message,
+                    null
+                )
+            } else { // send base64 in separate field. . .
+                hobbyfiAPI.createMessage(
+                    prefConfig.getAuthUserToken()!!,
+                    null,
+                    imageMessage = message,
+                )
+            }
         }, { createMessage(message) })
     }
 
