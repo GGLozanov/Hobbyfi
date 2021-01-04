@@ -2,18 +2,23 @@ package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
+import com.example.hobbyfi.models.Base64Image
+import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.EventRepository
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
+import com.google.type.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
+import java.util.*
 
 @ExperimentalCoroutinesApi
 class EventCreateFragmentViewModel(application: Application)
@@ -24,6 +29,15 @@ class EventCreateFragmentViewModel(application: Application)
     override val mainStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
         override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
     }
+
+    private var eventDate: Date? = null
+    private var latLng: LatLng? = null
+    
+    fun setEventDate(date: Date?) {
+        eventDate = date
+    }
+
+    val base64Image: Base64Image = Base64Image()
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -38,8 +52,33 @@ class EventCreateFragmentViewModel(application: Application)
         }
     }
 
-    private fun createEvent() {
+    private suspend fun createEvent() {
         mainStateIntent.setState(EventState.Loading)
-    }
 
+        if(eventDate == null || latLng == null) {
+            mainStateIntent.setState(EventState.Error(
+                Constants.invalidEventInfoError
+            ))
+            return
+        }
+
+
+        mainStateIntent.setState(try {
+            val state = EventState.OnData.EventCreateResult(eventRepository.createEvent(
+                name.value!!,
+                description.value!!,
+                eventDate.toString(),
+                base64Image.base64,
+                latLng!!.latitude,
+                latLng!!.longitude
+            ))
+
+            state
+        } catch(ex: Exception) {
+            EventState.Error(
+                ex.message,
+                ex.isCritical
+            )
+        })
+    }
 }

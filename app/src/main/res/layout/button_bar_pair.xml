@@ -3,12 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+
         <variable
             name="leftButtonText"
             type="java.lang.String" />
         <variable
             name="rightButtonText"
             type="java.lang.String" />
+        <variable
+            name="leftButtonStartDrawable"
+            type="android.graphics.drawable.Drawable" />
+        <variable
+            name="rightButtonStartDrawable"
+            type="android.graphics.drawable.Drawable" />
     </data>
 
     <LinearLayout
@@ -26,14 +33,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
-            android:layout_marginRight="5dp">
+            android:text="@{leftButtonText}"
+            android:drawableStart="@{leftButtonStartDrawable}">
 
         </com.google.android.material.button.MaterialButton>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/right_button"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:text="@{rightButtonText}"
+            android:drawableStart="@{rightButtonStartDrawable}">
 
         </com.google.android.material.button.MaterialButton>
     </LinearLayout>

@@ -468,8 +468,9 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         return true
     }
 
-    private fun handleAuthActionableError(error: String?, shouldExit: Boolean) {
-        Toast.makeText(this@ChatroomActivity, "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG)
+    fun handleAuthActionableError(error: String?, shouldExit: Boolean, context: Context? = null) {
+        Toast.makeText(context ?: this@ChatroomActivity,
+                "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG)
             .show()
         if(shouldExit) {
             finish()

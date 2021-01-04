@@ -123,8 +123,8 @@ dependencies {
     implementation "org.kodein.di:kodein-di-framework-android-core:6.1.0"
     implementation "org.kodein.di:kodein-di-framework-android-x:6.1.0"
 
-    // Google Cloud Messaging (FCM) dependency - might not be needed?
-    // implementation "com.google.android.gms:play-services-gcm:17.0.0"
+    // Location (FusedLocationProvider)
+    implementation "com.google.android.gms:play-services-location:17.1.0"
 
     // Google Maps
     implementation 'com.google.android.gms:play-services-maps:17.0.0'

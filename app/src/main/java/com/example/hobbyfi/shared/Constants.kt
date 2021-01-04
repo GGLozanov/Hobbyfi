@@ -34,6 +34,7 @@ object Constants {
     const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
     const val messageInputError: String = "Enter a valid, non-empty message!"
 
+    const val invalidEventInfoError: String = "Please enter information date and set its location!"
     const val reauthError: String = "Logging out! Your session may have expired!"
     const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"

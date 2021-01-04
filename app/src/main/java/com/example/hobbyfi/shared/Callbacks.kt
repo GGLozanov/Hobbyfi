@@ -54,7 +54,8 @@ object Callbacks {
         return null
     }
 
-    fun requestImage(callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode, permissionRequestCode: Int = Constants.imagePermissionsRequestCode) {
+    fun requestImage(callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode,
+                     permissionRequestCode: Int = Constants.imagePermissionsRequestCode) {
         if(EasyPermissions.hasPermissions(
                 callingFragment.requireContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE

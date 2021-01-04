@@ -223,7 +223,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                         }
                     }
                     is MessageListState.Error -> {
-
+                        (requireActivity() as ChatroomActivity).handleAuthActionableError(
+                            it.error,
+                            it.shouldExit,
+                            requireContext()
+                        ) // TODO: Might make this a bit too coupled to the activity. . .
                     }
                 }
             }
@@ -245,9 +249,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                         viewModel.message.value = null // reset msg
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
-
-                        binding.editMessageOptionsLayout.isVisible = false
-                        viewModel.message.value = null
+                        binding.cancelHeader.callOnClick()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
                         Toast.makeText(requireContext(), "Successfully deleted message!", Toast.LENGTH_LONG)
@@ -257,7 +259,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                         // prolly don't do much, if anything here
                     }
                     is MessageState.Error -> {
-
+                        (requireActivity() as ChatroomActivity).handleAuthActionableError(
+                            it.error,
+                            it.shouldExit,
+                            requireContext()
+                        )
                     }
                 }
             }
