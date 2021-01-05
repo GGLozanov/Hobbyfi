@@ -69,7 +69,7 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
                 }
 
                 menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex
-                    .matches(message.message) // TODO: Change when add text to image messages
+                    .matches(message.message) && !message.isTimeline // TODO: Change when add text to image messages
                 setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
             }
 

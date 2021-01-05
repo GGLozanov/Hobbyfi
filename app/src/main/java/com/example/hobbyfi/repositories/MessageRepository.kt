@@ -33,10 +33,10 @@ class MessageRepository @ExperimentalPagingApi constructor(
         ).flow
     }
 
-    suspend fun createMessage(message: String): CreateTimeIdResponse? {
+    suspend fun createMessage(message: String, imageMessage: Boolean): CreateTimeIdResponse? {
         Log.i("MessageRepository", "createMessage -> Creating new message with auth user id")
         return performAuthorisedRequest({
-            return@performAuthorisedRequest if(!ImageUtils.isBase64(message)) {
+            return@performAuthorisedRequest if(!imageMessage) {
                 hobbyfiAPI.createMessage(
                     prefConfig.getAuthUserToken()!!,
                     message,
@@ -49,7 +49,7 @@ class MessageRepository @ExperimentalPagingApi constructor(
                     imageMessage = message,
                 )
             }
-        }, { createMessage(message) })
+        }, { createMessage(message, imageMessage) })
     }
 
     suspend fun deleteMessage(id: Long): Response? {

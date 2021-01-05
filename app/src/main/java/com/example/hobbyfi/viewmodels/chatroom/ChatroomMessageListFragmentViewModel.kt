@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Base64.DEFAULT
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
@@ -85,7 +86,8 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
                                 createMessage(
                                     base64Mesage,
                                     it.userSentId,
-                                    it.chatroomSentId
+                                    it.chatroomSentId,
+                                    true
                                 )
                             }
                         }
@@ -126,19 +128,20 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         mainStateIntent.setState(MessageListState.OnData.MessagesResult(currentMessages!!))
     }
 
-    private suspend fun createMessage(message: String, userSentId: Long, chatroomSentId: Long) {
+    private suspend fun createMessage(message: String, userSentId: Long,
+                                      chatroomSentId: Long, imageMessage: Boolean = false) {
         messageStateIntent.setState(MessageState.Loading)
 
         messageStateIntent.setState(
             try {
                 val state = MessageState.OnData.MessageCreateResult(
-                    messageRepository.createMessage(message)
+                    messageRepository.createMessage(message, imageMessage)
                 )
 
                 saveNewMessage(
                     Message(
                         state.response!!.id,
-                        if(ImageUtils.isBase64(message))
+                        if(imageMessage)
                             BuildConfig.BASE_URL + "uploads/" + Constants.chatroomMessagesProfileImageDir(
                                 chatroomSentId
                             ) + "/" + state.response.id + ".jpg" else message,

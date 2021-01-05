@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.User
@@ -17,11 +18,14 @@ import java.lang.IllegalArgumentException
 @ExperimentalCoroutinesApi
 class ChatroomMessageBroadacastReceiverFactory(
     private val viewModel: ChatroomMessageListFragmentViewModel,
+    private val messagesAdapter: ChatroomMessageListAdapter,
     chatroomActivityViewModel: ChatroomActivityViewModel? = null,
     lifecycleOwner: LifecycleOwner
 ) : ChatroomBroadcastReceiverFactory(chatroomActivityViewModel, lifecycleOwner) {
 
-    private val authUserIdMessageChecker = generateAuthUserIdModelChecker<Message>()
+    private val authUserIdMessageChecker = authUserIdChecker {
+        it.getParcelableExtra<Message>(Constants.PARCELABLE_MODEL)!!.userSentId
+    }
 
     override fun createActionatedReceiver(action: String): BroadcastReceiver = when(action) {
             Constants.CREATE_MESSAGE_TYPE -> {
@@ -60,7 +64,7 @@ class ChatroomMessageBroadacastReceiverFactory(
                     onReceiveLog = "Got me a broadcast receievrino for UPDATE MESSAGE",
                     onNoNotifyLog = "Current broadcastreceiver for update message has targeted auth user AS owner of message. " +
                             "Aborting UPDATE message intent",
-                    isNotChatroomOwnerOrShouldSee = authUserIdMapChecker
+                    isNotChatroomOwnerOrShouldSee = authUserIdMapChecker(Constants.USER_SENT_ID)
                 )
             }
             Constants.DELETE_MESSAGE_TYPE -> {
@@ -78,7 +82,9 @@ class ChatroomMessageBroadacastReceiverFactory(
                     onReceiveLog = "Got me a broadcast receievrino for DELETE MESSAGE",
                     onNoNotifyLog = "Current broadcastreceiver for DELETE message has targeted auth user AS owner of message. " +
                             "Aborting DELETE message intent",
-                    isNotChatroomOwnerOrShouldSee = authUserIdDeleteChecker
+                    isNotChatroomOwnerOrShouldSee = authUserIdChecker { (messagesAdapter.findItemFromCurrentPagingData
+                    { message -> message.id == it.getDeletedModelIdExtra() }?.userSentId) ?:
+                            chatroomActivityViewModel?.authUser?.value?.id }
                 )
             }
             else -> throw IllegalArgumentException(Constants.invalidBroadcastAction)
@@ -88,12 +94,14 @@ class ChatroomMessageBroadacastReceiverFactory(
         private var instance: ChatroomMessageBroadacastReceiverFactory? = null
 
         fun getInstance(viewModel: ChatroomMessageListFragmentViewModel,
+                        adapter: ChatroomMessageListAdapter,
                         chatroomActivityViewModel: ChatroomActivityViewModel? = null,
                         lifecycleOwner: LifecycleOwner): ChatroomMessageBroadacastReceiverFactory {
             synchronized(this) {
                 var instance = this.instance
                 if(instance == null) {
-                    instance = ChatroomMessageBroadacastReceiverFactory(viewModel, chatroomActivityViewModel, lifecycleOwner)
+                    instance = ChatroomMessageBroadacastReceiverFactory(viewModel, adapter,
+                        chatroomActivityViewModel, lifecycleOwner)
                 }
                 return instance
             }

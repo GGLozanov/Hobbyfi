@@ -110,7 +110,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
         // TODO: Move receiver registration in after chatroom messages fetch!!!
         chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadacastReceiverFactory
-            .getInstance(viewModel, activityViewModel, activity)
+            .getInstance(viewModel, messageListAdapter, activityViewModel, activity)
         createMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
         editMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
         deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
@@ -136,13 +136,6 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             bottomSheet.show(parentFragmentManager, bottomSheet.tag)
             return@ChatroomMessageListAdapter true
         }
-
-        // TODO: BroadcastReceiver here triggered => insert message and remote keys (calculate them based on adapter dataset itemCount divided by page size)
-        // TODO: They will be used later in the RemoteMediator
-        // TODO: If notification for new message is received => insert message into database => trigger APPEND
-        // TODO: In RemoteMediator, check if REFRESH loadstate => has new message in database with its remote key =>
-        // TODO: return Mediator Success and load new list with new message?
-        // TODO: Append message to room db so that it can be pushed to the paging data automatically;
 
         with(binding) {
             lifecycleOwner = this@ChatroomMessageListFragment

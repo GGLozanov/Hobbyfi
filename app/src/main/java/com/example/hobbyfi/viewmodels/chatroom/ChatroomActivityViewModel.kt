@@ -23,10 +23,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
+import java.util.stream.Collector
+import java.util.stream.Collectors
 
 @ExperimentalCoroutinesApi
-class ChatroomActivityViewModel(application: Application, user: User?, chatroom: Chatroom?)
-    : AuthChatroomHolderViewModel(application, user, chatroom) {
+class ChatroomActivityViewModel(
+    application: Application,
+    user: User?,
+    chatroom: Chatroom?
+) : AuthChatroomHolderViewModel(application, user, chatroom) {
 
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
@@ -86,15 +91,18 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
                 when(it) {
                     is UserListIntent.AddAUserCache -> {
                         saveUser(it.user, false)
+                        setCurrentUsers(currentAdapterUsers.value!! + it.user)
                     }
                     is UserListIntent.DeleteAUserCache -> {
                         deleteUserCache(it.userId, false)
+                        setCurrentUsers(currentAdapterUsers.value!!.filter { user -> user.id != it.userId })
                     }
                     is UserListIntent.UpdateAUserCache -> {
                         // TODO: Update lastUsersFetchTime or something similar for Glide signature caching
                         saveUser(currentAdapterUsers.value!!.find { user -> user.id ==
                                 (it.userUpdateFields[Constants.ID] ?: error("User ID must not be null in saveUser call!")).toLong() }!!
                             .updateFromFieldMap(it.userUpdateFields), false)
+                        setCurrentUsers(currentAdapterUsers.value!!)
                     }
                     is UserListIntent.FetchUsers -> {
                         fetchUsers()
@@ -113,14 +121,14 @@ class ChatroomActivityViewModel(application: Application, user: User?, chatroom:
 
         userRepository.getChatroomUsers(
             authChatroom.value!!.id
-        ).distinctUntilChanged().catch { e ->
+        ).catch { e ->
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
                     (e as Exception).isCritical
                 )
             )
-        }.collect {
+        }.collectLatest {
             if(it != null) {
                 Log.i("ChatroomActivityVM", "Collecting new users from SSOT cache!!! $it")
                 setCurrentUsers(it)

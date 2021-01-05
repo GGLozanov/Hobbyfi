@@ -46,10 +46,12 @@
                 <argument
                     android:name="user"
                     app:argType="com.example.hobbyfi.models.User"
+                    android:defaultValue="@null"
                     app:nullable="true" />
                 <argument
                     android:name="chatroom"
                     app:argType="com.example.hobbyfi.models.Chatroom"
-                    app:nullable="true" />
+                    app:nullable="true"
+                    android:defaultValue="@null" />
         </activity>
 </navigation>

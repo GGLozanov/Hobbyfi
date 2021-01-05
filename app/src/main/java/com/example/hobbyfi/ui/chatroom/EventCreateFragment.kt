@@ -48,6 +48,7 @@ class EventCreateFragment : ChatroomModelFragment(),
                 val initialYear = c.get(Calendar.YEAR)
                 val initialMonth = c.get(Calendar.MONTH)
                 val initialDay = c.get(Calendar.DAY_OF_MONTH)
+
                 val dialog = DatePickerDialog(
                     requireContext(),
                     this@EventCreateFragment,
@@ -55,6 +56,7 @@ class EventCreateFragment : ChatroomModelFragment(),
                     initialMonth,
                     initialDay
                 )
+                dialog.datePicker.minDate = c.timeInMillis
                 dialog.show()
             }
 

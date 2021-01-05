@@ -55,7 +55,8 @@ class ChatroomMessageListAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Message> {
         return when(viewType) {
             MessageType.TIMELINE.ordinal -> {
-                ChatroomTimelineMessageViewHolder.getInstance(parent, isAuthUserChatroomOwner)
+                ChatroomTimelineMessageViewHolder.getInstance(parent, isAuthUserChatroomOwner,
+                    onMessageLongPress)
             }
             MessageType.RECEIVE.ordinal -> {
                 ChatroomReceiveMessageViewHolder.getInstance(parent, onMessageLongPress,
@@ -97,17 +98,18 @@ class ChatroomMessageListAdapter(
 
     abstract class ChatroomMessageViewHolder(
         rootView: View,
-        protected val isAuthUserChatroomOwner: Boolean
+        protected val isAuthUserChatroomOwner: Boolean,
+        protected val onMessageLongPress: (View, Message) -> Boolean
     ) : BaseViewHolder<Message>(rootView)
 
     abstract class UserChatroomMessageViewHolder(
         rootView: View,
         val messageCardBinding: MessageCardBinding,
-        private val onMessageLongPress: (View, Message) -> Boolean,
+        onMessageLongPress: (View, Message) -> Boolean,
         private val users: List<User>,
         isAuthUserChatroomOwner: Boolean,
         private val prefConfig: PrefConfig,
-    ) : ChatroomMessageViewHolder(rootView, isAuthUserChatroomOwner) {
+    ) : ChatroomMessageViewHolder(rootView, isAuthUserChatroomOwner, onMessageLongPress) {
         override fun bind(message: Message?, position: Int) {
             Log.i("ChatroomMListAdapter", "Message: $message")
             val userSentMessage =
@@ -165,21 +167,29 @@ class ChatroomMessageListAdapter(
         }
     }
 
-    class ChatroomTimelineMessageViewHolder(private val binding: MessageCardTimelineBinding, isAuthUserChatroomOwner: Boolean)
-            : ChatroomMessageViewHolder(binding.root, isAuthUserChatroomOwner) {
+    class ChatroomTimelineMessageViewHolder(private val binding: MessageCardTimelineBinding,
+                                isAuthUserChatroomOwner: Boolean, onMessageLongPress: (View, Message) -> Boolean
+    ) : ChatroomMessageViewHolder(binding.root, isAuthUserChatroomOwner, onMessageLongPress) {
         companion object {
             //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup, isAuthUserChatroomOwner: Boolean): ChatroomTimelineMessageViewHolder {
+            fun getInstance(parent: ViewGroup, isAuthUserChatroomOwner: Boolean,
+                            onMessageLongPress: (View, Message) -> Boolean): ChatroomTimelineMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding: MessageCardTimelineBinding =
                     DataBindingUtil.inflate(inflater, R.layout.message_card_timeline,
                         parent, false)
-                return ChatroomTimelineMessageViewHolder(binding, isAuthUserChatroomOwner)
+                return ChatroomTimelineMessageViewHolder(binding, isAuthUserChatroomOwner, onMessageLongPress)
             }
         }
 
         override fun bind(message: Message?, position: Int) {
             binding.message = message
+
+            if(isAuthUserChatroomOwner) {
+                binding.messageCardTimelineLayout.setOnLongClickListener {
+                    onMessageLongPress(it, message!!)
+                }
+            }
         }
     }
 

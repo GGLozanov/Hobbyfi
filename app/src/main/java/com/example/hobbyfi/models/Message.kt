@@ -13,9 +13,8 @@ import kotlinx.parcelize.Parcelize
 
 // can allow foreign keys here since if messages are received, there are ALWAYS chatrooms/users in cache
 @Entity(tableName = "messages", foreignKeys = [
-    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomSentId"), onDelete = ForeignKey.CASCADE),
-    ForeignKey(entity = User::class, parentColumns = arrayOf("id"), childColumns = arrayOf("userSentId"), onDelete = ForeignKey.CASCADE)]
-)
+    ForeignKey(entity = Chatroom::class, parentColumns = arrayOf("id"), childColumns = arrayOf("chatroomSentId"), onDelete = ForeignKey.CASCADE)
+])
 @Parcelize
 @Keep
 data class Message(
@@ -25,7 +24,6 @@ data class Message(
     @SerializedName(Constants.CREATE_TIME)
     val createTime: String, // iso string?
     @SerializedName(Constants.USER_SENT_ID)
-    @ColumnInfo(name = "userSentId", index = true)
     val userSentId: Long?,
     @SerializedName(Constants.CHATROOM_SENT_ID)
     @ColumnInfo(name = "chatroomSentId", index = true)

@@ -18,10 +18,9 @@ import java.lang.IllegalArgumentException
 // not *exactly* a factory...? but... eh???
 @ExperimentalCoroutinesApi
 open class ChatroomBroadcastReceiverFactory(
-    private val chatroomActivityViewModel: ChatroomActivityViewModel? = null,
+    protected val chatroomActivityViewModel: ChatroomActivityViewModel? = null,
     protected val lifecycleOwner: LifecycleOwner
 ) {
-
     protected val authUserIdChecker = { idGenerator: (Intent) -> Long? -> { intent: Intent ->
         idGenerator(intent) !=
                 (chatroomActivityViewModel!!.authUser.value ?:
@@ -30,16 +29,13 @@ open class ChatroomBroadcastReceiverFactory(
         }
     }
 
-    protected fun<T: Model> generateAuthUserIdModelChecker(): (Intent) -> Boolean =
-        authUserIdChecker {
-            it.getParcelableExtra<T>(Constants.PARCELABLE_MODEL)!!.id
-        }
+    private val authUserIdModelChecker = authUserIdChecker {
+        it.getParcelableExtra<User>(Constants.PARCELABLE_MODEL)!!.id
+    }
 
-    private val authUserIdModelChecker = generateAuthUserIdModelChecker<User>()
+    private val authUserIdDeleteChecker = authUserIdChecker { it.getDeletedModelIdExtra() }
 
-    protected val authUserIdDeleteChecker = authUserIdChecker { it.getDeletedModelIdExtra() }
-
-    protected val authUserIdMapChecker = authUserIdChecker { (it.getDestructedMapExtra()[Constants.ID]
+    protected fun authUserIdMapChecker(idField: String) = authUserIdChecker { (it.getDestructedMapExtra()[idField]
         ?: error("User ID must not be null in call to Edit user or BroadcastReceiver callbacks which use map"))
         .toLong() }
 
@@ -120,7 +116,7 @@ open class ChatroomBroadcastReceiverFactory(
                     onReceiveLog = "Got me a broadcast receievrino for EDIT USEEEEEEER",
                     onNoNotifyLog = "Current broadcastreceiver for edituser should be visible to EVEN the owner. " +
                             "Something is wrong and onReceive proper action was NOT performed",
-                    isNotChatroomOwnerOrShouldSee = authUserIdMapChecker
+                    isNotChatroomOwnerOrShouldSee = authUserIdMapChecker(Constants.ID)
                 )
             }
             Constants.EDIT_CHATROOM_TYPE -> {

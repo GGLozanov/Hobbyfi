@@ -89,6 +89,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         assertGooglePlayAvailability()
+        handlePushNotificationIntent()
 
         binding.viewModel = viewModel
 
@@ -136,6 +137,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         // TODO: First fetch messages from back-end then register for receiving messages
 
         observeChatroomState()
+        observeUsers()
         observeUserState()
         observeUsersState()
         observeEventState()
@@ -205,6 +207,12 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         }
     }
 
+    private fun observeUsers() {
+        viewModel.currentAdapterUsers.observe(this, Observer {
+            userListAdapter.setUsers(it)
+        })
+    }
+
     private fun observeUsersState() {
         lifecycleScope.launch {
             viewModel.usersState.collect {
@@ -216,7 +224,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Progressbar on RecyclerView
                     }
                     is UserListState.OnData.UsersResult -> {
-                        userListAdapter.setUsers(it.users)
                         viewModel.resetUserListState()
                     }
                     is UserListState.Error -> {
@@ -393,16 +400,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         super.onResume()
         assertGooglePlayAvailability()
 
-        // TODO: Move register to after state received IF deeplink situation
-        // TODO: Also send any broadcasts from push notification intents received after receiving state in deeplink
-        when(intent.action) {
-            // TODO: Handle push notification intents here with broadcastreceiver callbacks
-            // TODO: Handle deeplink situation (per se) wherein there is no chatroom/user
-            // TODO: And broadcastreceiver/notification routines have to wait until data is fetched and then updated
-            // sendBroadcast(intent)
-        }
-
-
         // TODO: Move receiver registration after chatroom/users/event fetches!!!
         chatroomReceiverFactory = ChatroomBroadcastReceiverFactory.getInstance(viewModel, this)
         editChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_CHATROOM_TYPE)
@@ -450,6 +447,17 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         if(availability == SERVICE_MISSING || availability == SERVICE_INVALID
             || availability == SERVICE_DISABLED) {
             googleApiInstance.makeGooglePlayServicesAvailable(this)
+        }
+    }
+
+    private fun handlePushNotificationIntent() {
+        // TODO: Move register to after state received IF deeplink situation
+        // TODO: Also send any broadcasts from push notification intents received after receiving state in deeplink
+        when(intent.action) {
+            // TODO: Handle push notification intents here with broadcastreceiver callbacks
+            // TODO: Handle deeplink situation (per se) wherein there is no chatroom/user
+            // TODO: And broadcastreceiver/notification routines have to wait until data is fetched and then updated
+            // sendBroadcast(intent)
         }
     }
 

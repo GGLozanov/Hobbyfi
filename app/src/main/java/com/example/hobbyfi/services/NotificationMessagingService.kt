@@ -1,7 +1,11 @@
 package com.example.hobbyfi.services
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -69,14 +73,15 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 intent.putParcelableMessageExtra(data)
                 // TODO: Add message content to notification body while trimming it
                 // TODO: Handle message being url to picture and show only "new image message received!"
-                title = resources.getString(R.string.create_message_notification_title)
-                body = "YOUR MESSAGE SHOULD BE HERE BUT APP IS STILL WIP"
+                if(data[Constants.USER_SENT_ID] != null) {
+                    title = resources.getString(R.string.create_message_notification_title)
+                    body = data[Constants.MESSAGE]
+                }
             }
             Constants.CREATE_EVENT_TYPE ->  {
                 intent.putParcelableEventExtra(data)
                 title = resources.getString(R.string.create_event_notification_title)
-                // TODO: Finish
-                body = "Take a look at <EVENT_NAME> and try to join in!"
+                body = "Take a look at '${data[Constants.NAME]}' and try to join in!"
             }
             Constants.EDIT_CHATROOM_TYPE, Constants.EDIT_USER_TYPE,
             Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE -> {
@@ -93,12 +98,12 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             Constants.JOIN_USER_TYPE -> {
                 intent.putParcelableUserExtra(data)
                 title = resources.getString(R.string.join_user_notification_title)
-                body = "<USERNAME> just joined the chatroom!"
+                body = "${data[Constants.USERNAME]} just joined the chatroom!"
             }
             Constants.LEAVE_USER_TYPE -> {
                 intent.putDeletedModelIdExtra(data)
                 title = resources.getString(R.string.leave_user_notification_title)
-                body = "<USERNAME> just left the chatroom!"
+                body = "${data[Constants.USERNAME]} just left the chatroom!"
             }
         }
 
@@ -119,7 +124,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         val oldToken = prefConfig.readDeviceToken() // old device token for unsubscription
-        // ping IID (instance ID) endpoint for topic unsubscription?
+        // TODO: ping IID (instance ID) endpoint for topic unsubscription?
 
         prefConfig.writeDeviceToken(token) // save new device token and resubscribe
 
@@ -148,9 +153,9 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     }
 
     private fun sendPushNotificationForChatroom(pushIntent: Intent, pushTitle: String, pushBody: String) {
-        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
+        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(applicationContext).run {
             addNextIntentWithParentStack(pushIntent) // add intent to inflate back stack
-            getPendingIntent(pushIntent.hashCode(), PendingIntent.FLAG_UPDATE_CURRENT) // get PendingIntent in its entirety
+            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT) // get PendingIntent in its entirety
         } // always start an activity with the backstack history because the chatroom can be navigated to and from
 
         val notification = NotificationCompat.Builder(
@@ -161,11 +166,36 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 setContentText(pushBody)
                 priority = NotificationCompat.PRIORITY_DEFAULT
                 setContentIntent(resultPendingIntent)
+                setSmallIcon(applicationInfo.icon)
                 setAutoCancel(true)
         }.build()
 
+        createNotificationChannel()
+
         with(NotificationManagerCompat.from(this)) {
             notify(resultPendingIntent.hashCode(), notification) // TODO: Probably move away from hash codes. . .
+        }
+    }
+
+    private fun createNotificationChannel() {
+        // > API 26
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = resources.getString(R.string.default_notification_channel_id)
+            val name = getString(R.string.channel_name)
+            val descriptionText = getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(
+                channelId,
+                name,
+                importance
+            ).apply {
+                description = descriptionText
+            }
+
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }

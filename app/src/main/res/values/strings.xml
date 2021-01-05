@@ -113,4 +113,6 @@
     <string name="event_create_header">Create an Event</string>
     <string name="title_activity_event_choose_location_maps">Map</string>
     <string name="event_name_hint">Enter an event name</string>
+    <string name="channel_name">Hobbyfi Channel</string>
+    <string name="channel_description">Hobbyfi notification channel. Duh.</string>
 </resources>
