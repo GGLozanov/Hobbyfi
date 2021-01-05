@@ -143,7 +143,13 @@ class UserRepository @ExperimentalPagingApi constructor(
         Log.i("UserRepository", "getChatroomUsers -> getting current chatroom users")
         return object : NetworkBoundFetcher<List<User>, CacheListResponse<User>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<User>) {
-                saveUsers(response.modelList)
+                hobbyfiDatabase.withTransaction {
+                    hobbyfiDatabase.userDao().deleteUsersByChatroomIdAndExceptId(
+                        chatroomId,
+                        prefConfig.getAuthUserIdFromToken()
+                    )
+                    saveUsers(response.modelList)
+                }
             }
 
             override fun shouldFetch(cache: List<User>?): Boolean {

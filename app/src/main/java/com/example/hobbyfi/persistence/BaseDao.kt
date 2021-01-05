@@ -15,6 +15,9 @@ abstract class BaseDao<T : Model> {
     @Delete
     abstract suspend fun delete(entity: T): Int
 
+    @Delete
+    abstract suspend fun delete(entityList: List<T>): Int
+
     @Update
     abstract suspend fun update(entity: T)
 

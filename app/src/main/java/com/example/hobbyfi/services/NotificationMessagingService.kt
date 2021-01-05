@@ -137,6 +137,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
     override fun onDeletedMessages() {
         super.onDeletedMessages()
+        Log.i("NotificationMService", "DELETED MESSAGES?????")
     }
 
     private fun handlePushMessageForChatroomByLifecycle(intent: Intent, pushTitle: String, pushBody: String) {
@@ -153,8 +154,8 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     }
 
     private fun sendPushNotificationForChatroom(pushIntent: Intent, pushTitle: String, pushBody: String) {
-        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(applicationContext).run {
-            addNextIntentWithParentStack(pushIntent) // add intent to inflate back stack
+        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
+            addNextIntent(pushIntent) // add intent
             getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT) // get PendingIntent in its entirety
         } // always start an activity with the backstack history because the chatroom can be navigated to and from
 

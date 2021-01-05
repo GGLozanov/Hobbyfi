@@ -5,7 +5,6 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.responses.Response
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
-// TODO: Fix coupling of mixed states
 sealed class UserState : State {
     object Idle : UserState()
     object Loading : UserState()

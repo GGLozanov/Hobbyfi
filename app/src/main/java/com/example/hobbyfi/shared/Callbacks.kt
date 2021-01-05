@@ -16,6 +16,7 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.fragment.app.Fragment
 import io.jsonwebtoken.lang.InstantiationException
+import kotlinx.coroutines.CancellationException
 
 
 object Callbacks {
@@ -102,6 +103,9 @@ object Callbacks {
                                 Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
                             else Repository.ReauthenticationException(Constants.reauthError)
                     }
+                    404 -> { // not found
+                        throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
+                    }
                     406 -> { // not acceptable
                         throw Exception(Constants.resourceExistsError)
                     }
@@ -119,7 +123,8 @@ object Callbacks {
                 throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
                     else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
-            is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException, is InstantiationException -> throw ex
+            is Repository.ReauthenticationException,
+                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
             else -> throw if(ex.message?.contains("failed to connect to") == true)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
                     else Repository.UnknownErrorException(Constants.unknownError(ex.message))

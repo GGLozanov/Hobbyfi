@@ -39,7 +39,7 @@
 
         <activity
             android:name=".ui.chatroom.EventChooseLocationMapsActivity"
-            android:label="@string/title_activity_event_choose_location_maps"></activity>
+            android:label="@string/title_activity_event_choose_location_maps" />
         <!--
  Set custom default icon. This is used when no icon is set for incoming notification messages.
      See README(https://goo.gl/l4GJaQ) for more.
@@ -103,6 +103,7 @@
             android:name=".ui.chatroom.ChatroomActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_chatroom"
+            android:launchMode="singleTop"
             android:parentActivityName=".ui.main.MainActivity" />
         <activity
             android:name=".ui.chatroom.EventMapsActivity"

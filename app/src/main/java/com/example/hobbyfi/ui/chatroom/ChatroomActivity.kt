@@ -1,9 +1,7 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.app.Fragment
 import android.content.*
 import android.graphics.Color
-import android.graphics.ColorSpace
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +10,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -23,7 +22,6 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
@@ -52,7 +50,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
-import com.example.hobbyfi.utils.GlideUtils
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import org.kodein.di.generic.instance
 
@@ -69,17 +66,17 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
     private lateinit var headerBinding: NavHeaderChatroomBinding
 
-    private lateinit var userListAdapter: ChatroomUserListAdapter
+    private var userListAdapter: ChatroomUserListAdapter? = null
 
-    private lateinit var chatroomReceiverFactory: ChatroomBroadcastReceiverFactory
-    private lateinit var editChatroomReceiver: BroadcastReceiver
-    private lateinit var deleteChatroomReceiver: BroadcastReceiver
-    private lateinit var editUserReceiver: BroadcastReceiver
-    private lateinit var joinUserReceiver: BroadcastReceiver
-    private lateinit var leaveUserReceiver: BroadcastReceiver
-    private lateinit var deleteEventReceiver: BroadcastReceiver
-    private lateinit var editEventReceiver: BroadcastReceiver
-    private lateinit var createEventReceiver: BroadcastReceiver
+    private var chatroomReceiverFactory: ChatroomBroadcastReceiverFactory? = null
+    private var editChatroomReceiver: BroadcastReceiver? = null
+    private var deleteChatroomReceiver: BroadcastReceiver? = null
+    private var editUserReceiver: BroadcastReceiver? = null
+    private var joinUserReceiver: BroadcastReceiver? = null
+    private var leaveUserReceiver: BroadcastReceiver? = null
+    private var deleteEventReceiver: BroadcastReceiver? = null
+    private var editEventReceiver: BroadcastReceiver? = null
+    private var createEventReceiver: BroadcastReceiver? = null
 
     private var currentEventGlideTarget: CustomTarget<Drawable>? = null
 
@@ -88,8 +85,23 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         binding = ActivityChatroomBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+
+        // checks if called from push notification while app is killed and restarts entire backstack in that case
+        if(isTaskRoot) {
+            Log.i("ChatroomActivity", "ChatroomActivity IS TASK ROOT. Regenerating parent activity backstack!")
+            val restartIntent = Intent(this, ChatroomActivity::class.java)
+
+            restartIntent.putExtras(intent)
+
+            TaskStackBuilder.create(this)
+                .addNextIntentWithParentStack(restartIntent)
+                .startActivities(intent.extras)
+
+            finishAffinity()
+            return
+        }
+
         assertGooglePlayAvailability()
-        handlePushNotificationIntent()
 
         binding.viewModel = viewModel
 
@@ -100,7 +112,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
             // deeplink situation
             lifecycleScope.launch {
                 viewModel.sendIntent(UserIntent.FetchUser)
-                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
             }
         }
 
@@ -157,7 +168,9 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
-                        viewModel.setUser(it.user)
+                        if(viewModel.authChatroom.value == null) {
+                            viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
+                        }
                     }
                     is UserState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
@@ -209,7 +222,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
     private fun observeUsers() {
         viewModel.currentAdapterUsers.observe(this, Observer {
-            userListAdapter.setUsers(it)
+            userListAdapter!!.setUsers(it)
         })
     }
 
@@ -399,45 +412,22 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     override fun onResume() {
         super.onResume()
         assertGooglePlayAvailability()
-
+        registerCRUDReceivers()
         // TODO: Move receiver registration after chatroom/users/event fetches!!!
-        chatroomReceiverFactory = ChatroomBroadcastReceiverFactory.getInstance(viewModel, this)
-        editChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_CHATROOM_TYPE)
-        deleteChatroomReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.DELETE_CHATROOM_TYPE)
-        editUserReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_USER_TYPE)
-        joinUserReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.JOIN_USER_TYPE)
-        leaveUserReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.LEAVE_USER_TYPE)
-        deleteEventReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
-        editEventReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
-        createEventReceiver = chatroomReceiverFactory.createActionatedReceiver(Constants.CREATE_EVENT_TYPE)
-
-        registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
-        registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
-        registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
-        registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
-        registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
-        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
-        registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
-        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
     }
 
     override fun onPause() {
         super.onPause()
-
-        unregisterReceiver(editChatroomReceiver)
-        unregisterReceiver(deleteChatroomReceiver)
-        unregisterReceiver(joinUserReceiver)
-        unregisterReceiver(leaveUserReceiver)
-        unregisterReceiver(deleteEventReceiver)
-        unregisterReceiver(createEventReceiver)
-        unregisterReceiver(editEventReceiver)
+        unregisterCRUDReceivers()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if(currentEventGlideTarget != null) {
-            Log.i("ChatroomActivity", "ChatroomActivity onDestroy -> clearing glide event card target")
-            Glide.with(this).clear(currentEventGlideTarget)
+        if(!isTaskRoot) { // don't do anything if task is root (i.e. killed and started from push notification)
+            if(currentEventGlideTarget != null) {
+                Log.i("ChatroomActivity", "ChatroomActivity onDestroy -> clearing glide event card target")
+                Glide.with(this).clear(currentEventGlideTarget)
+            }
         }
     }
 
@@ -447,17 +437,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         if(availability == SERVICE_MISSING || availability == SERVICE_INVALID
             || availability == SERVICE_DISABLED) {
             googleApiInstance.makeGooglePlayServicesAvailable(this)
-        }
-    }
-
-    private fun handlePushNotificationIntent() {
-        // TODO: Move register to after state received IF deeplink situation
-        // TODO: Also send any broadcasts from push notification intents received after receiving state in deeplink
-        when(intent.action) {
-            // TODO: Handle push notification intents here with broadcastreceiver callbacks
-            // TODO: Handle deeplink situation (per se) wherein there is no chatroom/user
-            // TODO: And broadcastreceiver/notification routines have to wait until data is fetched and then updated
-            // sendBroadcast(intent)
         }
     }
 
@@ -499,5 +478,37 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     override fun onDeleteMessageSelect(view: View, message: Message) {
         (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment)
             .onDeleteMessageSelect(view, message)
+    }
+
+    private fun registerCRUDReceivers() {
+        chatroomReceiverFactory = ChatroomBroadcastReceiverFactory.getInstance(viewModel, this)
+        editChatroomReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.EDIT_CHATROOM_TYPE)
+        deleteChatroomReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.DELETE_CHATROOM_TYPE)
+        editUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.EDIT_USER_TYPE)
+        joinUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.JOIN_USER_TYPE)
+        leaveUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.LEAVE_USER_TYPE)
+        deleteEventReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
+        editEventReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
+        createEventReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.CREATE_EVENT_TYPE)
+
+        registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
+        registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
+        registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
+        registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
+        registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
+        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
+        registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
+        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
+    }
+
+    private fun unregisterCRUDReceivers() {
+        unregisterReceiver(editChatroomReceiver)
+        unregisterReceiver(deleteChatroomReceiver)
+        unregisterReceiver(editUserReceiver)
+        unregisterReceiver(joinUserReceiver)
+        unregisterReceiver(leaveUserReceiver)
+        unregisterReceiver(deleteEventReceiver)
+        unregisterReceiver(createEventReceiver)
+        unregisterReceiver(editEventReceiver)
     }
 }

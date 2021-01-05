@@ -25,4 +25,7 @@ abstract class UserDao : BaseDao<User>() {
 
     @Query("DELETE FROM users WHERE id = :userId")
     abstract fun deleteUserById(userId: Long): Int
+
+    @Query("DELETE FROM users WHERE chatroomId = :chatroomId AND id != :authId")
+    abstract fun deleteUsersByChatroomIdAndExceptId(chatroomId: Long, authId: Long): Int
 }

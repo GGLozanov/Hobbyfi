@@ -42,6 +42,8 @@ import com.kroegerama.imgpicker.ButtonType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import java.io.FileNotFoundException
+import kotlin.properties.Delegates
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -50,7 +52,9 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
-    private lateinit var messageListAdapter: ChatroomMessageListAdapter
+    // props like these are nullable because Activity onDestroy being called on new app start from push notification
+    // and causing crashes for unitialised properties before anything actually happens prior to activity restart
+    private var messageListAdapter: ChatroomMessageListAdapter? = null
 
     private val onNormalSendMessage = View.OnClickListener {
         if(assertTextFieldsInvalidity()) {
@@ -92,14 +96,14 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         }
     }
 
-    private lateinit var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadacastReceiverFactory
+    private var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadacastReceiverFactory? = null
 
-    private lateinit var createMessageReceiver: BroadcastReceiver
-    private lateinit var editMessageReceiver: BroadcastReceiver
-    private lateinit var deleteMessageReceiver: BroadcastReceiver
+    private var createMessageReceiver: BroadcastReceiver? = null
+    private var editMessageReceiver: BroadcastReceiver? = null
+    private var deleteMessageReceiver: BroadcastReceiver? = null
 
     private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
-        { messageListAdapter.retry() },
+        { messageListAdapter!!.retry() },
         null,
         userHasChatroom = true
     )
@@ -110,10 +114,10 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
         // TODO: Move receiver registration in after chatroom messages fetch!!!
         chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadacastReceiverFactory
-            .getInstance(viewModel, messageListAdapter, activityViewModel, activity)
-        createMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
-        editMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
-        deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
+            .getInstance(viewModel, messageListAdapter!!, activityViewModel, activity)
+        createMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
+        editMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
+        deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
 
         activity.registerReceiver(createMessageReceiver, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
         activity.registerReceiver(editMessageReceiver, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
@@ -181,7 +185,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             }
 
             // update chatroomlistadapter users
-            messageListAdapter.setCurrentUsers(it)
+            messageListAdapter!!.setCurrentUsers(it)
         })
     }
 
@@ -210,7 +214,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                             }
                         }.collectLatest { data ->
                             Log.i("ChatroomMListFragment", "Collecting message paging data $data")
-                            messageListAdapter.submitData(data)
+                            messageListAdapter!!.submitData(data)
                             // TODO: Add on initial fetch scroll, not on every
                             binding.messageList.smoothScrollToPosition(0)
                         }
@@ -267,7 +271,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
             if(connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
-                messageListAdapter.refresh()
+                messageListAdapter!!.refresh()
             } else {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment DIS-CONNECTED")
             }
@@ -277,7 +281,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private fun initMessageListAdapter() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
-            messageList.adapter = messageListAdapter.withLoadStateFooter(loadStateAdapter)
+            messageList.adapter = messageListAdapter!!.withLoadStateFooter(loadStateAdapter)
         }
     }
 
@@ -299,7 +303,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
             }
 
-            messageListAdapter.setAuthUserChatromOwner(it)
+            messageListAdapter!!.setAuthUserChatromOwner(it)
         })
     }
 
@@ -314,9 +318,16 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                 MessageIntent.CreateMessageImages(
                     withContext(Dispatchers.IO) {
                         uris.map {
-                            ImageUtils.getEncodedImageFromUri(requireActivity(), it)
+                            try {
+                                ImageUtils.getEncodedImageFromUri(requireActivity(), it)
+                            } catch(ex: FileNotFoundException) {
+                                Toast.makeText(requireContext(),
+                                    "File for sending not found! Please verify it exists!", Toast.LENGTH_LONG)
+                                    .show()
+                                null
+                            }
                         }
-                    },
+                    }.filterNotNull(),
                     activityViewModel.authUser.value!!.id,
                     activityViewModel.authChatroom.value!!.id
                 )
@@ -339,9 +350,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         super.onDestroy()
         val activity = requireActivity()
 
-        activity.unregisterReceiver(createMessageReceiver)
-        activity.unregisterReceiver(editMessageReceiver)
-        activity.unregisterReceiver(deleteMessageReceiver)
+        if(!activity.isTaskRoot) {
+            activity.unregisterReceiver(createMessageReceiver)
+            activity.unregisterReceiver(editMessageReceiver)
+            activity.unregisterReceiver(deleteMessageReceiver)
+        }
     }
 
     override fun onEditMessageSelect(view: View, message: Message) {

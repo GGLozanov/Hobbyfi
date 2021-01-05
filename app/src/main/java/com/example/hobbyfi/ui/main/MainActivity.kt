@@ -15,7 +15,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
@@ -33,14 +32,13 @@ import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
-        AuthUserViewModelFactory(application, args.user)
+        AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
     })
     lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()

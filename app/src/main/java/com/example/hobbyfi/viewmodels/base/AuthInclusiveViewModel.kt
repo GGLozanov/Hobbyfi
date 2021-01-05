@@ -14,8 +14,9 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthInclusiveViewModel(application: Application) : StateIntentViewModel<TokenState, TokenIntent>(application),
-    TwoWayDataBindable by TwoWayDataBindableViewModel() {
+abstract class AuthInclusiveViewModel(
+    application: Application
+) : StateIntentViewModel<TokenState, TokenIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     // will allow subclasses to override handleIntent() to
     // handle invalid intents and impose some form of order in an otherwise tightly coupled inheritance hierarchy
 

@@ -32,12 +32,16 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
+        val tags = activityViewModel.authUser.value?.tags ?:
+            if(requireActivity().intent?.extras == null)
+                emptyList()
+            else UserProfileFragmentArgs.fromBundle(
+                    requireActivity().intent?.extras!!
+                ).user?.tags ?: emptyList()
+
         TagListViewModelFactory(
             requireActivity().application,
-            activityViewModel.authUser.value?.tags ?: UserProfileFragmentArgs.fromBundle(
-                requireActivity().intent?.extras!!
-            )
-                .user?.tags ?: emptyList()
+            tags
         )
     })
 
