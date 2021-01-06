@@ -216,6 +216,8 @@ class ChatroomListFragment : MainFragment() {
                                     .show()
                             }
                         }.collectLatest { data ->
+                            setChatroomLeaveButtonVisibility(state.isJustAuthChatroom) // possible performance issues here
+
                             chatroomListAdapter.submitData(data)
                         }
                     }

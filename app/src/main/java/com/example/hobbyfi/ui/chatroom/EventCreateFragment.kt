@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
@@ -11,25 +12,30 @@ import android.widget.TimePicker
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.navGraphViewModels
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.ui.base.BaseFragment
+import com.example.hobbyfi.ui.main.MainActivityArgs
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.io.Serializable
 import java.util.*
 
 @ExperimentalCoroutinesApi
 class EventCreateFragment : ChatroomModelFragment(),
         DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
-
+    
     private val eventCalendar = Calendar.getInstance()
 
-    private val viewModel: EventCreateFragmentViewModel by viewModels()
+    val viewModel: EventCreateFragmentViewModel by viewModels()
     private lateinit var binding: FragmentEventCreateBinding
 
     override fun onCreateView(
@@ -61,9 +67,13 @@ class EventCreateFragment : ChatroomModelFragment(),
             }
 
             eventInfoButtonBar.rightButton.setOnClickListener { // select location
-                navController.navigate(
-                    R.id.eventChooseLocationMapsActivity
-                )
+                val intent = Intent(requireContext(), EventChooseLocationMapsActivity::class.java).apply {
+                    putExtra(Constants.EVENT_TITLE, viewModel!!.name.value)
+                    putExtra(Constants.EVENT_DESCRIPTION, viewModel!!.description.value)
+                    putExtra(Constants.EVENT_LOCATION, viewModel!!.eventLatLng)
+                }
+
+                startActivityForResult(intent, Constants.eventLocationRequestCode)
             }
 
             eventImage.setOnClickListener {
@@ -124,6 +134,11 @@ class EventCreateFragment : ChatroomModelFragment(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == Constants.eventLocationRequestCode) {
+            if(resultCode == Activity.RESULT_OK) {
+                viewModel.eventLatLng = data?.extras?.get(Constants.EVENT_LOCATION) as LatLng
+            }
+        }
         // SLIGHT FIXME: slight code dupss
         Callbacks.handleImageRequestWithPermission(
             requireActivity(),
@@ -137,4 +152,6 @@ class EventCreateFragment : ChatroomModelFragment(),
             )
         }
     }
+
+
 }

@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@drawable/rounded_container_grey"
+        android:background="@drawable/rounded_container_layered"
         android:padding="15dp"
         tools:context=".ui.main.ChangeEmailDialogFragment">
 

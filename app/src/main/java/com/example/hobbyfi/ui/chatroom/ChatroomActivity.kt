@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.app.Activity
 import android.content.*
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import com.google.android.gms.maps.model.LatLng
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -365,6 +367,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         })
     }
 
+    @ExperimentalPagingApi
     private fun observeChatroomOwnRights() {
         viewModel.isAuthUserChatroomOwner.observe(this, Observer {
             initTopNavigation(it)
@@ -392,6 +395,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         })
     }
 
+    @ExperimentalPagingApi
     private fun initTopNavigation(chatroomOwner: Boolean) {
         with(binding) {
             toolbar.setNavigationIconTint(Color.WHITE)
@@ -400,7 +404,11 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
                 navViewAdmin.setupWithNavController(navController)
                 toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.chatroomMessageListFragment), drawerLayout))
-                toolbar.navigationIcon = ContextCompat.getDrawable(this@ChatroomActivity, R.drawable.ic_baseline_admin_panel_settings_24)
+                if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+                    toolbar.navigationIcon =
+                        ContextCompat.getDrawable(this@ChatroomActivity, R.drawable.ic_baseline_admin_panel_settings_24)
+                }
+                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED, GravityCompat.START)
             } else {
                 Log.i("ChatroomActivity", "Current auth user is NOT chatroom owner")
                 drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, GravityCompat.START)
@@ -478,6 +486,11 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     override fun onDeleteMessageSelect(view: View, message: Message) {
         (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment)
             .onDeleteMessageSelect(view, message)
+    }
+
+    // Override here due to FragmentActivity modifying request codes and being passed through the fragment hosting activity first
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     private fun registerCRUDReceivers() {

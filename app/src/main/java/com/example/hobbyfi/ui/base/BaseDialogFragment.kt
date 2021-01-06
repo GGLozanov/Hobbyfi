@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
+import com.example.hobbyfi.R
 import com.example.hobbyfi.shared.PrefConfig
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -22,4 +23,6 @@ abstract class BaseDialogFragment : DialogFragment(), KodeinAware {
         super.onViewCreated(view, savedInstanceState)
         navController = findNavController()
     }
+
+    override fun getTheme(): Int = R.style.RoundedCornersDialog
 }

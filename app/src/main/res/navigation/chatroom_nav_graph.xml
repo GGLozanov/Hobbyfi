@@ -48,16 +48,7 @@
             android:id="@+id/eventCreateFragment"
             android:name="com.example.hobbyfi.ui.chatroom.EventCreateFragment"
             android:label="Create Event"
-            tools:layout="@layout/fragment_event_create">
-            <action
-                android:id="@+id/action_eventCreateFragment_to_eventChooseLocationMapsActivity"
-                app:destination="@id/eventChooseLocationMapsActivity" />
-        </fragment>
-        <activity
-            android:id="@+id/eventChooseLocationMapsActivity"
-            android:name="com.example.hobbyfi.ui.chatroom.EventChooseLocationMapsActivity"
-            android:label="activity_event_choose_location_maps"
-            tools:layout="@layout/activity_event_choose_location_maps" />
+            tools:layout="@layout/fragment_event_create"/>
     </navigation>
     <include app:graph="@navigation/tag_nav_graph" />
     <activity

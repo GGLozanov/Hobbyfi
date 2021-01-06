@@ -115,4 +115,8 @@
     <string name="event_name_hint">Enter an event name</string>
     <string name="channel_name">Hobbyfi Channel</string>
     <string name="channel_description">Hobbyfi notification channel. Duh.</string>
+    <string name="access_fine_location_rationale">We need to have access to your location if you want to automatically choose the event location as your current one</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="back_event_choose_maps">Do you want to use the current coordinates as the event\'s location?</string>
 </resources>

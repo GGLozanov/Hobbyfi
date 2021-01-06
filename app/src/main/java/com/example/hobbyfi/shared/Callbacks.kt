@@ -2,6 +2,7 @@ package com.example.hobbyfi.shared
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
@@ -83,6 +84,29 @@ object Callbacks {
             selectImageIntent,
             requestCode
         ) // start activity and await result
+    }
+
+    fun requestLocationForEventCreate(activity: Activity,
+                                      permissionRequestCode: Int = Constants.locationPermissionsRequestCode): Boolean {
+        return if(EasyPermissions.hasPermissions(
+                activity,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            )) {
+            true
+        } else {
+            EasyPermissions.requestPermissions(
+                activity,
+                activity.getString(R.string.access_fine_location_rationale),
+                permissionRequestCode,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            false
+        }
+    }
+
+    fun requestLocationBackgroundForEvent(activity: Activity,
+                                        permissionRequestCode: Int = Constants.locationPermissionsRequestCode): Boolean {
+        return true
     }
 
     // always throws an exception

@@ -18,7 +18,7 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:background="@drawable/rounded_container_grey"
+            android:background="@drawable/rounded_container_layered"
             android:gravity="center"
             android:maxHeight="125dp"
             android:padding="10dp"

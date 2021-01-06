@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
@@ -12,7 +13,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
-import com.google.type.LatLng
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -21,8 +22,13 @@ import org.kodein.di.generic.instance
 import java.util.*
 
 @ExperimentalCoroutinesApi
-class EventCreateFragmentViewModel(application: Application)
-    : StateIntentViewModel<EventState, EventIntent>(application), NameDescriptionBindable by NameDescriptionBindableViewModel() {
+class EventCreateFragmentViewModel(
+    application: Application
+) : StateIntentViewModel<EventState, EventIntent>(application), NameDescriptionBindable by NameDescriptionBindableViewModel() {
+
+    interface OnEventCoordinatesReceived {
+        fun onEventCoordinatesReceived(latLng: LatLng)
+    }
 
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
@@ -31,7 +37,7 @@ class EventCreateFragmentViewModel(application: Application)
     }
 
     private var eventDate: Date? = null
-    private var latLng: LatLng? = null
+    var eventLatLng: LatLng? = null
     
     fun setEventDate(date: Date?) {
         eventDate = date
@@ -55,13 +61,12 @@ class EventCreateFragmentViewModel(application: Application)
     private suspend fun createEvent() {
         mainStateIntent.setState(EventState.Loading)
 
-        if(eventDate == null || latLng == null) {
+        if(eventDate == null || eventLatLng == null) {
             mainStateIntent.setState(EventState.Error(
                 Constants.invalidEventInfoError
             ))
             return
         }
-
 
         mainStateIntent.setState(try {
             val state = EventState.OnData.EventCreateResult(eventRepository.createEvent(
@@ -69,8 +74,8 @@ class EventCreateFragmentViewModel(application: Application)
                 description.value!!,
                 eventDate.toString(),
                 base64Image.base64,
-                latLng!!.latitude,
-                latLng!!.longitude
+                eventLatLng!!.latitude,
+                eventLatLng!!.longitude
             ))
 
             state

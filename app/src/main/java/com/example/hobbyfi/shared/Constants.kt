@@ -10,10 +10,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.core.content.ContextCompat
 import androidx.core.util.Predicate
 import androidx.databinding.BindingAdapter
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.repositories.Repository
@@ -54,6 +56,11 @@ object Constants {
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777
+
+    const val locationRequestCode: Int = 220
+    const val locationPermissionsRequestCode: Int = 888
+
+    const val eventLocationRequestCode: Int = 999
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -206,12 +213,14 @@ object Constants {
         dialogMessage: String,
         onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
     ) {
-        AlertDialog.Builder(context)
+        val dialog = AlertDialog.Builder(context)
             .setMessage(dialogMessage)
-            .setPositiveButton("Yes", onConfirm)
-            .setNegativeButton("No", onCancel)
+            .setPositiveButton(context.getString(R.string.yes), onConfirm)
+            .setNegativeButton(context.getString(R.string.no), onCancel)
             .create()
-            .show()
+
+        dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
+        dialog.show()
     }
 
     // dupped from API and whenever that changes, this needs to as well, but...
@@ -260,4 +269,10 @@ object Constants {
 
     const val LOCATIONS_COLLECTION: String = "locations"
     const val LOCATION: String = "location"
+    const val KEY_LOCATION: String = "KEY_LOCATION"
+    const val KEY_CAMERA_POSITION = "KEY_CAMERA_POSITION"
+
+    const val EVENT_LOCATION = "EVENT_LOCATION"
+    const val EVENT_TITLE: String = "EVENT_TITLE"
+    const val EVENT_DESCRIPTION = "EVENT_DESCRIPTION"
 }

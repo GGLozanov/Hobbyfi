@@ -59,15 +59,6 @@ fun ConnectivityManager.isConnected(): Boolean {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-fun ConnectivityManager.registerNetworkCallbackOnCurrentConnection(connectivityCallback: ConnectivityManager.NetworkCallback) {
-    registerNetworkCallback(
-        NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build(), connectivityCallback
-    )
-}
-
 fun<T> MutableList<T>.addAllDistinct(selectedTags: List<T>) {
     selectedTags.forEach {
         if(!this.contains(it)) {

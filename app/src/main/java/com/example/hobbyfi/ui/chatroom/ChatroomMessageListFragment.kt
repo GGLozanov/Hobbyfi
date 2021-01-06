@@ -58,6 +58,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     private val onNormalSendMessage = View.OnClickListener {
         if(assertTextFieldsInvalidity()) {
+
             return@OnClickListener
         }
 

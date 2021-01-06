@@ -5,7 +5,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@drawable/gradient_rounded_grey_container"
+    android:background="@drawable/rounded_container_layered"
     android:padding="20dp"
     tools:context=".ui.shared.TagSelectionDialogFragment">
 
