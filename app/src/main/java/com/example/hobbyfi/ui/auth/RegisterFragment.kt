@@ -2,13 +2,13 @@ package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -28,7 +28,6 @@ import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import pub.devrel.easypermissions.EasyPermissions
 
 
 @ExperimentalCoroutinesApi
@@ -90,7 +89,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             navController.navigate(action)
         }
 
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
                     is TokenState.Idle -> {
@@ -142,16 +141,13 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
             passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate
+                Constants.passwordPredicate(confirmPasswordInputField.editText)
             )
 
-            viewModel!!.password.observe(viewLifecycleOwner, Observer {
-                confirmPasswordInputField.error = null
-                confirmPasswordInputField.addTextChangedListener(
-                    Constants.confirmPasswordInputError,
-                    Constants.confirmPasswordPredicate(it)
-                )
-            })
+            confirmPasswordInputField.addTextChangedListener(
+                Constants.confirmPasswordInputError,
+                Constants.confirmPasswordPredicate(passwordInputField.editText!!)
+            )
 
             usernameInputField.addTextChangedListener(
                 Constants.usernameInputError,
@@ -183,18 +179,15 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(
-            this,
             requireActivity(),
             requestCode,
             resultCode,
             data
         ) {
             binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -12,22 +11,20 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomEditBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -55,6 +52,9 @@ class ChatroomEditFragment : ChatroomModelFragment() {
         with(binding) {
             lifecycleOwner = this@ChatroomEditFragment
 
+            chatroomImage.setOnClickListener {
+                Callbacks.requestImage(this@ChatroomEditFragment)
+            }
             buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
@@ -71,9 +71,7 @@ class ChatroomEditFragment : ChatroomModelFragment() {
                 }
 
                 if((activityViewModel.authChatroom.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
-                    fieldMap[Constants.TAGS + "[]"] = (GsonBuilder()
-                        .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
-                        .create()) // TODO: Extract into DI/singleton/static var
+                    fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 
@@ -160,18 +158,15 @@ class ChatroomEditFragment : ChatroomModelFragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(
-            this,
             requireActivity(),
             requestCode,
             resultCode,
             data
         ) {
             binding.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 }

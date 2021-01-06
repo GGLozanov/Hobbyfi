@@ -4,7 +4,7 @@ import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 // in-memory db for predefined tags
 // users can create their own tags (name + colour)
@@ -23,6 +23,6 @@ data class Tag(
   val isFromFacebook: Boolean = false,
   @PrimaryKey(autoGenerate = true)
   override val id: Long = 0
-) : Model, Parcelable {
+) : Model {
   override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Tag = this
 }

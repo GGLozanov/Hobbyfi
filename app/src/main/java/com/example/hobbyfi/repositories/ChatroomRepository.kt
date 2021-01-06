@@ -15,7 +15,8 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants.getDefaultChatroomPageConfig
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
 import kotlinx.coroutines.Dispatchers
@@ -26,12 +27,13 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
     : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
-    fun getChatrooms(pagingConfig: PagingConfig = getDefaultChatroomPageConfig(), shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
+    fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
+                     shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
         Log.i("ChatroomRepository", "getChatrooms -> getting current chatrooms with shouldFetchAuthChatroom: ${shouldFetchAuthChatroom}")
         val pagingSource = { hobbyfiDatabase.chatroomDao().getChatrooms() }
         return Pager(
             config = pagingConfig,
-            pagingSourceFactory = pagingSource, // TODO: DI & cache as SSOT
+            pagingSourceFactory = pagingSource,
             remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, shouldFetchAuthChatroom)
         ).flow
     }
@@ -42,7 +44,8 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
         return object : NetworkBoundFetcher<Chatroom, CacheListResponse<Chatroom>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<Chatroom>) {
-                hobbyfiDatabase.chatroomDao().insert(response.modelList[0])
+                // TODO: somehow calculate remotekeys for pagination or just refresh the list again?
+                hobbyfiDatabase.chatroomDao().upsert(response.modelList[0])
             }
 
             override fun shouldFetch(cache: Chatroom?): Boolean {
@@ -88,7 +91,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
     suspend fun createChatroom(name: String, description: String?,
                                base64Image: String?, tags: List<Tag>): IdResponse? {
-        return try {
+        return performAuthorisedRequest({
             Log.i("ChatroomRepository", "createChatroom -> creating chatroom with name:"
                     + name + "; description:" + description + "; ownerId: " + prefConfig.getAuthUserIdFromToken() + "; image: " + base64Image + "; tags: " + tags)
 
@@ -99,57 +102,28 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                 base64Image,
                 if(tags.isEmpty()) null else tags
             )
-        } catch(ex: Exception) {
-            // TODO: Maybe extract into some kind of util func and have recursive call after it
-            try {
-                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-            } catch(authEx: AuthorisedRequestException) {
-                getNewTokenWithRefresh()
-
-                createChatroom(name, description, base64Image, tags)
-            }
-        }
+        }, { createChatroom(name, description, base64Image, tags) })
     }
 
     suspend fun editChatroom(chatroomFields: Map<String?, String?>): Response? {
         Log.i("TokenRepository", "editChatroom -> editing current chatroom")
 
-        return try {
-            prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
-
+        return performAuthorisedRequest({
             hobbyfiAPI.editChatroom(
                 prefConfig.getAuthUserToken()!!,
                 chatroomFields
             )
-        } catch(ex: Exception) {
-            try {
-                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-            } catch(authEx: AuthorisedRequestException) {
-                getNewTokenWithRefresh()
-
-                editChatroom(chatroomFields)
-            }
-        }
+        }, { editChatroom(chatroomFields) })
     }
 
     suspend fun deleteChatroom(): Response? {
-        Log.i("TokenRepository", "deleteChatroom -> deleting current chatroom")
+        Log.i("ChatroomRepository", "deleteChatroom -> deleting current chatroom")
 
-        return try {
-            val userId = prefConfig.getAuthUserIdFromToken() // validate token expiry by attempting to get id
-
+        return performAuthorisedRequest({
             hobbyfiAPI.deleteChatroom(
                 prefConfig.getAuthUserToken()!!,
             )
-        } catch(ex: Exception) {
-            try {
-                Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-            } catch(authEx: AuthorisedRequestException) {
-                getNewTokenWithRefresh()
-
-                deleteChatroom()
-            }
-        }
+        }, { deleteChatroom() })
     }
 
     suspend fun saveChatroom(chatroom: Chatroom) {
@@ -158,7 +132,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
         withContext(Dispatchers.IO) {
-            hobbyfiDatabase.chatroomDao().insert(chatroom)
+            hobbyfiDatabase.chatroomDao().upsert(chatroom)
         }
     }
 
@@ -176,12 +150,13 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
     // called when user joins their chatroom for the first time after recyclerview
     suspend fun deleteChatrooms(authChatroomId: Long): Boolean {
-        Log.i("ChatroomRepository", "deleteChatrooms -> deleting all chatrooms except for one with id: ${authChatroomId}")
+        Log.i("ChatroomRepository", "deleteChatrooms -> deleting all chatrooms except for one with id: $authChatroomId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.withTransaction {
                 val deletedChatrooms = hobbyfiDatabase.chatroomDao().deleteChatroomsExceptId(authChatroomId)
                 val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authChatroomId, RemoteKeyType.CHATROOM)
+                Log.i("ChatroomRepository", "Deleted chatrooms ${deletedChatrooms} and deleted RMKeys ${deletedRemoteKeys}")
                 deletedChatrooms > 0 && deletedRemoteKeys >= 0
             }
         }

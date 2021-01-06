@@ -6,22 +6,23 @@ import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.shared.RemoteKeyType
 
 @Dao
-interface RemoteKeysDao : BaseDao<RemoteKeys> {
+abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     @Query("SELECT * FROM remoteKeys WHERE id = :id")
-    suspend fun getRemoteKeysById(id: Long): RemoteKeys?
+    abstract suspend fun getRemoteKeysById(id: Long): RemoteKeys?
 
     @Query("SELECT * FROM remoteKeys WHERE id = :id AND modelType = :remoteKeyType")
-    suspend fun getRemoteKeysByIdAndType(id: Long, remoteKeyType: RemoteKeyType): RemoteKeys?
+    abstract suspend fun getRemoteKeysByIdAndType(id: Long, remoteKeyType: RemoteKeyType): RemoteKeys?
 
     @Query("DELETE FROM remoteKeys")
-    suspend fun deleteRemoteKeys()
+    abstract suspend fun deleteRemoteKeys()
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType")
-    suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType)
+    abstract suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType)
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id = :id")
-    suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType): Int
+    abstract suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType): Int
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id != :id")
-    suspend fun deleteRemoteKeysExceptForIdAndForType(id: Long, remoteKeyType: RemoteKeyType): Int
+    abstract suspend fun deleteRemoteKeysExceptForIdAndForType(id: Long, remoteKeyType: RemoteKeyType): Int
+
 }

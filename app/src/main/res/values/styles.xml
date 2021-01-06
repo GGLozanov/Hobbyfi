@@ -14,6 +14,7 @@
         <item name="android:buttonStyle">@style/RubikButtonStyle</item>
 
         <item name="android:textAppearance">@style/RubikTextStyle</item>
+
         <item name="textAppearanceButton">@style/RubikButtonStyle</item>
         <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
@@ -79,5 +80,8 @@
         <item name="android:fontFamily">@font/rubik</item>
     </style>
 
+    <style name="RoundedCornersDialog" parent="Theme.MaterialComponents.Dialog">
+        <item name="dialogCornerRadius">10dp</item>
+    </style>
 
 </resources>

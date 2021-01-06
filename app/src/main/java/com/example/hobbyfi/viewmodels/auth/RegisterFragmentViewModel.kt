@@ -25,7 +25,7 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collectLatest {
+            mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is TokenIntent.FetchRegisterToken -> fetchRegisterToken()
                     else -> throw Intent.InvalidIntentException()
@@ -38,8 +38,8 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
 
     private suspend fun fetchRegisterToken() {
         Log.i("RegisterFragmentVM", "fetchRegisterToken called")
-        _mainState.value = TokenState.Loading
-        _mainState.value = try {
+        mainStateIntent.setState(TokenState.Loading)
+        mainStateIntent.setState(try {
             TokenState.TokenReceived(tokenRepository.getRegisterToken(
                 null,
                 email.value,
@@ -52,6 +52,6 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         } catch (e: Exception) {
             e.printStackTrace()
             TokenState.Error(e.message) // TODO: More specific error handling w/ custom exceptions
-        }
+        })
     }
 }

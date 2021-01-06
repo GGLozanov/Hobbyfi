@@ -11,7 +11,7 @@ sealed class ChatroomState : State {
 
     sealed class OnData : ChatroomState() {
         data class ChatroomDeleteResult(val response: Response?) : OnData()
-        data class ChatroomCreateResult(val response: IdResponse?) : OnData()
+        data class ChatroomCreateResult(val response: Chatroom) : OnData()
         data class ChatroomUpdateResult(val response: Response?, val fieldMap: Map<String?, String?>) : OnData()
         data class ChatroomResult(val chatroom: Chatroom) : OnData()
 

@@ -69,7 +69,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 }
             }
 
-            lifecycleScope.launch {
+            lifecycleScope.launchWhenCreated {
                 viewModel!!.mainState.collect {
                     when(it) {
                         is TokenState.Idle -> {
@@ -109,17 +109,13 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
 
             passwordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate
+                Constants.passwordPredicate(confirmPasswordInputField.editText)
             )
 
-            viewModel!!.password.observe(viewLifecycleOwner, Observer {
-                confirmPasswordInputField.error = null
-
-                confirmPasswordInputField.addTextChangedListener(
-                    Constants.confirmPasswordInputError,
-                    Constants.confirmPasswordPredicate(it)
-                )
-            })
+            confirmPasswordInputField.addTextChangedListener(
+                Constants.confirmPasswordInputError,
+                Constants.confirmPasswordPredicate(passwordInputField.editText!!)
+            )
         }
     }
 

@@ -2,6 +2,7 @@ package com.example.hobbyfi.shared
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
@@ -16,17 +17,16 @@ import retrofit2.HttpException
 import java.io.IOException
 import androidx.fragment.app.Fragment
 import io.jsonwebtoken.lang.InstantiationException
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.android.closestKodein
-import org.kodein.di.android.kodein
+import kotlinx.coroutines.CancellationException
 
 
 object Callbacks {
 
-    fun handleImageRequestWithPermission(callingFragment: Fragment, activity: Activity,
-                                         requestCode: Int, resultCode: Int,
-                                         data: Intent?, onImageSuccess: (bitmap: Bitmap) -> Unit) {
+    fun handleImageRequestWithPermission(
+        activity: Activity, requestCode: Int,
+        resultCode: Int, data: Intent?,
+        onImageSuccess: (bitmap: Bitmap) -> Unit
+    ) {
         getBitmapFromImageOnActivityResult(
             activity,
             Constants.imageRequestCode,
@@ -36,7 +36,7 @@ object Callbacks {
         ).also { if(it != null) { onImageSuccess.invoke(it) } }
     }
 
-    fun getBitmapFromImageOnActivityResult(
+    private fun getBitmapFromImageOnActivityResult(
         activity: Activity,
         requiredRequestCode: Int,
         requestCode: Int, resultCode: Int, data: Intent?
@@ -56,7 +56,8 @@ object Callbacks {
         return null
     }
 
-    fun requestImage(callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode, permissionRequestCode: Int = Constants.imagePermissionsRequestCode) {
+    fun requestImage(callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode,
+                     permissionRequestCode: Int = Constants.imagePermissionsRequestCode) {
         if(EasyPermissions.hasPermissions(
                 callingFragment.requireContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE
@@ -85,6 +86,29 @@ object Callbacks {
         ) // start activity and await result
     }
 
+    fun requestLocationForEventCreate(activity: Activity,
+                                      permissionRequestCode: Int = Constants.locationPermissionsRequestCode): Boolean {
+        return if(EasyPermissions.hasPermissions(
+                activity,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            )) {
+            true
+        } else {
+            EasyPermissions.requestPermissions(
+                activity,
+                activity.getString(R.string.access_fine_location_rationale),
+                permissionRequestCode,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            false
+        }
+    }
+
+    fun requestLocationBackgroundForEvent(activity: Activity,
+                                        permissionRequestCode: Int = Constants.locationPermissionsRequestCode): Boolean {
+        return true
+    }
+
     // always throws an exception
     fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
         ex.printStackTrace()
@@ -103,6 +127,12 @@ object Callbacks {
                                 Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
                             else Repository.ReauthenticationException(Constants.reauthError)
                     }
+                    404 -> { // not found
+                        throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
+                    }
+                    406 -> { // not acceptable
+                        throw Exception(Constants.resourceExistsError)
+                    }
                     409 -> { // conflict
                         throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk
                     }
@@ -111,16 +141,17 @@ object Callbacks {
                     }
                 }
 
-                throw Repository.NetworkException(ex.message().toString() + " ; code: " + ex.code())
+                throw Repository.NetworkException(ex.message().toString() + "; code: " + ex.code())
             }
             is ExpiredJwtException -> {
                 throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
                     else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
-            is Repository.ReauthenticationException, TokenUtils.InvalidStoredTokenException, is InstantiationException -> throw ex
-            else -> throw if(ex.message?.contentEquals("failed to connect to /") == true)
+            is Repository.ReauthenticationException,
+                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
+            else -> throw if(ex.message?.contains("failed to connect to") == true)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
-                else Exception(Constants.unknownError(ex.message))
+                    else Repository.UnknownErrorException(Constants.unknownError(ex.message))
         }
     }
 }

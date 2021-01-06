@@ -21,7 +21,8 @@
         <argument
             android:name="user"
             app:argType="com.example.hobbyfi.models.User"
-            app:nullable="true" />
+            app:nullable="true"
+            android:defaultValue="@null" />
 
         <action android:id="@+id/action_global_changePasswordDialogFragment" app:destination="@id/changePasswordDialogFragment" />
         <action android:id="@+id/action_global_changeEmailDialogFragment" app:destination="@id/changeEmailDialogFragment" />

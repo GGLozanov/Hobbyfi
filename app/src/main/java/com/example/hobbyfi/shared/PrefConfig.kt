@@ -19,6 +19,8 @@ class PrefConfig(private val context: Context) {
             ), Context.MODE_PRIVATE
         )
 
+    // methods below can be treated as code dup but I feel it better to have these methods
+    // defined separately in terms of semantics
     fun writeToken(token: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_token), token).apply()
@@ -50,6 +52,17 @@ class PrefConfig(private val context: Context) {
         editor.remove(context.getString(R.string.pref_refresh_token)).apply()
     }
 
+    fun writeDeviceToken(token: String) {
+        val editor = sharedPreferences.edit()
+        editor.putString(context.getString(R.string.pref_device_token), token).apply()
+    }
+
+    fun readDeviceToken(): String? {
+        return sharedPreferences.getString(
+            context.getString(R.string.pref_device_token),
+            "invalid"
+        )
+    }
 
     fun writeLastPrefFetchTimeNow(prefId: Int) {
         val editor = sharedPreferences.edit()

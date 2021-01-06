@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.base
 
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -23,7 +24,6 @@ abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.Permissio
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
         // no need for weakreference this time because PrefConfig will use appContext!
-
     protected lateinit var navController: NavController
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

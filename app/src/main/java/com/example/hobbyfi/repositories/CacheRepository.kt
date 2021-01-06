@@ -19,7 +19,7 @@ abstract class CacheRepository(
     protected val hobbyfiDatabase: HobbyfiDatabase, protected val connectivityManager: ConnectivityManager)
     : Repository(prefConfig, hobbyfiAPI) {
 
-    protected fun adheresToDefaultCachePolicy(cache: Model?, cachePref: Int): Boolean {
+    protected fun<T> adheresToDefaultCachePolicy(cache: T?, cachePref: Int): Boolean {
         return cache == null ||
                 Constants.cacheTimedOut(prefConfig, cachePref) || connectivityManager.isConnected()
     }

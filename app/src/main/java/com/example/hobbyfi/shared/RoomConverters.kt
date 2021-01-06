@@ -9,23 +9,19 @@ import com.google.gson.reflect.TypeToken
 
 class RoomConverters {
 
-    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Tag::class.java, TagTypeAdapter())
-        .create() // TODO: Extract this into singleton (DI)
-
     @TypeConverter
     fun fromRemoteKeyType(value: RemoteKeyType): String = value.name
 
     @TypeConverter
-    fun toRemoteKeyType(value: String): RemoteKeyType = enumValueOf<RemoteKeyType>(value)
+    fun toRemoteKeyType(value: String): RemoteKeyType = enumValueOf(value)
 
     @TypeConverter
     fun fromTagList(value: List<Tag>?): String {
-        return gson.toJson(value)
+        return Constants.tagJsonConverter.toJson(value)
     }
 
     @TypeConverter
     fun toTagList(value: String): List<Tag>? {
-        return gson.fromJson<List<Tag>>(value)
+        return Constants.tagJsonConverter.fromJson<List<Tag>>(value)
     }
 }

@@ -5,7 +5,9 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.hobbyfi.models.*
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.RoomConverters
 
 @Database(entities = [Chatroom::class, User::class, Event::class, Message::class, RemoteKeys::class], version = 1, exportSchema = false)
@@ -16,7 +18,7 @@ abstract class HobbyfiDatabase : RoomDatabase() {
         @Volatile
         private var instance: HobbyfiDatabase? = null
 
-        fun getInstance(context: Context) : HobbyfiDatabase {
+        fun getInstance(context: Context): HobbyfiDatabase {
             synchronized(this) {
                 var instance = this.instance
                 if(instance == null) {

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
@@ -20,18 +21,18 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         handleIntent()
     }
 
-    private lateinit var _facebookState: MutableStateFlow<FacebookState>
-    val facebookState: StateFlow<FacebookState> get() = _facebookState
+    private lateinit var facebookStateIntent: StateIntent<FacebookState, FacebookIntent>
 
-    private lateinit var facebookIntent: Channel<FacebookIntent>
+    val facebookState get() = facebookStateIntent.state
 
     override fun handleIntent() {
         // different channels consumed as flows must be collected in different coroutine jobs
         viewModelScope.launch {
-            facebookIntent = Channel(Channel.UNLIMITED) // has to be init'd here. bruh...
-            _facebookState = MutableStateFlow(FacebookState.Idle)
+            facebookStateIntent = object : StateIntent<FacebookState, FacebookIntent>() {
+                override val _state: MutableStateFlow<FacebookState> = MutableStateFlow(FacebookState.Idle)
+            } // has to be init-ed here because this abstract method gets called/initialised before the intent somehow???
 
-            facebookIntent.consumeAsFlow().collectLatest {
+            facebookStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is FacebookIntent.FetchFacebookUserTags -> {
                         fetchFacebookTags()
@@ -46,7 +47,7 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
             }
         }
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
+            mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is TokenIntent.FetchLoginToken -> {
                         fetchLoginToken()
@@ -63,48 +64,48 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
     }
 
     suspend fun sendFacebookIntent(i: FacebookIntent) {
-        facebookIntent.send(i)
+        facebookStateIntent.sendIntent(i)
     }
 
     private suspend fun fetchUserExistence(id: Long) {
-        _facebookState.value = FacebookState.Loading
-        _facebookState.value = try {
+        facebookStateIntent.setState(FacebookState.Loading)
+        facebookStateIntent.setState(try {
             FacebookState.OnData.ExistenceResultReceived(
                 tokenRepository.getUserExistence(id)
             )
         } catch(ex: Exception) {
             FacebookState.Error(ex.message)
-        }
+        })
     }
 
     private suspend fun fetchFacebookTags() {
-        _facebookState.value = FacebookState.Loading
-        _facebookState.value = try {
+        facebookStateIntent.setState(FacebookState.Loading)
+        facebookStateIntent.setState(try {
             FacebookState.OnData.TagsReceived(
                 tokenRepository.getFacebookUserPageTitlesAsTags()
             )
         } catch(ex: Exception) {
             FacebookState.Error(ex.message)
-        }
+        })
     }
 
     private suspend fun fetchFacebookEmail() {
-        _facebookState.value = FacebookState.Loading
-        _facebookState.value = try {
+        facebookStateIntent.setState(FacebookState.Loading)
+        facebookStateIntent.setState(try {
             FacebookState.OnData.EmailReceived(
                 tokenRepository.getFacebookUserEmail()
             )
         } catch(ex: Exception) {
             FacebookState.Error(ex.message)
-        }
+        })
     }
 
     // TODO: Save facebook user picture on own back-end? Useless but easier?
     // ...if the Facebook user changes their profile picture, it won't be synced in the app...
     // Too bad!
     private suspend fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, image: String, tags: List<Tag>) {
-        _mainState.value = TokenState.Loading
-        _mainState.value = try {
+        mainStateIntent.setState(TokenState.Loading)
+        mainStateIntent.setState(try {
             tokenRepository.getRegisterToken(
                 facebookToken,
                 email,
@@ -118,6 +119,6 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
         } catch(ex: Exception) {
             ex.printStackTrace()
             TokenState.Error(ex.message)
-        }
+        })
     }
 }

@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!--TODO: card layout with imageview and text to the right-->
+    <data>
+        <import type="android.view.Gravity" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <variable
+            name="message"
+            type="com.example.hobbyfi.models.Message" />
+    </data>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <include
+            android:id="@+id/message_card_receive"
+            layout="@layout/message_card"
+            app:gravity="@{Gravity.LEFT}"
+            app:message="@{message}" />
+    </LinearLayout>
+</layout>

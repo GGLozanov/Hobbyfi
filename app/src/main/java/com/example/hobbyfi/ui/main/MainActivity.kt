@@ -1,6 +1,11 @@
 package com.example.hobbyfi.ui.main
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -10,9 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import androidx.paging.ExperimentalPagingApi
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
+import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
@@ -22,25 +28,58 @@ import com.example.hobbyfi.ui.base.OnAuthStateReset
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.facebook.login.LoginManager
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-
+import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
-    private val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
-        AuthUserViewModelFactory(application, args.user)
+    val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
+        AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
     })
-    private lateinit var binding: ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
 
     private var poppedFromNavController: Boolean = false
 
+    private val fcmTopicErrorFallback: OnFailureListener by instance(
+        tag = "fcmTopicErrorFallback",
+        MainApplication.applicationContext
+    )
+
+    private val authStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == Constants.LOGOUT) {
+                logout()
+            } else {
+                Log.wtf("MainActivity", "MainActivity authStateReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!")
+            }
+        }
+    }
+
+    private val chatroomDeletedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == Constants.CHATROOM_DELETED) {
+                viewModel.setLatestUserUpdateFields(mapOf(
+                    Pair(Constants.CHATROOM_ID, "0")
+                ))
+                viewModel.setLeftChatroom(true)
+            } else {
+                Log.wtf("MainActivity", "MainActivity chatroomDeletedReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!")
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+        registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
+        registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
+
         with(binding) {
             val view = root
             setContentView(view)
@@ -67,11 +106,10 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         }
     }
 
-    @ExperimentalPagingApi
     override fun onStart() {
         super.onStart()
 
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
                     is UserState.Idle -> {
@@ -99,11 +137,14 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                             } else {
                                 viewModel.setLeftChatroom(true)
                             }
+                            viewModel.setLatestUserUpdateFields(it.userFields) // update later in observers in fragment
                         } else {
+                            viewModel.sendIntent(
+                                UserIntent.UpdateUserCache(it.userFields)
+                            )
                             Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
                                 .show()
                         }
-                        viewModel.updateAndSaveUser(it.userFields)
                         viewModel.resetState()
                     }
                     is UserState.Error -> {
@@ -112,19 +153,30 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         if(it.shouldReauth) {
                             logout()
                         }
+                        viewModel.resetState()
                     }
                 }
             }
         }
     }
 
-    // FIXME: Bad way to handle backstack
-    fun resetAuth() {
-        // TODO: Unsubscribe from FCM
+    private fun resetAuthProperties() {
         LoginManager.getInstance().logOut()
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
+    }
+
+    // FIXME: Bad way to handle backstack
+    private fun resetAuth() {
+        if(viewModel.authUser.value?.chatroomId != null) {
+            FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(
+                viewModel.authUser.value?.chatroomId!!)).addOnCompleteListener {
+                resetAuthProperties()
+            }.addOnFailureListener(fcmTopicErrorFallback)
+        } else {
+            resetAuthProperties()
+        }
     }
 
     override fun logout() {
@@ -146,6 +198,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         return true
     }
 
+    // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
         if(poppedFromNavController) {
             resetAuth()
@@ -161,5 +214,11 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
         resetAuth()
         finishAffinity()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(chatroomDeletedReceiver)
+        unregisterReceiver(authStateReceiver)
     }
 }

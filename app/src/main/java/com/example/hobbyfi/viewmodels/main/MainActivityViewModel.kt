@@ -25,9 +25,10 @@ class MainActivityViewModel(application: Application, user: User?)
     val joinedChatroom: LiveData<Boolean> get() = _joinedChatroom
     private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val leftChatroom: LiveData<Boolean> get() = _leftChatroom
+    private var latestUserUpdateFields: Map<String?, String?>? = null
 
     fun resetState() {
-        _mainState.value = UserState.Idle
+        mainStateIntent.setState(UserState.Idle)
     }
 
     init {
@@ -47,5 +48,19 @@ class MainActivityViewModel(application: Application, user: User?)
 
     fun setLeftChatroom(leftChatroom: Boolean) {
         _leftChatroom.value = leftChatroom
+    }
+
+    fun setLatestUserUpdateFields(updateFields: Map<String?, String?>?) {
+        latestUserUpdateFields = updateFields
+    }
+
+    fun updateUserWithLatestFields() {
+        if(latestUserUpdateFields != null) {
+            viewModelScope.launch {
+                updateAndSaveUser(latestUserUpdateFields!!)
+            }
+        } else {
+            Log.wtf("MainActivityVM", "Called updateUserWithLatestFields incorrectly!")
+        }
     }
 }

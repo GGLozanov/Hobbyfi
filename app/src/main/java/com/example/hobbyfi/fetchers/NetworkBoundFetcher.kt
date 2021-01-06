@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-// implements caching policy for user & event fetch (i.e. caching NOT controlled by Paging3 or Coil)
+// implements caching policy for user & event fetch (i.e. caching NOT controlled by Paging3 or Glide)
 abstract class NetworkBoundFetcher<CacheModel, NetworkResponse> {
     fun asFlow() = flow {
         emit(null)

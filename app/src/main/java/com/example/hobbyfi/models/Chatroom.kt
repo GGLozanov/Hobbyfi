@@ -2,17 +2,14 @@ package com.example.hobbyfi.models
 
 import android.os.Parcelable
 import androidx.annotation.Keep
-import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.example.hobbyfi.BuildConfig
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
-import com.google.gson.GsonBuilder
+import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 // TODO: Room embed fields & typeconverters for saving tag lists in chatroom/user entity
 @Entity(tableName = "chatrooms")
@@ -29,8 +26,18 @@ data class Chatroom(
     @SerializedName(Constants.OWNER_ID)
     val ownerId: Long,
     @SerializedName(Constants.LAST_EVENT_ID)
-    var lastEventId: Int?
-) : ExpandedModel, Parcelable {
+    var lastEventId: Long?
+) : ExpandedModel {
+    constructor(data: Map<String, String?>) :
+            this((data[Constants.ID] ?: error("Chatroom ID must not be null!")).toLong(),
+                data[Constants.NAME] ?: error("Chatroom name must not be null!"),
+                data[Constants.DESCRIPTION],
+                data[Constants.PHOTO_URL],
+                Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
+                (data[Constants.OWNER_ID] ?: error("Chatroom owner ID must not be null!")).toLong(),
+                data[Constants.LAST_EVENT_ID]?.toLong()
+            )
+
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Chatroom {
         for((key, value) in fieldMap.entries) {
             when(key) {
@@ -40,20 +47,20 @@ data class Chatroom(
                 Constants.DESCRIPTION -> {
                     description = value
                 }
-                Constants.TAGS + "[]" -> {
-                    tags = GsonBuilder()
-                        .registerTypeAdapter(
-                            Tag::class.java,
-                            TagTypeAdapter()
-                        ) // FIXME: Extract into singleton
-                        .create().fromJson(value!!)
+                Constants.TAGS, Constants.TAGS + "[]" -> {
+                    tags = Constants.tagJsonConverter
+                        .fromJson(value)
                 }
                 Constants.IMAGE -> {
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(id) + "/" + id + ".jpg"
                 }
                 Constants.LAST_EVENT_ID -> {
-                    val eventId = value!!.toInt()
-                    this.lastEventId = if(eventId.compareTo(0) == 0) null else eventId
+                    if(value != null) {
+                        val eventId = value.toLong()
+                        this.lastEventId = if(eventId.compareTo(0) == 0) null else eventId
+                    } else {
+                        this.lastEventId = null
+                    }
                 }
             }
         }

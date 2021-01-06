@@ -17,7 +17,6 @@ import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import kotlinx.android.synthetic.main.fragment_tag_selection_dialog.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class TagSelectionDialogFragment : BaseDialogFragment() {

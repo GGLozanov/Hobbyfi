@@ -1,25 +1,21 @@
 package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
-import androidx.databinding.Bindable
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.repositories.ChatroomRepository
-import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.appendNewSelectedTagsToTags
-import com.example.hobbyfi.shared.getNewSelectedTagsWithTags
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
@@ -37,18 +33,24 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
         _base64Image = base64Image
     }
 
+    override val mainStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
+        override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
+    }
+
     init {
         handleIntent()
     }
 
-    override val _mainState: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
+    fun resetState() {
+        mainStateIntent.setState(ChatroomState.Idle)
+    }
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
+            mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is ChatroomIntent.CreateChatroom -> {
-                        createChatroom()
+                        createChatroom(it.ownerId)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -56,23 +58,40 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
         }
     }
 
-    private suspend fun createChatroom() {
-        _mainState.value = ChatroomState.Loading
-        _mainState.value = try {
+    private suspend fun createChatroom(ownerId: Long) {
+        mainStateIntent.setState(ChatroomState.Loading)
+        mainStateIntent.setState(try {
+            val response = chatroomRepository.createChatroom(
+                name.value!!,
+                description.value!!,
+                base64Image,
+                tagBundle.selectedTags
+            )
+
+            val chatroom = Chatroom(
+                response!!.id,
+                name.value!!,
+                description.value,
+                if(base64Image != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
+                        + "/" + response.id + ".jpg" else null,
+                if(tagBundle.selectedTags.isEmpty()) null else tagBundle.selectedTags,
+                ownerId,
+                null
+            )
+
+            saveChatroom(chatroom)
+
             ChatroomState.OnData.ChatroomCreateResult(
-                chatroomRepository.createChatroom(
-                    name.value!!,
-                    description.value!!,
-                    base64Image,
-                    tagBundle.selectedTags
-                )
+                chatroom
             )
         } catch(ex: Exception) {
             ex.printStackTrace()
             ChatroomState.Error(
                 ex.message,
-                ex is Repository.ReauthenticationException
+                shouldExit = ex.isCritical
             )
-        }
+        })
     }
+
+    private suspend fun saveChatroom(chatroom: Chatroom) = chatroomRepository.saveChatroom(chatroom)
 }

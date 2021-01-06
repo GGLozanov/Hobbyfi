@@ -76,7 +76,8 @@
         <argument
             android:name="user"
             app:argType="com.example.hobbyfi.models.User"
-            app:nullable="true" />
+            app:nullable="true"
+            android:defaultValue="@null" />
     </activity>
     <include app:graph="@navigation/tag_nav_graph" />
 </navigation>

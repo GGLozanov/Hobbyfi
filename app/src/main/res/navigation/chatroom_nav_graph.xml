@@ -17,6 +17,9 @@
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
             app:destination="@id/event_create_navigation" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_eventMapsActivity"
+            app:destination="@id/eventMapsActivity" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -41,20 +44,16 @@
         tools:layout="@layout/fragment_event_edit_dialog" />
     <navigation android:id="@+id/event_create_navigation"
         app:startDestination="@id/eventCreateFragment">
-        <activity
-            android:id="@+id/eventMapsActivity"
-            android:name="com.example.hobbyfi.ui.chatroom.EventMapsActivity"
-            android:label="Choose Location"
-            tools:layout="@layout/activity_event_maps" />
         <fragment
             android:id="@+id/eventCreateFragment"
             android:name="com.example.hobbyfi.ui.chatroom.EventCreateFragment"
             android:label="Create Event"
-            tools:layout="@layout/fragment_event_create">
-            <action
-                android:id="@+id/action_eventCreateFragment_to_eventMapsActivity"
-                app:destination="@id/eventMapsActivity" />
-        </fragment>
+            tools:layout="@layout/fragment_event_create"/>
     </navigation>
     <include app:graph="@navigation/tag_nav_graph" />
+    <activity
+        android:id="@+id/eventMapsActivity"
+        android:name="com.example.hobbyfi.ui.chatroom.EventMapsActivity"
+        android:label="activity_event_maps"
+        tools:layout="@layout/activity_event_maps" />
 </navigation>

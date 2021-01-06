@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginBottom="20dp"
-            android:background="@drawable/layout_shadow"
+            android:background="@drawable/rounded_container"
             android:padding="15dp"
             tools:context=".ui.chatroom.ChatroomEditFragment">
 

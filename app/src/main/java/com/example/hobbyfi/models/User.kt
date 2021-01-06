@@ -12,9 +12,10 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "users")
 @Keep
@@ -31,7 +32,17 @@ data class User(
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_ID)
     var chatroomId: Long?,
-) : ExpandedModel, Parcelable {
+) : ExpandedModel {
+    constructor(data: Map<String, String?>) : this(
+        (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
+        data[Constants.EMAIL],
+        data[Constants.USERNAME] ?: error("User username must not be null!"),
+        data[Constants.DESCRIPTION],
+        data[Constants.PHOTO_URL],
+        Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
+        data[Constants.CHATROOM_ID]?.toLong()
+    )
+
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
         for((key, value) in fieldMap.entries) {
             when(key) {
@@ -44,21 +55,21 @@ data class User(
                 Constants.DESCRIPTION -> {
                     description = value
                 }
-                Constants.TAGS + "[]" -> {
-                    tags = GsonBuilder()
-                        .registerTypeAdapter(
-                            Tag::class.java,
-                            TagTypeAdapter()
-                        ) // FIXME: Extract into singleton
-                        .create().fromJson(value!!)
+                Constants.TAGS, Constants.TAGS + "[]" -> {
+                    tags = Constants.tagJsonConverter
+                        .fromJson(value!!)
                 }
                 Constants.IMAGE -> {
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_ID -> {
-                    val chatroomId = value!!.toLong()
-                    this.chatroomId = if(chatroomId.compareTo(0) == 0) null else chatroomId
+                    if(value != null) {
+                        val chatroomId = value.toLong()
+                        this.chatroomId = if(chatroomId.compareTo(0) == 0) null else chatroomId
+                    } else {
+                        this.chatroomId = null
+                    }
                 }
             }
         }

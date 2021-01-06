@@ -9,8 +9,9 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Chatroom
@@ -24,10 +25,12 @@ import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
-import kotlinx.android.synthetic.main.activity_main.*
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
@@ -36,8 +39,13 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        (requireActivity() as MainActivity).bottom_nav.isVisible = false
+        (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
     }
+
+    private val fcmTopicErrorFallback: OnFailureListener by instance(
+        tag = "fcmTopicErrorFallback",
+        MainApplication.applicationContext
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -74,7 +82,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                 }
 
                 lifecycleScope.launch {
-                    viewModel!!.sendIntent(ChatroomIntent.CreateChatroom)
+                    viewModel!!.sendIntent(ChatroomIntent.CreateChatroom(activityViewModel.authUser.value!!.id))
                 }
             }
         }
@@ -89,23 +97,19 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         // TODO: Progressbar
                     }
                     is ChatroomState.OnData.ChatroomCreateResult -> {
-                        activityViewModel.updateAndSaveUser(mapOf(
-                            Pair(Constants.CHATROOM_ID, it.response!!.id.toString())
-                        ))
+                        activityViewModel.setLatestUserUpdateFields(mapOf(
+                            Pair(Constants.CHATROOM_ID, it.response.id.toString())
+                        )) // trigger for joinedChatroom observer in ChatroomListFragment
 
-                        navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
-                            activityViewModel.authUser.value,
-                            Chatroom(
-                                it.response.id,
-                                viewModel.name.value!!,
-                                viewModel.description.value,
-                                BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(it.response.id)
-                                        + "/" + it.response.id + ".jpg",
-                                viewModel.tagBundle.selectedTags,
-                                activityViewModel.authUser.value!!.id,
-                                null
-                            )
-                        ))
+                        FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
+                                it.response.id)).addOnCompleteListener { task ->
+                            activityViewModel.setJoinedChatroom(true)
+                            navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
+                                activityViewModel.authUser.value,
+                                it.response
+                            ))
+                        }.addOnFailureListener(fcmTopicErrorFallback)
+                        viewModel.resetState()
                     }
                     is ChatroomState.Error -> {
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
@@ -149,15 +153,15 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         }
     }
 
+    @ExperimentalPagingApi
     override fun onDestroyView() {
         super.onDestroyView()
-        (requireActivity() as MainActivity).bottom_nav.isVisible = true // hacky solution but oh well, nested nav graphs do that
+        (requireActivity() as MainActivity).binding.bottomNav.isVisible = true // hacky solution but oh well, nested nav graphs do that
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(
-            this,
             requireActivity(),
             requestCode,
             resultCode,
@@ -165,11 +169,9 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
             binding.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.setProfileImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.setProfileImageBase64(
+                ImageUtils.encodeImage(it)
+            )
         }
     }
 }

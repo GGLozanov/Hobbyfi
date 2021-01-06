@@ -8,6 +8,7 @@
     <string name="pref_login_status">com.example.preference_login_status</string>
     <string name="pref_token">com.example.preference_token</string> <!--Accounts for both JWT and Facebook-->
     <string name="pref_refresh_token">com.example.preference_refresh_token</string>
+    <string name="pref_device_token">com.example.preference_device_token</string>
 
     <!--Rest of caching is handled by RemoteMediators for Paging3 and Cloud Firestore; these are handled by NetworkBoundFetchers-->
     <string name="pref_last_user_fetch_time">com.example.preference_last_user_fetch_time</string>
@@ -51,7 +52,7 @@
     <string name="title_activity_event_maps">Event Map</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_chatroom">Chatroom Create</string>
+    <string name="title_activity_chatroom">Chatroom</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -83,4 +84,39 @@
     <string name="delete_chatroom">Delete Chatroom</string>
     <string name="delete_event">Delete Event</string>
     <string name="pick_single">Pick only one image</string>
+
+    <string name="create_message_notification_title">New message received!</string>
+    <string name="create_event_notification_title">New event created!</string>
+    <string name="delete_chatroom_notification_title">Chatroom deleted!</string>
+    <string name="delete_chatroom_notification_body">Looks like the chatroom you were apart of was deleted. Don\'t worry, just find (or create) a new one!</string>
+    <string name="join_user_notification_title">New user!</string>
+    <string name="leave_user_notification_title">User left!</string>
+
+    <plurals name="pick_multi">
+        <item quantity="one">One image selected</item>
+        <item quantity="other">%1$d images selected</item>
+    </plurals>
+    <plurals name="pick_multi_more">
+        <item quantity="one">Please select one more image…</item>
+        <item quantity="other">Please select %1$d more images…</item>
+    </plurals>
+    <string name="pick_multi_limit">You have more than %1$d images selected…</string>
+    <string name="no_event_description">You can wait for the owner to create one.</string>
+    <string name="no_event_title">Currently, there\'s no event scheduled.</string>
+    <string name="no_event_description_owner">But you can make one in the admin panel.</string>
+    <string name="users">Users</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="delete_message">Are you sure you want to delete this message?</string>
+    <string name="admin_panel">Admin Panel</string>
+    <string name="admin_description">This is the admin panel. You can edit the chatroom\'s info here.</string>
+    <string name="event_create_header">Create an Event</string>
+    <string name="title_activity_event_choose_location_maps">Map</string>
+    <string name="event_name_hint">Enter an event name</string>
+    <string name="channel_name">Hobbyfi Channel</string>
+    <string name="channel_description">Hobbyfi notification channel. Duh.</string>
+    <string name="access_fine_location_rationale">We need to have access to your location if you want to automatically choose the event location as your current one</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="back_event_choose_maps">Do you want to use the current coordinates as the event\'s location?</string>
 </resources>

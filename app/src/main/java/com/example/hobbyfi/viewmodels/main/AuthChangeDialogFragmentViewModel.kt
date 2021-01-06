@@ -22,7 +22,7 @@ class AuthChangeDialogFragmentViewModel(application: Application) : AuthInclusiv
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
+            mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is TokenIntent.FetchLoginToken -> {
                         fetchLoginToken()

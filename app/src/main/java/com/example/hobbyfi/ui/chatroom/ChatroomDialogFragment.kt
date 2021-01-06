@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.chatroom
 
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.navArgs
+import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
