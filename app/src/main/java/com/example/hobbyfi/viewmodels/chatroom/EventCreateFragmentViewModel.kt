@@ -26,10 +26,6 @@ class EventCreateFragmentViewModel(
     application: Application
 ) : StateIntentViewModel<EventState, EventIntent>(application), NameDescriptionBindable by NameDescriptionBindableViewModel() {
 
-    interface OnEventCoordinatesReceived {
-        fun onEventCoordinatesReceived(latLng: LatLng)
-    }
-
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
     override val mainStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {

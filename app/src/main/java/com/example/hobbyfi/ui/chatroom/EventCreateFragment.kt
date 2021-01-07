@@ -9,16 +9,21 @@ import android.text.format.DateFormat
 import android.view.*
 import android.widget.DatePicker
 import android.widget.TimePicker
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navGraphViewModels
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
+import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.shared.currentNavigationFragment
+import com.example.hobbyfi.state.EventState
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.main.MainActivityArgs
 import com.example.hobbyfi.utils.FieldUtils
@@ -26,6 +31,8 @@ import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.io.Serializable
 import java.util.*
 
@@ -80,7 +87,39 @@ class EventCreateFragment : ChatroomModelFragment(),
                 Callbacks.requestImage(this@EventCreateFragment)
             }
 
+            confirmButton.setOnClickListener {
+                if(assertTextFieldsInvalidity()) {
+                    return@setOnClickListener
+                }
+
+                lifecycleScope.launch {
+                    viewModel.sendIntent(EventIntent.CreateEvent)
+                }
+            }
+
+            observeEventState()
+
             return@onCreateView binding.root
+        }
+    }
+
+    private fun observeEventState() {
+        lifecycleScope.launch {
+            viewModel.mainState.collect {
+                when(it) {
+                    is EventState.OnData.EventCreateResult -> {
+                        Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
+                            .show()
+                        navController.popBackStack()
+                    }
+                    is EventState.Error -> {
+                        // TODO: Handle shouldReauth
+                        Toast.makeText(requireContext(), "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                    else -> throw State.InvalidStateException()
+                }
+            }
         }
     }
 
@@ -152,6 +191,4 @@ class EventCreateFragment : ChatroomModelFragment(),
             )
         }
     }
-
-
 }

@@ -226,8 +226,8 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
 
     // TODO: Use in EventMapsActivity as well
     private fun moveMarkerAndCamera(latLng: LatLng) {
-        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
         marker?.remove()
+        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
         marker = map?.addMarker(MarkerOptions()
             .title(eventTitle)
             .snippet(eventDescription)

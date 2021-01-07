@@ -110,10 +110,16 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         headerBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
         headerBinding.viewModel = viewModel
 
-        if(viewModel.authUser.value == null && viewModel.authChatroom.value == null) {
+        if(viewModel.authUser.value == null) {
             // deeplink situation
             lifecycleScope.launch {
                 viewModel.sendIntent(UserIntent.FetchUser)
+            }
+        }
+
+        if(viewModel.authChatroom.value == null) {
+            lifecycleScope.launch {
+                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
             }
         }
 
@@ -170,9 +176,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
-                        if(viewModel.authChatroom.value == null) {
-                            viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
-                        }
                     }
                     is UserState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
@@ -197,7 +200,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Loading
                     }
                     is ChatroomState.OnData.ChatroomResult -> {
-                        // TODO: UI or smth
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult, is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
@@ -280,14 +282,16 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                                 })
                         }
                     }
-                    is EventState.OnData.EventCreateResult -> TODO()
-                    is EventState.OnData.EventEditResult -> TODO()
+                    is EventState.OnData.EventEditResult -> {
+
+                    }
                     is EventState.OnData.EventDeleteResult, is EventState.OnData.DeleteEventCacheResult -> {
                         // _authEvent should be nullified already here; do something else
                     }
                     is EventState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -385,7 +389,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                     viewModel.sendChatroomIntent(
                         ChatroomIntent.FetchChatroom
                     )
-//                    viewModel.sendEventIntent(
+                    // viewModel.sendEventIntent(
 //                        EventIntent.FetchEvent
 //                    )
                 }
