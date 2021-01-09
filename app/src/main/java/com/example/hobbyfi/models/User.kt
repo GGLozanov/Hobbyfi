@@ -17,6 +17,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
+// TODO: chatroomId change to eventIds List for one-to-many connection
 @Entity(tableName = "users")
 @Keep
 @Parcelize
@@ -30,8 +31,8 @@ data class User(
     @SerializedName(Constants.PHOTO_URL)
     override var photoUrl: String?,
     var tags: List<Tag>?,
-    @SerializedName(Constants.CHATROOM_ID)
-    var chatroomId: Long?,
+    @SerializedName(Constants.CHATROOM_IDS)
+    var chatroomIds: List<Long>?
 ) : ExpandedModel {
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
@@ -40,7 +41,7 @@ data class User(
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
         Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
-        data[Constants.CHATROOM_ID]?.toLong()
+        Constants.tagJsonConverter.fromJson(data[Constants.CHATROOM_IDS])
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
@@ -63,13 +64,9 @@ data class User(
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
-                Constants.CHATROOM_ID -> {
-                    if(value != null) {
-                        val chatroomId = value.toLong()
-                        this.chatroomId = if(chatroomId.compareTo(0) == 0) null else chatroomId
-                    } else {
-                        this.chatroomId = null
-                    }
+                Constants.CHATROOM_ID, Constants.CHATROOM_IDS + "[]" -> {
+                    chatroomIds = Constants.tagJsonConverter
+                        .fromJson(value!!)
                 }
             }
         }

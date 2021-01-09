@@ -52,6 +52,7 @@ object Constants {
     const val resourceNotFoundError: String = "Requested resource not found!"
     const val fcmTopicError: String = "Couldn't perform operation! Please check your connection or consult with Google, as this error is not ours!"
     const val invalidViewType: String = "Invalid view type for ViewHolder!"
+    const val firestoreDeletionError: String = "Couldn't delete Firestore records needed to have been deleted!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
 
     const val imagePermissionsRequestCode = 200
@@ -275,4 +276,8 @@ object Constants {
     const val EVENT_LOCATION = "EVENT_LOCATION"
     const val EVENT_TITLE: String = "EVENT_TITLE"
     const val EVENT_DESCRIPTION = "EVENT_DESCRIPTION"
+
+    const val EVENT_IDS: String = "event_ids"
+    const val CHATROOM_IDS: String = "chatroom_ids"
+    const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"
 }

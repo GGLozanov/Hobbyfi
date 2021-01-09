@@ -30,16 +30,13 @@ import org.kodein.di.generic.instance
 
 
 class ChatroomListAdapter(
-    private inline val onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
-    private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null) :
-    PagingDataAdapter<Chatroom, ChatroomListAdapter.ChatroomListViewHolder>(DIFF_CALLBACK), KodeinAware {
+    onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null
+) : BaseChatroomListAdapter<ChatroomListAdapter.ChatroomListViewHolder>(onJoinChatroomButton), KodeinAware {
 
     @ExperimentalPagingApi
     override val kodein: Kodein by kodein(MainApplication.applicationContext)
 
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
-
-    private var shouldDisplayLeaveChatroomButton: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomListViewHolder {
         return ChatroomListViewHolder.getInstance(parent, prefConfig)
@@ -50,7 +47,6 @@ class ChatroomListAdapter(
 
         with(holder) {
             bind(chatroom, position)
-            initChatroomLeaveButtonListener(chatroom, onLeaveChatroomButton, shouldDisplayLeaveChatroomButton)
             initChatroomJoinButtonListener(chatroom, onJoinChatroomButton)
         }
     }
@@ -70,6 +66,8 @@ class ChatroomListAdapter(
 
 
         override fun bind(chatroom: Chatroom?, position: Int) {
+            binding.chatroomLeaveButton.isVisible =
+                false
             binding.chatroom = chatroom
             with(binding) {
                 Log.i("ChatroomListAdapter", "Chatroom w/ id ${chatroom?.id} profile picture url: ${chatroom?.photoUrl}")
@@ -102,17 +100,6 @@ class ChatroomListAdapter(
             }
         }
 
-        fun initChatroomLeaveButtonListener(chatroom: Chatroom?,
-                    onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)?, shouldDisplayLeaveChatroomButton: Boolean) {
-            binding.chatroomLeaveButton.isVisible =
-                shouldDisplayLeaveChatroomButton
-            binding.chatroomLeaveButton.setOnClickListener {
-                if(chatroom != null) {
-                    onLeaveChatroomButton?.invoke(it, chatroom)
-                }
-            }
-        }
-
         fun initChatroomJoinButtonListener(chatroom: Chatroom?, onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)?) {
             binding.chatroomJoinButton.setOnClickListener {
                 if (chatroom != null) {
@@ -122,22 +109,4 @@ class ChatroomListAdapter(
         }
     }
 
-    companion object {
-        private val DIFF_CALLBACK = object :
-            DiffUtil.ItemCallback<Chatroom>() {
-            // Chatroom details may have changed if reloaded from the database,
-            // but ID is fixed.
-            override fun areItemsTheSame(oldChatroom: Chatroom,
-                                         newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
-
-            override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom == newChatroom
-        }
-
-    }
-
-    fun setLeaveChatroomButtonVisibility(shouldDisplay: Boolean) {
-        shouldDisplayLeaveChatroomButton = shouldDisplay
-        notifyDataSetChanged() // eh, not really true but have to notify somehow
-    }
 }

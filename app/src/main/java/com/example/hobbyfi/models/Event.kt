@@ -18,11 +18,13 @@ data class Event(
     var description: String?,
     @SerializedName(Constants.START_DATE)
     val startDate: String, // converted to Date format in back-end
-    val date: String,
+    var date: String,
     @SerializedName(Constants.PHOTO_URL)
     override var photoUrl: String?,
-    val latitude: Double,
-    val longitude: Double
+    var latitude: Double,
+    var longitude: Double,
+    @SerializedName(Constants.CHATROOM_ID)
+    val chatroomId: Long
 ) : ExpandedModel {
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("Event ID must not be null!")).toLong(),
@@ -32,7 +34,8 @@ data class Event(
         data[Constants.DATE] ?: error("Event date must not be null!"),
         data[Constants.PHOTO_URL],
         data[Constants.LATITUDE]?.toDouble() ?: error("Event lat must not be null!"),
-        data[Constants.LONGITUDE]?.toDouble() ?: error("Event long must not be null!")
+        data[Constants.LONGITUDE]?.toDouble() ?: error("Event long must not be null!"),
+        data[Constants.CHATROOM_ID]?.toLong() ?: error("Event chatroom ID must not be null!")
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Event {

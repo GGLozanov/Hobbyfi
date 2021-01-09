@@ -13,11 +13,13 @@
     <!--Rest of caching is handled by RemoteMediators for Paging3 and Cloud Firestore; these are handled by NetworkBoundFetchers-->
     <string name="pref_last_user_fetch_time">com.example.preference_last_user_fetch_time</string>
     <string name="pref_last_user_image_fetch_time">com.example.preference_last_user_image_fetch_time</string>
-    <string name="pref_last_event_fetch_time">com.example.preference_last_event_fetch_time</string>
+    <string name="pref_last_events_fetch_time">com.example.preference_last_events_fetch_time</string>
     <string name="pref_last_chatrooms_fetch_time">com.example.preference_last_chatrooms_fetch_time</string>
     <string name="pref_last_chatroom_image_fetch_time">com.example.preference_last_chatroom_image_fetch_time</string>
     <string name="pref_last_chatroom_users_fetch_time">com.example.preference_last_chatroom_users_fetch_time</string>
     <string name="pref_last_chatroom_messages_fetch_time">com.example.preference_last_chatroom_messages_fetch_time</string>
+    <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
+    <string name="pref_first_app_boot">com.example.first_app_boot</string> <!-- TODO: Used for future onboarding -->
 
     <string name="default_notification_channel_id">HOBBYFI_NOTIFICATION_CHANNEL</string>
 
@@ -79,10 +81,10 @@
     <string name="search">Search</string>
     <string name="info">Info</string>
     <string name="edit_chatroom">Edit Chatroom</string>
-    <string name="edit_event">Edit Event</string>
+    <string name="edit_an_event">Edit an Event</string>
     <string name="create_event">Create Event</string>
     <string name="delete_chatroom">Delete Chatroom</string>
-    <string name="delete_event">Delete Event</string>
+    <string name="delete_an_event">Delete an Event</string>
     <string name="pick_single">Pick only one image</string>
 
     <string name="create_message_notification_title">New message received!</string>
@@ -119,4 +121,5 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="back_event_choose_maps">Do you want to use the current coordinates as the event\'s location?</string>
+    <string name="your_chatrooms">Your Chatrooms</string>
 </resources>

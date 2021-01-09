@@ -85,6 +85,26 @@ class PrefConfig(private val context: Context) {
         ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
     }
 
+    fun writeLastEnteredChatroomId(chatroomId: Long) {
+        val editor = sharedPreferences.edit()
+        editor.putInt(
+            context.getString(R.string.pref_last_entered_chatroom_id),
+            chatroomId.toInt()
+        ).apply()
+    }
+
+    fun resetLastEnteredChatroomId() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_last_entered_chatroom_id)).apply()
+    }
+
+    fun readLastEnteredChatroomId(): Long {
+        return sharedPreferences.getInt(
+            context.getString(R.string.pref_last_entered_chatroom_id),
+            (System.currentTimeMillis() / 1000).toInt()
+        ).toLong()
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())

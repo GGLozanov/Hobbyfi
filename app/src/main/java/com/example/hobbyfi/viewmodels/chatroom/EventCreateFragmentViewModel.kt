@@ -1,16 +1,16 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Base64Image
-import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
 import com.google.android.gms.maps.model.LatLng
@@ -25,7 +25,6 @@ import java.util.*
 class EventCreateFragmentViewModel(
     application: Application
 ) : StateIntentViewModel<EventState, EventIntent>(application), NameDescriptionBindable by NameDescriptionBindableViewModel() {
-
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
     override val mainStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {

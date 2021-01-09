@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadState
+import androidx.paging.filter
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
@@ -20,6 +21,7 @@ import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.extractModelListFromCurrentPagingData
 import com.example.hobbyfi.shared.findItemFromCurrentPagingData
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.ChatroomListState
@@ -35,38 +37,40 @@ import java.lang.Exception
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomListFragment : MainFragment() {
+class ChatroomListFragment : MainListFragment() {
     private val viewModel: ChatroomListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomListBinding
-    private val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter({ _, chatroom ->
+    // TODO: Refactor as part of one-to-many connection: divert chatroom join to JoinedChatroomListFragment
+    private val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter { _, chatroom ->
         viewModel.setButtonSelectedChatroom(chatroom)
-        val userChatroomId = activityViewModel.authUser.value?.chatroomId
+        val userChatroomIds = activityViewModel.authUser.value?.chatroomIds
 
-        // if user does not have a chatroom
-        if(userChatroomId == null || userChatroomId != chatroom.id) {
+        // if user does not have a chatroom (kinda redundant check)
+        if (userChatroomIds == null || !userChatroomIds.contains(chatroom.id)) {
             // If user join chatroom is successful, delete other chatrooms from cache (+remote keys) and load only their chatroom from cache
             lifecycleScope.launch {
-                activityViewModel.sendIntent(UserIntent.UpdateUser(mapOf(
-                    Pair(Constants.CHATROOM_ID, chatroom.id.toString())
-                )))
+                activityViewModel.sendIntent(
+                    UserIntent.UpdateUser(
+                        mapOf(
+                            Pair(
+                                Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                    activityViewModel.authUser.value!!.chatroomIds?.plus(chatroom.id)
+                                )
+                            )
+                        )
+                    )
+                )
             }
         } else {
             // otherwise simply allow the user to join their chatroom
-            FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(userChatroomId))
+            FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(chatroom.id))
                 .addOnCompleteListener {
                     updateJob = lifecycleScope.launch {
                         navigateToChatroom()
                     }
-            }.addOnFailureListener(fcmTopicErrorFallback) // subscribe (ex: after user logout)
+                }.addOnFailureListener(fcmTopicErrorFallback) // subscribe (ex: after user logout)
         }
-    }, {_, chatroom ->
-        viewModel.setButtonSelectedChatroom(chatroom)
-        lifecycleScope.launch {
-            activityViewModel.sendIntent(UserIntent.UpdateUser(mapOf(
-                Pair(Constants.CHATROOM_ID, "0")
-            )))
-        }
-    })
+    }
     private var loadStateAdapter: DefaultLoadStateAdapter? = null
 
     private var updateJob: Job? = null
@@ -75,7 +79,6 @@ class ChatroomListFragment : MainFragment() {
         tag = "fcmTopicErrorFallback",
         MainApplication.applicationContext
     )
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -157,23 +160,21 @@ class ChatroomListFragment : MainFragment() {
             })
     }
 
-    private fun observeAuthUser() {
+    override fun observeAuthUser() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
-                Log.i("ChatroomListFragment", "user chatroom id: ${user.chatroomId}")
+                Log.i("ChatroomListFragment", "user chatroom ids: ${user.chatroomIds}")
 
-                val userHasChatroom = user.chatroomId != null
+                // TODO: Modify for support for one-to-many connection AND modify DeleteChatroomsCache
+                // TODO: To delete chatrooms with IDs IN user chatroom IDs array
+                val userHasChatroom = user.chatroomIds != null
 
                 loadStateAdapter?.setUserHasChatroom(userHasChatroom)
-                setChatroomLeaveButtonVisibility(userHasChatroom) // possible performance issues here
 
                 lifecycleScope.launch {
-                    if(userHasChatroom && chatroomListAdapter.itemCount != 0) {
-                        if(!viewModel.hasDeletedCacheForSession) {
-                            viewModel.sendIntent(ChatroomListIntent.DeleteChatroomsCache(user.chatroomId!!))
-                        }
-                    } else {
-                        viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(userHasChatroom))
+                    // TODO: Add condition if chatroom ids have changed
+                    if(chatroomListAdapter.itemCount == 0) {
+                        viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(user.chatroomIds))
                     }
 
                     observeChatroomsState()
@@ -216,14 +217,12 @@ class ChatroomListFragment : MainFragment() {
                                     .show()
                             }
                         }.collectLatest { data ->
-                            setChatroomLeaveButtonVisibility(state.isJustAuthChatroom) // possible performance issues here
 
-                            chatroomListAdapter.submitData(data)
+                            chatroomListAdapter.submitData(data.filterSync {
+                                return@filterSync activityViewModel.authUser.value!!.chatroomIds?.contains(it.id) == false
+                            })
                         }
                     }
-                }
-                is ChatroomListState.OnData.DeleteChatroomsCacheResult -> {
-                    Log.i("ChatroomListFragment", "Deleted chatrooms cache. User has a chatroom already: ${activityViewModel.authUser.value?.chatroomId}")
                 }
                 is ChatroomListState.Error -> {
                     if(state.shouldReauth) {
@@ -237,14 +236,6 @@ class ChatroomListFragment : MainFragment() {
         }
     }
 
-    private fun setChatroomLeaveButtonVisibility(userHasChatroom: Boolean) {
-        // TODO: findItemFromCurrentPagingData uses method that generates list for current paging data each time
-        // TODO: This might cause performance issues later on but solves bugs related to button visibility
-        // TODO: Optimise the method
-        val userNotOwner = chatroomListAdapter.findItemFromCurrentPagingData { it.id == activityViewModel.authUser.value?.chatroomId }
-            ?.ownerId != activityViewModel.authUser.value!!.id
-        chatroomListAdapter.setLeaveChatroomButtonVisibility(userHasChatroom && userNotOwner)
-    }
 
     private fun initChatroomListAdapter() {
         with(binding) {
@@ -252,7 +243,7 @@ class ChatroomListFragment : MainFragment() {
             loadStateAdapter = DefaultLoadStateAdapter({
                 chatroomListAdapter.retry()
             }, {
-                navController.navigate(ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateFragment(
+                navController.navigate(ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
                     activityViewModel.authUser.value!!
                 ))
             })
@@ -260,8 +251,6 @@ class ChatroomListFragment : MainFragment() {
             chatroomList.adapter = chatroomListAdapter.withLoadStateFooter(loadStateAdapter!!)
 
             swiperefresh.setOnRefreshListener {
-                // TODO: Paging 3 bug currently whenever endOfPagination = true in refresh() https://issuetracker.google.com/issues/174769547
-                // TODO: Attempted hack to fix it by unsubscribing from flow while the bug is fixed; HACK DOESN'T WORK AT THIS POINT
                 chatroomListAdapter.refresh()
                 // should trickle down to remote mediator and VM
             }

@@ -6,6 +6,6 @@ import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindableViewModel
 
-class EventEditDialogFragmentViewModel(application: Application) : BaseViewModel(application),
+class EventEditFragmentViewModel(application: Application) : BaseViewModel(application),
     NameDescriptionBindable by NameDescriptionBindableViewModel() {
 }

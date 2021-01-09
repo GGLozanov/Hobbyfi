@@ -10,7 +10,6 @@ import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,8 +23,7 @@ import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomListFragmentViewModel(application: Application) :
-    StateIntentViewModel<ChatroomListState, ChatroomListIntent>(application) {
+class ChatroomListFragmentViewModel(application: Application) : StateIntentViewModel<ChatroomListState, ChatroomListIntent>(application) {
     private val chatroomRepository: ChatroomRepository by instance("chatroomRepository")
 
     override val mainStateIntent: StateIntent<ChatroomListState, ChatroomListIntent> = object : StateIntent<ChatroomListState, ChatroomListIntent>() {
@@ -37,14 +35,10 @@ class ChatroomListFragmentViewModel(application: Application) :
     }
 
     private var currentChatrooms: Flow<PagingData<Chatroom>>? = null
-    private var _hasDeletedCacheForSession = false
-    val hasDeletedCacheForSession get() = _hasDeletedCacheForSession
+    private var currentJoinedChatrooms: Flow<PagingData<Chatroom>>? = null
+
     private var _buttonSelectedChatroom: Chatroom? = null
     val buttonSelectedChatroom: Chatroom? get() = _buttonSelectedChatroom
-
-    fun setHasDeletedCacheForSession(hasDeletedCache: Boolean) {
-        _hasDeletedCacheForSession = hasDeletedCache
-    }
 
     fun setButtonSelectedChatroom(chatroom: Chatroom?) {
         _buttonSelectedChatroom = chatroom
@@ -59,37 +53,41 @@ class ChatroomListFragmentViewModel(application: Application) :
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is ChatroomListIntent.FetchChatrooms -> {
-                        Log.i("ChatroomListFragmentVM", "Handling FetchChatrooms intent with shouldDisplayAuthChatroom: ${it.shouldDisplayAuthChatroom}")
-                        fetchChatrooms(it.shouldDisplayAuthChatroom)
+                        Log.i("ChatroomListFragmentVM", "Handling FetchChatrooms intent")
+                        fetchChatrooms(it.userChatroomIds)
                     }
-                    is ChatroomListIntent.DeleteChatroomsCache -> {
-                        Log.i("ChatroomListFragmentVM", "Handling DeleteChatroomsCache intent with auth chatroom id: ${it.authChatroomId}")
-                        deleteChatroomsCache(it.authChatroomId)
+                    is ChatroomListIntent.FetchJoinedChatrooms -> {
+                        Log.i("ChatroomListFragmentVM", "Handling FetchJoinedChatrooms intent")
+                        fetchJoinedChatrooms(it.userChatroomIds)
                     }
                 }
             }
         }
     }
 
-    private fun fetchChatrooms(shouldDisplayAuthChatroom: Boolean) {
+    private fun fetchChatrooms(userChatroomIds: List<Long>?) {
         mainStateIntent.setState(ChatroomListState.Loading)
 
         Log.i("ChatroomListFragmentVM", "Current chatrooms: ${currentChatrooms}")
         if(currentChatrooms == null) {
-            currentChatrooms = chatroomRepository.getChatrooms(shouldFetchAuthChatroom = shouldDisplayAuthChatroom)
+            currentChatrooms = chatroomRepository.getChatrooms(userChatroomIds = userChatroomIds)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
-        mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(currentChatrooms!!, shouldDisplayAuthChatroom))
+        mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(currentChatrooms!!))
     }
 
-    private suspend fun deleteChatroomsCache(authChatroomId: Long) {
-        // deletes other cached chatrooms (not auth'd) for user
-        withContext(viewModelScope.coroutineContext) {
-            chatroomRepository.deleteChatrooms(authChatroomId) // ignore result for now because, c'mon, where could it go wrong?
-            _hasDeletedCacheForSession = true
-            mainStateIntent.setState(ChatroomListState.OnData.DeleteChatroomsCacheResult)
+    private fun fetchJoinedChatrooms(userChatroomIds: List<Long>?) {
+        mainStateIntent.setState(ChatroomListState.Loading)
+
+        Log.i("ChatroomListFragmentVM", "Current JOINED chatrooms: ${currentJoinedChatrooms}")
+        if(currentJoinedChatrooms == null) {
+            currentJoinedChatrooms = chatroomRepository.getAuthChatrooms(userChatroomIds = userChatroomIds)
+                .distinctUntilChanged()
+                .cachedIn(viewModelScope)
         }
+
+        mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(currentJoinedChatrooms!!))
     }
 }

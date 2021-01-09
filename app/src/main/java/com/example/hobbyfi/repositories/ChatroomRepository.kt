@@ -12,6 +12,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
+import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Callbacks
@@ -19,22 +20,38 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
+import com.google.firebase.FirebaseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class ChatroomRepository @ExperimentalPagingApi constructor(
-    prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
-    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+    private val chatroomMediator: ChatroomMediator, private val authChatroomMediator: ChatroomMediator,
+    prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
+) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
-    fun getChatrooms(pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
-                     shouldFetchAuthChatroom: Boolean = false): Flow<PagingData<Chatroom>> {
-        Log.i("ChatroomRepository", "getChatrooms -> getting current chatrooms with shouldFetchAuthChatroom: ${shouldFetchAuthChatroom}")
-        val pagingSource = { hobbyfiDatabase.chatroomDao().getChatrooms() }
+    fun getChatrooms(
+        pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
+        userChatroomIds: List<Long>?
+    ): Flow<PagingData<Chatroom>> {
+        val pagingSource = { hobbyfiDatabase.chatroomDao().getChatroomsNotPresentInIds(userChatroomIds) }
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, shouldFetchAuthChatroom)
+            remoteMediator = chatroomMediator
+        ).flow
+    }
+
+    @ExperimentalPagingApi
+    fun getAuthChatrooms(
+        pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
+        userChatroomIds: List<Long>?
+    ): Flow<PagingData<Chatroom>> {
+        val pagingSource = { hobbyfiDatabase.chatroomDao().getChatroomsByIds(userChatroomIds) }
+        return Pager(
+            config = pagingConfig,
+            pagingSourceFactory = pagingSource,
+            remoteMediator = authChatroomMediator
         ).flow
     }
 
@@ -42,10 +59,10 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     suspend fun getChatroom(): Flow<Chatroom?> {
         Log.i("ChatroomRepository", "getChatroom -> getting auth user chatroom")
 
-        return object : NetworkBoundFetcher<Chatroom, CacheListResponse<Chatroom>>() {
-            override suspend fun saveNetworkResult(response: CacheListResponse<Chatroom>) {
-                // TODO: somehow calculate remotekeys for pagination or just refresh the list again?
-                hobbyfiDatabase.chatroomDao().upsert(response.modelList[0])
+        return object : NetworkBoundFetcher<Chatroom, CacheResponse<Chatroom>>() {
+            override suspend fun saveNetworkResult(response: CacheResponse<Chatroom>) {
+                prefConfig.writeLastEnteredChatroomId(response.model.id)
+                hobbyfiDatabase.chatroomDao().upsert(response.model)
             }
 
             override fun shouldFetch(cache: Chatroom?): Boolean {
@@ -69,16 +86,16 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                 }
             }
 
-            override suspend fun fetchFromNetwork(): CacheListResponse<Chatroom>? {
+            override suspend fun fetchFromNetwork(): CacheResponse<Chatroom>? {
                 Log.i("ChatroomRepository", "getChatroom -> fetchFromNetwork() -> fetching current auth chatroom from network")
                 return try {
                     val token = prefConfig.getAuthUserToken()
                     if(token != null) {
-                        val response = hobbyfiAPI.fetchChatrooms(
+                        val response = hobbyfiAPI.fetchChatroom(
                             token,
-                            null
+                            prefConfig.readLastEnteredChatroomId()
                         )
-                        Log.i("ChatroomRepository", "getChatroom -> ${response.modelList}")
+                        Log.i("ChatroomRepository", "getChatroom -> ${response.model}")
                         response
                     } else throw ReauthenticationException()
                 } catch(ex: Exception) {
@@ -116,14 +133,25 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }, { editChatroom(chatroomFields) })
     }
 
-    suspend fun deleteChatroom(): Response? {
+    suspend fun deleteChatroom(chatroomId: Long): Response? {
         Log.i("ChatroomRepository", "deleteChatroom -> deleting current chatroom")
 
         return performAuthorisedRequest({
-            hobbyfiAPI.deleteChatroom(
+            val response = hobbyfiAPI.deleteChatroom(
                 prefConfig.getAuthUserToken()!!,
             )
-        }, { deleteChatroom() })
+
+            firestore.collection(Constants.LOCATIONS_COLLECTION)
+                .whereEqualTo(Constants.CHATROOM_ID, chatroomId)
+                .get().addOnSuccessListener {
+                    it.documents.forEach { doc ->
+                        doc.reference.delete()
+                    }
+                }.addOnFailureListener {
+                    throw FirebaseException(Constants.firestoreDeletionError)
+                }
+            response
+        }, { deleteChatroom(chatroomId) })
     }
 
     suspend fun saveChatroom(chatroom: Chatroom) {

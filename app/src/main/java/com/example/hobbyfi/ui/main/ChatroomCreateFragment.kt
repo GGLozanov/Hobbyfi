@@ -98,7 +98,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                     }
                     is ChatroomState.OnData.ChatroomCreateResult -> {
                         activityViewModel.setLatestUserUpdateFields(mapOf(
-                            Pair(Constants.CHATROOM_ID, it.response.id.toString())
+                            Pair(Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(listOf(it.response.id)))
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
                         FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(

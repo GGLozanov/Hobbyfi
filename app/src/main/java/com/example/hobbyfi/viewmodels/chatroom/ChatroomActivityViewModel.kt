@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.Chatroom
@@ -16,15 +17,15 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.shared.replace
 import com.example.hobbyfi.state.ChatroomState
+import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.UserListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
-import java.util.stream.Collector
-import java.util.stream.Collectors
 
 @ExperimentalCoroutinesApi
 class ChatroomActivityViewModel(
@@ -32,26 +33,30 @@ class ChatroomActivityViewModel(
     user: User?,
     chatroom: Chatroom?
 ) : AuthChatroomHolderViewModel(application, user, chatroom) {
-
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
     private var _currentAdapterUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
     val currentAdapterUsers: LiveData<List<User>> get() = _currentAdapterUsers
 
-    private var _authEvent: MutableLiveData<Event> = MutableLiveData()
-    val authEvent: LiveData<Event> get() = _authEvent
+    // TODO: Change from authEvent one to authEvent List and pass in event selected by user for deletion
+    private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
+    val authEvents: LiveData<List<Event>> get() = _authEvents
 
-    fun setAuthEvent(event: Event) {
-        _authEvent.value = event
+    fun setAuthEvents(events: List<Event>) {
+        _authEvents.value = events
     }
+
+    private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
+        override val _state: MutableStateFlow<EventListState> = MutableStateFlow(EventListState.Idle)
+    }
+    val eventState get() = eventsStateIntent.state
+
+    suspend fun sendEventIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
     private val eventStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
         override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
     }
-    val eventState get() = eventStateIntent.state
-
-    suspend fun sendEventIntent(intent: EventIntent) = eventStateIntent.sendIntent(intent)
-
+    
     private val usersStateIntent: StateIntent<UserListState, UserListIntent> = object : StateIntent<UserListState, UserListIntent>() {
         override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
     }
@@ -68,21 +73,32 @@ class ChatroomActivityViewModel(
             eventStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.DeleteEvent -> {
-                        deleteEvent()
+                        deleteEvent(it.eventId)
                     }
                     is EventIntent.UpdateEvent -> {
                         updateEvent(it.eventUpdateFields)
                     }
-                    is EventIntent.UpdateEventCache -> {
+                    else -> throw Intent.InvalidIntentException()
+                }
+            }
+        }
+        viewModelScope.launch {
+            eventsStateIntent.intentAsFlow().collect {
+                when(it) {
+                    is EventListIntent.DeleteAnEventCache -> {
+                        if(deleteEventCache(it.eventId)) {
+                            setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
+                        }
+                    }
+                    is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
                     }
-                    is EventIntent.CreateEventCache -> {
+                    is EventListIntent.AddAnEventCache -> {
                         saveEvent(it.event)
                     }
-                    is EventIntent.FetchEvent -> {
-                        fetchEvent()
+                    is EventListIntent.FetchEvents -> {
+                        fetchEvents()
                     }
-                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -141,21 +157,21 @@ class ChatroomActivityViewModel(
         }
     }
 
-    private suspend fun fetchEvent() {
-        eventStateIntent.setState(EventState.Loading)
+    private suspend fun fetchEvents() {
+        eventsStateIntent.setState(EventListState.Loading)
 
         eventRepository.getEvent(_authChatroom.value!!.id).catch { e ->
-            eventStateIntent.setState(
-                EventState.Error(
+            eventsStateIntent.setState(
+                EventListState.Error(
                     e.message,
                     (e as Exception).isCritical
                 )
             )
         }.collect {
             if(it != null) {
-                _authEvent.value = it
-                eventStateIntent.setState(
-                    EventState.OnData.EventResult(
+                _authEvents.value = it
+                eventsStateIntent.setState(
+                    EventListState.OnData.EventsResult(
                         it
                     )
                 )
@@ -185,25 +201,26 @@ class ChatroomActivityViewModel(
     }
 
     private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
-        val updatedEvent = _authEvent.value!!.updateFromFieldMap(eventFields)
-        eventRepository.saveEvent(updatedEvent)
-        _authEvent.value = updatedEvent
+        val updatedEvent = _authEvents.value!!.find { it.id == (eventFields[Constants.ID]
+                ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
+            .updateFromFieldMap(eventFields)
+        saveEvent(updatedEvent)
     }
 
-    private suspend fun saveEvent(updatedEvent: Event) {
-        eventRepository.saveEvent(updatedEvent)
-        _authEvent.value = updatedEvent
+    private suspend fun saveEvent(event: Event) {
+        eventRepository.saveEvent(event)
+        _authEvents.value = _authEvents.value!!.replace(event, { it.id == event.id })
     }
 
-    private suspend fun deleteEvent() {
+    private suspend fun deleteEvent(eventId: Long) {
         eventStateIntent.setState(EventState.Loading)
 
         eventStateIntent.setState(try {
             val state = EventState.OnData.EventDeleteResult(
-                eventRepository.deleteEvent()
+                eventRepository.deleteEvent(eventId)
             )
 
-            deleteEventCache()
+            deleteEventCache(eventId)
 
             state
         } catch(ex: Exception) {
@@ -216,12 +233,8 @@ class ChatroomActivityViewModel(
     }
 
     // FIXME: Ge. Ne. RIIIIICS. Well, not really but still code dup with other deleteCache methods. Mitigate that
-    private suspend fun deleteEventCache(setState: Boolean = false) {
-        val success = eventRepository.deleteEventCache(_authEvent.value!!.id)
-
-        updateAndSaveChatroom(mapOf(
-            Pair(Constants.LAST_EVENT_ID, "0")
-        ))
+    private suspend fun deleteEventCache(eventId: Long, setState: Boolean = false): Boolean {
+        val success = eventRepository.deleteEventCache(eventId)
 
         if(setState) {
             eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
@@ -229,6 +242,8 @@ class ChatroomActivityViewModel(
         } else if(!success) {
             throw Exception(Constants.cacheDeletionError)
         }
+
+        return true
     }
 
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {

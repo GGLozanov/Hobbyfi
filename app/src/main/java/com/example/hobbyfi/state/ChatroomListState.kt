@@ -9,7 +9,8 @@ sealed class ChatroomListState : State {
     object Loading : ChatroomListState()
 
     sealed class OnData : ChatroomListState() {
-        data class ChatroomsResult(val chatrooms: Flow<PagingData<Chatroom>>, val isJustAuthChatroom: Boolean = false) : ChatroomListState()
+        data class ChatroomsResult(val chatrooms: Flow<PagingData<Chatroom>>) : ChatroomListState()
+        data class JoinedChatroomsResults(val joinedChatrooms: Flow<PagingData<Chatroom>>) : ChatroomListState()
         object DeleteChatroomsCacheResult : ChatroomListState()
     }
 

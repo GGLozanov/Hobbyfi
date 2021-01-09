@@ -8,8 +8,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class ChatroomDao : BaseDao<Chatroom>() {
-    @Query("SELECT * FROM chatrooms")
-    abstract fun getChatrooms(): PagingSource<Int, Chatroom>
+    @Query("SELECT * FROM chatrooms WHERE id IN (:chatroomIds)")
+    abstract fun getChatroomsByIds(chatroomIds: List<Long>?): PagingSource<Int, Chatroom>
+
+    abstract fun getChatroomsNotPresentInIds(chatroomIds: List<Long>?): PagingSource<Int, Chatroom>
 
     @Query("DELETE FROM chatrooms")
     abstract suspend fun deleteChatrooms()

@@ -5,13 +5,13 @@
     <data>
         <variable
             name="viewModel"
-            type="com.example.hobbyfi.viewmodels.chatroom.EventEditDialogFragmentViewModel" />
+            type="com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel" />
     </data>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.chatroom.EventEditDialogFragment">
+        tools:context=".ui.chatroom.EventEditFragment">
 
         <!-- TODO: Update blank fragment layout -->
         <TextView

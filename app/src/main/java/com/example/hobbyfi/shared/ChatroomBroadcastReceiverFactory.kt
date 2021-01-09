@@ -7,9 +7,8 @@ import android.util.Log
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.intents.ChatroomIntent
-import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserListIntent
-import com.example.hobbyfi.models.Model
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -157,7 +156,7 @@ open class ChatroomBroadcastReceiverFactory(
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendEventIntent(
-                                EventIntent.CreateEventCache(
+                                EventListIntent.AddAnEventCache(
                                     it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
                                 )
                             )
@@ -174,7 +173,7 @@ open class ChatroomBroadcastReceiverFactory(
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendEventIntent(
-                                EventIntent.UpdateEventCache(
+                                EventListIntent.UpdateAnEventCache(
                                     it.getDestructedMapExtra()
                                 )
                             )
@@ -191,7 +190,7 @@ open class ChatroomBroadcastReceiverFactory(
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendEventIntent(
-                                EventIntent.DeleteEventCache
+                                EventListIntent.DeleteAnEventCache(it.getDeletedModelIdExtra())
                             )
                         }
                     },

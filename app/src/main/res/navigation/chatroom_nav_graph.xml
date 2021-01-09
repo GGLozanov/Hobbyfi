@@ -39,9 +39,9 @@
     </fragment>
     <dialog
         android:id="@+id/eventEditDialogFragment"
-        android:name="com.example.hobbyfi.ui.chatroom.EventEditDialogFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.EventEditFragment"
         android:label="fragment_event_edit_dialog"
-        tools:layout="@layout/fragment_event_edit_dialog" />
+        tools:layout="@layout/fragment_event_edit" />
     <navigation android:id="@+id/event_create_navigation"
         app:startDestination="@id/eventCreateFragment">
         <fragment

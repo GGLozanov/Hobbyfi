@@ -1,9 +1,7 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.app.Activity
 import android.content.*
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -22,8 +20,6 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
@@ -31,7 +27,7 @@ import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
 import com.example.hobbyfi.intents.ChatroomIntent
-import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.Message
@@ -52,7 +48,6 @@ import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import com.google.android.gms.maps.model.LatLng
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -79,8 +74,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     private var deleteEventReceiver: BroadcastReceiver? = null
     private var editEventReceiver: BroadcastReceiver? = null
     private var createEventReceiver: BroadcastReceiver? = null
-
-    private var currentEventGlideTarget: CustomTarget<Drawable>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,16 +123,11 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         }
 
         with(binding) {
-            binding.eventCard.background.alpha = 255 * (75 / 100) // 75% of 255 (255 = max alpha value)
-
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
             usersList.adapter = userListAdapter
             // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user join
-            joinLeaveEventButtonBar.leftButton.setOnClickListener { // leave event
-                // unsubscribe from cloud firestore (through eventrepository, eventintent, etc.)
-            }
-            joinLeaveEventButtonBar.rightButton.setOnClickListener { // join event
-                // navigate to maps activity
+            eventSelectionButton.setOnClickListener {
+
             }
         }
 
@@ -159,7 +147,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         observeUsers()
         observeUserState()
         observeUsersState()
-        observeEventState()
+        observeEventsState()
         observeChatroom()
         observeChatroomOwnRights()
         observeConnectionRefresh()
@@ -204,7 +192,8 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                     is ChatroomState.OnData.ChatroomDeleteResult, is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
                             .show()
-                        sendBroadcast(Intent(Constants.CHATROOM_DELETED))
+                        sendBroadcast(Intent(Constants.CHATROOM_DELETED)
+                            .apply { putExtra(Constants.CHATROOM_ID, viewModel.authChatroom.value!!.id) })
                         FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants
                             .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback)
                         viewModel.setChatroom(null) // clear chatroom in any case
@@ -251,47 +240,39 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         }
     }
 
-    private fun observeEventState() {
+    private fun observeEventsState() {
         lifecycleScope.launch {
             viewModel.eventState.collect {
                 when(it) {
-                    is EventState.Idle -> {
+                    is EventListState.Idle -> {
 
                     }
-                    is EventState.Loading -> {
+                    is EventListState.Loading -> {
                         // TODO: Progressbar on event card
                     }
-                    is EventState.OnData.EventResult -> {
-                        if(it.event.photoUrl != null) {
-                            // FIXME: Is it bad to keep this in activity like this?
-                            currentEventGlideTarget = Glide.with(this@ChatroomActivity)
-                                .asDrawable()
-                                .load(it.event.photoUrl)
-                                .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_event_fetch_time)))
-                                .into(object : CustomTarget<Drawable>() {
-                                    override fun onResourceReady(
-                                        resource: Drawable,
-                                        transition: Transition<in Drawable>?
-                                    ) {
-                                        binding.eventCard.background = resource
-                                    }
-
-                                    override fun onLoadCleared(placeholder: Drawable?) {
-                                        Glide.with(this@ChatroomActivity).clear(currentEventGlideTarget)
-                                    }
-                                })
-                        }
+                    is EventListState.OnData.EventsResult -> {
+//                        if(it.event.photoUrl != null) {
+//                            // FIXME: Is it bad to keep this in activity like this?
+//                            currentEventGlideTarget = Glide.with(this@ChatroomActivity)
+//                                .asDrawable()
+//                                .load(it.event.photoUrl)
+//                                .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time)))
+//                                .into(object : CustomTarget<Drawable>() {
+//                                    override fun onResourceReady(
+//                                        resource: Drawable,
+//                                        transition: Transition<in Drawable>?
+//                                    ) {
+//                                        binding.eventCard.background = resource
+//                                    }
+//
+//                                    override fun onLoadCleared(placeholder: Drawable?) {
+//                                        Glide.with(this@ChatroomActivity).clear(currentEventGlideTarget)
+//                                    }
+//                                })
+//                        }
                     }
-                    is EventState.OnData.EventEditResult -> {
-
+                    is EventListState.Error -> {
                     }
-                    is EventState.OnData.EventDeleteResult, is EventState.OnData.DeleteEventCacheResult -> {
-                        // _authEvent should be nullified already here; do something else
-                    }
-                    is EventState.Error -> {
-                        handleAuthActionableError(it.error, it.shouldReauth)
-                    }
-                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -308,7 +289,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                 if(viewModel.isAuthUserChatroomOwner.value == true) {
                     with(binding) {
                         navViewAdmin.menu.clear()
-                        if(chatroom.lastEventId == null) {
+                        if(chatroom.eventIds == null) {
                             navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
                         } else {
                             navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
@@ -332,10 +313,10 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                     }
                 }
 
-                if(chatroom.lastEventId != null && viewModel.authEvent.value == null) {
+                if(chatroom.eventIds != null && viewModel.authEvents.value == null) {
                     lifecycleScope.launch {
                         viewModel.sendEventIntent(
-                            EventIntent.FetchEvent
+                            EventListIntent.FetchEvents
                         )
                     }
                 }
@@ -390,7 +371,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         ChatroomIntent.FetchChatroom
                     )
                     // viewModel.sendEventIntent(
-//                        EventIntent.FetchEvent
+//                        EventIntent.FetchEvents
 //                    )
                 }
             } else {
@@ -399,6 +380,10 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         })
     }
 
+    // TODO: Add events display bottomsheet + join/leave, etc. for one-to-many relation AND communication to host activity here!1!
+    // TODO: This is on the right nav drawer
+    // TODO: Add Dialog fragment for one select and redirect to EventEditFragment on `Edit an Event` button press
+    // TODO: Add Dialog fragment for one select and delete confirm on `Delete an Event` button press
     @ExperimentalPagingApi
     private fun initTopNavigation(chatroomOwner: Boolean) {
         with(binding) {
@@ -431,16 +416,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     override fun onPause() {
         super.onPause()
         unregisterCRUDReceivers()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if(!isTaskRoot) { // don't do anything if task is root (i.e. killed and started from push notification)
-            if(currentEventGlideTarget != null) {
-                Log.i("ChatroomActivity", "ChatroomActivity onDestroy -> clearing glide event card target")
-                Glide.with(this).clear(currentEventGlideTarget)
-            }
-        }
     }
 
     private fun assertGooglePlayAvailability() {
@@ -495,6 +470,19 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     // Override here due to FragmentActivity modifying request codes and being passed through the fragment hosting activity first
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onBackPressed() {
+        FirebaseMessaging.getInstance()
+            .unsubscribeFromTopic(Constants.chatroomTopic(viewModel.authChatroom.value!!.id))
+        .addOnCompleteListener {
+            prefConfig.resetLastEnteredChatroomId()
+            super.onBackPressed()
+        }.addOnFailureListener {
+            it.printStackTrace()
+            Log.i("ChatroomActivity", "Failed to unsubscribe user from topic upon exiting chatroom. $it")
+            super.onBackPressed()
+        }
     }
 
     private fun registerCRUDReceivers() {

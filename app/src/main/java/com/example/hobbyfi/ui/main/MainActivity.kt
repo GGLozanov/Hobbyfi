@@ -63,9 +63,14 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.CHATROOM_DELETED) {
+                // TODO: Remove chatroom ID here from user list one-to-many connection
                 viewModel.setLatestUserUpdateFields(mapOf(
-                    Pair(Constants.CHATROOM_ID, "0")
-                ))
+                    Pair(Constants.CHATROOM_IDS,
+                        Constants.tagJsonConverter.toJson(
+                            viewModel.authUser.value?.chatroomIds?.filter
+                                { it != intent.getLongExtra(Constants.CHATROOM_ID, 0) }
+                        )
+                )))
                 viewModel.setLeftChatroom(true)
             } else {
                 Log.wtf("MainActivity", "MainActivity chatroomDeletedReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!")
@@ -92,7 +97,11 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
             bottomNav.selectedItemId = R.id.userProfileFragment
 
             bottomNav.setupWithNavController(
-                navGraphIds = listOf(R.navigation.user_profile_nav_graph, R.navigation.chatroom_list_nav_graph),
+                navGraphIds = listOf(
+                    R.navigation.user_profile_nav_graph,
+                    R.navigation.joined_chatroom_nav_graph,
+                    R.navigation.chatroom_list_nav_graph
+                ),
                 fragmentManager = supportFragmentManager,
                 containerId = R.id.nav_host_fragment,
                 intent = intent
@@ -100,7 +109,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 navController = it
                 toolbar.setupWithNavController(it, AppBarConfiguration(setOf(
                     R.id.userProfileFragment,
-                    R.id.chatroomListFragment
+                    R.id.chatroomListFragment,
+                    R.id.joinedChatroomListFragment
                 )))
             })
         }
@@ -168,16 +178,6 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     }
 
     // FIXME: Bad way to handle backstack
-    private fun resetAuth() {
-        if(viewModel.authUser.value?.chatroomId != null) {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(
-                viewModel.authUser.value?.chatroomId!!)).addOnCompleteListener {
-                resetAuthProperties()
-            }.addOnFailureListener(fcmTopicErrorFallback)
-        } else {
-            resetAuthProperties()
-        }
-    }
 
     override fun logout() {
         poppedFromNavController = true
@@ -201,7 +201,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
         if(poppedFromNavController) {
-            resetAuth()
+            resetAuthProperties()
             finish()
             return
         }
@@ -212,7 +212,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
             return
         }
 
-        resetAuth()
+        resetAuthProperties()
         finishAffinity()
     }
 

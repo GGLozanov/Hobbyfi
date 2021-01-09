@@ -27,7 +27,8 @@ class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom
             Constants.tagJsonConverter
                 .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
             deserializeJSONField(Constants.OWNER_ID, DeserializeOption.AS_INT) as Long,
-            deserializeJSONField(Constants.LAST_EVENT_ID, DeserializeOption.AS_LONG) as Long?
+            Constants.tagJsonConverter
+                .fromJson(deserializeJSONField(Constants.EVENT_IDS, DeserializeOption.AS_ARRAY) as JsonArray?)
         )
 
         var response = deserializeJSONField(

@@ -21,7 +21,7 @@ class ChatroomMediator(
     hobbyfiDatabase: HobbyfiDatabase,
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
-    private val shouldFetchAuthChatroom: Boolean
+    private val shouldFetchAuthChatrooms: Boolean
 ) : ModelRemoteMediator<Int, Chatroom>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.CHATROOM) {
     private val chatroomDao = hobbyfiDatabase.chatroomDao()
 
@@ -30,7 +30,7 @@ class ChatroomMediator(
         state: PagingState<Int, Chatroom>
     ): MediatorResult {
         // insert new page numbers (remote keys) after using cached page number to fetch new one
-        Log.i("ChatroomMediator", "Loading all chatrooms based on shouldFetchAuthChatroom set to ${shouldFetchAuthChatroom}")
+        Log.i("ChatroomMediator", "Loading all chatrooms based on shouldFetchAuthChatroom set to ${shouldFetchAuthChatrooms}")
 
         return try {
             fetchChatrooms(loadType, state)
@@ -46,30 +46,26 @@ class ChatroomMediator(
     }
 
     private suspend fun fetchChatrooms(loadType: LoadType, state: PagingState<Int, Chatroom>): MediatorResult {
-        var page: Int? = null
 
-        if(!shouldFetchAuthChatroom) {
-            page = getPage(loadType, state).let {
-                when(it) {
-                    is MediatorResult.Success -> {
-                        return@fetchChatrooms it
-                    }
-                    else -> {
-                        it as Int
-                    }
+        val page = getPage(loadType, state).let {
+            when(it) {
+                is MediatorResult.Success -> {
+                    return@fetchChatrooms it
+                }
+                else -> {
+                    it as Int
                 }
             }
         }
 
         Log.i("ChatroomMediator", "Fetching next chatrooms with page ${page}")
 
-        val chatroomsResponse = hobbyfiAPI.fetchChatrooms(
+        val chatroomsResponse = if(!shouldFetchAuthChatrooms) hobbyfiAPI.fetchChatrooms(
             prefConfig.getAuthUserToken()!!,
             page
-        )
+        ) else hobbyfiAPI.fetchAuthChatrooms(prefConfig.getAuthUserToken()!!, page)
 
-        val mediatorResult = if(shouldFetchAuthChatroom)
-            saveChatroom(chatroomsResponse.modelList[0]) else saveChatrooms(chatroomsResponse, page!!, loadType)
+        val mediatorResult = saveChatrooms(chatroomsResponse, page, loadType)
 
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatrooms_fetch_time)
 
@@ -100,16 +96,16 @@ class ChatroomMediator(
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)
     }
 
-    private suspend fun saveChatroom(chatroom: Chatroom): MediatorResult {
-        Log.i("ChatroomMediator", "Received chatroom: ${chatroom}")
-
-        hobbyfiDatabase.withTransaction {
-            Log.i("ChatroomMediator", "Deleting RemoteKeys and cached chatrooms")
-            remoteKeysDao.deleteRemoteKeyByType(remoteKeyType) // delete any saved chatrooms + remote keys
-            chatroomDao.deleteChatrooms()
-            chatroomDao.upsert(chatroom) // insert first (and only) fetched chatroom
-        }
-
-        return MediatorResult.Success(endOfPaginationReached = true)
-    }
+//    private suspend fun saveChatroom(chatroom: Chatroom): MediatorResult {
+//        Log.i("ChatroomMediator", "Received chatroom: ${chatroom}")
+//
+//        hobbyfiDatabase.withTransaction {
+//            Log.i("ChatroomMediator", "Deleting RemoteKeys and cached chatrooms")
+//            remoteKeysDao.deleteRemoteKeyByType(remoteKeyType) // delete any saved chatrooms + remote keys
+//            chatroomDao.deleteChatrooms()
+//            chatroomDao.upsert(chatroom) // insert first (and only) fetched chatroom
+//        }
+//
+//        return MediatorResult.Success(endOfPaginationReached = true)
+//    }
 }

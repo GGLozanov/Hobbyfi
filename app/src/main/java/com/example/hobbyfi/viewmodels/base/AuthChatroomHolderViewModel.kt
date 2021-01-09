@@ -80,7 +80,6 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     }
 
     private suspend fun fetchChatroom() {
-        // TODO: If this doesn't work or seems too coupled, make a separate fetch chatroom method and add it to ChatroomState/ChatroomIntent
         chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomRepository.getChatroom().catch { e ->
@@ -104,7 +103,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
         chatroomStateIntent.setState(try {
             val response = ChatroomState.OnData.ChatroomDeleteResult(
-                chatroomRepository.deleteChatroom()
+                chatroomRepository.deleteChatroom(_authChatroom.value!!.id)
             )
 
             deleteChatroomCache()
@@ -122,6 +121,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
                 userRepository.deleteUsersCache(_authUser.value!!.id)
 
+        // TODO: Change to save user list with chatroom IDs for one-to-many connection
         updateAndSaveUser(mapOf(
             Pair(Constants.CHATROOM_ID, "0")
         )) // nullify chatroom for cache user after deletion

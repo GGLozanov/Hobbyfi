@@ -68,6 +68,8 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         var title: String? = null
         var body: String? = null
+
+        // TODO: Add support for inputting and parsing one-to-many connections for models
         when(notificationType) {
             Constants.CREATE_MESSAGE_TYPE -> {
                 intent.putParcelableMessageExtra(data)

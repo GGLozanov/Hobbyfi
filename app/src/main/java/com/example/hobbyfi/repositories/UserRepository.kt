@@ -166,6 +166,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                 {
                     val response = hobbyfiAPI.fetchUsers(
                         prefConfig.getAuthUserToken()!!,
+                        chatroomId
                     )
                     Log.i("UserRepository", "getUserS -> ${response?.modelList}")
                     response

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.*
@@ -48,10 +49,19 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
+                instance(tag = "chatroomMediator", true),
+                instance(tag = "chatroomMediator", false),
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "connectivityManager") as ConnectivityManager
+            )
+        }
+        bind(tag = "chatroomMediator") from factory { shouldFetchAuthChatrooms: Boolean -> ChatroomMediator(
+                instance(tag = "database") as HobbyfiDatabase,
+                instance(tag = "prefConfig") as PrefConfig,
+                instance(tag = "api") as HobbyfiAPI,
+                shouldFetchAuthChatrooms
             )
         }
         bind(tag = "eventRepository") from singleton { EventRepository(

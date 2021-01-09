@@ -74,6 +74,12 @@ fun<T> List<T>.newListWithDistinct(selectedTags: List<T>): MutableList<T> {
     return newTags.distinct().toMutableList()
 }
 
+fun <T> List<T>.replace(newValue: T, predicate: (T) -> Boolean): List<T> {
+    return map {
+        if (predicate(it)) newValue else it
+    }
+}
+
 val FragmentManager.currentNavigationFragment: Fragment?
     get() = primaryNavigationFragment?.childFragmentManager?.fragments?.first()
 

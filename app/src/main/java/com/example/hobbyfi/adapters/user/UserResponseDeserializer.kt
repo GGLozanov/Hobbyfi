@@ -26,7 +26,8 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
             Constants.tagJsonConverter
                 .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
-            deserializeJSONField(Constants.CHATROOM_ID, DeserializeOption.AS_LONG) as Long?
+            Constants.tagJsonConverter
+                .fromJson(deserializeJSONField(Constants.CHATROOM_IDS, DeserializeOption.AS_ARRAY) as JsonArray?)
         )
 
         var response = deserializeJSONField(

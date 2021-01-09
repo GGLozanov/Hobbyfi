@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class EventDao : BaseDao<Event>() {
-    @Query("SELECT * FROM events WHERE id = (SELECT lastEventId FROM chatrooms WHERE id = :chatroomId)")
-    abstract fun getEventByChatroomId(chatroomId: Long): Flow<Event?>
+    @Query("SELECT * FROM events WHERE chatroomId = :chatroomId")
+    abstract fun getEventByChatroomId(chatroomId: Long): Flow<List<Event>?>
 
     @Query("DELETE FROM events WHERE id = :id")
     abstract fun deleteEventById(id: Long): Int

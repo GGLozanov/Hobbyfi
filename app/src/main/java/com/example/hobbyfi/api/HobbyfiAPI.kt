@@ -91,7 +91,8 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/users/read")
     suspend fun fetchUsers(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long
     ): CacheListResponse<User>?
 
     /**
@@ -150,10 +151,25 @@ interface HobbyfiAPI {
     /**
      *
      */
+    @GET("api/v1.0/chatroom/read")
+    suspend fun fetchChatroom(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.ID) chatroomId: Long
+    ): CacheResponse<Chatroom>
+
+    /**
+     *
+     */
     @GET("api/v1.0/chatrooms/read")
     suspend fun fetchChatrooms(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Query(Constants.PAGE) page: Int?
+        @Query(Constants.PAGE) page: Int,
+    ): CacheListResponse<Chatroom>
+
+    @GET("api/v1.0/chatrooms/read_own")
+    suspend fun fetchAuthChatrooms(
+        @Header(Constants.AUTH_HEADER) token: String?,
+        @Query(Constants.PAGE) page: Int
     ): CacheListResponse<Chatroom>
 
     /**
@@ -192,10 +208,11 @@ interface HobbyfiAPI {
         @Query(Constants.ID) id: Long
     ): Response?
 
-    @GET("api/v1.0/event/read")
+    // TODO: Modify to CacheResponse<List<Event>> when backend supports one-to-many chatroom and event connection
+    @GET("api/v1.0/events/read")
     suspend fun fetchEvent(
         @Header(Constants.AUTH_HEADER) token: String
-    ): CacheResponse<Event>
+    ): CacheListResponse<Event>
 
     /**
      *

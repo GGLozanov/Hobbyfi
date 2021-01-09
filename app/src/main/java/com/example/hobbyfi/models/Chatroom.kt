@@ -11,7 +11,7 @@ import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
-// TODO: Room embed fields & typeconverters for saving tag lists in chatroom/user entity
+// TODO: lastEventId change to eventIds List for one-to-many connection
 @Entity(tableName = "chatrooms")
 @Keep
 @Parcelize
@@ -25,8 +25,8 @@ data class Chatroom(
     var tags: List<Tag>?,
     @SerializedName(Constants.OWNER_ID)
     val ownerId: Long,
-    @SerializedName(Constants.LAST_EVENT_ID)
-    var lastEventId: Long?
+    @SerializedName(Constants.EVENT_IDS)
+    var eventIds: List<Long>?
 ) : ExpandedModel {
     constructor(data: Map<String, String?>) :
             this((data[Constants.ID] ?: error("Chatroom ID must not be null!")).toLong(),
@@ -35,7 +35,7 @@ data class Chatroom(
                 data[Constants.PHOTO_URL],
                 Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
                 (data[Constants.OWNER_ID] ?: error("Chatroom owner ID must not be null!")).toLong(),
-                data[Constants.LAST_EVENT_ID]?.toLong()
+                Constants.tagJsonConverter.fromJson(data[Constants.EVENT_IDS])
             )
 
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Chatroom {
@@ -54,13 +54,9 @@ data class Chatroom(
                 Constants.IMAGE -> {
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(id) + "/" + id + ".jpg"
                 }
-                Constants.LAST_EVENT_ID -> {
-                    if(value != null) {
-                        val eventId = value.toLong()
-                        this.lastEventId = if(eventId.compareTo(0) == 0) null else eventId
-                    } else {
-                        this.lastEventId = null
-                    }
+                Constants.EVENT_IDS, Constants.EVENT_IDS + "[]" -> {
+                    eventIds = Constants
+                        .tagJsonConverter.fromJson(value)
                 }
             }
         }
