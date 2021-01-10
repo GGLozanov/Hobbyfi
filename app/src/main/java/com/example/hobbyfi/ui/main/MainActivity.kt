@@ -140,13 +140,12 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         // FIXME: This feels quite coupled as it exposes the knowledge of the fragment
                         //  ... but I can't think of any other alternative for now
 
-                        if(it.userFields.size == 1 && it.userFields.containsKey(Constants.CHATROOM_ID)) {
-                            if(it.userFields[Constants.CHATROOM_ID]?.toInt() != 0) {
-                                // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
-                                viewModel.setJoinedChatroom(true)
-                            } else {
-                                viewModel.setLeftChatroom(true)
-                            }
+                        val hasJoinedChatroom = it.userFields.containsKey(Constants.CHATROOM_ID)
+                        val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
+                        if(hasJoinedChatroom || hasLeftChatroom) {
+                            // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
+                            viewModel.setJoinedChatroom(hasJoinedChatroom)
+                            viewModel.setLeftChatroom(hasLeftChatroom)
                             viewModel.setLatestUserUpdateFields(it.userFields) // update later in observers in fragment
                         } else {
                             viewModel.sendIntent(

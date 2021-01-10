@@ -241,6 +241,15 @@ interface HobbyfiAPI {
      */
     @DELETE("api/v1.0/event/delete")
     suspend fun deleteEvent(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.EVENT_ID) eventId: Long
+    ): Response?
+
+    /**
+     *
+     */
+    @DELETE("api/v1.0/event/delete_old")
+    suspend fun deleteOldEvents(
         @Header(Constants.AUTH_HEADER) token: String
     ): Response?
 

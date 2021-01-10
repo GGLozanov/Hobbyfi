@@ -203,7 +203,10 @@ object Constants {
         return "chatroom_imgs_$chatroomId"
     }
     fun chatroomMessagesProfileImageDir(chatroomId: Long) = chatroomProfileImageDir(chatroomId) + "/messages"
-    
+    fun eventProfileImageDir(eventId: Long): String {
+        return "event_imgs_$eventId"
+    }
+
     const val chatroomTopicPrefix = "chatroom_"
     fun chatroomTopic(chatroomId: Long): String {
         return chatroomTopicPrefix + chatroomId
@@ -237,6 +240,7 @@ object Constants {
     const val CREATE_EVENT_TYPE: String = "CREATE_EVENT"
     const val EDIT_EVENT_TYPE: String = "EDIT_EVENT"
     const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
+    const val DELETE_EVENT_BATCH_TYPE: String = "DELETE_EVENT_BATCH"
 
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
     const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
@@ -277,6 +281,7 @@ object Constants {
     const val EVENT_TITLE: String = "EVENT_TITLE"
     const val EVENT_DESCRIPTION = "EVENT_DESCRIPTION"
 
+    const val EVENT_ID = "event_id"
     const val EVENT_IDS: String = "event_ids"
     const val CHATROOM_IDS: String = "chatroom_ids"
     const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"

@@ -15,8 +15,8 @@ import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
     private inline val onCreateChatroomButton: ((view: View) -> Unit)?,
-    private var userHasChatroom: Boolean = false) :
-    LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
+    private var userIsAChatroomOwner: Boolean = false
+) : LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
     class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, private inline val retry: () -> Unit) : RecyclerView.ViewHolder(binding.root) {
 
@@ -36,22 +36,22 @@ class DefaultLoadStateAdapter(
             }
         }
 
-        fun bind(loadState: LoadState, userHasChatroom: Boolean) {
+        fun bind(loadState: LoadState, userIsAChatroomOwner: Boolean) {
             Log.i("DefaultLoadStateA", "Binding views by loadState: $loadState")
             with(binding) {
                 listErrorHeader.isVisible = loadState !is LoadState.Loading
-                listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userHasChatroom)
+                listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userIsAChatroomOwner)
                     R.string.list_error_text else R.string.list_suggest_text)
 
-                refreshPageButton.isVisible = loadState is LoadState.Error || userHasChatroom
-                chatroomCreateButton.isVisible = loadState !is LoadState.Loading && !userHasChatroom
+                refreshPageButton.isVisible = loadState is LoadState.Error || userIsAChatroomOwner
+                chatroomCreateButton.isVisible = loadState !is LoadState.Loading && !userIsAChatroomOwner
                 progressBar.isVisible = loadState is LoadState.Loading
             }
         }
     }
 
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
-        holder.bind(loadState, userHasChatroom)
+        holder.bind(loadState, userIsAChatroomOwner)
         holder.binding.chatroomCreateButton.setOnClickListener {
             onCreateChatroomButton?.invoke(it)
         }
@@ -61,8 +61,8 @@ class DefaultLoadStateAdapter(
         return DefaultLoaderViewHolder.getInstance(parent, retry)
     }
 
-    fun setUserHasChatroom(hasChatroom: Boolean) {
-        userHasChatroom = hasChatroom
+    fun setUserChatroomOwnership(isOwner: Boolean) {
+        userIsAChatroomOwner = isOwner
         notifyDataSetChanged()
     }
 

@@ -19,7 +19,7 @@ import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
-    TwoWayDataBindable by TwoWayDataBindableViewModel() {
+        TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
     protected var _authUser: MutableLiveData<User?> = MutableLiveData(user)

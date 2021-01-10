@@ -149,6 +149,8 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
 
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
+fun android.content.Intent.getEventIdsExtra(): List<Long> = Constants.tagJsonConverter.fromJson(extras?.getString(Constants.EVENT_IDS))!!
+
 val Exception.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
         this is InstantiationError || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException

@@ -21,8 +21,11 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthChatroomHolderViewModel(application: Application, user: User?, chatroom: Chatroom?)
-    : AuthUserHolderViewModel(application, user) {
+abstract class AuthChatroomHolderViewModel(
+    application: Application,
+    user: User?,
+    chatroom: Chatroom?
+) : AuthUserHolderViewModel(application, user) {
 
     protected var _authChatroom: MutableLiveData<Chatroom?> = MutableLiveData(chatroom)
     val authChatroom: LiveData<Chatroom?> get() = _authChatroom

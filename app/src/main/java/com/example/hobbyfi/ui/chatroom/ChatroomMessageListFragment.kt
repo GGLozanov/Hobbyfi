@@ -106,7 +106,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
         { messageListAdapter!!.retry() },
         null,
-        userHasChatroom = true
+        userIsAChatroomOwner = true
     )
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

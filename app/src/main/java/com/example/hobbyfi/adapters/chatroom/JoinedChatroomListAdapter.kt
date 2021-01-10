@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.databinding.ChatroomCardBinding
+import com.example.hobbyfi.databinding.JoinedChatroomCardBinding
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.PrefConfig
 
@@ -15,7 +16,7 @@ class JoinedChatroomListAdapter(
     private var userOwnedChatroomIds: List<Long> = emptyList()
 
     class JoinedChatroomListViewHolder(
-        private val binding: ChatroomCardBinding,
+        binding: JoinedChatroomCardBinding,
         private val prefConfig: PrefConfig
     ) : BaseViewHolder<Chatroom>(binding.root) {
 

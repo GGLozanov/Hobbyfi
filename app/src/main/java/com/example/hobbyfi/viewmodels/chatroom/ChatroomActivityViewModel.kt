@@ -49,9 +49,9 @@ class ChatroomActivityViewModel(
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
         override val _state: MutableStateFlow<EventListState> = MutableStateFlow(EventListState.Idle)
     }
-    val eventState get() = eventsStateIntent.state
+    val eventsState get() = eventsStateIntent.state
 
-    suspend fun sendEventIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
+    suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
     private val eventStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
         override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
@@ -93,12 +93,10 @@ class ChatroomActivityViewModel(
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
                     }
-                    is EventListIntent.AddAnEventCache -> {
-                        saveEvent(it.event)
-                    }
                     is EventListIntent.FetchEvents -> {
                         fetchEvents()
                     }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -115,6 +113,7 @@ class ChatroomActivityViewModel(
                     }
                     is UserListIntent.UpdateAUserCache -> {
                         // TODO: Update lastUsersFetchTime or something similar for Glide signature caching
+                        // TODO: Check if user has image updated? That'd retrigger every image to be refetched on next VH onBind call
                         saveUser(currentAdapterUsers.value!!.find { user -> user.id ==
                                 (it.userUpdateFields[Constants.ID] ?: error("User ID must not be null in saveUser call!")).toLong() }!!
                             .updateFromFieldMap(it.userUpdateFields), false)

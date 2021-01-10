@@ -1,9 +1,16 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.activity.viewModels
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.EventBroadcastReceiverFactory
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.MapsActivity
+import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -12,8 +19,13 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
-// TODO: Find a way to reuse this activity for both selecting event location & having users see event location
-class EventMapsActivity : BaseActivity(), OnMapReadyCallback {
+class EventMapsActivity : MapsActivity(), OnMapReadyCallback {
+    private val viewModel: EventMapsActivityViewModel by viewModels()
+
+    // sync here
+    private var deleteEventReceiver: BroadcastReceiver? = null
+    private var editEventReceiver: BroadcastReceiver? = null
+    private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
 
     private lateinit var mMap: GoogleMap
 
@@ -21,9 +33,17 @@ class EventMapsActivity : BaseActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_event_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(viewModel, this)
+        deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
+        editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
+
+        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
+        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
     }
 
     /**
@@ -42,5 +62,11 @@ class EventMapsActivity : BaseActivity(), OnMapReadyCallback {
         val sydney = LatLng(-34.0, 151.0)
         mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(deleteEventReceiver)
+        unregisterReceiver(editEventReceiver)
     }
 }

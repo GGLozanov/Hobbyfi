@@ -29,6 +29,7 @@ class EventRepository(
 ): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
 
     private val _userGeoPoints: MutableStateFlow<List<UserGeoPoint>> = MutableStateFlow(emptyList())
+    private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
     // TODO: Refactor to Fetch event list when one-to-many
     fun getEvent(chatroomId: Long): Flow<List<Event>?> {
@@ -78,7 +79,8 @@ class EventRepository(
 
         return performAuthorisedRequest({
             val response = hobbyfiAPI.deleteEvent(
-                prefConfig.getAuthUserToken()!!
+                prefConfig.getAuthUserToken()!!,
+                eventId
             )
 
             firestore.collection(Constants.LOCATIONS_COLLECTION)
@@ -130,7 +132,28 @@ class EventRepository(
         }
     }
 
-    fun getEventUsersGeoPoints(eventId: Long): StateFlow<List<UserGeoPoint>> {
+    fun getEventUserGeoPoint(username: String): StateFlow<UserGeoPoint?> {
+        firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
+            .addSnapshotListener { doc, e ->
+                if (e != null) {
+                    Log.w("EventRepository", "User GeoPoint Firestore listener error!", e)
+                    throw e
+                }
+
+                val userChatroomId = doc?.getLong(Constants.CHATROOM_ID)
+                val geoPoint = doc?.getGeoPoint(Constants.LOCATION)
+                val eventIds = doc?.get(Constants.EVENT_IDS) as List<Long>?
+
+                val userGeoPoint = if(userChatroomId == null || geoPoint == null || eventIds == null) null
+                    else UserGeoPoint(doc.id, userChatroomId, eventIds, geoPoint)
+
+                _userGeoPoint.value = userGeoPoint
+            }
+        return _userGeoPoint
+    }
+
+
+    fun getEventUsersGeoPoint(eventId: Long): StateFlow<List<UserGeoPoint>> {
         firestore.collection(Constants.LOCATIONS_COLLECTION)
             .whereArrayContains(Constants.EVENT_IDS, eventId)
             .addSnapshotListener { snapshots, e ->

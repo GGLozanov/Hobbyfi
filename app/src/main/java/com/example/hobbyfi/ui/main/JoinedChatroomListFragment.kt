@@ -1,11 +1,13 @@
 package com.example.hobbyfi.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.R
@@ -16,6 +18,7 @@ import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractModelListFromCurrentPagingData
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -30,11 +33,7 @@ import kotlinx.coroutines.launch
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
 class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>() {
-    private val viewModel: ChatroomListFragmentViewModel by viewModels()
-
-    override val chatroomListAdapter: JoinedChatroomListAdapter = JoinedChatroomListAdapter({ view: View, chatroom: Chatroom ->
-
-    }, { _: View, chatroom: Chatroom ->
+    override val chatroomListAdapter: JoinedChatroomListAdapter = JoinedChatroomListAdapter(onChatroomJoinButton, { _: View, chatroom: Chatroom ->
         viewModel.setButtonSelectedChatroom(chatroom)
         lifecycleScope.launch {
             activityViewModel.sendIntent(
@@ -44,40 +43,49 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         }
     })
 
-    // TODO: Move chatroom card visibility here
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val binding: FragmentChatroomListBinding = DataBindingUtil.inflate(
-            layoutInflater,
-            R.layout.fragment_chatroom_list,
-            container,
-            false)
-
-        with(binding) {
-
-            observeAuthUser()
-
-            return@onCreateView binding.root
-        }
-    }
-
-    private fun setChatroomLeaveButtonVisibility(userHasChatroom: Boolean) {
+    private fun setChatroomLeaveButtonVisibility() {
         // TODO: findItemFromCurrentPagingData uses method that generates list for current paging data each time
         // TODO: This might cause performance issues later on but solves bugs related to button visibility
         // TODO: Optimise the method
-        val userOwnedChatroomIds = chatroomListAdapter.extractModelListFromCurrentPagingData().filter {
-            activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
-        }.map { if(it.ownerId == activityViewModel.authUser.value!!.id) it.id else null }.filterNotNull()
+        val userOwnedChatroomIds =
+            chatroomListAdapter.extractModelListFromCurrentPagingData().filter {
+                activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
+            }.mapNotNull { if (it.ownerId == activityViewModel.authUser.value!!.id) it.id else null }
         chatroomListAdapter.setUserOwnedChatroomIds(userOwnedChatroomIds)
     }
 
-    override fun observeAuthUser() {
-        lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+    override suspend fun observeChatroomsState() {
+    }
 
-            }
-        }
+    override fun observeChatroomEntryState() {
+        activityViewModel.leftChatroom
+            .observe(viewLifecycleOwner, Observer { left ->
+                fun leaveChatroomAndUpdate() {
+                    leaveChatroom()
+                    activityViewModel.updateUserWithLatestFields()
+                }
+
+                if(left) {
+                    if(viewModel.buttonSelectedChatroom != null) {
+                        FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(
+                            viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
+                            leaveChatroomAndUpdate()
+                        }.addOnFailureListener(fcmTopicErrorFallback)
+                    } else {
+                        leaveChatroomAndUpdate()
+                    }
+                    activityViewModel.setLeftChatroom(false)
+                }  else {
+                    Log.i("ChatroomListFragment", "Observing user left chatroom false")
+                }
+            })
+    }
+
+    override fun observeAuthUser() {
+    }
+
+    private fun leaveChatroom() {
+        viewModel.setButtonSelectedChatroom(null)
+        viewModel.setCurrentChatrooms(null)
     }
 }

@@ -15,11 +15,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
+import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.EventListState
+import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -33,7 +35,6 @@ import java.util.*
 @ExperimentalCoroutinesApi
 class EventCreateFragment : ChatroomModelFragment(),
         DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
-    
     private val eventCalendar = Calendar.getInstance()
 
     val viewModel: EventCreateFragmentViewModel by viewModels()
@@ -87,7 +88,7 @@ class EventCreateFragment : ChatroomModelFragment(),
                 }
 
                 lifecycleScope.launch {
-                    viewModel!!.sendIntent(EventListIntent.CreateEvent)
+                    viewModel!!.sendIntent(EventIntent.CreateEvent(activityViewModel.authChatroom.value!!.id))
                 }
             }
 
@@ -101,12 +102,12 @@ class EventCreateFragment : ChatroomModelFragment(),
         lifecycleScope.launch {
             viewModel.mainState.collect {
                 when(it) {
-                    is EventListState.OnData.EventCreateResult -> {
+                    is EventState.OnData.EventCreateResult -> {
                         Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
                             .show()
                         navController.popBackStack()
                     }
-                    is EventListState.Error -> {
+                    is EventState.Error -> {
                         // TODO: Handle shouldReauth
                         Toast.makeText(requireContext(), "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
                             .show()

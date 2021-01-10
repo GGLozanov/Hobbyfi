@@ -2,10 +2,12 @@ package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Base64Image
+import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
@@ -45,7 +47,7 @@ class EventCreateFragmentViewModel(
             mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is EventIntent.CreateEvent -> {
-                        createEvent()
+                        createEvent(it.chatroomId)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -53,7 +55,7 @@ class EventCreateFragmentViewModel(
         }
     }
 
-    private suspend fun createEvent() {
+    private suspend fun createEvent(chatroomId: Long) {
         mainStateIntent.setState(EventState.Loading)
 
         if(eventDate == null || eventLatLng == null) {
@@ -66,12 +68,27 @@ class EventCreateFragmentViewModel(
         mainStateIntent.setState(try {
             val state = EventState.OnData.EventCreateResult(eventRepository.createEvent(
                 name.value!!,
-                description.value!!,
+                description.value,
                 eventDate.toString(),
                 base64Image.base64,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude
             ))
+
+            val event = Event(
+                state.response!!.id,
+                name.value!!,
+                description.value,
+                state.response.startDate,
+                eventDate.toString(),
+                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(state.response.id)
+                        + "/" + state.response.id + ".jpg" else null,
+                eventLatLng!!.latitude,
+                eventLatLng!!.longitude,
+                chatroomId
+            )
+
+            eventRepository.saveEvent(event)
 
             state
         } catch(ex: Exception) {

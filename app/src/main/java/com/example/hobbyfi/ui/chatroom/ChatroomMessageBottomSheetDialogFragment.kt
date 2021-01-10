@@ -25,8 +25,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), NavigationView.OnNavigationItemSelectedListener {
-
+class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment(), NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: FragmentChatroomMessageBottomSheetDialogBinding
     private lateinit var message: Message
 

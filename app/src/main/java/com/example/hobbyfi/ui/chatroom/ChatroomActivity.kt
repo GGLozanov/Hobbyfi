@@ -71,9 +71,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     private var editUserReceiver: BroadcastReceiver? = null
     private var joinUserReceiver: BroadcastReceiver? = null
     private var leaveUserReceiver: BroadcastReceiver? = null
-    private var deleteEventReceiver: BroadcastReceiver? = null
-    private var editEventReceiver: BroadcastReceiver? = null
-    private var createEventReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,8 +127,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
             }
         }
-
-        // TODO: Ask for permission upon event card press for access to location
     }
 
     @ExperimentalPagingApi
@@ -242,7 +237,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
     private fun observeEventsState() {
         lifecycleScope.launch {
-            viewModel.eventState.collect {
+            viewModel.eventsState.collect {
                 when(it) {
                     is EventListState.Idle -> {
 
@@ -251,28 +246,11 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Progressbar on event card
                     }
                     is EventListState.OnData.EventsResult -> {
-//                        if(it.event.photoUrl != null) {
-//                            // FIXME: Is it bad to keep this in activity like this?
-//                            currentEventGlideTarget = Glide.with(this@ChatroomActivity)
-//                                .asDrawable()
-//                                .load(it.event.photoUrl)
-//                                .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time)))
-//                                .into(object : CustomTarget<Drawable>() {
-//                                    override fun onResourceReady(
-//                                        resource: Drawable,
-//                                        transition: Transition<in Drawable>?
-//                                    ) {
-//                                        binding.eventCard.background = resource
-//                                    }
-//
-//                                    override fun onLoadCleared(placeholder: Drawable?) {
-//                                        Glide.with(this@ChatroomActivity).clear(currentEventGlideTarget)
-//                                    }
-//                                })
-//                        }
+                        // TODO: Update here and CalendarView
                     }
                     is EventListState.Error -> {
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -315,7 +293,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
                 if(chatroom.eventIds != null && viewModel.authEvents.value == null) {
                     lifecycleScope.launch {
-                        viewModel.sendEventIntent(
+                        viewModel.sendEventsIntent(
                             EventListIntent.FetchEvents
                         )
                     }
@@ -492,18 +470,13 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         editUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.EDIT_USER_TYPE)
         joinUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.JOIN_USER_TYPE)
         leaveUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.LEAVE_USER_TYPE)
-        deleteEventReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
-        editEventReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
-        createEventReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.CREATE_EVENT_TYPE)
+
 
         registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
         registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
         registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
         registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
         registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
-        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
-        registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
-        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
     }
 
     private fun unregisterCRUDReceivers() {
@@ -512,8 +485,5 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         unregisterReceiver(editUserReceiver)
         unregisterReceiver(joinUserReceiver)
         unregisterReceiver(leaveUserReceiver)
-        unregisterReceiver(deleteEventReceiver)
-        unregisterReceiver(createEventReceiver)
-        unregisterReceiver(editEventReceiver)
     }
 }

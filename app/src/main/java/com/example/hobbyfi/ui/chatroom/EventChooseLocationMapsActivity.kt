@@ -18,6 +18,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventChooseLocationMapsBinding
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.ui.base.MapsActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -29,26 +30,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
-class EventChooseLocationMapsActivity : AppCompatActivity(),
-        OnMapReadyCallback, EasyPermissions.PermissionCallbacks {
-    private var map: GoogleMap? = null
+class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
     private var cameraPosition: CameraPosition? = null
 
     private var marker: Marker? = null
-
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     private var eventTitle: String? = null
     private var eventDescription: String? = null
     private var eventLocation: LatLng? = null
 
-    // default location (Sydney, Australia) and default zoom to use when location permission is
-    // not granted.
-    private val defaultLocation = LatLng(-33.8523341, 151.2106085)
-    private var locationPermissionGranted = false
-
-    // location retrieved by the Fused Location Provider.
-    private var lastKnownLocation: Location? = null
     private var exitFromConfirm = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -164,19 +154,9 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
         }
     }
 
-    private fun getLocationPermission() {
-        locationPermissionGranted = Callbacks.requestLocationForEventCreate(
-            this
-        )
-    }
-
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        locationPermissionGranted = requestCode == Constants.locationPermissionsRequestCode
+        super.onPermissionsGranted(requestCode, perms)
         updateLocationUI()
-    }
-
-    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-        // TODO: Toast or w/e
     }
 
     override fun onBackPressed() {
@@ -203,6 +183,7 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
         }
     }
 
+    // TODO: Use to add icon to marker
     private fun bitmapDescriptorFromVector(
         context: Context,
         @DrawableRes vectorResId: Int

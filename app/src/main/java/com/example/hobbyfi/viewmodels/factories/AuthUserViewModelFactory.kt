@@ -8,8 +8,7 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-class AuthUserViewModelFactory(val application: Application, val user: User?)
-    : ViewModelProvider.Factory {
+class AuthUserViewModelFactory(val application: Application, val user: User?) : ViewModelProvider.Factory {
     @ExperimentalCoroutinesApi
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if(modelClass.isAssignableFrom(MainActivityViewModel::class.java)) {

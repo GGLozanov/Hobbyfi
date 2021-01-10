@@ -11,6 +11,8 @@ sealed class EventListState : State {
 
     sealed class OnData : EventListState() {
         data class EventsResult(val events: List<Event>) : EventListState()
+
+        object DeleteEventsCacheResult : OnData()
     }
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : EventListState()
