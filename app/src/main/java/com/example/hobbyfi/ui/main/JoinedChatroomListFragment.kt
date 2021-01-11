@@ -23,13 +23,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-// TODO: This fragment is the third one in the bottom nav
-// TODO: To be implemented for displaying ONLY JOINED chatrooms (not ones the user hasn't selected yet)
-// TODO: THIS IS DONE so that the user can still join/leave chatrooms dynamically
-// TODO: Part of the one-to-many user chatrooms connection
-// TODO: Use a shared view model and just filter data and display leave/join buttons accordingly
-// TODO: UserJoinedChatrooms is pagingdata as well backed by cache
-// TODO: Joined chatrooms are added once `userChatroomIds` change in UpdateUserResult UserState
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
 class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>() {
@@ -55,6 +48,9 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
     }
 
     override suspend fun observeChatroomsState() {
+        viewModel.mainState.collect {
+            // TODO: On error for fetch, check if ChatroomListFragment has chatrooms and put them in by filtering
+        }
     }
 
     override fun observeChatroomEntryState() {
@@ -82,6 +78,13 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
     }
 
     override fun observeAuthUser() {
+        activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
+            if(user != null) {
+
+
+                setChatroomLeaveButtonVisibility()
+            }
+        })
     }
 
     private fun leaveChatroom() {

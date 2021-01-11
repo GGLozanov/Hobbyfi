@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.databinding.FragmentEventSelectionBottomSheetDialogBinding
@@ -16,6 +15,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
 class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
+    // TODO: Pass in events directly (FOR NOW) because this will ONLY be avaialble for admin user
+
     private val eventListAdapter: EventListAdapter = EventListAdapter(
         activityViewModel.authEvents.value ?: emptyList(),
         { view: View, event: Event ->
@@ -25,12 +26,6 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
 
         }
     )
-
-    // TODO: When user taps leave/join button, resend FetchEvent intent to resync data
-    // TODO: if user requests to leave/join a deleted event => don't allow them
-    // TODO: if user requests to leave/join an updated event => send the event with the new data and save in VM
-    // TODO: Use cache if offline => use remote if connected
-    // TODO: Require connection for user taps on buttons
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -75,4 +70,5 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
             }
         })
     }
+
 }

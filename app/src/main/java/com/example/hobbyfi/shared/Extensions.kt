@@ -27,6 +27,7 @@ import com.google.gson.reflect.TypeToken
 import androidx.fragment.app.Fragment
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.repositories.Repository
+import com.google.android.material.navigation.NavigationView
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.CancellationException
 
@@ -82,6 +83,11 @@ fun <T> List<T>.replace(newValue: T, predicate: (T) -> Boolean): List<T> {
 
 val FragmentManager.currentNavigationFragment: Fragment?
     get() = primaryNavigationFragment?.childFragmentManager?.fragments?.first()
+
+fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
+    menu.clear()
+    inflateMenu(menuId)
+}
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
 fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {

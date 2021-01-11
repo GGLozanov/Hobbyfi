@@ -30,10 +30,8 @@ import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.intents.UserListIntent
+import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.shared.ChatroomBroadcastReceiverFactory
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.state.*
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
@@ -46,9 +44,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.setHeightBasedOnChildren
+import com.example.hobbyfi.shared.*
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import com.prolificinteractive.materialcalendarview.CalendarDay
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView.SELECTION_MODE_MULTIPLE
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView.SELECTION_MODE_NONE
 import org.kodein.di.generic.instance
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected {
@@ -71,6 +74,11 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
     private var editUserReceiver: BroadcastReceiver? = null
     private var joinUserReceiver: BroadcastReceiver? = null
     private var leaveUserReceiver: BroadcastReceiver? = null
+
+    private var deleteEventReceiver: BroadcastReceiver? = null
+    private var editEventReceiver: BroadcastReceiver? = null
+    private var createEventReceiver: BroadcastReceiver? = null
+    private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,9 +130,17 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         with(binding) {
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
             usersList.adapter = userListAdapter
-            // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user join
-            eventSelectionButton.setOnClickListener {
+            // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user joinw
 
+            eventCalendar.selectionMode = SELECTION_MODE_MULTIPLE
+            eventCalendar.setOnDateChangedListener { calendar, date, selected ->
+                if(!calendar.selectedDates.contains(date) && selected) {
+                    Log.i("ChatroomActivity", "Calendar selected event outside event dates. Selected date: $date")
+                    calendar.setDateSelected(date, false)
+                }
+
+                Log.i("ChatroomActivity", "Calendar selected event with date: $date")
+                val selectedEvent = viewModel.authEvents.value?.find { date.equals(it.date) }
             }
         }
     }
@@ -143,6 +159,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         observeUserState()
         observeUsersState()
         observeEventsState()
+        observeEvents()
         observeChatroom()
         observeChatroomOwnRights()
         observeConnectionRefresh()
@@ -246,7 +263,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Progressbar on event card
                     }
                     is EventListState.OnData.EventsResult -> {
-                        // TODO: Update here and CalendarView
+                        // TODO: Need to update here?
                     }
                     is EventListState.Error -> {
                     }
@@ -254,6 +271,12 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                 }
             }
         }
+    }
+
+    private fun observeEvents() {
+        viewModel.authEvents.observe(this, Observer {
+            setEventCalendarDates(it)
+        })
     }
 
     @ExperimentalPagingApi
@@ -264,14 +287,22 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                     title = chatroom.name
                 }
 
-                if(viewModel.isAuthUserChatroomOwner.value == true) {
+                val authUserChatroomOwner = viewModel.isAuthUserChatroomOwner.value == true
+                val chatroomHasEvents = chatroom.eventIds != null
+                val chatroomHasEventsToFetch = chatroomHasEvents && viewModel.authEvents.value == null
+
+                if(chatroomHasEventsToFetch) {
+                    lifecycleScope.launch {
+                        viewModel.sendEventsIntent(
+                            EventListIntent.FetchEvents
+                        )
+                    }
+                }
+
+                if(authUserChatroomOwner) {
                     with(binding) {
-                        navViewAdmin.menu.clear()
-                        if(chatroom.eventIds == null) {
-                            navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_create)
-                        } else {
-                            navViewAdmin.inflateMenu(R.menu.chatroom_admin_nav_drawer_menu_edit)
-                        }
+                        // TODO: On Chatroom deletes -> if no more events left, set authChatroom eventIds to  null
+
                         navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
                             Constants.buildDeleteAlertDialog(
                                 this@ChatroomActivity,
@@ -288,14 +319,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                             )
                             return@setOnMenuItemClickListener true
                         }
-                    }
-                }
-
-                if(chatroom.eventIds != null && viewModel.authEvents.value == null) {
-                    lifecycleScope.launch {
-                        viewModel.sendEventsIntent(
-                            EventListIntent.FetchEvents
-                        )
                     }
                 }
 
@@ -431,6 +454,16 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         }
     }
 
+    private fun setEventCalendarDates(events: List<Event>) {
+        with(binding) {
+            events.forEach { event ->
+                val dateTime = LocalDateTime.parse(event.date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                eventCalendar.currentDate =
+                    CalendarDay.from(dateTime.year, dateTime.month.value, dateTime.dayOfMonth)
+            }
+        }
+    }
+
     // forward bottomsheet implementation to fragment one
     // FIXME: Coupled kinda
     @ExperimentalPagingApi
@@ -470,13 +503,19 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         editUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.EDIT_USER_TYPE)
         joinUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.JOIN_USER_TYPE)
         leaveUserReceiver = chatroomReceiverFactory!!.createActionatedReceiver(Constants.LEAVE_USER_TYPE)
-
+        eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(viewModel, this)
+        createEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.CREATE_EVENT_TYPE)
+        editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
+        deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
 
         registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
         registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
         registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
         registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
         registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
+        registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
+        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
+        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
     }
 
     private fun unregisterCRUDReceivers() {
@@ -485,5 +524,8 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         unregisterReceiver(editUserReceiver)
         unregisterReceiver(joinUserReceiver)
         unregisterReceiver(leaveUserReceiver)
+        unregisterReceiver(createEventReceiver)
+        unregisterReceiver(editEventReceiver)
+        unregisterReceiver(deleteEventReceiver)
     }
 }

@@ -18,7 +18,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity(), OnMapReadyCallback {
     private val viewModel: EventMapsActivityViewModel by viewModels()
 

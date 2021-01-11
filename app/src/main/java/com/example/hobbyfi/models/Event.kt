@@ -4,9 +4,14 @@ import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
+import com.prolificinteractive.materialcalendarview.CalendarDay
 import kotlinx.parcelize.Parcelize
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Entity(tableName = "events")
 @Keep
@@ -39,6 +44,34 @@ data class Event(
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Event {
-        TODO("Not implemented yet")
+        for((key, value) in fieldMap.entries) {
+            when(key) {
+                Constants.NAME -> {
+                    name = value!!
+                }
+                Constants.DESCRIPTION -> {
+                    description = value
+                }
+                Constants.PHOTO_URL -> {
+                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
+                    // no need to update it generally because it's always the same but we need to wake up observer and reload it?
+                }
+                Constants.DATE -> {
+                    date = value!!
+                }
+                Constants.LONGITUDE -> {
+                    longitude = value!!.toDouble()
+                }
+                Constants.LATITUDE -> {
+                    latitude = value!!.toDouble()
+                }
+            }
+        }
+        return this
+    }
+
+    val calendarDayFromDate: CalendarDay get() = run {
+        val dateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        return CalendarDay.from(dateTime.year, dateTime.month.value, dateTime.dayOfMonth)
     }
 }

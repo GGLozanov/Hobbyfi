@@ -82,6 +82,7 @@
     <string name="info">Info</string>
     <string name="edit_chatroom">Edit Chatroom</string>
     <string name="edit_an_event">Edit an Event</string>
+    <string name="manage_events">Manage Events</string>
     <string name="create_event">Create Event</string>
     <string name="delete_chatroom">Delete Chatroom</string>
     <string name="delete_an_event">Delete an Event</string>
@@ -122,4 +123,5 @@
     <string name="no">No</string>
     <string name="back_event_choose_maps">Do you want to use the current coordinates as the event\'s location?</string>
     <string name="your_chatrooms">Your Chatrooms</string>
+    <string name="event_schedule">Event Schedule</string>
 </resources>

@@ -12,4 +12,7 @@ abstract class EventDao : BaseDao<Event>() {
 
     @Query("DELETE FROM events WHERE id = :id")
     abstract fun deleteEventById(id: Long): Int
+
+    @Query("DELETE FROM events WHERE id IN (:ids)")
+    abstract fun deleteEventById(ids: List<Long>): Int
 }

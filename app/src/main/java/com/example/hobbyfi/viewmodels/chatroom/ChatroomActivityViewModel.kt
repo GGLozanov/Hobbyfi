@@ -52,10 +52,6 @@ class ChatroomActivityViewModel(
     val eventsState get() = eventsStateIntent.state
 
     suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
-
-    private val eventStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
-        override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
-    }
     
     private val usersStateIntent: StateIntent<UserListState, UserListIntent> = object : StateIntent<UserListState, UserListIntent>() {
         override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
@@ -70,25 +66,15 @@ class ChatroomActivityViewModel(
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
-            eventStateIntent.intentAsFlow().collectLatest {
-                when(it) {
-                    is EventIntent.DeleteEvent -> {
-                        deleteEvent(it.eventId)
-                    }
-                    is EventIntent.UpdateEvent -> {
-                        updateEvent(it.eventUpdateFields)
-                    }
-                    else -> throw Intent.InvalidIntentException()
-                }
-            }
-        }
-        viewModelScope.launch {
             eventsStateIntent.intentAsFlow().collect {
                 when(it) {
                     is EventListIntent.DeleteAnEventCache -> {
-                        if(deleteEventCache(it.eventId)) {
+                        if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
                         }
+                    }
+                    is EventListIntent.DeleteOldEventsCache -> {
+                        // TODO: wire up this with delete_old events in repo and API
                     }
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
@@ -178,27 +164,6 @@ class ChatroomActivityViewModel(
         }
     }
 
-    private suspend fun updateEvent(updateFields: Map<String?, String?>) {
-        eventStateIntent.setState(EventState.Loading)
-
-        eventStateIntent.setState(try {
-            val state = EventState.OnData.EventEditResult(eventRepository.editEvent(
-                updateFields
-            ))
-
-            updateAndSaveEvent(updateFields)
-
-            state
-        } catch(ex: Exception) {
-            ex.printStackTrace()
-
-            EventState.Error(
-                ex.message,
-                ex.isCritical
-            )
-        })
-    }
-
     private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
         val updatedEvent = _authEvents.value!!.find { it.id == (eventFields[Constants.ID]
                 ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
@@ -211,38 +176,8 @@ class ChatroomActivityViewModel(
         _authEvents.value = _authEvents.value!!.replace(event, { it.id == event.id })
     }
 
-    private suspend fun deleteEvent(eventId: Long) {
-        eventStateIntent.setState(EventState.Loading)
+    private suspend fun deleteEvents() {
 
-        eventStateIntent.setState(try {
-            val state = EventState.OnData.EventDeleteResult(
-                eventRepository.deleteEvent(eventId)
-            )
-
-            deleteEventCache(eventId)
-
-            state
-        } catch(ex: Exception) {
-            ex.printStackTrace()
-
-            EventState.Error(
-                ex.message
-            )
-        })
-    }
-
-    // FIXME: Ge. Ne. RIIIIICS. Well, not really but still code dup with other deleteCache methods. Mitigate that
-    private suspend fun deleteEventCache(eventId: Long, setState: Boolean = false): Boolean {
-        val success = eventRepository.deleteEventCache(eventId)
-
-        if(setState) {
-            eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
-                else EventState.Error(Constants.cacheDeletionError))
-        } else if(!success) {
-            throw Exception(Constants.cacheDeletionError)
-        }
-
-        return true
     }
 
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {

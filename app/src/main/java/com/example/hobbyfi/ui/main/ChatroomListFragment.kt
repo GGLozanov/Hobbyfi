@@ -112,7 +112,6 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                     .show()
                             }
                         }.collectLatest { data ->
-
                             chatroomListAdapter.submitData(data.filterSync {
                                 return@filterSync activityViewModel.authUser.value!!.chatroomIds?.contains(it.id) == false
                             })

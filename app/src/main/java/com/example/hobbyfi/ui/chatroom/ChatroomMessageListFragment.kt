@@ -137,8 +137,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             activityViewModel.isAuthUserChatroomOwner.value == true,
             activityViewModel.currentAdapterUsers.value ?: emptyList()
         ) { _, message ->
-            val bottomSheet = ChatroomMessageBottomSheetDialogFragment.newInstance(message)
-            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+            // reuse fragment for distinct messages when they don't change
+            val bottomSheet = (parentFragmentManager.findFragmentByTag(message.message)
+                    as ChatroomMessageBottomSheetDialogFragment?)
+                ?: ChatroomMessageBottomSheetDialogFragment.newInstance(message)
+            bottomSheet.show(parentFragmentManager, message.message)
             return@ChatroomMessageListAdapter true
         }
 

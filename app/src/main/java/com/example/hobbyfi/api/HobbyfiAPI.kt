@@ -166,6 +166,11 @@ interface HobbyfiAPI {
         @Query(Constants.PAGE) page: Int,
     ): CacheListResponse<Chatroom>
 
+
+    /**
+     *
+     * This is a separate request because pagination in all chatrooms read request doesn't guarantee return of joined chatrooms on initial page
+     */
     @GET("api/v1.0/chatrooms/read_own")
     suspend fun fetchAuthChatrooms(
         @Header(Constants.AUTH_HEADER) token: String?,

@@ -132,6 +132,14 @@ class EventRepository(
         }
     }
 
+    suspend fun deleteEventsCache(ids: List<Long>): Boolean {
+        Log.i("EventRepository", "deleteEventCache -> Deleting cached events w/ id: $ids!")
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_events_fetch_time)
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.eventDao().deleteEventById(ids) > 0
+        }
+    }
+
     fun getEventUserGeoPoint(username: String): StateFlow<UserGeoPoint?> {
         firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
             .addSnapshotListener { doc, e ->

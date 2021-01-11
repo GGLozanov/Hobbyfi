@@ -12,14 +12,14 @@
             android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditFragment"
             app:destination="@id/chatroomEditFragment" />
         <action
-            android:id="@+id/action_chatroomMessageListFragment_to_eventEditDialogFragment"
-            app:destination="@id/eventEditDialogFragment" />
-        <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
             app:destination="@id/event_create_navigation" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventMapsActivity"
             app:destination="@id/eventMapsActivity" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_eventSelectionBottomSheetDialogFragment"
+            app:destination="@id/eventSelectionBottomSheetDialogFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -56,4 +56,13 @@
         android:name="com.example.hobbyfi.ui.chatroom.EventMapsActivity"
         android:label="activity_event_maps"
         tools:layout="@layout/activity_event_maps" />
+    <dialog
+        android:id="@+id/eventSelectionBottomSheetDialogFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.EventSelectionBottomSheetDialogFragment"
+        android:label="fragment_event_selection_bottom_sheet_dialog"
+        tools:layout="@layout/fragment_event_selection_bottom_sheet_dialog" >
+        <action
+            android:id="@+id/action_eventSelectionBottomSheetDialogFragment_to_eventEditDialogFragment"
+            app:destination="@id/eventEditDialogFragment" />
+    </dialog>
 </navigation>

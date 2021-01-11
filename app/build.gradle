@@ -49,6 +49,8 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true // catch up with Java APIs w/ Gradle plugin v4.0.0+
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -164,6 +166,11 @@ dependencies {
 
     // OkHttp3 debug logging interceptor
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
+
+    // MaterialCalendarView
+    implementation 'com.github.prolificinteractive:material-calendarview:2.0.0'
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.9'
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

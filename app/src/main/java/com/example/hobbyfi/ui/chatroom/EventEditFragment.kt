@@ -9,8 +9,10 @@ import androidx.fragment.app.viewModels
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventEditBinding
 import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 
+@ExperimentalCoroutinesApi
 class EventEditFragment : ChatroomDialogFragment() {
     private lateinit var binding: FragmentEventEditBinding
     private val viewModel: EventEditFragmentViewModel by viewModels()
