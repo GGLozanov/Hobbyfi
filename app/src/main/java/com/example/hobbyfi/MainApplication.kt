@@ -63,17 +63,10 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "messageRepository") from singleton { MessageRepository(
-                instance(tag = "messageMediator") as MessageMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "connectivityManager") as ConnectivityManager
-            )
-        }
-        bind(tag = "messageMediator") from singleton { MessageMediator(
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI
             )
         }
         bind(tag = "fcmTopicErrorFallback") from factory { context: Context ->

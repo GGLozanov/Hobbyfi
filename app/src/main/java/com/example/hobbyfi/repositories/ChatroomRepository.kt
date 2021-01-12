@@ -15,48 +15,68 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
-import com.example.hobbyfi.shared.PrefConfig
-import com.example.hobbyfi.shared.RemoteKeyType
 import com.google.firebase.FirebaseException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 class ChatroomRepository @ExperimentalPagingApi constructor(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
 ) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+    @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
-    fun getChatrooms(
+    suspend fun getChatrooms(
         pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
-        userChatroomIds: List<Long>?
     ): Flow<PagingData<Chatroom>> {
         Log.i("ChatroomRepository", "Fetching normal chatrooms")
-        val pagingSource = { if(userChatroomIds != null)
-            hobbyfiDatabase.chatroomDao().getChatroomsNotPresentInIds(userChatroomIds)
-            else hobbyfiDatabase.chatroomDao().getChatrooms()
+        return channelFlow {
+            getUserChatroomIds(prefConfig.getAuthUserIdFromToken()).distinctUntilChanged().collectLatest {
+
+                Log.i("ChatroomRepository", "getChatrooms -> Found current userIds with value: $it")
+                val pagingSource = { if(it != null)
+                        hobbyfiDatabase.chatroomDao().getChatroomsNotPresentInIds(it)
+                    else hobbyfiDatabase.chatroomDao().getChatrooms()
+                }
+
+                Pager(
+                    config = pagingConfig,
+                    pagingSourceFactory = pagingSource,
+                    remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, false, it)
+                ).flow.collectLatest { data ->
+                    sendBlocking(data)
+                }
+            }
         }
-        return Pager(
-            config = pagingConfig,
-            pagingSourceFactory = pagingSource,
-            remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, false, userChatroomIds)
-        ).flow
     }
 
+    @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
-    fun getAuthChatrooms(
+    suspend fun getAuthChatrooms(
         pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
-        userChatroomIds: List<Long>
     ): Flow<PagingData<Chatroom>> {
         Log.i("ChatroomRepository", "Fetching Auth chatrooms")
-        val pagingSource = { hobbyfiDatabase.chatroomDao().getChatroomsByIds(userChatroomIds) }
-        return Pager(
-            config = pagingConfig,
-            pagingSourceFactory = pagingSource,
-            remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, true, userChatroomIds)
-        ).flow
+        return channelFlow {
+            getUserChatroomIds(prefConfig.getAuthUserIdFromToken()).distinctUntilChanged().collectLatest {
+                if(it != null) {
+                    Log.i("ChatroomRepository", "getAuthChatrooms -> Found current userIds with value: $it")
+                    val pagingSource = { hobbyfiDatabase.chatroomDao().getChatroomsByIds(it) }
+
+                    Pager(
+                        config = pagingConfig,
+                        pagingSourceFactory = pagingSource,
+                        remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, true, it)
+                    ).flow.collectLatest { data ->
+                        sendBlocking(data)
+                    }
+                } else {
+                    Log.i("ChatroomRepository", "getAuthChatrooms -> Invalid call to getAuthChatrooms without authchatroomids")
+                }
+            }
+        }
     }
 
     // fetches chatroom when chatroomactivity is called from deeplink notification (for example)
@@ -180,17 +200,11 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    // called when user joins their chatroom for the first time after recyclerview
-    suspend fun deleteChatrooms(authChatroomId: Long): Boolean {
-        Log.i("ChatroomRepository", "deleteChatrooms -> deleting all chatrooms except for one with id: $authChatroomId")
-        prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
-        return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.withTransaction {
-                val deletedChatrooms = hobbyfiDatabase.chatroomDao().deleteChatroomsExceptId(authChatroomId)
-                val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysExceptForIdAndForType(authChatroomId, RemoteKeyType.CHATROOM)
-                Log.i("ChatroomRepository", "Deleted chatrooms ${deletedChatrooms} and deleted RMKeys ${deletedRemoteKeys}")
-                deletedChatrooms > 0 && deletedRemoteKeys >= 0
+
+    private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.userDao().getUserChatroomIds(userId).map {
+                Constants.tagJsonConverter.fromJson(it)
             }
         }
-    }
 }

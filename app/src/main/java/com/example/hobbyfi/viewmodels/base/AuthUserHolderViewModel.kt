@@ -15,6 +15,7 @@ import com.example.hobbyfi.state.UserState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.internal.notify
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -104,15 +105,11 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
                 userFields
             )
 
-            if(userIsUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
-                _latestTagUpdateFail.value = false
-            }
-
+            updateAndNotifyTagUpdateFail(userIsUpdatingTags, false)
+            
             result
         } catch(ex: Exception) {
-            if(userIsUpdatingTags) {
-                _latestTagUpdateFail.value = true
-            }
+            updateAndNotifyTagUpdateFail(userIsUpdatingTags, true)
 
             ex.printStackTrace()
             UserState.Error(
@@ -139,5 +136,14 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
                 shouldReauth = ex.isCritical
             )
         })
+    }
+
+    private fun updateAndNotifyTagUpdateFail(userUpdatingTags: Boolean, failed: Boolean) {
+        if(userUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
+            _latestTagUpdateFail.apply {
+                value = false
+                notify()
+            }
+        }
     }
 }

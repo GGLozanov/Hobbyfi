@@ -65,7 +65,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageListIntent.FetchMessages -> {
-                        fetchMessages()
+                        fetchMessages(it.chatroomId)
                     }
                 }
             }
@@ -116,11 +116,11 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         handleIntent()
     }
 
-    private fun fetchMessages() {
+    private fun fetchMessages(chatroomId: Long) {
         mainStateIntent.setState(MessageListState.Loading)
 
         if(currentMessages == null) {
-            currentMessages = messageRepository.getMessages()
+            currentMessages = messageRepository.getMessages(chatroomId = chatroomId)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }

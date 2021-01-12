@@ -52,23 +52,23 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
                 when(it) {
                     is ChatroomListIntent.FetchChatrooms -> {
                         Log.i("ChatroomListFragmentVM", "Handling FetchChatrooms intent")
-                        fetchChatrooms(it.userChatroomIds)
+                        fetchChatrooms()
                     }
                     is ChatroomListIntent.FetchJoinedChatrooms -> {
                         Log.i("ChatroomListFragmentVM", "Handling FetchJoinedChatrooms intent")
-                        fetchJoinedChatrooms(it.userChatroomIds)
+                        fetchJoinedChatrooms()
                     }
                 }
             }
         }
     }
 
-    private fun fetchChatrooms(userChatroomIds: List<Long>?) {
+    private suspend fun fetchChatrooms() {
         mainStateIntent.setState(ChatroomListState.Loading)
 
         Log.i("ChatroomListFragmentVM", "Current chatrooms: ${_currentChatrooms}")
         if(_currentChatrooms == null) {
-            _currentChatrooms = chatroomRepository.getChatrooms(userChatroomIds = userChatroomIds)
+            _currentChatrooms = chatroomRepository.getChatrooms()
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
@@ -76,12 +76,12 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
         mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(_currentChatrooms!!))
     }
 
-    private fun fetchJoinedChatrooms(userChatroomIds: List<Long>) {
+    private suspend fun fetchJoinedChatrooms() {
         mainStateIntent.setState(ChatroomListState.Loading)
 
         Log.i("ChatroomListFragmentVM", "Current JOINED chatrooms: ${_currentJoinedChatrooms}")
         if(_currentJoinedChatrooms == null) {
-            _currentJoinedChatrooms = chatroomRepository.getAuthChatrooms(userChatroomIds = userChatroomIds)
+            _currentJoinedChatrooms = chatroomRepository.getAuthChatrooms()
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }

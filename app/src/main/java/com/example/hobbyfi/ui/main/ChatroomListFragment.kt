@@ -88,7 +88,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                 lifecycleScope.launch {
                     // TODO: Add condition if chatroom ids have changed
                     if(viewModel.currentChatrooms == null) {
-                        viewModel.sendIntent(ChatroomListIntent.FetchChatrooms(user.chatroomIds))
+                        viewModel.sendIntent(ChatroomListIntent.FetchChatrooms)
                     }
                 }
             }
@@ -143,7 +143,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
 
     override fun navigateToChatroomCreate() {
         navController.navigate(
-            JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomCreateNavGraph(
+            ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
                 activityViewModel.authUser.value!!
             ))
     }

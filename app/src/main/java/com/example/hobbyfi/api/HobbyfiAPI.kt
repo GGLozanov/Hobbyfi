@@ -195,6 +195,7 @@ interface HobbyfiAPI {
     @GET("api/v1.0/messages/read")
     suspend fun fetchMessages(
         @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long,
         @Query(Constants.PAGE) page: Int
     ): CacheListResponse<Message>
 

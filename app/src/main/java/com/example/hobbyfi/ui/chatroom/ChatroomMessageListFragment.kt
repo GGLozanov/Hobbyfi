@@ -57,8 +57,10 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private var messageListAdapter: ChatroomMessageListAdapter? = null
 
     private val onNormalSendMessage = View.OnClickListener {
-        if(assertTextFieldsInvalidity()) {
-
+        if(assertTextFieldsInvalidity() || viewModel.message.value == null
+                || viewModel.message.value?.isEmpty() == true) {
+            Toast.makeText(requireContext(), "Your message cannot be empty!", Toast.LENGTH_LONG)
+                .show()
             return@OnClickListener
         }
 
@@ -76,6 +78,13 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val onEditSendMessage = { editedMessage: Message ->
         View.OnClickListener {
             val messageMap = mutableMapOf<String?, String?>()
+
+            if(assertTextFieldsInvalidity() || viewModel.message.value == null
+                    || viewModel.message.value?.isEmpty() == true) {
+                Toast.makeText(requireContext(), "Your message cannot be empty!", Toast.LENGTH_LONG)
+                    .show()
+                return@OnClickListener
+            }
 
             if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
@@ -184,7 +193,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent
                 lifecycleScope.launch {
-                    viewModel.sendIntent(MessageListIntent.FetchMessages)
+                    viewModel.sendIntent(MessageListIntent.FetchMessages(activityViewModel.authChatroom.value!!.id))
                 }
             }
 

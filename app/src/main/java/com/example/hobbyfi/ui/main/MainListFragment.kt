@@ -140,7 +140,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
             loadStateAdapter = DefaultLoadStateAdapter({
                 chatroomListAdapter.retry()
             }, {
-                
+                navigateToChatroomCreate()
             })
 
             chatroomList.adapter = chatroomListAdapter.withLoadStateFooter(loadStateAdapter!!)
