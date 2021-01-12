@@ -365,8 +365,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         Log.i("ChatroomMListFragment", "onEditMessageSelect triggered in message list fragment for $message!")
 
         viewModel.message.value = message.message // set to edit current message from bottom sheet
-        binding.sendMessageButton.setOnClickListener(onEditSendMessage(message))
-        binding.editMessageOptionsLayout.isVisible = true // ...to the original onClickListener for send button
+        with(binding) {
+            messageInputField.editText?.setSelection(binding.messageInputField.editText!!.text.length)
+            sendMessageButton.setOnClickListener(onEditSendMessage(message))
+            editMessageOptionsLayout.isVisible = true // ...to the original onClickListener for send button
+        }
     }
 
     override fun onDeleteMessageSelect(view: View, message: Message) {

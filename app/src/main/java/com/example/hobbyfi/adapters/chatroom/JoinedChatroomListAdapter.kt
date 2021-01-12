@@ -84,6 +84,7 @@ class JoinedChatroomListAdapter(
 
         with(holder) {
             bind(chatroom, position)
+            initChatroomJoinButtonListener(chatroom, onJoinChatroomButton)
             initLeaveChatroomButtonListener(chatroom, onLeaveChatroomButton, userOwnedChatroomIds)
         }
     }

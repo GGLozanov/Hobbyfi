@@ -140,10 +140,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
             loadStateAdapter = DefaultLoadStateAdapter({
                 chatroomListAdapter.retry()
             }, {
-                navController.navigate(
-                    ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
-                    activityViewModel.authUser.value!!
-                ))
+                
             })
 
             chatroomList.adapter = chatroomListAdapter.withLoadStateFooter(loadStateAdapter!!)
@@ -155,17 +152,9 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
         }
     }
 
-    protected fun navigateToChatroom() {
-        // only called while user is currently joining a chatroom
-        Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
-        navController.navigate(
-            ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
-                activityViewModel.authUser.value,
-                viewModel.buttonSelectedChatroom,
-            )
-        )
-        viewModel.setButtonSelectedChatroom(null)
-    }
+    abstract fun navigateToChatroom()
+    
+    abstract fun navigateToChatroomCreate()
 
     private fun observeConnectionRefresh() {
         (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->

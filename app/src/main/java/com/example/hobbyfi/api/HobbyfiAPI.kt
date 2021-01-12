@@ -184,6 +184,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun createMessage(
         @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.CHATROOM_ID) chatroomId: Long,
         @Field(Constants.MESSAGE) message: String?,
         @Field(Constants.IMAGE) imageMessage: String?
     ): CreateTimeIdResponse?

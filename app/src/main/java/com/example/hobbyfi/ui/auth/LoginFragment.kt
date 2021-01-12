@@ -21,6 +21,7 @@ import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.FacebookState
@@ -247,6 +248,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.TokenReceived -> {
                         Log.i("LoginFragment", "${navController.currentBackStackEntry}")
+                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
                         login(
                             LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                 null

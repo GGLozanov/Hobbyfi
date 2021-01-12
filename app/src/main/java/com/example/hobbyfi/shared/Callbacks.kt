@@ -6,18 +6,20 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import androidx.fragment.app.Fragment
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.lang.InstantiationException
+import kotlinx.coroutines.CancellationException
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.HttpException
 import java.io.IOException
-import androidx.fragment.app.Fragment
-import io.jsonwebtoken.lang.InstantiationException
-import kotlinx.coroutines.CancellationException
 
 
 object Callbacks {
@@ -45,7 +47,7 @@ object Callbacks {
             resultCode == Activity.RESULT_OK && data != null && data.data != null) {
             try {
                 return ImageUtils.getBitmapFromUri(activity, data.data!!)
-            } catch(ex: IOException) {
+            } catch (ex: IOException) {
                 Log.e(
                     "Callbacks.imageCallback", "onActivityResult (image retrieval) " +
                             "with required request code " + requiredRequestCode + " —> " + ex.toString()
@@ -56,8 +58,10 @@ object Callbacks {
         return null
     }
 
-    fun requestImage(callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode,
-                     permissionRequestCode: Int = Constants.imagePermissionsRequestCode) {
+    fun requestImage(
+        callingFragment: Fragment, requestCode: Int = Constants.imageRequestCode,
+        permissionRequestCode: Int = Constants.imagePermissionsRequestCode
+    ) {
         if(EasyPermissions.hasPermissions(
                 callingFragment.requireContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE
@@ -86,8 +90,10 @@ object Callbacks {
         ) // start activity and await result
     }
 
-    fun requestLocationForEventCreate(activity: Activity,
-                                      permissionRequestCode: Int = Constants.locationPermissionsRequestCode): Boolean {
+    fun requestLocationForEventCreate(
+        activity: Activity,
+        permissionRequestCode: Int = Constants.locationPermissionsRequestCode
+    ): Boolean {
         return if(EasyPermissions.hasPermissions(
                 activity,
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -104,9 +110,10 @@ object Callbacks {
         }
     }
 
-    fun requestLocationBackgroundForEvent(activity: Activity,
-                                        permissionRequestCode: Int = Constants.locationPermissionsRequestCode): Boolean {
-        return true
+    fun hideKeyboardFrom(context: Context, view: View?) {
+        val imm: InputMethodManager =
+            context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view?.windowToken, 0)
     }
 
     // always throws an exception
@@ -117,15 +124,15 @@ object Callbacks {
             is HttpException -> {
                 ex.printStackTrace()
 
-                when(ex.code()) {
+                when (ex.code()) {
                     400 -> { // bad request (missing data)
                         throw Exception(Constants.missingDataError)
                     }
                     401 -> { // unauthorized
-                        throw if(!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                            else if(!Constants.isFacebookUserAuthd())
-                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
-                            else Repository.ReauthenticationException(Constants.reauthError)
+                        throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
+                        else if (!Constants.isFacebookUserAuthd())
+                            Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
+                        else Repository.ReauthenticationException(Constants.reauthError)
                     }
                     404 -> { // not found
                         throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
@@ -144,11 +151,11 @@ object Callbacks {
                 throw Repository.NetworkException(ex.message().toString() + "; code: " + ex.code())
             }
             is ExpiredJwtException -> {
-                throw if(isAuthorisedRequest) Repository.AuthorisedRequestException()
-                    else Repository.ReauthenticationException(Constants.expiredTokenError)
+                throw if (isAuthorisedRequest) Repository.AuthorisedRequestException()
+                else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
             is Repository.ReauthenticationException,
-                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
+            TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
             else -> throw if(ex.message?.contains("failed to connect to") == true)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
                     else Repository.UnknownErrorException(Constants.unknownError(ex.message))

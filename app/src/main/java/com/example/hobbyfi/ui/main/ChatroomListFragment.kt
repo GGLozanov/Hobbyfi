@@ -129,6 +129,25 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         }
     }
 
+    override fun navigateToChatroom() {
+        // only called while user is currently joining a chatroom
+        Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
+        navController.navigate(
+            ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
+                activityViewModel.authUser.value,
+                viewModel.buttonSelectedChatroom,
+            )
+        )
+        viewModel.setButtonSelectedChatroom(null)
+    }
+
+    override fun navigateToChatroomCreate() {
+        navController.navigate(
+            JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomCreateNavGraph(
+                activityViewModel.authUser.value!!
+            ))
+    }
+
     override fun onDestroy() {
         updateJob?.cancel()
         super.onDestroy()

@@ -104,6 +104,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
+                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
 
                         login(
                             RegisterFragmentDirections.actionRegisterFragmentToMainActivity(User(

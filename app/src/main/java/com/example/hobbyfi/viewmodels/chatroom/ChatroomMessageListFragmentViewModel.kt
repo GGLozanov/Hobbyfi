@@ -135,7 +135,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         messageStateIntent.setState(
             try {
                 val state = MessageState.OnData.MessageCreateResult(
-                    messageRepository.createMessage(message, imageMessage)
+                    messageRepository.createMessage(chatroomSentId, message, imageMessage)
                 )
 
                 saveNewMessage(

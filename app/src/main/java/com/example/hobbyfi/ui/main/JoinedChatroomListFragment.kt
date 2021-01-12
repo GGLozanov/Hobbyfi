@@ -47,14 +47,6 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         chatroomListAdapter.setUserOwnedChatroomIds(userOwnedChatroomIds)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
     override fun observeChatroomsState() {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
@@ -131,6 +123,25 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                 }
             }
         })
+    }
+
+    override fun navigateToChatroom() {
+        // only called while user is currently joining a chatroom
+        Log.i("ChatroomJListFragment", "Navigating to ChatroomActivity")
+        navController.navigate(
+            JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomActivity(
+                activityViewModel.authUser.value,
+                viewModel.buttonSelectedChatroom,
+            )
+        )
+        viewModel.setButtonSelectedChatroom(null)
+    }
+
+    override fun navigateToChatroomCreate() {
+        navController.navigate(
+            ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
+                activityViewModel.authUser.value!!
+            ))
     }
 
     private fun leaveChatroom() {

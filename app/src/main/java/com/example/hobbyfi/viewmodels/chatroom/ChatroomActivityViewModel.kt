@@ -67,6 +67,9 @@ class ChatroomActivityViewModel(
         viewModelScope.launch {
             eventsStateIntent.intentAsFlow().collect {
                 when(it) {
+                    is EventListIntent.AddAnEventCache -> {
+
+                    }
                     is EventListIntent.DeleteAnEventCache -> {
                         if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })

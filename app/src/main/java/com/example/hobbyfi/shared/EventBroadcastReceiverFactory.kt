@@ -8,6 +8,7 @@ import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 
@@ -25,10 +26,12 @@ class EventBroadcastReceiverFactory private constructor(
                 lifecycleOwner: LifecycleOwner) : this(null, chatroomActivityViewModel, lifecycleOwner)
 
     private fun eventIdChecker(eventId: Long? = null): Boolean =
-        if(chatroomActivityViewModel == null) eventId == eventMapsActivityViewModel!!.event.value?.id else true
+        if(chatroomActivityViewModel == null) eventId == eventMapsActivityViewModel!!.event.value?.id else
+            !chatroomActivityViewModel.isAuthUserChatroomOwner.value!!
 
     private fun eventIdBatchChecker(eventIds: List<Long>? = null): Boolean =
-        if(chatroomActivityViewModel == null) eventIds!!.contains(eventMapsActivityViewModel!!.event.value?.id) else true
+        if(chatroomActivityViewModel == null) eventIds!!.contains(eventMapsActivityViewModel!!.event.value?.id) else
+            !chatroomActivityViewModel.isAuthUserChatroomOwner.value!!
 
     private val eventIdEditChecker: (Intent) -> Boolean = { intent: Intent -> eventIdChecker((
             intent.getDestructedMapExtra()[Constants.ID] ?: error("Event ID must not be null in Event Edit Id Checker!")).toLong()) }
@@ -37,11 +40,29 @@ class EventBroadcastReceiverFactory private constructor(
     private val eventIdBatchDeleteChecker: (Intent) -> Boolean = { intent: Intent -> eventIdBatchChecker(
         Constants.tagJsonConverter.fromJson(intent.getDestructedMapExtra()[Constants.EVENT_IDS])
     ) }
+    private val eventIdCreateChecker: (Intent) -> Boolean = {
+        chatroomActivityViewModel?.isAuthUserChatroomOwner?.value == false }
 
     override fun createActionatedReceiver(action: String): BroadcastReceiver =
         // always see these messages because owner CANNOT edit/delete chatroom while in Maps activity
         // (which is where the receivers are registered and active)
         when(action) {
+            Constants.CREATE_EVENT_TYPE -> {
+                createReceiver(
+                    action,
+                    onCorrectAction = { intent ->
+                        lifecycleOwner.lifecycleScope.launchWhenCreated {
+                            chatroomActivityViewModel!!.sendEventsIntent(
+                                EventListIntent.AddAnEventCache(
+                                    intent.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
+                                )
+                            )
+                        }
+                    },
+                    onReceiveLog = "Got me a broadcast receievrino for DELETE CHATROOOOOM",
+                    isNotChatroomOwnerOrShouldSee = eventIdCreateChecker
+                )
+            }
             Constants.EDIT_EVENT_TYPE -> {
                 createReceiver(
                     action,

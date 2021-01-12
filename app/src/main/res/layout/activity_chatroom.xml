@@ -88,7 +88,7 @@
                         android:numColumns="auto_fit"
                         android:stretchMode="columnWidth"
                         android:verticalSpacing="10dp"
-                        android:visibility="visible" />
+                        android:visibility="@{viewModel.authChatroom.tags == null ? View.GONE : View.VISIBLE}" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/event_schedule_header"
