@@ -45,11 +45,6 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     private var poppedFromNavController: Boolean = false
 
-    private val fcmTopicErrorFallback: OnFailureListener by instance(
-        tag = "fcmTopicErrorFallback",
-        MainApplication.applicationContext
-    )
-
     private val authStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.LOGOUT) {
@@ -144,9 +139,29 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
                         if(hasJoinedChatroom || hasLeftChatroom) {
                             // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
-                            viewModel.setJoinedChatroom(hasJoinedChatroom)
-                            viewModel.setLeftChatroom(hasLeftChatroom)
-                            viewModel.setLatestUserUpdateFields(it.userFields) // update later in observers in fragment
+                            lateinit var userChatroomFields: Map<String?, String?>
+                            if(hasJoinedChatroom) {
+                                userChatroomFields = mapOf(
+                                    Pair(
+                                        Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                            viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
+                                        )
+                                    )
+                                )
+                                viewModel.setJoinedChatroom(hasJoinedChatroom)
+                            }
+                            if(hasLeftChatroom) {
+                                userChatroomFields = mapOf(
+                                    Pair(
+                                        Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                            viewModel.authUser.value!!.chatroomIds?.minus(it.userFields[Constants.LEAVE_CHATROOM_ID])
+                                        )
+                                    )
+                                )
+                                viewModel.setLeftChatroom(hasLeftChatroom)
+                            }
+
+                            viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                         } else {
                             viewModel.sendIntent(
                                 UserIntent.UpdateUserCache(it.userFields)

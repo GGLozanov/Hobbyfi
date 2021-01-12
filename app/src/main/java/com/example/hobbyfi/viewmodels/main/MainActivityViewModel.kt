@@ -19,8 +19,10 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class MainActivityViewModel(application: Application, user: User?)
-    : AuthUserHolderViewModel(application, user) {
+class MainActivityViewModel(
+    application: Application,
+    user: User?
+) : AuthUserHolderViewModel(application, user) {
     private val _joinedChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val joinedChatroom: LiveData<Boolean> get() = _joinedChatroom
     private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)

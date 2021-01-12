@@ -21,13 +21,13 @@
     <fragment
         android:id="@+id/joinedChatroomListFragment"
         android:name="com.example.hobbyfi.ui.main.JoinedChatroomListFragment"
-        android:label="JoinedChatroomListFragment" >
+        android:label="Your Chatrooms">
         <action
             android:id="@+id/action_joinedChatroomListFragment_to_chatroomActivity"
             app:destination="@id/chatroomActivity" />
         <action
             android:id="@+id/action_joinedChatroomListFragment_to_chatroom_create_nav_graph"
-            app:destination="@id/chatroom_create_nav_graph" >
+            app:destination="@id/chatroom_create_nav_graph">
             <argument
                 android:name="user"
                 app:argType="com.example.hobbyfi.models.User" />

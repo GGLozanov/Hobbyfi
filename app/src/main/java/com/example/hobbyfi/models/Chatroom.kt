@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson

@@ -49,19 +49,10 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
-                instance(tag = "chatroomMediator", true),
-                instance(tag = "chatroomMediator", false),
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "connectivityManager") as ConnectivityManager
-            )
-        }
-        bind(tag = "chatroomMediator") from factory { shouldFetchAuthChatrooms: Boolean -> ChatroomMediator(
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI,
-                shouldFetchAuthChatrooms
             )
         }
         bind(tag = "eventRepository") from singleton { EventRepository(

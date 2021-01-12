@@ -18,6 +18,7 @@
     <string name="pref_last_chatroom_image_fetch_time">com.example.preference_last_chatroom_image_fetch_time</string>
     <string name="pref_last_chatroom_users_fetch_time">com.example.preference_last_chatroom_users_fetch_time</string>
     <string name="pref_last_chatroom_messages_fetch_time">com.example.preference_last_chatroom_messages_fetch_time</string>
+    <string name="pref_chatroom_join_remember_navigate">com.example.preference_chatroom_join_remember_navigate</string>
     <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
     <string name="pref_first_app_boot">com.example.first_app_boot</string> <!-- TODO: Used for future onboarding -->
 
@@ -124,4 +125,6 @@
     <string name="back_event_choose_maps">Do you want to use the current coordinates as the event\'s location?</string>
     <string name="your_chatrooms">Your Chatrooms</string>
     <string name="event_schedule">Event Schedule</string>
+    <string name="no_remind">Don\'t show this again</string>
+    <string name="delete_events_batch">Are you sure you want to delete all old events?</string>
 </resources>

@@ -1,17 +1,24 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.databinding.FragmentEventSelectionBottomSheetDialogBinding
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseActivity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
@@ -39,13 +46,30 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
         )
 
         with(binding) {
+            deleteOldEventsButton.setOnClickListener {
+                Constants.buildDeleteAlertDialog(
+                    requireContext(),
+                    requireContext().getString(R.string.delete_events_batch),
+                    { dialogInterface: DialogInterface, _: Int ->
+                        lifecycleScope.launch {
+                            activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEventsCache)
+                        }
+                        dialogInterface.dismiss()
+                    },
+                    { dialogInterface: DialogInterface, _: Int -> dialogInterface.dismiss() }
+                )
+            }
+
+            observeChatroom()
+            observeEvents()
+
             return@onCreateView binding.root
         }
     }
     
     private fun observeEvents() {
         activityViewModel.authEvents.observe(viewLifecycleOwner, Observer { 
-            
+            eventListAdapter.setEvents(it)
         })
     }
     
@@ -54,21 +78,4 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
 
         })
     }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        // viewModel.setAuthEvents(null) // retrigger fetch from either cache or network
-    }
-
-    private fun observeConnectionRefresh() {
-        (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
-            if(connectionRefreshed) {
-                Log.i("ChatroomListFragment", "ChatroomListFragment CONNECTED")
-                // TODO: refresh events send intent
-            } else {
-                Log.i("ChatroomListFragment", "ChatroomListFragment DIS-CONNECTED")
-            }
-        })
-    }
-
 }

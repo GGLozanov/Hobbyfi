@@ -17,7 +17,7 @@ import java.lang.IllegalArgumentException
 // not *exactly* a factory...? but... eh???
 @ExperimentalCoroutinesApi
 open class ChatroomBroadcastReceiverFactory(
-    protected val chatroomActivityViewModel: ChatroomActivityViewModel,
+    protected val chatroomActivityViewModel: ChatroomActivityViewModel? = null,
     lifecycleOwner: LifecycleOwner
 ) : LifecycleAwareBroadcastReceiverFactory(lifecycleOwner) {
     protected val authUserIdChecker = { idGenerator: (Intent) -> Long? -> { intent: Intent ->
@@ -29,7 +29,7 @@ open class ChatroomBroadcastReceiverFactory(
     }
 
     private val authChatroomOwnerChecker = { _: Intent ->
-        !chatroomActivityViewModel.isAuthUserChatroomOwner.value!!
+        if(chatroomActivityViewModel != null) !chatroomActivityViewModel.isAuthUserChatroomOwner.value!! else true
     }
 
     private val authUserIdModelChecker = authUserIdChecker {

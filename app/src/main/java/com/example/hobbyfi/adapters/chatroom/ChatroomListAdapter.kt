@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.GridView
+import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.paging.ExperimentalPagingApi
@@ -23,6 +25,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
 import com.example.hobbyfi.utils.GlideUtils
+import com.google.android.material.button.MaterialButton
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
@@ -31,12 +34,7 @@ import org.kodein.di.generic.instance
 
 class ChatroomListAdapter(
     onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null
-) : BaseChatroomListAdapter<ChatroomListAdapter.ChatroomListViewHolder>(onJoinChatroomButton), KodeinAware {
-
-    @ExperimentalPagingApi
-    override val kodein: Kodein by kodein(MainApplication.applicationContext)
-
-    private val prefConfig: PrefConfig by instance(tag = "prefConfig")
+) : BaseChatroomListAdapter<ChatroomListAdapter.ChatroomListViewHolder>(onJoinChatroomButton) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatroomListViewHolder {
         return ChatroomListViewHolder.getInstance(parent, prefConfig)
@@ -51,7 +49,10 @@ class ChatroomListAdapter(
         }
     }
 
-    class ChatroomListViewHolder(private val binding: ChatroomCardBinding, private val prefConfig: PrefConfig) : BaseViewHolder<Chatroom>(binding.root) {
+    class ChatroomListViewHolder(
+        private val binding: ChatroomCardBinding,
+        prefConfig: PrefConfig
+    ) : BaseChatroomViewHolder(binding.root, prefConfig) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup, prefConfig: PrefConfig): ChatroomListViewHolder {
@@ -64,49 +65,18 @@ class ChatroomListAdapter(
             }
         }
 
-
         override fun bind(chatroom: Chatroom?, position: Int) {
             binding.chatroomLeaveButton.isVisible =
                 false
             binding.chatroom = chatroom
-            with(binding) {
-                Log.i("ChatroomListAdapter", "Chatroom w/ id ${chatroom?.id} profile picture url: ${chatroom?.photoUrl}")
-                if(chatroom?.photoUrl != null) {
-                    Glide.with(itemView.context)
-                        .load(chatroom.photoUrl)
-                        .signature(
-                            GlideUtils.getPagingObjectKey(
-                                prefConfig,
-                                position,
-                                R.string.pref_last_chatrooms_fetch_time,
-                                Constants.chatroomPageSize
-                            )
-                        )
-                        // calculate current page based on item position
-                        .into(binding.chatroomImage)
-                } else {
-                    Glide.with(itemView.context)
-                        .load(
-                            R.drawable.chatroom_default_pic
-                        )
-                        .into(binding.chatroomImage)
-                }
-                if(chatroom?.tags != null) {
-                    val adapter = ChatroomTagListAdapter(chatroom.tags!!, itemView.context, R.layout.chatroom_tag_card)
-                    tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
-
-                    tagsGridView.adapter = adapter
-                }
-            }
+            bindChatroomPhotoAndTags(chatroom, position)
         }
 
-        fun initChatroomJoinButtonListener(chatroom: Chatroom?, onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)?) {
-            binding.chatroomJoinButton.setOnClickListener {
-                if (chatroom != null) {
-                    onJoinChatroomButton?.invoke(it, chatroom)
-                }
-            }
-        }
+        override val chatroomJoinButton: MaterialButton
+            get() = binding.chatroomJoinButton
+        override val chatroomImageView: ImageView
+            get() = binding.chatroomImage
+        override val tagsGridView: GridView
+            get() = binding.tagsGridView
     }
-
 }

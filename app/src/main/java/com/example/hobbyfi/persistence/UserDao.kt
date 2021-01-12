@@ -11,11 +11,8 @@ abstract class UserDao : BaseDao<User>() {
     @Query("SELECT * FROM users")
     abstract fun getUsers(): Flow<List<User>?>
 
-    @Query("SELECT * FROM users WHERE chatroomId = :chatroomId")
-    abstract fun getUsersByChatroomId(chatroomId: Long): Flow<List<User>?>
-
-    @Query("UPDATE users SET chatroomId = :chatroomId WHERE id = :userId")
-    abstract suspend fun updateUserChatroomId(userId: Long, chatroomId: Int?)
+    @Query("SELECT * FROM users where id != :userId")
+    abstract fun getUsersImmediateExceptId(userId: Long): List<User>?
 
     @Query("SELECT * FROM users WHERE id = :userId")
     abstract fun getUserById(userId: Long): Flow<User?>
@@ -26,6 +23,4 @@ abstract class UserDao : BaseDao<User>() {
     @Query("DELETE FROM users WHERE id = :userId")
     abstract fun deleteUserById(userId: Long): Int
 
-    @Query("DELETE FROM users WHERE chatroomId = :chatroomId AND id != :authId")
-    abstract fun deleteUsersByChatroomIdAndExceptId(chatroomId: Long, authId: Long): Int
 }

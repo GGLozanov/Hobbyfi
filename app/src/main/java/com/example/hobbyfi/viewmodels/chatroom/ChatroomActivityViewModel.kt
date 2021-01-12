@@ -38,7 +38,6 @@ class ChatroomActivityViewModel(
     private var _currentAdapterUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
     val currentAdapterUsers: LiveData<List<User>> get() = _currentAdapterUsers
 
-    // TODO: Change from authEvent one to authEvent List and pass in event selected by user for deletion
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
     val authEvents: LiveData<List<Event>> get() = _authEvents
 

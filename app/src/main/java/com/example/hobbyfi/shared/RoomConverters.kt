@@ -24,4 +24,12 @@ class RoomConverters {
     fun toTagList(value: String): List<Tag>? {
         return Constants.tagJsonConverter.fromJson<List<Tag>>(value)
     }
+
+    @TypeConverter
+    fun toLongList(value: String): List<Long>? {
+        return Constants.tagJsonConverter.fromJson(value)
+    }
+
+    @TypeConverter
+    fun fromLongList(value: List<Long>?): String = Constants.tagJsonConverter.toJson(value)
 }

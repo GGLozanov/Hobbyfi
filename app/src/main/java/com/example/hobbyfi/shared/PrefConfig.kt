@@ -105,6 +105,26 @@ class PrefConfig(private val context: Context) {
         ).toLong()
     }
 
+    fun writeChatroomJoinRememberNavigate(remember: Int) {
+        val editor = sharedPreferences.edit()
+        editor.putInt(
+            context.getString(R.string.pref_chatroom_join_remember_navigate),
+            remember
+        ).apply()
+    }
+
+    fun resetChatroomJoinRememberNavigate() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_chatroom_join_remember_navigate)).apply()
+    }
+
+    fun readChatroomJoinRememberNavigate(): Int {
+        return sharedPreferences.getInt(
+            context.getString(R.string.pref_chatroom_join_remember_navigate),
+            Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
+        )
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())

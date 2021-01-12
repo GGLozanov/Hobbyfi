@@ -198,6 +198,9 @@ object Constants {
 
     const val noUpdateFields: String = "No fields to update!"
 
+    const val takeMeThere: String = "Get me in the room!"
+    const val noPlease: String = "Nah, let me browse."
+
     const val userProfileImageDir = "user_pfps"
     fun chatroomProfileImageDir(chatroomId: Long): String {
         return "chatroom_imgs_$chatroomId"
@@ -285,4 +288,8 @@ object Constants {
     const val EVENT_IDS: String = "event_ids"
     const val CHATROOM_IDS: String = "chatroom_ids"
     const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"
+
+    enum class NoRememberDualChoice {
+        REMEMBER_YES, REMEMBER_NO, NO_REMEMBER
+    }
 }

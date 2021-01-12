@@ -14,7 +14,11 @@ import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 
 // fetches both auth users & chatroom users
@@ -137,18 +141,31 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    // return livedata of pagedlist for users
+    // need to map/filer individually in this method and not in queries
+    // because filtering by json-encoded chatroom id list probably won't work
+    @ExperimentalCoroutinesApi
     suspend fun getChatroomUsers(chatroomId: Long):
             Flow<List<User>?> {
         Log.i("UserRepository", "getChatroomUsers -> getting current chatroom users")
         return object : NetworkBoundFetcher<List<User>, CacheListResponse<User>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<User>) {
                 hobbyfiDatabase.withTransaction {
-                    hobbyfiDatabase.userDao().deleteUsersByChatroomIdAndExceptId(
-                        chatroomId,
-                        prefConfig.getAuthUserIdFromToken()
-                    )
-                    saveUsers(response.modelList)
+                    with(hobbyfiDatabase.userDao()) {
+                        getUsersImmediateExceptId(prefConfig.getAuthUserIdFromToken())?.filter {
+                            it.chatroomIds?.contains(chatroomId) == true
+                        }.let {
+                            if(it != null) {
+                                delete(
+                                    it,
+                                )
+                            } else {
+                                Log.w("UserRepository", "getChatroomUsers -> Filtered users from DB in saveNetworkResult call are null! " +
+                                        "Not deleting any users initially from chatroom!")
+                            }
+
+                            saveUsers(response.modelList)
+                        }
+                    }
                 }
             }
 
@@ -160,7 +177,9 @@ class UserRepository @ExperimentalPagingApi constructor(
                 return adheresToDefaultCachePolicy(cache, R.string.pref_last_chatroom_users_fetch_time)
             }
 
-            override suspend fun loadFromDb(): Flow<List<User>?> = hobbyfiDatabase.userDao().getUsersByChatroomId(chatroomId)
+            override suspend fun loadFromDb(): Flow<List<User>?> =
+                hobbyfiDatabase.userDao().getUsers().mapLatest {
+                    it?.filter { user -> user.chatroomIds?.contains(chatroomId) == true } }
 
             override suspend fun fetchFromNetwork(): CacheListResponse<User>? = performAuthorisedRequest(
                 {

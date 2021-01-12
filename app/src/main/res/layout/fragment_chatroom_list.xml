@@ -26,6 +26,7 @@
             android:animateLayoutChanges="false"
             android:scrollbars="vertical"
             app:layoutManager="LinearLayoutManager"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:reverseLayout="false"
             tools:listitem="@layout/chatroom_card" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

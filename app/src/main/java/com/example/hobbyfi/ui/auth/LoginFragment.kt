@@ -288,7 +288,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     val glide = Glide.with(this@LoginFragment)
 
                     var bmapResource: Bitmap? = null
-
                     val target = object : CustomTarget<Bitmap>() {
                         override fun onResourceReady(
                             resource: Bitmap,

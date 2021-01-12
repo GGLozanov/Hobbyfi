@@ -27,7 +27,10 @@ class EventListAdapter(
 
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
-    class EventViewHolder(binding: EventCardBinding, private val prefConfig: PrefConfig) : BaseViewHolder<Event>(binding.root) {
+    class EventViewHolder(
+        binding: EventCardBinding,
+        private val prefConfig: PrefConfig
+    ) : BaseViewHolder<Event>(binding.root) {
         override fun bind(model: Event?, position: Int) {
             TODO("Not yet implemented")
         }
@@ -49,7 +52,7 @@ class EventListAdapter(
 
     override fun getItemCount(): Int = events.size
 
-    fun serEvents(events: List<Event>) {
+    fun setEvents(events: List<Event>) {
         this.events = events
     }
 }

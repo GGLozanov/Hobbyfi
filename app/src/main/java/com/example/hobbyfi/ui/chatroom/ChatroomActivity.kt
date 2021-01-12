@@ -140,7 +140,8 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                 }
 
                 Log.i("ChatroomActivity", "Calendar selected event with date: $date")
-                val selectedEvent = viewModel.authEvents.value?.find { date.equals(it.date) }
+                val selectedEvent = viewModel!!.authEvents.value?.find { date.equals(it.date) }
+                // TODO: show event dialog/decorator for event info + join/leave buttons depending on user fcm eventids
             }
         }
     }
@@ -425,6 +426,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         if(availability == SERVICE_MISSING || availability == SERVICE_INVALID
             || availability == SERVICE_DISABLED) {
             googleApiInstance.makeGooglePlayServicesAvailable(this)
+            // TODO: onBackPressed?
         }
     }
 

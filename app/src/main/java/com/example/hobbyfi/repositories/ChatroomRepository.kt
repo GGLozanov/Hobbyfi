@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
 class ChatroomRepository @ExperimentalPagingApi constructor(
-    private val chatroomMediator: ChatroomMediator, private val authChatroomMediator: ChatroomMediator,
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
 ) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
@@ -34,24 +33,29 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
         userChatroomIds: List<Long>?
     ): Flow<PagingData<Chatroom>> {
-        val pagingSource = { hobbyfiDatabase.chatroomDao().getChatroomsNotPresentInIds(userChatroomIds) }
+        Log.i("ChatroomRepository", "Fetching normal chatrooms")
+        val pagingSource = { if(userChatroomIds != null)
+            hobbyfiDatabase.chatroomDao().getChatroomsNotPresentInIds(userChatroomIds)
+            else hobbyfiDatabase.chatroomDao().getChatrooms()
+        }
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = chatroomMediator
+            remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, false, userChatroomIds)
         ).flow
     }
 
     @ExperimentalPagingApi
     fun getAuthChatrooms(
         pagingConfig: PagingConfig = getDefaultPageConfig(Constants.chatroomPageSize),
-        userChatroomIds: List<Long>?
+        userChatroomIds: List<Long>
     ): Flow<PagingData<Chatroom>> {
+        Log.i("ChatroomRepository", "Fetching Auth chatrooms")
         val pagingSource = { hobbyfiDatabase.chatroomDao().getChatroomsByIds(userChatroomIds) }
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = authChatroomMediator
+            remoteMediator = ChatroomMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, true, userChatroomIds)
         ).flow
     }
 

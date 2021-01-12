@@ -8,6 +8,7 @@ import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.shared.Callbacks
@@ -21,7 +22,8 @@ class ChatroomMediator(
     hobbyfiDatabase: HobbyfiDatabase,
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
-    private val shouldFetchAuthChatrooms: Boolean
+    private val shouldFetchAuthChatrooms: Boolean,
+    private val authChatroomIds: List<Long>?
 ) : ModelRemoteMediator<Int, Chatroom>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.CHATROOM) {
     private val chatroomDao = hobbyfiDatabase.chatroomDao()
 
@@ -46,7 +48,6 @@ class ChatroomMediator(
     }
 
     private suspend fun fetchChatrooms(loadType: LoadType, state: PagingState<Int, Chatroom>): MediatorResult {
-
         val page = getPage(loadType, state).let {
             when(it) {
                 is MediatorResult.Success -> {
@@ -83,8 +84,7 @@ class ChatroomMediator(
             val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatrooms_fetch_time)
             if (loadType == LoadType.REFRESH || cacheTimedOut) {
                 Log.i("ChatroomMediator", "CHATROOM triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
-                remoteKeysDao.deleteRemoteKeyByType(remoteKeyType)
-                chatroomDao.deleteChatrooms()
+                clearCachedChatroomsByFetchType()
             }
             val keys = mapRemoteKeysFromModelList(chatroomsResponse.modelList, page, isEndOfList)
             Log.i("ChatroomMediator", "CHATROOM RemoteKeys created. RemoteKeys: ${keys}")
@@ -96,16 +96,55 @@ class ChatroomMediator(
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)
     }
 
-//    private suspend fun saveChatroom(chatroom: Chatroom): MediatorResult {
-//        Log.i("ChatroomMediator", "Received chatroom: ${chatroom}")
-//
-//        hobbyfiDatabase.withTransaction {
-//            Log.i("ChatroomMediator", "Deleting RemoteKeys and cached chatrooms")
-//            remoteKeysDao.deleteRemoteKeyByType(remoteKeyType) // delete any saved chatrooms + remote keys
-//            chatroomDao.deleteChatrooms()
-//            chatroomDao.upsert(chatroom) // insert first (and only) fetched chatroom
-//        }
-//
-//        return MediatorResult.Success(endOfPaginationReached = true)
-//    }
+    private suspend fun clearCachedChatroomsByFetchType() {
+        if(shouldFetchAuthChatrooms) {
+            authChatroomIds?.let {
+                chatroomDao.deleteChatroomsByIds(it)
+                remoteKeysDao.deleteRemoteKeysByTypeAndIds(remoteKeyType, it)
+            }
+        } else {
+            if(authChatroomIds != null) {
+                chatroomDao.deleteChatroomsNotPresentInIds(authChatroomIds)
+                remoteKeysDao.deleteRemoteKeysByTypeAndNotPresentInIds(remoteKeyType, authChatroomIds)
+            } else {
+                chatroomDao.deleteChatrooms()
+                remoteKeysDao.deleteRemoteKeys()
+            }
+        }
+    }
+
+    override suspend fun getLastRemoteKey(state: PagingState<Int, Chatroom>): RemoteKeys? {
+        return state.pages
+            .lastOrNull { it.data.isNotEmpty() }
+            ?.data?.lastOrNull()
+            ?.let { model -> getRemoteKeysByFetchType(model.id) }
+    }
+
+    override suspend fun getFirstRemoteKey(state: PagingState<Int, Chatroom>): RemoteKeys? {
+        return state.pages
+            .firstOrNull { it.data.isNotEmpty() }
+            ?.data?.firstOrNull()
+            ?.let { model -> getRemoteKeysByFetchType(model.id) }
+    }
+
+    override suspend fun getClosestRemoteKey(state: PagingState<Int, Chatroom>): RemoteKeys? {
+        return state.anchorPosition?.let { position ->
+            state.closestItemToPosition(position)?.id?.let { modelId -> getRemoteKeysByFetchType(modelId) }
+        }
+    }
+
+    private suspend fun getRemoteKeysByFetchType(id: Long): RemoteKeys? {
+        Log.i("ChatroomMediator", "Chatroom id: $id and auth chatroom ids: $authChatroomIds")
+        return if(shouldFetchAuthChatrooms) {
+            authChatroomIds?.let {
+                remoteKeysDao.getRemoteKeysTypeAndIds(id, authChatroomIds, remoteKeyType)
+            }
+        } else {
+            if(authChatroomIds != null) {
+                remoteKeysDao.getRemoteKeysTypeAndNotPresentInIds(id, authChatroomIds, remoteKeyType)
+            } else {
+                remoteKeysDao.getRemoteKeysByIdAndType(id, remoteKeyType)
+            }
+        }
+    }
 }

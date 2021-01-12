@@ -5,12 +5,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadState
+import androidx.paging.PagingData
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
@@ -19,13 +21,16 @@ import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
@@ -45,6 +50,19 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
         MainApplication.applicationContext
     )
 
+    protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
+        e.printStackTrace()
+        if((e as Exception).isCritical) {
+            Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
+                .show()
+            (requireActivity() as MainActivity).logout()
+        } else if(e !is CancellationException) {
+            Log.i("ChatroomListFragment", "state.chatrooms collect() received a normal exception: $e")
+            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
+                .show()
+        }
+    }
+
     protected val onChatroomJoinButton: (View, Chatroom) -> Unit = { _: View, chatroom: Chatroom ->
         viewModel.setButtonSelectedChatroom(chatroom)
         val userChatroomIds = activityViewModel.authUser.value?.chatroomIds
@@ -57,9 +75,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
                     UserIntent.UpdateUser(
                         mapOf(
                             Pair(
-                                Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                    activityViewModel.authUser.value!!.chatroomIds?.plus(chatroom.id)
-                                )
+                                Constants.CHATROOM_ID, chatroom.id.toString()
                             )
                         )
                     )
@@ -80,7 +96,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
 
     protected abstract fun observeAuthUser()
 
-    protected abstract suspend fun observeChatroomsState()
+    protected abstract fun observeChatroomsState()
 
     protected abstract fun observeChatroomEntryState()
 
@@ -111,6 +127,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
 
             observeChatroomEntryState()
             observeAuthUser()
+            observeChatroomsState()
             observeConnectionRefresh()
 
             return@onCreateView root

@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
@@ -34,18 +33,17 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
         handleIntent()
     }
 
-    private var currentChatrooms: Flow<PagingData<Chatroom>>? = null
-    private var currentJoinedChatrooms: Flow<PagingData<Chatroom>>? = null
+    private var _currentChatrooms: Flow<PagingData<Chatroom>>? = null
+    private var _currentJoinedChatrooms: Flow<PagingData<Chatroom>>? = null
+
+    val currentChatrooms: Flow<PagingData<Chatroom>>? get() = _currentChatrooms
+    val currentJoinedChatrooms: Flow<PagingData<Chatroom>>? get() = _currentJoinedChatrooms
 
     private var _buttonSelectedChatroom: Chatroom? = null
     val buttonSelectedChatroom: Chatroom? get() = _buttonSelectedChatroom
 
     fun setButtonSelectedChatroom(chatroom: Chatroom?) {
         _buttonSelectedChatroom = chatroom
-    }
-
-    fun setCurrentChatrooms(chatrooms: Flow<PagingData<Chatroom>>?) {
-        currentChatrooms = chatrooms
     }
 
     override fun handleIntent() {
@@ -68,26 +66,26 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
     private fun fetchChatrooms(userChatroomIds: List<Long>?) {
         mainStateIntent.setState(ChatroomListState.Loading)
 
-        Log.i("ChatroomListFragmentVM", "Current chatrooms: ${currentChatrooms}")
-        if(currentChatrooms == null) {
-            currentChatrooms = chatroomRepository.getChatrooms(userChatroomIds = userChatroomIds)
+        Log.i("ChatroomListFragmentVM", "Current chatrooms: ${_currentChatrooms}")
+        if(_currentChatrooms == null) {
+            _currentChatrooms = chatroomRepository.getChatrooms(userChatroomIds = userChatroomIds)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
-        mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(currentChatrooms!!))
+        mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(_currentChatrooms!!))
     }
 
-    private fun fetchJoinedChatrooms(userChatroomIds: List<Long>?) {
+    private fun fetchJoinedChatrooms(userChatroomIds: List<Long>) {
         mainStateIntent.setState(ChatroomListState.Loading)
 
-        Log.i("ChatroomListFragmentVM", "Current JOINED chatrooms: ${currentJoinedChatrooms}")
-        if(currentJoinedChatrooms == null) {
-            currentJoinedChatrooms = chatroomRepository.getAuthChatrooms(userChatroomIds = userChatroomIds)
+        Log.i("ChatroomListFragmentVM", "Current JOINED chatrooms: ${_currentJoinedChatrooms}")
+        if(_currentJoinedChatrooms == null) {
+            _currentJoinedChatrooms = chatroomRepository.getAuthChatrooms(userChatroomIds = userChatroomIds)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
-        mainStateIntent.setState(ChatroomListState.OnData.ChatroomsResult(currentJoinedChatrooms!!))
+        mainStateIntent.setState(ChatroomListState.OnData.JoinedChatroomsResult(_currentJoinedChatrooms!!))
     }
 }
