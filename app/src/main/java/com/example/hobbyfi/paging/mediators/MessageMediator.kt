@@ -80,7 +80,7 @@ class MessageMediator(
             val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_messages_fetch_time)
             if (loadType == LoadType.REFRESH || cacheTimedOut) {
                 Log.i("MessageMediator", "MESSAGE triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
-                remoteKeysDao.deleteRemoteKeyByType(remoteKeyType)
+                remoteKeysDao.deleteRemoteKeyByType(mainRemoteKeyType)
                 messageDao.deleteMessages()
             }
             val keys = mapRemoteKeysFromModelList(messagesResponse.modelList, page, isEndOfList)

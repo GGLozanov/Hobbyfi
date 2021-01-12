@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 abstract class ChatroomDao : BaseDao<Chatroom>() {
-    @Query("SELECT * FROM chatrooms ORDER BY name DESC")
+    @Query("SELECT * FROM chatrooms")
     abstract fun getChatrooms(): PagingSource<Int, Chatroom>
 
-    @Query("SELECT * FROM chatrooms WHERE id IN (:chatroomIds) ORDER BY name DESC")
+    @Query("SELECT * FROM chatrooms WHERE id IN (:chatroomIds)")
     abstract fun getChatroomsByIds(chatroomIds: List<Long>?): PagingSource<Int, Chatroom>
 
-    @Query("SELECT * FROM chatrooms WHERE id NOT IN (:chatroomIds) ORDER BY name DESC")
+    @Query("SELECT * FROM chatrooms WHERE id NOT IN (:chatroomIds)")
     abstract fun getChatroomsNotPresentInIds(chatroomIds: List<Long>?): PagingSource<Int, Chatroom>
 
     @Query("DELETE FROM chatrooms")

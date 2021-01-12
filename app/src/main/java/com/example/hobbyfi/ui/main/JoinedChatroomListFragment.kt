@@ -119,7 +119,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
 
-                // setChatroomLeaveButtonVisibility()
+                setChatroomLeaveButtonVisibility()
 
                 Log.i("JoinedCListFragment", "currentJoinedChatrooms: ${viewModel.currentJoinedChatrooms}")
 

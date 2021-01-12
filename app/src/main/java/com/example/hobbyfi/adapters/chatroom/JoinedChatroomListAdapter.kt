@@ -63,10 +63,17 @@ class JoinedChatroomListAdapter(
             }
         }
 
-        fun initLeaveChatroomButtonListener(chatroom: Chatroom?, onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null) {
-            binding.joinChatroomButtonBar.leftButton.setOnClickListener {
-                if(chatroom != null) {
-                    onLeaveChatroomButton?.invoke(it, chatroom)
+        fun initLeaveChatroomButtonListener(
+            chatroom: Chatroom?,
+            onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+            userOwnedChatroomIds: List<Long>
+        ) {
+            with(binding.joinChatroomButtonBar.leftButton) {
+                isVisible = !userOwnedChatroomIds.contains(chatroom?.id)
+                setOnClickListener {
+                    if(chatroom != null) {
+                        onLeaveChatroomButton?.invoke(it, chatroom)
+                    }
                 }
             }
         }
@@ -77,7 +84,7 @@ class JoinedChatroomListAdapter(
 
         with(holder) {
             bind(chatroom, position)
-            initLeaveChatroomButtonListener(chatroom, onLeaveChatroomButton)
+            initLeaveChatroomButtonListener(chatroom, onLeaveChatroomButton, userOwnedChatroomIds)
         }
     }
 
@@ -90,5 +97,6 @@ class JoinedChatroomListAdapter(
 
     fun setUserOwnedChatroomIds(userOwnedChatroomIds: List<Long>) {
         this.userOwnedChatroomIds = userOwnedChatroomIds
+        notifyDataSetChanged()
     }
 }
