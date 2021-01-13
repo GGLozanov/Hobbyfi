@@ -132,7 +132,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             response
         } catch(ex: Exception) {
             UserState.Error(
-                Constants.reauthError,
+                ex.message,
                 shouldReauth = ex.isCritical
             )
         })

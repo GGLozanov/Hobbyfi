@@ -152,7 +152,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                                 userChatroomFields = mapOf(
                                     Pair(
                                         Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                            viewModel.authUser.value!!.chatroomIds?.minus(it.userFields[Constants.LEAVE_CHATROOM_ID])
+                                            viewModel.authUser.value!!.chatroomIds?.filter { id -> it.userFields[Constants.LEAVE_CHATROOM_ID]!!.toLong() != id }
                                         )
                                     )
                                 )

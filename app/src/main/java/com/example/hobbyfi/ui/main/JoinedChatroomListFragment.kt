@@ -94,9 +94,10 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
 
                 if(left) {
                     if(viewModel.buttonSelectedChatroom != null) {
-                        FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(
-                            viewModel.buttonSelectedChatroom!!.id)).addOnCompleteListener {
-                            leaveChatroomAndUpdate()
+                        FirebaseMessaging.getInstance()
+                            .unsubscribeFromTopic(Constants.chatroomTopic(viewModel.buttonSelectedChatroom!!.id))
+                            .addOnCompleteListener {
+                                leaveChatroomAndUpdate()
                         }.addOnFailureListener(fcmTopicErrorFallback)
                     } else {
                         leaveChatroomAndUpdate()

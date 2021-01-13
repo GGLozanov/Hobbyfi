@@ -61,7 +61,7 @@ data class User(
                     photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
-                Constants.CHATROOM_ID, Constants.CHATROOM_IDS + "[]" -> {
+                Constants.CHATROOM_IDS, Constants.CHATROOM_IDS + "[]" -> {
                     chatroomIds = Constants.tagJsonConverter
                         .fromJson(value!!)
                 }
