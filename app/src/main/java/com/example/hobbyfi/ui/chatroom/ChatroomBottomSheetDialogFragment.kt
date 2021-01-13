@@ -10,7 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 abstract class ChatroomBottomSheetDialogFragment : BottomSheetDialogFragment() {
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {
-        val activityArgs: ChatroomActivityArgs by (activity as ChatroomActivity).navArgs()
+        val activityArgs: ChatroomActivityArgs by (requireActivity() as ChatroomActivity).navArgs()
         AuthUserChatroomViewModelFactory(requireActivity().application, activityArgs.user, activityArgs.chatroom)
     })
 }

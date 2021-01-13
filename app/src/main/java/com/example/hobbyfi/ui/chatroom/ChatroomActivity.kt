@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.*
 import android.graphics.Color
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -179,7 +180,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                     is UserState.OnData.UserResult -> {
                     }
                     is UserState.Error -> {
-                        handleAuthActionableError(it.error, it.shouldReauth)
+                        handleAuthActionableError(it.error + " USER", it.shouldReauth)
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -208,9 +209,10 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         sendBroadcast(Intent(Constants.CHATROOM_DELETED)
                             .apply { putExtra(Constants.CHATROOM_ID, viewModel.authChatroom.value!!.id) })
                         FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants
-                            .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback)
-                        viewModel.setChatroom(null) // clear chatroom in any case
-                        finish()
+                            .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback).continueWith {
+                            viewModel.setChatroom(null) // clear chatroom in any case
+                            finish()
+                        }
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
@@ -218,7 +220,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         viewModel.resetChatroomState()
                     }
                     is ChatroomState.Error -> {
-                        handleAuthActionableError(it.error, it.shouldExit)
+                        handleAuthActionableError(it.error + " CHATROOM", it.shouldExit)
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -246,7 +248,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         viewModel.resetUserListState()
                     }
                     is UserListState.Error -> {
-                        handleAuthActionableError(it.error, it.shouldReauth)
+                        handleAuthActionableError(it.error + " USERLIST", it.shouldReauth)
                     }
                 }
             }
@@ -267,6 +269,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                         // TODO: Need to update here?
                     }
                     is EventListState.Error -> {
+                        handleAuthActionableError(it.error + " EVENTLIST", it.shouldReauth)
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -372,9 +375,9 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                     viewModel.sendChatroomIntent(
                         ChatroomIntent.FetchChatroom
                     )
-                    // viewModel.sendEventIntent(
-//                        EventIntent.FetchEvents
-//                    )
+                    viewModel.sendEventsIntent(
+                        EventListIntent.FetchEvents
+                    )
                 }
             } else {
                 Log.i("ChatroomActivity", "ChatroomActivity DIS-CONNECTED")
@@ -382,7 +385,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         })
     }
 
-    // TODO: Add events display bottomsheet + join/leave, etc. for one-to-many relation AND communication to host activity here!1!
     // TODO: This is on the right nav drawer
     // TODO: Add Dialog fragment for one select and redirect to EventEditFragment on `Edit an Event` button press
     // TODO: Add Dialog fragment for one select and delete confirm on `Delete an Event` button press
@@ -490,10 +492,12 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
             .unsubscribeFromTopic(Constants.chatroomTopic(viewModel.authChatroom.value!!.id))
         .addOnCompleteListener {
             prefConfig.resetLastEnteredChatroomId()
-            super.onBackPressed()
+        }.addOnCanceledListener {
+            Log.i("ChatroomActivity", "Cancelled user unsubsription from topic upon exiting chatroom.")
         }.addOnFailureListener {
             it.printStackTrace()
             Log.i("ChatroomActivity", "Failed to unsubscribe user from topic upon exiting chatroom. $it")
+        }.continueWith {
             super.onBackPressed()
         }
     }

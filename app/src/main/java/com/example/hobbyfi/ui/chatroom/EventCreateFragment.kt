@@ -103,6 +103,12 @@ class EventCreateFragment : ChatroomModelFragment(),
         lifecycleScope.launch {
             viewModel.mainState.collect {
                 when(it) {
+                    EventState.Idle -> {
+
+                    }
+                    EventState.Loading -> {
+                        // TODO: Progressbar
+                    }
                     is EventState.OnData.EventCreateResult -> {
                         Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
                             .show()

@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 
 class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
-    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+: CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
     fun getMessages(
         pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),

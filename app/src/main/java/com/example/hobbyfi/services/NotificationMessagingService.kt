@@ -130,7 +130,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         prefConfig.writeDeviceToken(token) // save new device token and resubscribe
 
-
         // dunno what to do here for now; not using specifics tokens for now so /shrug
         // redo subscriptions to topics here somehow...
         // ...send broadcast?
@@ -182,7 +181,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
     private fun createNotificationChannel() {
         // > API 26
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = resources.getString(R.string.default_notification_channel_id)
             val name = getString(R.string.channel_name)
             val descriptionText = getString(R.string.channel_description)

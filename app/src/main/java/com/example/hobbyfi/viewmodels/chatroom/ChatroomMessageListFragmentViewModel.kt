@@ -49,8 +49,9 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
     val messageStateIntent: StateIntent<MessageState, MessageIntent> = object : StateIntent<MessageState, MessageIntent>() {
         override val _state: MutableStateFlow<MessageState> = MutableStateFlow(MessageState.Idle)
     }
-
     val messageState get() = messageStateIntent.state
+
+    fun resetMessageState() = messageStateIntent.setState(MessageState.Idle)
 
     suspend fun sendMessageIntent(intent: MessageIntent) {
         messageStateIntent.sendIntent(intent)

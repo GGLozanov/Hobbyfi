@@ -17,7 +17,7 @@ class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): CacheResponse<Chatroom> {
-        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA_LIST)
+        outerJsonObject = json.asJsonObject.getAsJsonObject(Constants.DATA)
 
         val entity = Chatroom(
             deserializeJSONField(Constants.ID, DeserializeOption.AS_LONG) as Long,
@@ -26,7 +26,7 @@ class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
             Constants.tagJsonConverter
                 .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
-            deserializeJSONField(Constants.OWNER_ID, DeserializeOption.AS_INT) as Long,
+            deserializeJSONField(Constants.OWNER_ID, DeserializeOption.AS_LONG) as Long,
             Constants.tagJsonConverter
                 .fromJson(deserializeJSONField(Constants.EVENT_IDS, DeserializeOption.AS_ARRAY) as JsonArray?)
         )

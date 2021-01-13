@@ -155,7 +155,7 @@ interface HobbyfiAPI {
     suspend fun fetchChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.ID) chatroomId: Long
-    ): CacheResponse<Chatroom>
+    ): CacheResponse<Chatroom>?
 
     /**
      *

@@ -18,8 +18,7 @@ import org.kodein.di.generic.instance
 
 class EventListAdapter(
     private var events: List<Event>,
-    private val onJoinEventButton: (View, Event) -> Unit,
-    private val onLeaveEventButton: (View, Event) -> Unit
+    private val onManagePressButton: (View, Event) -> Unit,
 ) : RecyclerView.Adapter<EventListAdapter.EventViewHolder>(), KodeinAware {
 
     @ExperimentalPagingApi

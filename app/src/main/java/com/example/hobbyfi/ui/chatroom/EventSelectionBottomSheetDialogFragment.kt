@@ -26,13 +26,9 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
 
     private val eventListAdapter: EventListAdapter = EventListAdapter(
         activityViewModel.authEvents.value ?: emptyList(),
-        { view: View, event: Event ->
+    ) { view: View, event: Event ->
 
-        },
-        { view: View, event: Event ->
-
-        }
-    )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

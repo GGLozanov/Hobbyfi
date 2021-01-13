@@ -264,6 +264,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     is MessageState.OnData.MessageDeleteResult -> {
                         Toast.makeText(requireContext(), "Successfully deleted message!", Toast.LENGTH_LONG)
                             .show()
+                        viewModel.resetMessageState()
                     }
                     is MessageState.OnData.DeleteMessageCacheResult -> {
                         // prolly don't do much, if anything here

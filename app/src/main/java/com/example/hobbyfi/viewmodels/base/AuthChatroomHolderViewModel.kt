@@ -86,10 +86,9 @@ abstract class AuthChatroomHolderViewModel(
         chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomRepository.getChatroom().catch { e ->
-            e.printStackTrace()
             chatroomStateIntent.setState(
                 ChatroomState.Error(
-                    Constants.reauthError,
+                    e.message,
                     shouldExit = (e as Exception).isCritical
                 )
             )

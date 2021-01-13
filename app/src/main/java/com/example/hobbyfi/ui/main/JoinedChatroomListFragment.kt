@@ -45,6 +45,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                 activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
             }.mapNotNull { if (it.ownerId == activityViewModel.authUser.value!!.id) it.id else null }
         chatroomListAdapter.setUserOwnedChatroomIds(userOwnedChatroomIds)
+        loadStateAdapter?.setUserChatroomOwnership(userOwnedChatroomIds.isNotEmpty())
     }
 
     override fun observeChatroomsState() {

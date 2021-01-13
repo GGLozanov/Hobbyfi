@@ -85,7 +85,6 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
         return object : NetworkBoundFetcher<Chatroom, CacheResponse<Chatroom>>() {
             override suspend fun saveNetworkResult(response: CacheResponse<Chatroom>) {
-                prefConfig.writeLastEnteredChatroomId(response.model.id)
                 hobbyfiDatabase.chatroomDao().upsert(response.model)
             }
 
@@ -112,20 +111,15 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
 
             override suspend fun fetchFromNetwork(): CacheResponse<Chatroom>? {
                 Log.i("ChatroomRepository", "getChatroom -> fetchFromNetwork() -> fetching current auth chatroom from network")
-                return try {
+                return performAuthorisedRequest({
                     val token = prefConfig.getAuthUserToken()
-                    if(token != null) {
-                        val response = hobbyfiAPI.fetchChatroom(
-                            token,
-                            prefConfig.readLastEnteredChatroomId()
-                        )
-                        Log.i("ChatroomRepository", "getChatroom -> ${response.model}")
-                        response
-                    } else throw ReauthenticationException()
-                } catch(ex: Exception) {
-                    ex.printStackTrace()
-                    Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true) // no need for authorised request handling here because token parsing already handles expired token exceptions
-                }
+                    val response = hobbyfiAPI.fetchChatroom(
+                        token!!,
+                        prefConfig.readLastEnteredChatroomId()
+                    )
+                    Log.i("ChatroomRepository", "getChatroom -> ${response?.model}")
+                    response
+                }, { fetchFromNetwork() })
             }
         }.asFlow()
     }

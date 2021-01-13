@@ -101,7 +101,7 @@ class PrefConfig(private val context: Context) {
     fun readLastEnteredChatroomId(): Long {
         return sharedPreferences.getInt(
             context.getString(R.string.pref_last_entered_chatroom_id),
-            (System.currentTimeMillis() / 1000).toInt()
+            0
         ).toLong()
     }
 

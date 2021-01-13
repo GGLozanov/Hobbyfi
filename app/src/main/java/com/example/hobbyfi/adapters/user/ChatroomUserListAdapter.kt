@@ -82,7 +82,7 @@ class ChatroomUserListAdapter(
             } else {
                 Glide.with(itemView.context)
                     .load(
-                        R.drawable.chatroom_default_pic
+                        R.drawable.default_pic
                     )
                     .into(binding.userProfileImage)
             }

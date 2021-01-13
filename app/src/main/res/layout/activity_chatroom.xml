@@ -53,6 +53,7 @@
             android:layout_gravity="start"
             android:background="@color/colorPrimary"
             app:headerLayout="@layout/nav_header_admin"
+            app:menu="@menu/chatroom_admin_nav_drawer_menu"
             app:itemIconTint="@android:color/white"
             app:itemTextColor="@android:color/white">
 

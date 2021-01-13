@@ -89,8 +89,6 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 // avoid fragment recreation (do nothing here)
             }
 
-            bottomNav.selectedItemId = R.id.userProfileFragment
-
             bottomNav.setupWithNavController(
                 navGraphIds = listOf(
                     R.navigation.user_profile_nav_graph,
