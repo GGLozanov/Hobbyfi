@@ -123,4 +123,8 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
     private fun updateConnection() {
         postValue(hadLostConnectionPrior && connectivityManager.isConnected())
     }
+
+    fun postLastConnection(lastConnection: Boolean) {
+        postValue(lastConnection)
+    }
 }

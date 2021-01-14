@@ -2,13 +2,11 @@ package com.example.hobbyfi.shared
 
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.os.Build
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
-import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
@@ -29,7 +27,6 @@ import com.example.hobbyfi.models.*
 import com.example.hobbyfi.repositories.Repository
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.CancellationException
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
 
@@ -60,8 +57,8 @@ fun ConnectivityManager.isConnected(): Boolean {
     }
 }
 
-fun<T> MutableList<T>.addAllDistinct(selectedTags: List<T>) {
-    selectedTags.forEach {
+fun<T> MutableList<T>.addAllDistinct(list: List<T>) {
+    list.forEach {
         if(!this.contains(it)) {
             this.add(it)
         }

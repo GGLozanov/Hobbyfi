@@ -1,8 +1,10 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.DisplayMetrics
 import androidx.fragment.app.Fragment
@@ -10,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
@@ -21,6 +24,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,12 +67,12 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
         with(binding) {
             bottomSheet.apply {
                 BottomSheetBehavior.from(this).apply {
-                    peekHeight = 1 / 4 * (DisplayMetrics().heightPixels)
+                    setPeekHeight(1 / 4 * (Resources.getSystem().displayMetrics.heightPixels), true)
                     state = BottomSheetBehavior.STATE_EXPANDED
                 }
 
-                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex
-                    .matches(message.message) && !message.isTimeline // TODO: Change when add text to image messages
+                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex.matches(message.message) &&
+                        !message.isTimeline // TODO: Change when add text to image messages
                 setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
             }
 

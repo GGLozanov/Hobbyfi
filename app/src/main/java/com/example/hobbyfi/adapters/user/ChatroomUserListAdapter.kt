@@ -3,24 +3,17 @@ package com.example.hobbyfi.adapters.user
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.databinding.DataBindingUtil
 import androidx.paging.ExperimentalPagingApi
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.base.BaseViewHolder
-import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
+import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.databinding.UserCardBinding
-import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
-import com.example.hobbyfi.utils.GlideUtils
-import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
@@ -54,9 +47,9 @@ class ChatroomUserListAdapter(
 
     class ChatroomUserViewHolder(
         private val binding: UserCardBinding,
-        private val prefConfig: PrefConfig,
+        prefConfig: PrefConfig,
         private val onUserCardPress: (View, User) -> Unit
-    ) : BaseViewHolder<User>(binding.root) {
+    ) : ImageLoaderViewHolder<User>(binding.root, prefConfig) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(parent: ViewGroup, prefConfig: PrefConfig, onUserCardPress: (View, User) -> Unit): ChatroomUserViewHolder {
@@ -68,28 +61,19 @@ class ChatroomUserListAdapter(
             }
         }
 
-
         override fun bind(user: User?, position: Int) {
             binding.user = user
-            if(user?.photoUrl != null) {
-                Glide.with(itemView.context)
-                    .load(user.photoUrl)
-                    .signature(
-                        ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time))
-                    )
-                    // calculate current page based on item position
-                    .into(binding.userProfileImage)
-            } else {
-                Glide.with(itemView.context)
-                    .load(
-                        R.drawable.default_pic
-                    )
-                    .into(binding.userProfileImage)
-            }
+            bindImage(user, position)
             binding.userCard.setOnClickListener {
                 onUserCardPress(it, user!!)
             }
         }
+
+        override val mainImageView: ImageView = binding.userProfileImage
+        override val signatureGenerator: (position: Int) -> ObjectKey = {
+            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time))
+        }
+        override val defaultPicResId: Int = R.drawable.user_default_pic
     }
 
     fun setUsers(users: List<User>) {

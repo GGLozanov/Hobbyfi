@@ -32,8 +32,8 @@ class EventRepository(
     private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
     // TODO: Refactor to Fetch event list when one-to-many
-    fun getEvent(chatroomId: Long): Flow<List<Event>?> {
-        Log.i("EventRepository", "getEvent -> Getting current chatroom event!!!")
+    fun getEvents(chatroomId: Long): Flow<List<Event>?> {
+        Log.i("EventRepository", "getEvent -> Getting current chatroom eventS!!!")
         return object : NetworkBoundFetcher<List<Event>?, CacheListResponse<Event>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<Event>) {
                 saveEvents(response.modelList)

@@ -289,6 +289,8 @@ object Constants {
     const val CHATROOM_IDS: String = "chatroom_ids"
     const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"
 
+    const val LAST_CONNECTIVITY: String = "LAST_CONNECTIVITY"
+
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER
     }

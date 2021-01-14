@@ -127,4 +127,5 @@
     <string name="event_schedule">Event Schedule</string>
     <string name="no_remind">Don\'t show this again</string>
     <string name="delete_events_batch">Are you sure you want to delete all old events?</string>
+    <string name="event_edit_header">Manage Event</string>
 </resources>

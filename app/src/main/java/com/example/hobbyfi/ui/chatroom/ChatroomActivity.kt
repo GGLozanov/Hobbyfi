@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.*
 import android.graphics.Color
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -23,7 +22,7 @@ import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
+import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
@@ -46,16 +45,17 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.*
+import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.prolificinteractive.materialcalendarview.CalendarDay
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView.SELECTION_MODE_MULTIPLE
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView.SELECTION_MODE_NONE
 import org.kodein.di.generic.instance
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @ExperimentalCoroutinesApi
-class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected {
+class ChatroomActivity : BaseActivity(),
+        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, RefreshConnectionAware {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
@@ -145,6 +145,8 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
                 // TODO: show event dialog/decorator for event info + join/leave buttons depending on user fcm eventids
             }
         }
+
+        observeConnectionRefresh(savedInstanceState, refreshConnectivityMonitor)
     }
 
     @ExperimentalPagingApi
@@ -164,7 +166,6 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         observeEvents()
         observeChatroom()
         observeChatroomOwnRights()
-        observeConnectionRefresh()
     }
 
     private fun observeUserState() {
@@ -338,7 +339,7 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
 
                 // FIXME: Small coderino duperino with ChatroomTagAdapter
                 chatroom.tags?.let {
-                    val adapter = ChatroomTagListAdapter(chatroom.tags!!, this@ChatroomActivity, R.layout.chatroom_tag_card)
+                    val adapter = TagListAdapter(chatroom.tags!!, this@ChatroomActivity, R.layout.chatroom_tag_card)
                     binding.tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
 
                     binding.tagsGridView.adapter = adapter
@@ -364,7 +365,8 @@ class ChatroomActivity : BaseActivity(), ChatroomMessageBottomSheetDialogFragmen
         })
     }
 
-    private fun observeConnectionRefresh() {
+    override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
+        super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(this, Observer { connectionRefreshed ->
             if(connectionRefreshed) {
                 Log.i("ChatroomActivity", "ChatroomActivity CONNECTED")

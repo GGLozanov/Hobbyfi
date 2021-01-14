@@ -22,6 +22,7 @@
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            app:cardElevation="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -71,6 +72,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
+                    android:maxWidth="150dp"
                     android:text="@{chatroom.description}"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -89,7 +91,7 @@
                     android:layout_gravity="center"
                     android:layout_marginBottom="8dp"
                     android:gravity="center"
-                    android:text="@{String.format(`%s %s`, (`Currently hosting events: `), (chatroom.eventIds != null ? `Yes!` : `No...`))}"
+                    android:text="@{String.format(`%s %s`, (`Currently hosting events? `), (chatroom.eventIds != null ? `Yes!` : `No...`))}"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toTopOf="@id/tags_grid_view"
@@ -123,7 +125,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginLeft="8dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -138,8 +139,7 @@
                         android:id="@+id/chatroom_join_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginLeft="8dp" />
+                        android:layout_marginStart="8dp" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>

@@ -52,7 +52,7 @@ class EventCreateFragment : ChatroomModelFragment(),
         binding.viewModel = viewModel
 
         with(binding) {
-            eventInfoButtonBar.leftButton.setOnClickListener { // select event date
+            eventInfo.eventInfoButtonBar.leftButton.setOnClickListener { // select event date
                 val c = Calendar.getInstance()
                 val initialYear = c.get(Calendar.YEAR)
                 val initialMonth = c.get(Calendar.MONTH)
@@ -69,7 +69,7 @@ class EventCreateFragment : ChatroomModelFragment(),
                 dialog.show()
             }
 
-            eventInfoButtonBar.rightButton.setOnClickListener { // select location
+            eventInfo.eventInfoButtonBar.rightButton.setOnClickListener { // select location
                 val intent = Intent(requireContext(), EventChooseLocationMapsActivity::class.java).apply {
                     putExtra(Constants.EVENT_TITLE, viewModel!!.name.value)
                     putExtra(Constants.EVENT_DESCRIPTION, viewModel!!.description.value)
@@ -79,11 +79,11 @@ class EventCreateFragment : ChatroomModelFragment(),
                 startActivityForResult(intent, Constants.eventLocationRequestCode)
             }
 
-            eventImage.setOnClickListener {
+            eventInfo.eventImage.setOnClickListener {
                 Callbacks.requestImage(this@EventCreateFragment)
             }
 
-            confirmButton.setOnClickListener {
+            eventInfo.confirmButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
@@ -130,12 +130,12 @@ class EventCreateFragment : ChatroomModelFragment(),
             // Code quality TODO:
             //  Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
             // with the preset predicate/error pairs
-            nameInputField.addTextChangedListener(
+            eventInfo.nameInputField.addTextChangedListener(
                 Constants.nameInputError,
                 Constants.namePredicate
             )
 
-            descriptionInputField.addTextChangedListener(
+            eventInfo.descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -143,7 +143,7 @@ class EventCreateFragment : ChatroomModelFragment(),
     }
 
     override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
+        with(binding.eventInfo) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
                     FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
@@ -187,10 +187,12 @@ class EventCreateFragment : ChatroomModelFragment(),
             resultCode,
             data
         ) {
-            binding.eventImage.setImageBitmap(it)
-            viewModel.base64Image.setImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            binding.eventInfo.eventImage.setImageBitmap(it)
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
 }

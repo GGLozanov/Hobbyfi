@@ -21,8 +21,10 @@ import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.RefreshConnectivityMonitor
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.tasks.OnFailureListener
@@ -39,7 +41,7 @@ import org.kodein.di.generic.instance
 
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
-abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() {
+abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(), RefreshConnectionAware {
     protected val viewModel: ChatroomListFragmentViewModel by viewModels()
     protected lateinit var binding: FragmentChatroomListBinding
 
@@ -130,7 +132,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
             observeChatroomEntryState()
             observeAuthUser()
             observeChatroomsState()
-            observeConnectionRefresh()
+            observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity).refreshConnectivityMonitor)
 
             return@onCreateView root
         }
@@ -158,8 +160,9 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment() 
     
     abstract fun navigateToChatroomCreate()
 
-    private fun observeConnectionRefresh() {
-        (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+    override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
+        super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
+        refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
             if(connectionRefreshed) {
                 Log.i("MainListFragment", "MainListFragment CONNECTED")
                 chatroomListAdapter.refresh()

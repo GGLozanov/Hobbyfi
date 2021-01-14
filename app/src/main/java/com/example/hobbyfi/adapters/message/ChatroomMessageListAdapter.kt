@@ -2,20 +2,14 @@ package com.example.hobbyfi.adapters.message
 
 import android.content.Context
 import android.util.Log
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
-import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestManager
-import com.bumptech.glide.signature.ObjectKey
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.BaseViewHolder
@@ -27,15 +21,12 @@ import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.GlideUtils
-import com.google.android.material.textview.MaterialTextView
 import com.example.hobbyfi.models.User
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
-import org.kodein.di.android.x.androidXContextTranslators
 import org.kodein.di.generic.instance
 import java.lang.IllegalArgumentException
-import kotlin.properties.Delegates
 
 
 class ChatroomMessageListAdapter(
@@ -217,7 +208,7 @@ class ChatroomMessageListAdapter(
 
         glide
             .load(userSentMessage?.photoUrl)
-            .placeholder(R.drawable.default_pic)
+            .placeholder(R.drawable.user_default_pic)
             .signature(
                 GlideUtils.getPagingObjectKey(
                     prefConfig,

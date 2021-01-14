@@ -51,4 +51,13 @@ abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.Permissio
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         // TODO: show toast that says user won't have access until they grant perm. . .
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        (requireActivity() as BaseActivity).refreshConnectivityMonitor.value?.let {
+            outState.putBoolean(Constants.LAST_CONNECTIVITY,
+                it
+            )
+        }
+    }
 }

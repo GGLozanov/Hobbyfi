@@ -24,7 +24,7 @@ class ChatroomMediator(
     hobbyfiAPI: HobbyfiAPI,
     private val shouldFetchAuthChatrooms: Boolean,
     private val authChatroomIds: List<Long>?
-) : ModelRemoteMediator<Int, Chatroom>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.CHATROOM) {
+) : ModelMediator<Int, Chatroom>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.CHATROOM) {
     private val chatroomDao = hobbyfiDatabase.chatroomDao()
 
     override suspend fun load(

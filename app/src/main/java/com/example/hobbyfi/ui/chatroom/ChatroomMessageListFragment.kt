@@ -25,13 +25,11 @@ import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.shared.ChatroomMessageBroadacastReceiverFactory
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -48,7 +46,9 @@ import kotlin.properties.Delegates
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class ChatroomMessageListFragment : ChatroomFragment(),
-        BottomSheetImagePicker.OnImagesSelectedListener, ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected {
+        BottomSheetImagePicker.OnImagesSelectedListener,
+        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
+        RefreshConnectionAware {
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
@@ -181,7 +181,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             observeUsers()
             observeMessageState()
             observeMessagesState()
-            observeConnectionRefresh()
+            observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity).refreshConnectivityMonitor)
 
             return@onCreateView root
         }
@@ -281,8 +281,9 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         }
     }
 
-    private fun observeConnectionRefresh() {
-        (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+    override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
+        super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
+        refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
             if(connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
                 messageListAdapter!!.refresh()

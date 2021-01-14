@@ -21,7 +21,7 @@ class MessageMediator(
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
     private val chatroomId: Long
-) : ModelRemoteMediator<Int, Message>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.MESSAGE) {
+) : ModelMediator<Int, Message>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.MESSAGE) {
     private val messageDao = hobbyfiDatabase.messageDao()
 
     override suspend fun load(

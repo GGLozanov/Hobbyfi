@@ -1,18 +1,16 @@
 package com.example.hobbyfi.adapters.chatroom
 
-import android.content.Context
 import android.view.View
 import android.widget.GridView
-import android.widget.ImageView
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.base.BaseViewHolder
-import com.example.hobbyfi.adapters.tag.ChatroomTagListAdapter
+import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
+import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
@@ -35,34 +33,18 @@ abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
 
     abstract class BaseChatroomViewHolder(
         itemView: View,
-        protected val prefConfig: PrefConfig
-    ) : BaseViewHolder<Chatroom>(itemView) {
-        protected fun bindChatroomPhotoAndTags(
+        prefConfig: PrefConfig
+    ) : ImageLoaderViewHolder<Chatroom>(itemView, prefConfig) {
+        override fun bind(model: Chatroom?, position: Int) {
+            bindImage(model, position)
+            bindTags(model)
+        }
+
+        protected fun bindTags(
             chatroom: Chatroom?,
-            position: Int
         ) {
-            if(chatroom?.photoUrl != null) {
-                Glide.with(itemView.context)
-                    .load(chatroom.photoUrl)
-                    .signature(
-                        GlideUtils.getPagingObjectKey(
-                            prefConfig,
-                            position,
-                            R.string.pref_last_chatrooms_fetch_time,
-                            Constants.chatroomPageSize
-                        )
-                    )
-                    // calculate current page based on item position
-                    .into(chatroomImageView)
-            } else {
-                Glide.with(itemView.context)
-                    .load(
-                        R.drawable.chatroom_default_pic
-                    )
-                    .into(chatroomImageView)
-            }
             if(chatroom?.tags != null) {
-                val adapter = ChatroomTagListAdapter(chatroom.tags!!, itemView.context, R.layout.chatroom_tag_card)
+                val adapter = TagListAdapter(chatroom.tags!!, itemView.context, R.layout.chatroom_tag_card)
                 tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
 
                 tagsGridView.adapter = adapter
@@ -80,7 +62,16 @@ abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
             }
         }
 
-        abstract val chatroomImageView: ImageView
+        override val signatureGenerator: (position: Int) -> ObjectKey = { position ->
+            GlideUtils.getPagingObjectKey(
+                prefConfig,
+                position,
+                R.string.pref_last_chatrooms_fetch_time,
+                Constants.chatroomPageSize
+            )
+        }
+        override val defaultPicResId: Int = R.drawable.chatroom_default_pic
+
         abstract val tagsGridView: GridView
         abstract val chatroomJoinButton: MaterialButton
     }

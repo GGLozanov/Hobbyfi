@@ -41,7 +41,11 @@
         android:id="@+id/eventEditDialogFragment"
         android:name="com.example.hobbyfi.ui.chatroom.EventEditFragment"
         android:label="fragment_event_edit_dialog"
-        tools:layout="@layout/fragment_event_edit" />
+        tools:layout="@layout/fragment_event_edit" >
+        <argument
+            android:name="event"
+            app:argType="com.example.hobbyfi.models.Event" />
+    </dialog>
     <navigation android:id="@+id/event_create_navigation"
         app:startDestination="@id/eventCreateFragment">
         <fragment

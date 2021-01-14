@@ -24,17 +24,21 @@ object ImageUtils {
      * Encodes a given bitmap (preferably for an image) to Base64
      * @return String — the encoded Base64 bitmap
      */
-    fun encodeImage(bitmap: Bitmap): String {
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        // stream of bytes to represent the bitmap with
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-        // compress bitmap to JPEG w/ best quality possible and pass it into the ByteArrayOutputStream
-        val imageByte: ByteArray = byteArrayOutputStream.toByteArray()
-        return Base64.encodeToString(
-            imageByte,
-            DEFAULT
-        ) // encode byte array to string in Base64 w/ default_img flags
-    }
+    suspend fun encodeImage(bitmap: Bitmap): String =
+        withContext(Dispatchers.IO) {
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            // stream of bytes to represent the bitmap with
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+            // compress bitmap to JPEG w/ best quality possible and pass it into the ByteArrayOutputStream
+            val imageByte: ByteArray = byteArrayOutputStream.toByteArray()
+            val image = Base64.encodeToString(
+                imageByte,
+                DEFAULT
+            ) // encode byte array to string in Base64 w/ default_img flags
+            withContext(Dispatchers.Main) {
+                image
+            }
+        }
 
     fun getBitmapFromUri(activity: Activity, uri: Uri) : Bitmap {
         val contentResolver = activity
@@ -54,15 +58,5 @@ object ImageUtils {
         }
     }
 
-    fun getEncodedImageFromUri(activity: Activity, uri: Uri) = encodeImage(getBitmapFromUri(activity, uri))
-
-    fun isBase64(str: String) = try {
-        android.util.Base64.decode(
-            str,
-            DEFAULT
-        )
-        true
-    } catch (ex: IllegalArgumentException) {
-        false
-    }
+    suspend fun getEncodedImageFromUri(activity: Activity, uri: Uri) = encodeImage(getBitmapFromUri(activity, uri))
 }

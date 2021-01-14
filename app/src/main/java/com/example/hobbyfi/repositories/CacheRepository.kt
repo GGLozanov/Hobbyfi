@@ -18,8 +18,8 @@ import com.google.firebase.ktx.Firebase
 abstract class CacheRepository(
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
-    protected val hobbyfiDatabase: HobbyfiDatabase, protected val connectivityManager: ConnectivityManager)
-    : Repository(prefConfig, hobbyfiAPI) {
+    protected val hobbyfiDatabase: HobbyfiDatabase, protected val connectivityManager: ConnectivityManager
+) : Repository(prefConfig, hobbyfiAPI) {
     protected val firestore = Firebase.firestore
 
     protected fun<T> adheresToDefaultCachePolicy(cache: T?, cachePref: Int): Boolean {

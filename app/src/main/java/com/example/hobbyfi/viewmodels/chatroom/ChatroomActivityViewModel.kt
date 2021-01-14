@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserListIntent
@@ -68,7 +67,7 @@ class ChatroomActivityViewModel(
             eventsStateIntent.intentAsFlow().collect {
                 when(it) {
                     is EventListIntent.AddAnEventCache -> {
-
+                        saveEvent(it.event)
                     }
                     is EventListIntent.DeleteAnEventCache -> {
                         if(eventRepository.deleteEventCache(it.eventId)) {
@@ -77,6 +76,7 @@ class ChatroomActivityViewModel(
                     }
                     is EventListIntent.DeleteOldEventsCache -> {
                         // TODO: wire up this with delete_old events in repo and API
+                        deleteEvents()
                     }
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
@@ -147,7 +147,7 @@ class ChatroomActivityViewModel(
     private suspend fun fetchEvents() {
         eventsStateIntent.setState(EventListState.Loading)
 
-        eventRepository.getEvent(_authChatroom.value!!.id).catch { e ->
+        eventRepository.getEvents(_authChatroom.value!!.id).catch { e ->
             eventsStateIntent.setState(
                 EventListState.Error(
                     e.message,
@@ -179,7 +179,7 @@ class ChatroomActivityViewModel(
     }
 
     private suspend fun deleteEvents() {
-
+        TODO("Not implemented.")
     }
 
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {

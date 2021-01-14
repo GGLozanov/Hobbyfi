@@ -186,9 +186,11 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             data
         ) {
             binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            viewModel.base64Image.setImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
 

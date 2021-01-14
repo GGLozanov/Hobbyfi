@@ -52,10 +52,10 @@ class ChatroomEditFragment : ChatroomModelFragment() {
         with(binding) {
             lifecycleOwner = this@ChatroomEditFragment
 
-            chatroomImage.setOnClickListener {
+            chatroomInfo.chatroomImage.setOnClickListener {
                 Callbacks.requestImage(this@ChatroomEditFragment)
             }
-            buttonBar.rightButton.setOnClickListener {
+            chatroomInfo.buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
@@ -106,8 +106,8 @@ class ChatroomEditFragment : ChatroomModelFragment() {
                             it.photoUrl!!
                         ).signature(
                             ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
-                        ).placeholder(binding.chatroomImage.drawable)
-                        .into(binding.chatroomImage)
+                        ).placeholder(chatroomInfo.chatroomImage.drawable)
+                        .into(chatroomInfo.chatroomImage)
                     } else {
                         // load default img (needed if image deletion is added because image will be sent null/"0" or whatever)
                     }
@@ -126,7 +126,7 @@ class ChatroomEditFragment : ChatroomModelFragment() {
                 viewModel.tagBundle.appendNewSelectedTagsToTags(it)
         })
 
-        binding.buttonBar.leftButton.setOnClickListener {
+        binding.chatroomInfo.buttonBar.leftButton.setOnClickListener {
             navController.navigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
                 viewModel.tagBundle.selectedTags.toTypedArray(),
                 viewModel.tagBundle.tags.toTypedArray()
@@ -136,12 +136,12 @@ class ChatroomEditFragment : ChatroomModelFragment() {
 
     override fun initTextFieldValidators() {
         with(binding) {
-            nameInputField.addTextChangedListener(
+            chatroomInfo.nameInputField.addTextChangedListener(
                 Constants.nameInputError,
                 Constants.namePredicate
             )
 
-            descriptionInputField.addTextChangedListener(
+            chatroomInfo.descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -149,7 +149,7 @@ class ChatroomEditFragment : ChatroomModelFragment() {
     }
 
     override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
+        with(binding.chatroomInfo) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
                     FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
         }
@@ -163,10 +163,12 @@ class ChatroomEditFragment : ChatroomModelFragment() {
             resultCode,
             data
         ) {
-            binding.chatroomImage.setImageBitmap(it)
-            viewModel.base64Image.setImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            binding.chatroomInfo.chatroomImage.setImageBitmap(it)
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
 }

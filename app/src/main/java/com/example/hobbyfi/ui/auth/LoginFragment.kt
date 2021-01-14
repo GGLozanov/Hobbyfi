@@ -26,11 +26,13 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
+import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.squareup.okhttp.Dispatcher
 import kotlinx.coroutines.*
@@ -43,7 +45,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         val tag: String = "LoginFragment"
-        fun newInstance() = LoginFragment()
     }
 
     private val viewModel: LoginFragmentViewModel by viewModels()
@@ -205,14 +206,18 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
                             .show()
 
-                        if (it.error != Constants.noConnectionError) {
-                            // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
-                            val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                                viewModel.tagBundle.selectedTags.toTypedArray(),
-                                viewModel.tagBundle.tags
-                                    .toTypedArray()
-                            )
-                            navController.navigate(action)
+                        if((requireActivity() as BaseActivity).refreshConnectivityMonitor.value == true) {
+                            if (it.error != Constants.serverConnectionError) {
+                                // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
+                                val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
+                                    viewModel.tagBundle.selectedTags.toTypedArray(),
+                                    viewModel.tagBundle.tags
+                                        .toTypedArray()
+                                )
+                                navController.navigate(action)
+                            } else {
+                                LoginManager.getInstance().logOut()
+                            }
                         }
                     }
                 }
@@ -238,7 +243,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                     LoginFragment.tag,
                                     "Should never reach here if everything is ok, wtf"
                                 )
-                                throw RuntimeException()
                             }
                             else -> {
                                 Toast.makeText(context, it.error, Toast.LENGTH_LONG)

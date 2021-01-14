@@ -12,7 +12,7 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
 
 @ExperimentalPagingApi
-abstract class ModelRemoteMediator<Key: Any, Value: Model>(
+abstract class ModelMediator<Key: Any, Value: Model>(
     protected val hobbyfiDatabase: HobbyfiDatabase,
     protected val prefConfig: PrefConfig,
     protected val hobbyfiAPI: HobbyfiAPI,

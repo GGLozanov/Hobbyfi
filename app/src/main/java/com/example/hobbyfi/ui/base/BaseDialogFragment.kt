@@ -6,6 +6,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -25,4 +26,14 @@ abstract class BaseDialogFragment : DialogFragment(), KodeinAware {
     }
 
     override fun getTheme(): Int = R.style.RoundedCornersDialog
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        (requireActivity() as BaseActivity).refreshConnectivityMonitor.value?.let {
+            outState.putBoolean(
+                Constants.LAST_CONNECTIVITY,
+                it
+            )
+        }
+    }
 }
