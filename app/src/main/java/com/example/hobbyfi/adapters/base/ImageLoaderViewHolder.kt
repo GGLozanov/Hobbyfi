@@ -24,6 +24,7 @@ abstract class ImageLoaderViewHolder<in T: ExpandedModel>(
         if(model?.photoUrl != null) {
             Glide.with(itemView.context)
                 .load(model.photoUrl)
+                .placeholder(defaultPicResId)
                 .signature(
                     signatureGenerator(position)
                 ) // calculate current page based on item position

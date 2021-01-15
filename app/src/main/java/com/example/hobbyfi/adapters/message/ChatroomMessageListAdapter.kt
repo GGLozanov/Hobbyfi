@@ -112,7 +112,8 @@ class ChatroomMessageListAdapter(
                 }
             }
 
-            messageCardBinding.message = message // DATA BINDING GO BRRRRRR????
+            // DATA BINDING GO BRRRRRR????
+            messageCardBinding.userMessage.text = message?.message
         }
     }
 
@@ -173,12 +174,12 @@ class ChatroomMessageListAdapter(
             }
         }
 
-        override fun bind(message: Message?, position: Int) {
-            binding.message = message
+        override fun bind(model: Message?, position: Int) {
+            binding.message = model
 
             if(isAuthUserChatroomOwner) {
                 binding.messageCardTimelineLayout.setOnLongClickListener {
-                    onMessageLongPress(it, message!!)
+                    onMessageLongPress(it, model!!)
                 }
             }
         }

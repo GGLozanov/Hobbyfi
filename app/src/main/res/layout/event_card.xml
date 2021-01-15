@@ -16,7 +16,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="60dp"
-            app:cardBackgroundColor="@color/colorBackground"
+            app:cardBackgroundColor="@color/colorPrimary"
             app:cardCornerRadius="8dp"
             app:cardElevation="8dp">
 
@@ -51,9 +51,9 @@
                     android:ellipsize="end"
                     android:maxWidth="200dp"
                     android:singleLine="true"
+                    android:text="@{event.name}"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:text="@{event.name}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/manage_button"
                     app:layout_constraintStart_toEndOf="@id/event_image"

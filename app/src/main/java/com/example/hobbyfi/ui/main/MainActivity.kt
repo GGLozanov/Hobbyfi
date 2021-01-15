@@ -15,12 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
@@ -28,11 +26,8 @@ import com.example.hobbyfi.ui.base.OnAuthStateReset
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.facebook.login.LoginManager
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
-import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
@@ -43,7 +38,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
 
-    private var poppedFromNavController: Boolean = false
+    private var poppedFromLogoutButton: Boolean = false
 
     private val authStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -182,18 +177,16 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         }
     }
 
+    override fun logout() {
+        poppedFromLogoutButton = true
+        onBackPressed()
+    }
+
     private fun resetAuthProperties() {
         LoginManager.getInstance().logOut()
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
-    }
-
-    // FIXME: Bad way to handle backstack
-
-    override fun logout() {
-        poppedFromNavController = true
-        onBackPressed()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -204,7 +197,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
         if(item.itemId == R.id.action_logout) {
-            logout()
+            resetAuthProperties()
+            navController.popBackStack(R.id.userProfileFragment, true)
         }
 
         return true
@@ -212,25 +206,23 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
-        if(poppedFromNavController) {
+        if(!poppedFromLogoutButton && navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment
+                && navController.previousBackStackEntry?.destination?.id == R.id.mainActivity) {
             resetAuthProperties()
-            finish()
-            return
-        }
-
-        // FIXME: Fix this ass-backwards logic and backstack management hack aaaaaaaaaaaaaaaaaaaaaaa
-        if(supportFragmentManager.currentNavigationFragment is ChatroomCreateFragment) {
+            finishAffinity()
+        } else {
             super.onBackPressed()
-            return
         }
-
-        resetAuthProperties()
-        finishAffinity()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(chatroomDeletedReceiver)
         unregisterReceiver(authStateReceiver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.bottomNav.selectedItemId = binding.bottomNav.selectedItemId
     }
 }

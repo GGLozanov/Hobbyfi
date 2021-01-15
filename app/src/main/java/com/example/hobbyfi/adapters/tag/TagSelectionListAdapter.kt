@@ -28,8 +28,7 @@ class TagSelectionListAdapter(
         Log.i("SelectedTags", selectedTags.toString())
         Log.i("Tags", tags.toString())
 
-        var color: Int
-        color = try {
+        val color: Int = try {
             Color.parseColor(tag.colour)
         } catch(ex: IllegalArgumentException) {
             Log.w("TagListAdapter" , "Invalid color for tag! Reverting to default colour")

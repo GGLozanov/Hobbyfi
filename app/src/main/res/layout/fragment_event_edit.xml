@@ -14,11 +14,23 @@
         android:layout_height="match_parent"
         tools:context=".ui.chatroom.EventEditFragment">
 
-        <include
-            android:id="@+id/event_info"
-            layout="@layout/event_info_layout"
-            app:viewModel="@{viewModel}"
-            app:eventHeader="@{@string/event_edit_header}"/>
+        <LinearLayout
+            android:id="@+id/event_edit_outer_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_container_layered"
+            android:padding="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <include
+                android:id="@+id/event_info"
+                layout="@layout/event_info_layout"
+                app:eventHeader="@{@string/event_edit_header}"
+                app:viewModel="@{viewModel}" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

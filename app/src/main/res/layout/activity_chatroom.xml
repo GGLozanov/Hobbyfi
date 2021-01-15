@@ -11,7 +11,7 @@
             type="com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel" />
     </data>
 
-    <androidx.drawerlayout.widget.DrawerLayout
+    <com.example.hobbyfi.ui.custom.EventCalendarDrawerLayout
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -135,5 +135,5 @@
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </com.google.android.material.navigation.NavigationView>
-    </androidx.drawerlayout.widget.DrawerLayout>
+    </com.example.hobbyfi.ui.custom.EventCalendarDrawerLayout>
 </layout>

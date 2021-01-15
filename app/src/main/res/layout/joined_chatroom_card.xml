@@ -104,10 +104,11 @@
                     android:layout_marginLeft="8dp"
                     android:layout_marginEnd="8dp"
                     android:layout_marginRight="8dp"
+                    android:layout_gravity="center"
                     android:clickable="false"
                     android:numColumns="auto_fit"
                     android:stretchMode="columnWidth"
-                    android:verticalSpacing="10dp"
+                    android:verticalSpacing="5dp"
                     android:visibility="@{chatroom.tags == null ? View.GONE : View.VISIBLE}"
                     tools:listitem="@layout/chatroom_tag_card" />
 

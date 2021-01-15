@@ -1,11 +1,13 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.annotation.SuppressLint
 import android.content.*
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -45,13 +47,15 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.*
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.prolificinteractive.materialcalendarview.CalendarDay
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView.SELECTION_MODE_MULTIPLE
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import org.kodein.di.generic.instance
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : BaseActivity(),
@@ -76,6 +80,7 @@ class ChatroomActivity : BaseActivity(),
     private var joinUserReceiver: BroadcastReceiver? = null
     private var leaveUserReceiver: BroadcastReceiver? = null
 
+    private var deleteBatchEventReceiver: BroadcastReceiver? = null
     private var deleteEventReceiver: BroadcastReceiver? = null
     private var editEventReceiver: BroadcastReceiver? = null
     private var createEventReceiver: BroadcastReceiver? = null
@@ -133,17 +138,7 @@ class ChatroomActivity : BaseActivity(),
             usersList.adapter = userListAdapter
             // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user joinw
 
-            eventCalendar.selectionMode = SELECTION_MODE_MULTIPLE
-            eventCalendar.setOnDateChangedListener { calendar, date, selected ->
-                if(!calendar.selectedDates.contains(date) && selected) {
-                    Log.i("ChatroomActivity", "Calendar selected event outside event dates. Selected date: $date")
-                    calendar.setDateSelected(date, false)
-                }
-
-                Log.i("ChatroomActivity", "Calendar selected event with date: $date")
-                val selectedEvent = viewModel!!.authEvents.value?.find { date.equals(it.date) }
-                // TODO: show event dialog/decorator for event info + join/leave buttons depending on user fcm eventids
-            }
+            initCalendar()
         }
 
         observeConnectionRefresh(savedInstanceState, refreshConnectivityMonitor)
@@ -330,6 +325,7 @@ class ChatroomActivity : BaseActivity(),
                 chatroom.photoUrl?.let {
                     Glide.with(this@ChatroomActivity)
                         .load(it)
+                        .placeholder(headerBinding.chatroomImage.drawable)
                         .signature(
                             ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
                         )
@@ -387,9 +383,6 @@ class ChatroomActivity : BaseActivity(),
         })
     }
 
-    // TODO: This is on the right nav drawer
-    // TODO: Add Dialog fragment for one select and redirect to EventEditFragment on `Edit an Event` button press
-    // TODO: Add Dialog fragment for one select and delete confirm on `Delete an Event` button press
     @ExperimentalPagingApi
     private fun initTopNavigation(chatroomOwner: Boolean) {
         with(binding) {
@@ -463,9 +456,8 @@ class ChatroomActivity : BaseActivity(),
     private fun setEventCalendarDates(events: List<Event>) {
         with(binding) {
             events.forEach { event ->
-                val dateTime = LocalDateTime.parse(event.date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                eventCalendar.currentDate =
-                    CalendarDay.from(dateTime.year, dateTime.month.value, dateTime.dayOfMonth)
+                val eventDate = event.calendarDayFromDate
+                eventCalendar.setDateSelected(eventDate, true)
             }
         }
     }
@@ -487,6 +479,37 @@ class ChatroomActivity : BaseActivity(),
     // Override here due to FragmentActivity modifying request codes and being passed through the fragment hosting activity first
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun initCalendar() {
+        with(binding) {
+            eventCalendar.setOnTouchListener { _, motionEvent ->
+                Log.i("ChatroomActivity", "Triggered event calendar touch event w/ motion: $motionEvent")
+                when(motionEvent.action) {
+                    MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
+                        drawerLayout.requestDisallowInterceptTouchEvent(true)
+                    }
+                }
+                true
+            }
+
+            eventCalendar.selectionMode = SELECTION_MODE_SINGLE
+            eventCalendar.setOnDateChangedListener { calendar, date, selected ->
+                Log.i("ChatroomActivity", "Calendar selected events: ${calendar.selectedDates}")
+                val correspondingEvent: Event? = viewModel!!.authEvents.value?.find {
+                    it.date.equals(it.calendarDayFromDate) }
+                if(viewModel!!.authEvents.value == null || (correspondingEvent != null && selected)) {
+                    Log.i("ChatroomActivity", "Calendar selected event outside event dates. Selected date: $date")
+                    calendar.setDateSelected(date, false)
+                    return@setOnDateChangedListener
+                }
+
+                Log.i("ChatroomActivity", "Calendar selected event with date: $date")
+                Log.i("ChatroomActivity", "Corresponding event: $correspondingEvent")
+                // TODO: show event dialog/decorator for event info + join/leave buttons depending on user fcm eventids
+            }
+        }
     }
 
     override fun onBackPressed() {
@@ -514,6 +537,7 @@ class ChatroomActivity : BaseActivity(),
         eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(viewModel, this)
         createEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.CREATE_EVENT_TYPE)
         editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
+        deleteBatchEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_BATCH_TYPE)
         deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
 
         registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
@@ -523,6 +547,7 @@ class ChatroomActivity : BaseActivity(),
         registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
         registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
         registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
+        registerReceiver(deleteBatchEventReceiver, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
         registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
     }
 
@@ -534,6 +559,7 @@ class ChatroomActivity : BaseActivity(),
         unregisterReceiver(leaveUserReceiver)
         unregisterReceiver(createEventReceiver)
         unregisterReceiver(editEventReceiver)
+        unregisterReceiver(deleteBatchEventReceiver)
         unregisterReceiver(deleteEventReceiver)
     }
 }

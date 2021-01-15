@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.chatroom
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
@@ -32,22 +33,6 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
 
     private lateinit var eventListAdapter: EventListAdapter
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = super.onCreateDialog(savedInstanceState)
-
-        dialog.setOnShowListener { dialogInterface: DialogInterface ->
-            val bottomSheetDialog = dialogInterface as BottomSheetDialog
-
-            val bottomSheet: FrameLayout =
-                bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet)!!
-            BottomSheetBehavior.from(bottomSheet).apply {
-                setPeekHeight(1 / 2 * (DisplayMetrics().heightPixels), true)
-                state = BottomSheetBehavior.STATE_EXPANDED
-            }
-        }
-        return dialog
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -71,6 +56,12 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
         }
 
         with(binding) {
+            BottomSheetBehavior.from(bottomSheet).apply {
+                state = BottomSheetBehavior.STATE_EXPANDED
+            }
+
+            eventList.layoutParams.height = DisplayMetrics().heightPixels / 3
+
             deleteOldEventsButton.setOnClickListener {
                 Constants.buildDeleteAlertDialog(
                     requireContext(),
@@ -93,7 +84,11 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
     }
     
     private fun observeEvents() {
-        activityViewModel.authEvents.observe(viewLifecycleOwner, Observer { 
+        activityViewModel.authEvents.observe(viewLifecycleOwner, Observer {
+            if(it.isEmpty()) {
+
+            }
+
             eventListAdapter.setEvents(it)
         })
     }

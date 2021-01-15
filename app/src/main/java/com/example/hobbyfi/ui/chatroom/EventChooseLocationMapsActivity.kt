@@ -112,6 +112,18 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
                 moveMarkerAndCamera(it)
             }
 
+            map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
+                override fun onMarkerDragStart(p0: Marker?) {
+                }
+
+                override fun onMarkerDrag(p0: Marker?) {
+                }
+
+                override fun onMarkerDragEnd(newMarker: Marker?) {
+                    marker = newMarker
+                }
+            })
+
             eventLocation?.let {
                 moveMarkerAndCamera(it)
             }
@@ -156,6 +168,7 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
         super.onPermissionsGranted(requestCode, perms)
+        getDeviceLocation()
         updateLocationUI()
     }
 
