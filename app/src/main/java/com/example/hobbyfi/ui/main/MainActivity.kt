@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.view.get
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
@@ -19,10 +20,12 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.OnAuthStateReset
+import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.facebook.login.LoginManager
@@ -33,7 +36,7 @@ import kotlinx.coroutines.flow.collect
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(), OnAuthStateReset {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
-        AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
+        AuthUserViewModelFactory(application, if (intent.extras != null) args.user else null)
     })
     lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
@@ -45,7 +48,10 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
             if(intent.action == Constants.LOGOUT) {
                 logout()
             } else {
-                Log.wtf("MainActivity", "MainActivity authStateReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!")
+                Log.wtf(
+                    "MainActivity",
+                    "MainActivity authStateReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!"
+                )
             }
         }
     }
@@ -58,12 +64,15 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                     Pair(Constants.CHATROOM_IDS,
                         Constants.tagJsonConverter.toJson(
                             viewModel.authUser.value?.chatroomIds?.filter
-                                { it != intent.getLongExtra(Constants.CHATROOM_ID, 0) }
+                            { it != intent.getLongExtra(Constants.CHATROOM_ID, 0) }
                         )
-                )))
+                    )))
                 viewModel.setLeftChatroom(true)
             } else {
-                Log.wtf("MainActivity", "MainActivity chatroomDeletedReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!")
+                Log.wtf(
+                    "MainActivity",
+                    "MainActivity chatroomDeletedReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!"
+                )
             }
         }
     }
@@ -84,7 +93,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 // avoid fragment recreation (do nothing here)
             }
 
-            binding.bottomNav.selectedItemId = binding.bottomNav.selectedItemId // reselect on activity recreation
+            // TODO: Fix line below as reisntating doesn't work
+            bottomNav.selectedItemId = binding.bottomNav.selectedItemId // reselect on activity recreation
 
             bottomNav.setupWithNavController(
                 navGraphIds = listOf(
@@ -97,11 +107,15 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 intent = intent
             ).observe(this@MainActivity, Observer {
                 navController = it
-                toolbar.setupWithNavController(it, AppBarConfiguration(setOf(
-                    R.id.userProfileFragment,
-                    R.id.chatroomListFragment,
-                    R.id.joinedChatroomListFragment
-                )))
+                toolbar.setupWithNavController(
+                    it, AppBarConfiguration(
+                        setOf(
+                            R.id.userProfileFragment,
+                            R.id.chatroomListFragment,
+                            R.id.joinedChatroomListFragment
+                        )
+                    )
+                )
             })
         }
     }
@@ -122,7 +136,11 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         // TODO: Something
                     }
                     is UserState.OnData.UserDeleteResult -> {
-                        Toast.makeText(this@MainActivity, "Successfully deleted account!", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Successfully deleted account!",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         logout()
                     }
@@ -132,10 +150,10 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
                         val hasJoinedChatroom = it.userFields.containsKey(Constants.CHATROOM_ID)
                         val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
-                        if(hasJoinedChatroom || hasLeftChatroom) {
+                        if (hasJoinedChatroom || hasLeftChatroom) {
                             // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
                             lateinit var userChatroomFields: Map<String?, String?>
-                            if(hasJoinedChatroom) {
+                            if (hasJoinedChatroom) {
                                 userChatroomFields = mapOf(
                                     Pair(
                                         Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
@@ -145,7 +163,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                                 )
                                 viewModel.setJoinedChatroom(hasJoinedChatroom)
                             }
-                            if(hasLeftChatroom) {
+                            if (hasLeftChatroom) {
                                 userChatroomFields = mapOf(
                                     Pair(
                                         Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
@@ -161,15 +179,23 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                             viewModel.sendIntent(
                                 UserIntent.UpdateUserCache(it.userFields)
                             )
-                            Toast.makeText(this@MainActivity, "Successfully updated fields!", Toast.LENGTH_LONG)
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Successfully updated fields!",
+                                Toast.LENGTH_LONG
+                            )
                                 .show()
                         }
                         viewModel.resetState()
                     }
                     is UserState.Error -> {
-                        Toast.makeText(this@MainActivity, "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Something went wrong! ${it.error}",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
-                        if(it.shouldReauth) {
+                        if (it.shouldReauth) {
                             logout()
                         }
                         viewModel.resetState()
@@ -181,6 +207,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     override fun logout() {
         poppedFromLogoutButton = true
+        resetAuthProperties()
         onBackPressed()
     }
 
@@ -199,8 +226,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         super.onOptionsItemSelected(item)
         if(item.itemId == R.id.action_logout) {
-            resetAuthProperties()
-            navController.popBackStack(navController.getBackStackEntry(R.id.userProfileFragment).destination.id, true)
+            Log.i("MainActivity", "current nav entry: ${navController.currentBackStackEntry?.destination?.toString()}")
+            logout()
         }
 
         return true
@@ -208,12 +235,12 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
-        if(!poppedFromLogoutButton && navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment
-                && navController.previousBackStackEntry?.destination?.id == R.id.mainActivity) {
-            resetAuthProperties()
-            finishAffinity()
+        if(poppedFromLogoutButton) {
+            finish()
         } else {
-            super.onBackPressed()
+            if(navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment) {
+                finishAffinity()
+            } else super.onBackPressed()
         }
     }
 

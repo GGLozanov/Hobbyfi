@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -45,7 +46,11 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
             dialog.show(parentFragmentManager, event.id.toString())
         }
 
+        setViewsVisibilityOnEvents(activityViewModel.authEvents.value ?: emptyList())
+
         with(binding) {
+            eventList.layoutParams.height = DisplayMetrics().heightPixels / 3
+            eventList.requestLayout()
             eventList.adapter = eventListAdapter
 
             BottomSheetBehavior.from(bottomSheet).apply {
@@ -73,10 +78,17 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
     
     private fun observeEvents() {
         activityViewModel.authEvents.observe(viewLifecycleOwner, Observer {
-            binding.noEventsText.isVisible = it.isNotEmpty()
+            setViewsVisibilityOnEvents(it)
 
             eventListAdapter.setEvents(it)
         })
+    }
+
+    private fun setViewsVisibilityOnEvents(events: List<Event>) {
+        with(binding) {
+            noEventsText.isVisible = events.isEmpty()
+            deleteOldEventsButton.isVisible = events.isNotEmpty()
+        }
     }
 
     companion object {

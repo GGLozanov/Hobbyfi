@@ -1,21 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav_graph"
     app:startDestination="@id/user_profile_nav">
 
-    <navigation android:id="@+id/user_profile_nav"
+    <navigation
+        android:id="@+id/user_profile_nav"
+        android:label="Your Profile"
         app:startDestination="@id/user_profile_graph">
         <include app:graph="@navigation/user_profile_nav_graph" />
         <action
             android:id="@+id/action_global_chatroom_list_graph"
             app:destination="@id/chatroom_list_nav" />
+        <action
+            android:id="@+id/action_global_joined_chatroom_list_nav"
+            app:destination="@id/joined_chatroom_list_nav" />
     </navigation>
-    <navigation android:id="@+id/chatroom_list_nav"
+    <navigation
+        android:id="@+id/chatroom_list_nav"
+        android:label="Chatrooms"
         app:startDestination="@id/chatroom_list_graph">
         <include app:graph="@navigation/chatroom_list_nav_graph" />
         <action
             android:id="@+id/action_global_user_profile_nav"
+            app:destination="@id/user_profile_nav" />
+        <action
+            android:id="@+id/action_global_joined_chatroom_graph"
+            app:destination="@id/joined_chatroom_list_nav" />
+    </navigation>
+    <navigation
+        android:id="@+id/joined_chatroom_list_nav"
+        android:label="Your Chatrooms"
+        app:startDestination="@id/joined_chatroom_graph">
+        <include app:graph="@navigation/joined_chatroom_nav_graph" />
+        <action
+            android:id="@+id/action_global_chatroom_list_nav2"
+            app:destination="@id/chatroom_list_nav" />
+        <action
+            android:id="@+id/action_global_user_profile_nav3"
             app:destination="@id/user_profile_nav" />
     </navigation>
 </navigation>

@@ -33,9 +33,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:visibility="gone"
-                android:textSize="20sp"
-                android:textStyle="bold">
+                android:text="@string/no_events"
+                android:textSize="40sp"
+                android:textStyle="bold"
+                android:visibility="gone">
 
             </com.google.android.material.textview.MaterialTextView>
 
@@ -43,7 +44,7 @@
                 android:id="@+id/event_list"
                 android:name="com.example.hobbyfi.ui.chatroom.EventSelectionBottomSheetDialogFragment"
                 android:layout_width="match_parent"
-                android:layout_height="500dp"
+                android:layout_height="wrap_content"
                 android:animateLayoutChanges="false"
                 android:scrollbars="vertical"
                 app:layoutManager="LinearLayoutManager"
