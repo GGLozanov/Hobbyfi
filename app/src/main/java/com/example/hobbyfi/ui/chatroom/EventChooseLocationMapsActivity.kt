@@ -30,9 +30,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
-class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
-    private var cameraPosition: CameraPosition? = null
-
+class EventChooseLocationMapsActivity : MapsActivity() {
     private var marker: Marker? = null
 
     private var eventTitle: String? = null
@@ -46,7 +44,6 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
 
         if (savedInstanceState != null) {
             lastKnownLocation = savedInstanceState.getParcelable(Constants.KEY_LOCATION)
-            cameraPosition = savedInstanceState.getParcelable(Constants.KEY_CAMERA_POSITION)
         }
 
         eventTitle = intent.extras?.get(Constants.EVENT_TITLE) as String?
@@ -70,7 +67,6 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
 
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
         map?.let {
-            outState.putParcelable(Constants.KEY_CAMERA_POSITION, it.cameraPosition)
             outState.putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
         }
         super.onSaveInstanceState(outState)
@@ -104,12 +100,12 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
             }
 
             map?.setOnMyLocationButtonClickListener {
-                moveMarkerAndCamera(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
+                resetMarkerAndMoveToNew(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
                 return@setOnMyLocationButtonClickListener true
             }
 
             map?.setOnMapClickListener {
-                moveMarkerAndCamera(it)
+                marker = moveMarkerAndCamera(it, eventTitle, eventDescription)
             }
 
             map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
@@ -125,7 +121,7 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
             })
 
             eventLocation?.let {
-                moveMarkerAndCamera(it)
+                resetMarkerAndMoveToNew(it)
             }
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
@@ -141,7 +137,7 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null && eventLocation == null) {
-                            moveMarkerAndCamera(LatLng(
+                            resetMarkerAndMoveToNew(LatLng(
                                 lastKnownLocation!!.latitude,
                                 lastKnownLocation!!.longitude
                             ))
@@ -196,47 +192,14 @@ class EventChooseLocationMapsActivity : MapsActivity(), OnMapReadyCallback {
         }
     }
 
-    // TODO: Use to add icon to marker
-    private fun bitmapDescriptorFromVector(
-        context: Context,
-        @DrawableRes vectorResId: Int
-    ): BitmapDescriptor? {
-        val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
-        vectorDrawable!!.setBounds(
-            0,
-            0,
-            vectorDrawable.intrinsicWidth,
-            vectorDrawable.intrinsicHeight
-        )
-        val bitmap = Bitmap.createBitmap(
-            vectorDrawable.intrinsicWidth,
-            vectorDrawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap)
-        vectorDrawable.draw(canvas)
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
-    }
-
-    // TODO: Use in EventMapsActivity as well
-    private fun moveMarkerAndCamera(latLng: LatLng) {
+    private fun resetMarkerAndMoveToNew(latLng: LatLng) {
         marker?.remove()
-        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
-        marker = map?.addMarker(MarkerOptions()
-            .title(eventTitle)
-            .snippet(eventDescription)
-            .draggable(true)
-            .position(latLng)
-        )
+        marker = moveMarkerAndCamera(latLng, eventTitle, eventDescription)
     }
 
     private fun sendMarkerLocationResultBack() {
         val resultIntent = Intent()
         resultIntent.putExtra(Constants.EVENT_LOCATION, marker!!.position)
         setResult(Activity.RESULT_OK, resultIntent)
-    }
-
-    companion object {
-        private const val DEFAULT_ZOOM = 15
     }
 }

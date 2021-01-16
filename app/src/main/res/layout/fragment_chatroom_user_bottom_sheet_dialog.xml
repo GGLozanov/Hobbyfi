@@ -7,10 +7,10 @@
 
     <LinearLayout
         android:id="@+id/bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent">
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <LinearLayout
             android:id="@+id/user_info"
@@ -23,14 +23,13 @@
         <com.google.android.material.navigation.NavigationView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:menu="@menu/message_bottom_sheet_menu"
             android:layout_gravity="start"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-            app:itemIconTint="@android:color/white"
-            app:itemTextColor="@android:color/white"
             android:background="@color/colorBackground"
             android:fitsSystemWindows="true"
-            app:elevation="0dp">
+            app:elevation="0dp"
+            app:itemIconTint="@android:color/white"
+            app:itemTextColor="@android:color/white"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         </com.google.android.material.navigation.NavigationView>
 

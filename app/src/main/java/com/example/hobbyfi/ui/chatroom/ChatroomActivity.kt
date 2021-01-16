@@ -128,7 +128,8 @@ class ChatroomActivity : BaseActivity(),
         }
 
         userListAdapter = ChatroomUserListAdapter(
-            viewModel.currentAdapterUsers.value ?: emptyList()) { _: View, user: User ->
+            viewModel.currentAdapterUsers.value ?: emptyList()
+        ) { _: View, user: User ->
             val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
             bottomSheet.show(supportFragmentManager, bottomSheet.tag)
         }
@@ -264,6 +265,9 @@ class ChatroomActivity : BaseActivity(),
                     is EventListState.OnData.EventsResult -> {
                         // TODO: Need to update here?
                     }
+                    is EventListState.OnData.DeleteEventsCacheResult -> {
+
+                    }
                     is EventListState.Error -> {
                         handleAuthActionableError(it.error + " EVENTLIST", it.shouldReauth)
                     }
@@ -317,6 +321,13 @@ class ChatroomActivity : BaseActivity(),
                                     dialogInterface.dismiss()
                                 }
                             )
+                            return@setOnMenuItemClickListener true
+                        }
+                        navViewAdmin.menu.findItem(R.id.action_event_selection).setOnMenuItemClickListener {
+                            val bottomSheet = (supportFragmentManager.findFragmentByTag(Constants.EVENT_SELECTION)
+                                    as EventSelectionBottomSheetDialogFragment?)
+                                ?: EventSelectionBottomSheetDialogFragment.newInstance()
+                            bottomSheet.show(supportFragmentManager, Constants.EVENT_SELECTION)
                             return@setOnMenuItemClickListener true
                         }
                     }
@@ -462,8 +473,7 @@ class ChatroomActivity : BaseActivity(),
         }
     }
 
-    // forward bottomsheet implementation to fragment one
-    // FIXME: Coupled kinda
+
     @ExperimentalPagingApi
     override fun onEditMessageSelect(view: View, message: Message) {
         (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment)

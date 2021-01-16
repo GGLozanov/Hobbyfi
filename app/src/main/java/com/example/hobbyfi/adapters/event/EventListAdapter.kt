@@ -3,12 +3,15 @@ package com.example.hobbyfi.adapters.event
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.databinding.DataBindingUtil
 import androidx.paging.ExperimentalPagingApi
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.BaseViewHolder
+import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.EventCardBinding
@@ -32,11 +35,11 @@ class EventListAdapter(
 
     class EventViewHolder(
         private val binding: EventCardBinding,
-        private val prefConfig: PrefConfig
-    ) : BaseViewHolder<Event>(binding.root) {
+        prefConfig: PrefConfig,
+    ) : ImageLoaderViewHolder<Event>(binding.root, prefConfig) {
         override fun bind(model: Event?, position: Int) {
             binding.event = model
-
+            bindImage(model, position)
         }
 
         fun initOnManagePressButton(event: Event, onManagePressButton: (View, Event) -> Unit) {
@@ -44,6 +47,11 @@ class EventListAdapter(
                 onManagePressButton(it, event)
             }
         }
+
+        override val mainImageView: ImageView = binding.eventImage
+        override val signatureGenerator: (position: Int) -> ObjectKey = { _: Int ->
+            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time)) }
+        override val defaultPicResId: Int = R.drawable.event_default_pic
 
         companion object {
             fun getInstance(parent: ViewGroup, prefConfig: PrefConfig): EventViewHolder {
@@ -70,7 +78,7 @@ class EventListAdapter(
 
         with(holder) {
             bind(event, position)
-
+            initOnManagePressButton(event, onManagePressButton)
         }
     }
 

@@ -16,7 +16,7 @@ import java.lang.IllegalStateException
 class EventBroadcastReceiverFactory private constructor(
     private val eventMapsActivityViewModel: EventMapsActivityViewModel? = null,
     private val chatroomActivityViewModel: ChatroomActivityViewModel? = null,
-    lifecycleOwner: LifecycleOwner
+    lifecycleOwner: LifecycleOwner,
 ) : LifecycleAwareBroadcastReceiverFactory(lifecycleOwner) {
 
     constructor(eventMapsActivityViewModel: EventMapsActivityViewModel,
@@ -38,8 +38,7 @@ class EventBroadcastReceiverFactory private constructor(
     private val eventIdDeleteChecker: (Intent) -> Boolean = { intent: Intent -> eventIdChecker(
         intent.getDeletedModelIdExtra()) }
     private val eventIdBatchDeleteChecker: (Intent) -> Boolean = { intent: Intent -> eventIdBatchChecker(
-        Constants.tagJsonConverter.fromJson(intent.getDestructedMapExtra()[Constants.EVENT_IDS])
-    ) }
+        Constants.tagJsonConverter.fromJson(intent.getDestructedMapExtra()[Constants.EVENT_IDS])) }
     private val eventIdCreateChecker: (Intent) -> Boolean = {
         chatroomActivityViewModel?.isAuthUserChatroomOwner?.value == false }
 

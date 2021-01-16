@@ -160,7 +160,6 @@ class EventRepository(
         return _userGeoPoint
     }
 
-
     fun getEventUsersGeoPoint(eventId: Long): StateFlow<List<UserGeoPoint>> {
         firestore.collection(Constants.LOCATIONS_COLLECTION)
             .whereArrayContains(Constants.EVENT_IDS, eventId)

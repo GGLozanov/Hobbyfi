@@ -6,21 +6,27 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
+import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.state.EventListState
+import com.example.hobbyfi.state.UserGeoPointState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class EventMapsActivityViewModel(application: Application, initialEvent: Event) :
-        StateIntentViewModel<EventListState, EventListIntent>(application) {
+class EventMapsActivityViewModel(
+    application: Application,
+    initialEvent: Event
+) : StateIntentViewModel<EventListState, EventListIntent>(application) {
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
     private val _event: MutableLiveData<Event> = MutableLiveData(initialEvent)
@@ -29,6 +35,13 @@ class EventMapsActivityViewModel(application: Application, initialEvent: Event) 
     override val mainStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
         override val _state: MutableStateFlow<EventListState> = MutableStateFlow(EventListState.Idle)
     }
+
+    private val userGeoPointStateIntent: StateIntent<UserGeoPointState, UserGeoPointIntent> = object : StateIntent<UserGeoPointState, UserGeoPointIntent>() {
+        override val _state: MutableStateFlow<UserGeoPointState> = MutableStateFlow(UserGeoPointState.Idle)
+    }
+
+    val userGeoPointState: StateFlow<UserGeoPointState>
+        get() = userGeoPointStateIntent.state
 
     init {
         handleIntent()

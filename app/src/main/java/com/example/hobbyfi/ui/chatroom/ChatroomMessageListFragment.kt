@@ -115,7 +115,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
         { messageListAdapter!!.retry() },
         null,
-        userIsAChatroomOwner = true
+        userIsAChatroomOwner = true,
+        showOnlyProgessBar = true
     )
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

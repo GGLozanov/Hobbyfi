@@ -70,7 +70,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
         with(navController.previousBackStackEntry?.destination) {
             val targetFragmentId = this?.id
-            if(targetFragmentId == R.id.registerFragment) {
+            if(targetFragmentId == R.id.registerFragment || targetFragmentId == R.id.chatroomCreateFragment) {
                 binding.customTagCreateButton.setOnClickListener {
                     if(viewModel.customTagCreateCounter >= 3) {
                         Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)

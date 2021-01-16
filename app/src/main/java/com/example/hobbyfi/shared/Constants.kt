@@ -291,6 +291,9 @@ object Constants {
 
     const val LAST_CONNECTIVITY: String = "LAST_CONNECTIVITY"
 
+    const val EVENT_SELECTION: String = "EVENT_SELECTION"
+    const val EVENT: String = "EVENT"
+
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER
     }

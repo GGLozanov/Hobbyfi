@@ -15,7 +15,8 @@ import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
     private inline val onCreateChatroomButton: ((view: View) -> Unit)?,
-    private var userIsAChatroomOwner: Boolean = false
+    private var userIsAChatroomOwner: Boolean = false,
+    private val showOnlyProgessBar: Boolean = false
 ) : LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
     class DefaultLoaderViewHolder(val binding: DefaultRefreshListHeaderBinding, private inline val retry: () -> Unit) : RecyclerView.ViewHolder(binding.root) {
@@ -36,22 +37,30 @@ class DefaultLoadStateAdapter(
             }
         }
 
-        fun bind(loadState: LoadState, userIsAChatroomOwner: Boolean) {
+        fun bind(loadState: LoadState, userIsAChatroomOwner: Boolean, showOnlyProgessBar: Boolean) {
             Log.i("DefaultLoadStateA", "Binding views by loadState: $loadState")
             with(binding) {
-                listErrorHeader.isVisible = loadState !is LoadState.Loading
-                listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userIsAChatroomOwner)
-                    R.string.list_error_text else R.string.list_suggest_text)
+                if(!showOnlyProgessBar) {
+                    listErrorHeader.isVisible = loadState !is LoadState.Loading
+                    listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userIsAChatroomOwner)
+                        R.string.list_error_text else R.string.list_suggest_text)
 
-                refreshPageButton.isVisible = loadState is LoadState.Error || userIsAChatroomOwner
-                chatroomCreateButton.isVisible = loadState !is LoadState.Loading && !userIsAChatroomOwner
+                    refreshPageButton.isVisible = loadState is LoadState.Error || userIsAChatroomOwner
+                    chatroomCreateButton.isVisible = loadState !is LoadState.Loading && !userIsAChatroomOwner
+                } else {
+                    // TOOD: Maybe add error header and refresh page button on error?
+                    listErrorHeader.isVisible = false
+                    refreshPageButton.isVisible = false
+                    chatroomCreateButton.isVisible = false
+                }
+
                 progressBar.isVisible = loadState is LoadState.Loading
             }
         }
     }
 
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
-        holder.bind(loadState, userIsAChatroomOwner)
+        holder.bind(loadState, userIsAChatroomOwner, showOnlyProgessBar)
         holder.binding.chatroomCreateButton.setOnClickListener {
             onCreateChatroomButton?.invoke(it)
         }

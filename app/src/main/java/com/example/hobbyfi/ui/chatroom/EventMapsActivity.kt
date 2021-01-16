@@ -4,10 +4,14 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.EventBroadcastReceiverFactory
+import com.example.hobbyfi.state.EventListState
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.MapsActivity
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
@@ -19,17 +23,18 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 
 @ExperimentalCoroutinesApi
-class EventMapsActivity : MapsActivity(), OnMapReadyCallback {
+class EventMapsActivity : MapsActivity() {
     private val viewModel: EventMapsActivityViewModel by viewModels()
 
     // sync here
     private var deleteEventReceiver: BroadcastReceiver? = null
     private var editEventReceiver: BroadcastReceiver? = null
     private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
-
-    private lateinit var mMap: GoogleMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +45,55 @@ class EventMapsActivity : MapsActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(viewModel, this)
+        eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(
+            viewModel, this
+        )
         deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
         editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
 
         registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
         registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
+
+        observeEventListState()
+        observeUserGeoPoints()
+        // TODO: Start foreground location service
+    }
+
+    private fun observeEventListState() {
+        lifecycleScope.launchWhenCreated {
+            viewModel.mainState.collect {
+                when(it) {
+                    is EventListState.Idle -> {
+
+                    }
+                    is EventListState.Loading -> {
+                    }
+                    is EventListState.OnData.DeleteEventsCacheResult -> {
+
+                    }
+                    is EventListState.OnData.DeleteAnEventCacheResult -> {
+
+                    }
+                    is EventListState.Error -> {
+                        // TODO: Handle 'shouldReauth'/'shouldExit'
+                        Toast.makeText(this@EventMapsActivity, it.error, Toast.LENGTH_LONG)
+                            .show()
+                        finish()
+                    }
+                    else -> throw State.InvalidStateException()
+                }
+            }
+        }
+    }
+
+    private fun observeUserGeoPoints() {
+        lifecycleScope.launchWhenCreated {
+            viewModel.userGeoPointState.collect {
+                when(it) {
+
+                }
+            }
+        }
     }
 
     /**
@@ -58,12 +106,8 @@ class EventMapsActivity : MapsActivity(), OnMapReadyCallback {
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
+        super.onMapReady(googleMap)
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
     }
 
     override fun onDestroy() {

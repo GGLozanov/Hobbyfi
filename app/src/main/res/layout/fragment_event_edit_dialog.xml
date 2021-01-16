@@ -12,7 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.chatroom.EventEditFragment">
+        tools:context=".ui.chatroom.EventEditDialogFragment">
 
         <LinearLayout
             android:id="@+id/event_edit_outer_layout"

@@ -26,7 +26,7 @@
         app:showAsAction="withText" /> <!--TODO: Add dialogfragment for confirming user auth before chatroom deletion and change id to nav graph id-->
 
     <item
-        android:id="@+id/eventSelectionBottomSheetDialogFragment"
+        android:id="@+id/action_event_selection"
         android:icon="@drawable/ic_baseline_event_note_24"
         android:title="@string/manage_events"
         android:titleCondensed="@string/manage_events"

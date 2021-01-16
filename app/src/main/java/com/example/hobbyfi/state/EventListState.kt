@@ -13,6 +13,7 @@ sealed class EventListState : State {
         data class EventsResult(val events: List<Event>) : EventListState()
 
         object DeleteEventsCacheResult : OnData()
+        object DeleteAnEventCacheResult : OnData()
     }
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : EventListState()

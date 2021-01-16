@@ -84,6 +84,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 // avoid fragment recreation (do nothing here)
             }
 
+            binding.bottomNav.selectedItemId = binding.bottomNav.selectedItemId // reselect on activity recreation
+
             bottomNav.setupWithNavController(
                 navGraphIds = listOf(
                     R.navigation.user_profile_nav_graph,
@@ -198,7 +200,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         super.onOptionsItemSelected(item)
         if(item.itemId == R.id.action_logout) {
             resetAuthProperties()
-            navController.popBackStack(R.id.userProfileFragment, true)
+            navController.popBackStack(navController.getBackStackEntry(R.id.userProfileFragment).destination.id, true)
         }
 
         return true
@@ -219,10 +221,5 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         super.onDestroy()
         unregisterReceiver(chatroomDeletedReceiver)
         unregisterReceiver(authStateReceiver)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.bottomNav.selectedItemId = binding.bottomNav.selectedItemId
     }
 }

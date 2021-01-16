@@ -1,15 +1,23 @@
 package com.example.hobbyfi.ui.base
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Location
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.ui.chatroom.EventChooseLocationMapsActivity
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.model.*
 import pub.devrel.easypermissions.EasyPermissions
 
-abstract class MapsActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
+abstract class MapsActivity : AppCompatActivity(), OnMapReadyCallback, EasyPermissions.PermissionCallbacks {
     protected var map: GoogleMap? = null
     protected lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     // default location (Sydney, Australia) and default zoom to use when location permission is
@@ -27,11 +35,52 @@ abstract class MapsActivity : AppCompatActivity(), EasyPermissions.PermissionCal
         )
     }
 
+    override fun onMapReady(gMap: GoogleMap) {
+        map = gMap
+    }
+
+    // TODO: Use to add icon to marker
+    protected fun bitmapDescriptorFromVector(
+        context: Context,
+        @DrawableRes vectorResId: Int
+    ): BitmapDescriptor? {
+        val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
+        vectorDrawable!!.setBounds(
+            0,
+            0,
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight
+        )
+        val bitmap = Bitmap.createBitmap(
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        vectorDrawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    protected fun moveMarkerAndCamera(latLng: LatLng, title: String?, description: String?): Marker? {
+        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
+        return map?.addMarker(
+            MarkerOptions()
+            .title(title)
+            .snippet(description)
+            .draggable(true)
+            .position(latLng)
+        )
+    }
+
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
         locationPermissionGranted = requestCode == Constants.locationPermissionsRequestCode
     }
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         // TODO: Toast or w/e in ChooseLocation and onBackPressed (?maybe?) in EventMapsActivity
+    }
+
+    companion object {
+        const val DEFAULT_ZOOM = 15
     }
 }
