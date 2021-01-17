@@ -7,24 +7,21 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
+import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.intents.UserListIntent
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
-import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.shared.replace
-import com.example.hobbyfi.state.ChatroomState
-import com.example.hobbyfi.state.EventListState
-import com.example.hobbyfi.state.EventState
-import com.example.hobbyfi.state.UserListState
+import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
+import java.lang.IllegalStateException
+import kotlin.properties.Delegates
 
 @ExperimentalCoroutinesApi
 class ChatroomActivityViewModel(
@@ -39,6 +36,9 @@ class ChatroomActivityViewModel(
 
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
     val authEvents: LiveData<List<Event>> get() = _authEvents
+
+    private var _authUserGeoPoint: StateFlow<UserGeoPoint?> by Delegates.notNull()
+    val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
 
     fun setAuthEvents(events: List<Event>) {
         _authEvents.value = events
@@ -57,6 +57,14 @@ class ChatroomActivityViewModel(
     val usersState get() = usersStateIntent.state
 
     suspend fun sendUsersIntent(intent: UserListIntent) = usersStateIntent.sendIntent(intent)
+
+    private val userGeoPointStateIntent: StateIntent<UserGeoPointState, UserGeoPointIntent> = object : StateIntent<UserGeoPointState, UserGeoPointIntent>() {
+        override val _state: MutableStateFlow<UserGeoPointState> = MutableStateFlow(UserGeoPointState.Idle)
+    }
+    val userGeoPointState get() = userGeoPointStateIntent.state
+
+    suspend fun sendUserGeoPointIntent(intent: UserGeoPointIntent) = userGeoPointStateIntent.sendIntent(intent)
+
     fun resetUserListState() = usersStateIntent.setState(UserListState.Idle)
 
     fun resetChatroomState() = chatroomStateIntent.setState(ChatroomState.Idle)
@@ -68,6 +76,7 @@ class ChatroomActivityViewModel(
                 when(it) {
                     is EventListIntent.AddAnEventCache -> {
                         saveEvent(it.event)
+                        setAuthEvents(_authEvents.value!! + it.event)
                     }
                     is EventListIntent.DeleteAnEventCache -> {
                         if(eventRepository.deleteEventCache(it.eventId)) {
@@ -76,7 +85,7 @@ class ChatroomActivityViewModel(
                     }
                     is EventListIntent.DeleteOldEventsCache -> {
                         // TODO: wire up this with delete_old events in repo and API
-                        deleteEvents()
+                        deleteOldEvents()
                     }
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
@@ -113,10 +122,37 @@ class ChatroomActivityViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            userGeoPointStateIntent.intentAsFlow().collect {
+                when(it) {
+                    is UserGeoPointIntent.FetchAuthUserGeoPoint -> {
+                        fetchAuthUserGeoPoint()
+                    }
+                    else -> throw Intent.InvalidIntentException()
+                }
+            }
+        }
     }
 
     init {
         handleIntent()
+    }
+
+    private fun fetchAuthUserGeoPoint() {
+        userGeoPointStateIntent.setState(UserGeoPointState.Loading)
+
+        userGeoPointStateIntent.setState(try {
+            _authUserGeoPoint = eventRepository.getEventUserGeoPoint(authUser.value!!.name)
+
+            UserGeoPointState.OnData.OnAuthUserGeoPointResult(
+                _authUserGeoPoint
+            ) // TODO: Do something with state (collect it, at least)
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+            UserGeoPointState.Error(
+                ex.message, shouldReauth = ex.isCritical
+            )
+        })
     }
 
     private suspend fun fetchUsers() {
@@ -178,8 +214,23 @@ class ChatroomActivityViewModel(
         _authEvents.value = _authEvents.value!!.replace(event, { it.id == event.id })
     }
 
-    private suspend fun deleteEvents() {
-        TODO("Not implemented.")
+    private suspend fun deleteOldEvents() {
+        eventsStateIntent.setState(EventListState.Loading)
+
+        eventsStateIntent.setState(try {
+            val response = eventRepository.deleteOldEvents()
+                ?: throw IllegalStateException(Constants.invalidStateError)
+
+            eventRepository.deleteEventsCache(response.modelList)
+
+            EventListState.OnData.DeleteOldEventsResult(response.modelList)
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+            EventListState.Error(
+                ex.message,
+                shouldReauth = ex.isCritical
+            )
+        })
     }
 
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {
@@ -187,7 +238,6 @@ class ChatroomActivityViewModel(
         userRepository.deleteUserCache(id, shouldWritePrefTime)
     }
 
-    // TODO: Hide behind intent? Also, bruh conversions
     private fun setCurrentUsers(users: List<User>) {
         _currentAdapterUsers.value = users
     }

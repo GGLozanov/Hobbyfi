@@ -55,7 +55,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
     protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
         e.printStackTrace()
         if((e as Exception).isCritical) {
-            Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
+            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
                 .show()
             (requireActivity() as MainActivity).logout()
         } else if(e !is CancellationException) {

@@ -27,16 +27,14 @@ class EventRepository(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
     hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
 ): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
-
     private val _userGeoPoints: MutableStateFlow<List<UserGeoPoint>> = MutableStateFlow(emptyList())
     private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
-    // TODO: Refactor to Fetch event list when one-to-many
     fun getEvents(chatroomId: Long): Flow<List<Event>?> {
         Log.i("EventRepository", "getEvent -> Getting current chatroom eventS!!!")
         return object : NetworkBoundFetcher<List<Event>?, CacheListResponse<Event>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<Event>) {
-                saveEvents(response.modelList)
+                saveEvents(response.modelList, replace = true)
             }
 
             override fun shouldFetch(cache: List<Event>?): Boolean {
@@ -75,7 +73,7 @@ class EventRepository(
 
     // TODO: Add id to request (event delete when one-to-many is developed)
     suspend fun deleteEvent(eventId: Long): Response? {
-        Log.i("EventRepository", "deleteEvent -> Deleting current chatroom event!!!")
+        Log.i("EventRepository", "deleteEvent -> Deleting chatroom event with id $eventId!!!")
 
         return performAuthorisedRequest({
             val response = hobbyfiAPI.deleteEvent(
@@ -101,6 +99,16 @@ class EventRepository(
         }, { deleteEvent(eventId) })
     }
 
+    suspend fun deleteOldEvents(): CacheListResponse<Long>? {
+        Log.i("EventRepository", "deleteEvent -> Deleting old events!!!")
+
+        return performAuthorisedRequest({
+            hobbyfiAPI.deleteOldEvents(
+                prefConfig.getAuthUserToken()!!
+            )
+        }, { deleteOldEvents() })
+    }
+
     suspend fun editEvent(eventUpdateFields: Map<String?, String?>): Response? {
         Log.i("EventRepository", "editEvent -> Editing current chatroom event with fields: $eventUpdateFields")
 
@@ -118,10 +126,17 @@ class EventRepository(
         hobbyfiDatabase.eventDao().upsert(event)
     }
 
-    suspend fun saveEvents(events: List<Event>) {
+    suspend fun saveEvents(events: List<Event>, replace: Boolean = false) {
         Log.i("EventRepository", "saveEventS -> Saving eventS into cache. EventS: $events!")
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_events_fetch_time)
-        hobbyfiDatabase.eventDao().upsert(events)
+
+        withContext(Dispatchers.IO) {
+            if(replace) {
+                hobbyfiDatabase.eventDao().deleteEvents()
+            }
+
+            hobbyfiDatabase.eventDao().upsert(events)
+        }
     }
 
     suspend fun deleteEventCache(id: Long): Boolean {
@@ -152,9 +167,10 @@ class EventRepository(
                 val geoPoint = doc?.getGeoPoint(Constants.LOCATION)
                 val eventIds = doc?.get(Constants.EVENT_IDS) as List<Long>?
 
-                val userGeoPoint = if(userChatroomId == null || geoPoint == null || eventIds == null) null
+                val userGeoPoint = if(userChatroomId == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null
                     else UserGeoPoint(doc.id, userChatroomId, eventIds, geoPoint)
 
+                Log.i("EventRepository", "getEventUserGeoPoint -> Received user Geo Point: $userGeoPoint")
                 _userGeoPoint.value = userGeoPoint
             }
         return _userGeoPoint
@@ -169,15 +185,16 @@ class EventRepository(
                     throw e
                 }
 
-                val geoPoints = ArrayList<UserGeoPoint>()
+                val geoPoints = ArrayList<UserGeoPoint?>()
                 for (doc in snapshots!!) {
                     val userChatroomId = doc.getLong(Constants.CHATROOM_ID)
                     val geoPoint = doc.getGeoPoint(Constants.LOCATION)
-                    val eventIds = doc.get(Constants.EVENT_IDS) as List<Long>
-                    geoPoints.add(UserGeoPoint(doc.id, userChatroomId!!, eventIds!!, geoPoint!!))
+                    val eventIds = doc.get(Constants.EVENT_IDS) as List<Long>?
+                    geoPoints.add(if(userChatroomId == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null else
+                        UserGeoPoint(doc.id, userChatroomId, eventIds, geoPoint))
                 }
 
-                _userGeoPoints.value = geoPoints
+                _userGeoPoints.value = geoPoints.filterNotNull()
             }
         return _userGeoPoints
     }

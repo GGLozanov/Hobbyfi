@@ -9,11 +9,10 @@ import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.repositories.EventRepository
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.UserGeoPointState
-import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,16 +55,28 @@ class EventMapsActivityViewModel(
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveCurrentEvent(it.eventUpdateFields)
                     }
-                    is EventListIntent.DeleteEventsCache -> {
-                        eventRepository.deleteEventsCache(it.eventIds)
+                    is EventListIntent.DeleteEventsCache -> { // i.e. delete old events from notification
+                        deleteEventsCache(it.eventIds)
                     }
                     is EventListIntent.DeleteAnEventCache -> {
-                        eventRepository.deleteEventCache(it.eventId)
+                        deleteEventCache(it.eventId)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
             }
         }
+    }
+
+    private suspend fun deleteEventsCache(eventIds: List<Long>) {
+        mainStateIntent.setState(if(eventRepository.deleteEventsCache(eventIds))
+            EventListState.OnData.DeleteEventsCacheResult(eventIds)
+        else EventListState.Error(Constants.cacheDeletionError, true)) // shouldReath = shouldExit here
+    }
+
+    private suspend fun deleteEventCache(eventId: Long) {
+        mainStateIntent.setState(if(eventRepository.deleteEventCache(eventId))
+            EventListState.OnData.DeleteAnEventCacheResult(eventId)
+        else EventListState.Error(Constants.cacheDeletionError, true))
     }
 
     private suspend fun updateAndSaveCurrentEvent(updateFields: Map<String?, String?>) {

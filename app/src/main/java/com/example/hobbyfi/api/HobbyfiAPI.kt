@@ -258,7 +258,7 @@ interface HobbyfiAPI {
     @DELETE("api/v1.0/event/delete_old")
     suspend fun deleteOldEvents(
         @Header(Constants.AUTH_HEADER) token: String
-    ): Response?
+    ): CacheListResponse<Long>?
 
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {

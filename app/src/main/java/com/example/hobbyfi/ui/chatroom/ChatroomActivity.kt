@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.annotation.SuppressLint
 import android.content.*
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -28,10 +29,7 @@ import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
-import com.example.hobbyfi.intents.ChatroomIntent
-import com.example.hobbyfi.intents.EventListIntent
-import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.intents.UserListIntent
+import com.example.hobbyfi.intents.*
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.state.*
@@ -49,12 +47,10 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import com.prolificinteractive.materialcalendarview.CalendarDay
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import org.kodein.di.generic.instance
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -137,7 +133,6 @@ class ChatroomActivity : BaseActivity(),
         with(binding) {
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
             usersList.adapter = userListAdapter
-            // TODO: Get GeoUser model from Cloud Firestore and observe. After fetch => set button visibility depending on user joinw
 
             initCalendar()
         }
@@ -188,7 +183,6 @@ class ChatroomActivity : BaseActivity(),
     }
 
     private fun observeChatroomState() {
-        // whenever broadcast receiver triggered => sets the state in the viewmodel
         lifecycleScope.launchWhenCreated {
             viewModel.chatroomState.collect {
                 when(it) {
@@ -263,7 +257,9 @@ class ChatroomActivity : BaseActivity(),
                         // TODO: Progressbar on event card
                     }
                     is EventListState.OnData.EventsResult -> {
-                        // TODO: Need to update here?
+                        viewModel.sendUserGeoPointIntent(
+                            UserGeoPointIntent.FetchAuthUserGeoPoint
+                        )
                     }
                     is EventListState.OnData.DeleteEventsCacheResult -> {
 
@@ -279,7 +275,8 @@ class ChatroomActivity : BaseActivity(),
 
     private fun observeEvents() {
         viewModel.authEvents.observe(this, Observer {
-            setEventCalendarDates(it)
+            Log.i("ChatroomActivity", "Received events list. Setting calendar dates to $it")
+            reinitCalendarDecorators(it)
         })
     }
 
@@ -384,9 +381,12 @@ class ChatroomActivity : BaseActivity(),
                     viewModel.sendChatroomIntent(
                         ChatroomIntent.FetchChatroom
                     )
-                    viewModel.sendEventsIntent(
-                        EventListIntent.FetchEvents
-                    )
+
+                    if(viewModel.authChatroom.value?.eventIds != null) {
+                        viewModel.sendEventsIntent(
+                            EventListIntent.FetchEvents
+                        )
+                    }
                 }
             } else {
                 Log.i("ChatroomActivity", "ChatroomActivity DIS-CONNECTED")
@@ -464,15 +464,17 @@ class ChatroomActivity : BaseActivity(),
         }
     }
 
-    private fun setEventCalendarDates(events: List<Event>) {
+    private fun reinitCalendarDecorators(events: List<Event>) {
         with(binding) {
-            events.forEach { event ->
-                val eventDate = event.calendarDayFromDate
-                eventCalendar.setDateSelected(eventDate, true)
-            }
+            eventCalendar.removeDecorators()
+            eventCalendar.addDecorator(
+                EventCalendarDecorator(
+                    ContextCompat.getColor(this@ChatroomActivity, R.color.colorPrimary),
+                    events.map { it.calendarDayFromDate }
+                )
+            )
         }
     }
-
 
     @ExperimentalPagingApi
     override fun onEditMessageSelect(view: View, message: Message) {
@@ -508,8 +510,8 @@ class ChatroomActivity : BaseActivity(),
             eventCalendar.setOnDateChangedListener { calendar, date, selected ->
                 Log.i("ChatroomActivity", "Calendar selected events: ${calendar.selectedDates}")
                 val correspondingEvent: Event? = viewModel!!.authEvents.value?.find {
-                    it.date.equals(it.calendarDayFromDate) }
-                if(viewModel!!.authEvents.value == null || (correspondingEvent != null && selected)) {
+                    date == it.calendarDayFromDate }
+                if(correspondingEvent == null && selected) {
                     Log.i("ChatroomActivity", "Calendar selected event outside event dates. Selected date: $date")
                     calendar.setDateSelected(date, false)
                     return@setOnDateChangedListener
@@ -517,7 +519,6 @@ class ChatroomActivity : BaseActivity(),
 
                 Log.i("ChatroomActivity", "Calendar selected event with date: $date")
                 Log.i("ChatroomActivity", "Corresponding event: $correspondingEvent")
-                // TODO: show event dialog/decorator for event info + join/leave buttons depending on user fcm eventids
             }
         }
     }

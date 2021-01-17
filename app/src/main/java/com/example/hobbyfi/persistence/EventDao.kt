@@ -11,8 +11,11 @@ abstract class EventDao : BaseDao<Event>() {
     abstract fun getEventByChatroomId(chatroomId: Long): Flow<List<Event>?>
 
     @Query("DELETE FROM events WHERE id = :id")
-    abstract fun deleteEventById(id: Long): Int
+    abstract suspend fun deleteEventById(id: Long): Int
 
     @Query("DELETE FROM events WHERE id IN (:ids)")
-    abstract fun deleteEventById(ids: List<Long>): Int
+    abstract suspend fun deleteEventById(ids: List<Long>): Int
+
+    @Query("DELETE FROM events")
+    abstract suspend fun deleteEvents(): Int
 }

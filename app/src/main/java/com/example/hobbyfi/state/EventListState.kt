@@ -1,6 +1,7 @@
 package com.example.hobbyfi.state
 
 import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.StartDateIdResponse
 
@@ -10,10 +11,11 @@ sealed class EventListState : State {
     object Loading : EventListState()
 
     sealed class OnData : EventListState() {
-        data class EventsResult(val events: List<Event>) : EventListState()
+        data class EventsResult(val events: List<Event>) : OnData()
+        data class DeleteOldEventsResult(val deletedEventsId: List<Long>) : OnData()
 
-        object DeleteEventsCacheResult : OnData()
-        object DeleteAnEventCacheResult : OnData()
+        data class DeleteEventsCacheResult(val eventIds: List<Long>) : OnData()
+        data class DeleteAnEventCacheResult(val eventId: Long) : OnData()
     }
 
     data class Error(val error: String?, val shouldReauth: Boolean = false) : EventListState()

@@ -39,6 +39,7 @@ object Constants {
     const val invalidEventInfoError: String = "Please enter information date and set its location!"
     const val reauthError: String = "Logging out! Your session may have expired!"
     const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
+    const val invalidDataError: String = "Invalid data format!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
     const val invalidCredentialsError: String = "Invalid credentials!"
     const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
@@ -51,9 +52,10 @@ object Constants {
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
     const val resourceNotFoundError: String = "Requested resource not found!"
     const val fcmTopicError: String = "Couldn't access realtime messaging services! Please check your connection or consult with Google, as this error is not ours!"
-    const val invalidViewType: String = "Invalid view type for ViewHolder!"
+    const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
+    const val invalidStateError: String = "Invalid state to call this method in!"
     const val firestoreDeletionError: String = "Couldn't delete Firestore records needed to have been deleted!"
-    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
+    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777

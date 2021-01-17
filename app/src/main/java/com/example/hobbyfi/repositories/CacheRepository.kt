@@ -22,8 +22,6 @@ abstract class CacheRepository(
 ) : Repository(prefConfig, hobbyfiAPI) {
     protected val firestore = Firebase.firestore
 
-    protected fun<T> adheresToDefaultCachePolicy(cache: T?, cachePref: Int): Boolean {
-        return cache == null ||
+    protected fun<T> adheresToDefaultCachePolicy(cache: T?, cachePref: Int): Boolean = cache == null ||
                 Constants.cacheTimedOut(prefConfig, cachePref) || connectivityManager.isConnected()
-    }
 }

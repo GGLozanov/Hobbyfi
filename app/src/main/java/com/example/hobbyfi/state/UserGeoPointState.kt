@@ -9,7 +9,7 @@ sealed class UserGeoPointState : State {
     object Loading : UserGeoPointState()
 
     sealed class OnData : UserGeoPointState() {
-        data class OnUserGeoPointResult(val userGeoPoint: StateFlow<UserGeoPoint>) : OnData()
+        data class OnAuthUserGeoPointResult(val userGeoPoint: StateFlow<UserGeoPoint?>) : OnData()
         data class OnUsersGeoPointsResult(val userGeoPoints: StateFlow<List<UserGeoPoint>>) : OnData()
         data class OnUserGeoPointSetResult(val setUserGeoPoint: LiveData<UserGeoPoint>) : OnData()
     }

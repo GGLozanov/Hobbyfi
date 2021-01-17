@@ -105,7 +105,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
             }
 
             map?.setOnMapClickListener {
-                marker = moveMarkerAndCamera(it, eventTitle, eventDescription)
+                resetMarkerAndMoveToNew(it)
             }
 
             map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {

@@ -122,8 +122,6 @@ object Callbacks {
         when(ex) {
             is HobbyfiAPI.NoConnectivityException -> throw Exception(Constants.noConnectionError)
             is HttpException -> {
-                ex.printStackTrace()
-
                 when (ex.code()) {
                     400 -> { // bad request (missing data)
                         throw Exception(Constants.missingDataError)
@@ -138,7 +136,7 @@ object Callbacks {
                         throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
                     }
                     406 -> { // not acceptable
-                        throw Exception(Constants.resourceExistsError)
+                        throw Exception(Constants.invalidDataError)
                     }
                     409 -> { // conflict
                         throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk

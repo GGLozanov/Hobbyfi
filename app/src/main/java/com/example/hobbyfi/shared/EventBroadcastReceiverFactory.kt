@@ -83,7 +83,7 @@ class EventBroadcastReceiverFactory private constructor(
                             })
                         }
                     },
-                    onReceiveLog = "Got me a broadcast receievrino for DELETE CHATROOOOOM",
+                    onReceiveLog = "Got me a broadcast receievrino for EDIT EVENT",
                     isNotChatroomOwnerOrShouldSee = eventIdEditChecker
                 )
             }

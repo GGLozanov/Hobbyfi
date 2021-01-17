@@ -57,7 +57,7 @@ class ChatroomMessageListAdapter(
                 ChatroomSendMessageViewHolder.getInstance(parent, onMessageLongPress,
                     currentUsers, isAuthUserChatroomOwner, prefConfig)
             }
-            else -> throw IllegalArgumentException(Constants.invalidViewType)
+            else -> throw IllegalArgumentException(Constants.invalidViewTypeError)
         }
     }
 
