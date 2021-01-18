@@ -72,15 +72,20 @@ class ChatroomActivityViewModel(
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
-            eventsStateIntent.intentAsFlow().collect {
+            eventsStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventListIntent.AddAnEventCache -> {
+                        Log.i("ChatroomActivityVM", "Add Event to List Intent caught")
                         saveEvent(it.event)
-                        setAuthEvents(_authEvents.value!! + it.event)
+                        setAuthEvents((_authEvents.value ?: emptyList()) + it.event)
+                        updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                            .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
                     is EventListIntent.DeleteAnEventCache -> {
                         if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
+                            updateAndSaveEvent(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                                .toJson(authChatroom.value!!.eventIds?.filter { eventId -> eventId != it.eventId }))))
                         }
                     }
                     is EventListIntent.DeleteOldEventsCache -> {
@@ -207,11 +212,11 @@ class ChatroomActivityViewModel(
                 ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
             .updateFromFieldMap(eventFields)
         saveEvent(updatedEvent)
+        _authEvents.value = _authEvents.value!!.replace(updatedEvent, { it.id == updatedEvent.id })
     }
 
     private suspend fun saveEvent(event: Event) {
         eventRepository.saveEvent(event)
-        _authEvents.value = _authEvents.value!!.replace(event, { it.id == event.id })
     }
 
     private suspend fun deleteOldEvents() {
@@ -222,6 +227,10 @@ class ChatroomActivityViewModel(
                 ?: throw IllegalStateException(Constants.invalidStateError)
 
             eventRepository.deleteEventsCache(response.modelList)
+            updateAndSaveChatroom(mapOf(
+                Pair(Constants.EVENT_IDS,
+                    Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !response.modelList.contains(it) }))
+            ))
 
             EventListState.OnData.DeleteOldEventsResult(response.modelList)
         } catch(ex: Exception) {

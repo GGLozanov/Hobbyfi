@@ -106,8 +106,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
-                        FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
-                                it.response.id)).addOnCompleteListener { task ->
+                        FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(it.response.id))
+                                .addOnSuccessListener { task ->
                             activityViewModel.setJoinedChatroom(true)
                             navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
                                 activityViewModel.authUser.value,

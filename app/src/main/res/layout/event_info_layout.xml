@@ -117,25 +117,15 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <include
-            layout="@layout/button_bar_pair"
             android:id="@+id/event_info_button_bar"
+            layout="@layout/button_bar_pair"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/description_input_field"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/description_input_field"
             app:leftButtonStartDrawable="@{@drawable/ic_baseline_event_white_24}"
             app:rightButtonStartDrawable="@{@drawable/ic_baseline_add_location_white_24}" />
 
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/confirm_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/event_info_button_bar">
-
-        </com.google.android.material.button.MaterialButton>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -13,6 +13,7 @@ import androidx.activity.viewModels
 import androidx.core.view.get
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -93,9 +94,6 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 // avoid fragment recreation (do nothing here)
             }
 
-            // TODO: Fix line below as reisntating doesn't work
-            bottomNav.selectedItemId = binding.bottomNav.selectedItemId // reselect on activity recreation
-
             bottomNav.setupWithNavController(
                 navGraphIds = listOf(
                     R.navigation.user_profile_nav_graph,
@@ -107,8 +105,14 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                 intent = intent
             ).observe(this@MainActivity, Observer {
                 navController = it
+                navController.graph.startDestination = when(bottomNav.selectedItemId) {
+                    R.id.userProfileFragment -> R.id.user_profile_nav
+                    R.id.joinedChatroomListFragment -> R.id.joined_chatroom_list_nav
+                    R.id.chatroomListFragment -> R.id.chatroom_list_nav
+                    else -> R.id.user_profile_nav
+                }
                 toolbar.setupWithNavController(
-                    it, AppBarConfiguration(
+                    navController, AppBarConfiguration(
                         setOf(
                             R.id.userProfileFragment,
                             R.id.chatroomListFragment,
@@ -116,6 +120,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
                         )
                     )
                 )
+
             })
         }
     }
@@ -239,6 +244,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
             finish()
         } else {
             if(navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment) {
+                resetAuthProperties()
                 finishAffinity()
             } else super.onBackPressed()
         }

@@ -39,7 +39,9 @@ class AuthChangeDialogFragmentViewModel(application: Application) : AuthInclusiv
     private var _newEmail: String? = null
     val newEmail get() = _newEmail
 
-    // should be mostly called from MainActivity and the like
+    @Bindable
+    val newPassword: MutableLiveData<String> = MutableLiveData()
+
     fun setNewEmail(email: String?) {
         _newEmail = email
     }

@@ -1,16 +1,20 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateFormat
+import android.util.Log
 import android.view.*
 import android.widget.DatePicker
 import android.widget.TimePicker
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
@@ -66,6 +70,7 @@ class EventCreateFragment : ChatroomModelFragment(),
                     initialDay
                 )
                 dialog.datePicker.minDate = c.timeInMillis
+                initDateTimePickerDialogDismissHandler(dialog)
                 dialog.show()
             }
 
@@ -83,11 +88,12 @@ class EventCreateFragment : ChatroomModelFragment(),
                 Callbacks.requestImage(this@EventCreateFragment)
             }
 
-            eventInfo.confirmButton.setOnClickListener {
+            confirmButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
 
+                Log.i("EventCreateFragment", "Sending CreateEvent intent")
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(EventIntent.CreateEvent(activityViewModel.authChatroom.value!!.id))
                 }
@@ -110,6 +116,7 @@ class EventCreateFragment : ChatroomModelFragment(),
                         // TODO: Progressbar
                     }
                     is EventState.OnData.EventCreateResult -> {
+                        activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
                         Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
                             .show()
                         navController.popBackStack()
@@ -128,7 +135,7 @@ class EventCreateFragment : ChatroomModelFragment(),
     override fun initTextFieldValidators() {
         with(binding) {
             // Code quality TODO:
-            //  Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
+            // Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
             // with the preset predicate/error pairs
             eventInfo.nameInputField.addTextChangedListener(
                 Constants.nameInputError,
@@ -161,9 +168,7 @@ class EventCreateFragment : ChatroomModelFragment(),
         val dialog = TimePickerDialog(activity, this, hour, minute, DateFormat.is24HourFormat(activity))
 
         dialog.show()
-        dialog.setOnDismissListener {
-            viewModel.setEventDate(null)
-        }
+        initDateTimePickerDialogDismissHandler(dialog)
     }
 
     override fun onTimeSet(picker: TimePicker?, hours: Int, minutes: Int) {
@@ -193,6 +198,22 @@ class EventCreateFragment : ChatroomModelFragment(),
                     ImageUtils.encodeImage(it)
                 )
             }
+        }
+    }
+
+    private fun initDateTimePickerDialogDismissHandler(dialog: AlertDialog) {
+        dialog.setOnCancelListener {
+            Constants.buildYesNoAlertDialog(
+                requireContext(),
+                resources.getString(R.string.keep_date),
+                { dialogInterface: DialogInterface, _: Int ->
+                    dialogInterface.dismiss()
+                },
+                { dialogInterface: DialogInterface, _: Int ->
+                    viewModel.setEventDate(null)
+                    dialogInterface.dismiss()
+                }
+            )
         }
     }
 }

@@ -73,11 +73,12 @@
         android:name="com.example.hobbyfi.ui.main.MainActivity"
         android:label="Your Profile"
         tools:layout="@layout/activity_main">
+
         <argument
             android:name="user"
-            android:defaultValue="@null"
             app:argType="com.example.hobbyfi.models.User"
-            app:nullable="true" />
+            app:nullable="true"
+            android:defaultValue="@null" />
     </activity>
     <include app:graph="@navigation/tag_nav_graph" />
 </navigation>

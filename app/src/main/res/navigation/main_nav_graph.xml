@@ -2,8 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_nav_graph"
-    app:startDestination="@id/user_profile_nav">
+    android:id="@+id/main_nav_graph">
 
     <navigation
         android:id="@+id/user_profile_nav"
@@ -41,4 +40,15 @@
             android:id="@+id/action_global_user_profile_nav3"
             app:destination="@id/user_profile_nav" />
     </navigation>
+    <activity
+        android:id="@+id/mainActivity"
+        android:name="com.example.hobbyfi.ui.main.MainActivity"
+        android:label="activity_main"
+        tools:layout="@layout/activity_main">
+        <argument
+            android:name="user"
+            android:defaultValue="@null"
+            app:argType="com.example.hobbyfi.models.User"
+            app:nullable="true" />
+    </activity>
 </navigation>

@@ -55,6 +55,12 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                     return@setOnClickListener
                 }
 
+                if(viewModel!!.password.value == viewModel!!.newPassword.value) {
+                    Toast.makeText(requireContext(), "Passwords must not be the same! Please enter a new, unique password!", Toast.LENGTH_LONG)
+                        .show()
+                    return@setOnClickListener
+                }
+
                 viewModel!!.email.value = activityViewModel.authUser.value?.email // set user email to AuthUser Activity VM email
 
                 lifecycleScope.launch {
@@ -75,12 +81,12 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                             it.token?.jwt?.let { jwt -> prefConfig.writeToken(jwt) }
                             it.token?.refreshJwt?.let { refreshJwt -> prefConfig.writeToken(refreshJwt) }
                             activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
-                                Pair(
-                                    Constants.PASSWORD, viewModel!!.password.value!!)
+                                Pair(Constants.PASSWORD, viewModel!!.newPassword.value!!)
                             )))
+                            dismiss()
                         }
                         is TokenState.Error -> {
-                            Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
+                            Toast.makeText(requireContext(), "Invalid access! Please enter the correct ", Toast.LENGTH_LONG)
                                 .show()
                         }
                         else -> throw State.InvalidStateException()
@@ -100,7 +106,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             )
             newPasswordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate(passwordInputField.editText)
+                Constants.passwordPredicate(confirmNewPasswordInputField.editText)
             )
             confirmNewPasswordInputField.addTextChangedListener(
                 Constants.confirmPasswordInputError,

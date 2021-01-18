@@ -141,6 +141,9 @@ object Callbacks {
                     409 -> { // conflict
                         throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk
                     }
+                    429 -> { // too many
+                        throw Exception(Constants.limitReachedError)
+                    }
                     500 -> {
                         throw Repository.ReauthenticationException(Constants.internalServerError)
                     }

@@ -305,7 +305,7 @@ class ChatroomActivity : BaseActivity(),
                         // TODO: On Chatroom deletes -> if no more events left, set authChatroom eventIds to  null
 
                         navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
-                            Constants.buildDeleteAlertDialog(
+                            Constants.buildYesNoAlertDialog(
                                 this@ChatroomActivity,
                                 Constants.confirmChatroomDeletionMessage,
                                 { dialogInterface: DialogInterface, _: Int ->

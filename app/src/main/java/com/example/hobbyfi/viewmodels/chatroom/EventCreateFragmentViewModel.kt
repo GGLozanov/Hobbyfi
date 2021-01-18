@@ -1,6 +1,8 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.EventIntent
@@ -19,8 +21,11 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -44,7 +49,7 @@ class EventCreateFragmentViewModel(
 
     override fun handleIntent() {
         viewModelScope.launch {
-            mainStateIntent.intentAsFlow().collect {
+            mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.CreateEvent -> {
                         createEvent(it.chatroomId)
@@ -55,6 +60,7 @@ class EventCreateFragmentViewModel(
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private suspend fun createEvent(chatroomId: Long) {
         mainStateIntent.setState(EventState.Loading)
 
@@ -66,36 +72,39 @@ class EventCreateFragmentViewModel(
         }
 
         mainStateIntent.setState(try {
-            val state = EventState.OnData.EventCreateResult(eventRepository.createEvent(
+            val parsedEventDate = Constants.dateTimeFormatter.format(eventDate!!)
+            val response = eventRepository.createEvent(
                 name.value!!,
                 description.value,
-                eventDate.toString(),
+                parsedEventDate,
                 base64Image.base64,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude
-            ))
+            )
 
             val event = Event(
-                state.response!!.id,
+                response!!.id,
                 name.value!!,
                 description.value,
-                state.response.startDate,
-                eventDate.toString(),
-                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(state.response.id)
-                        + "/" + state.response.id + ".jpg" else null,
+                response.startDate,
+                parsedEventDate,
+                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(response.id)
+                        + "/" + response.id + ".jpg" else null,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude,
                 chatroomId
             )
 
-            eventRepository.saveEvent(event)
-
-            state
+            EventState.OnData.EventCreateResult(event)
         } catch(ex: Exception) {
             EventState.Error(
                 ex.message,
                 ex.isCritical
             )
         })
+    }
+
+    init {
+        handleIntent()
     }
 }

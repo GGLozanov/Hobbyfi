@@ -35,7 +35,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         val tags = activityViewModel.authUser.value?.tags ?:
             if(requireActivity().intent?.extras == null)
                 emptyList()
-            else UserProfileFragmentArgs.fromBundle(
+            else MainActivityArgs.fromBundle(
                     requireActivity().intent?.extras!!
                 ).user?.tags ?: emptyList()
 
@@ -69,7 +69,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             settingsButtonBar.leftButton.setOnClickListener { // delete account button
-                Constants.buildDeleteAlertDialog(
+                Constants.buildYesNoAlertDialog(
                     requireContext(),
                     Constants.confirmAccountDeletionMessage,
                     { dialogInterface: DialogInterface, _: Int ->

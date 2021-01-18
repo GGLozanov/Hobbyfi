@@ -6,13 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventEditDialogBinding
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.state.EventState
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
 
 
 @ExperimentalCoroutinesApi
@@ -37,6 +42,10 @@ class EventEditDialogFragment : ChatroomDialogFragment() {
         binding.viewModel = viewModel
 
         with(binding) {
+
+
+            observeEventState()
+
             return@onCreateView root
         }
     }
@@ -47,6 +56,29 @@ class EventEditDialogFragment : ChatroomDialogFragment() {
     override fun assertTextFieldsInvalidity(): Boolean {
         // return FieldUtils.isTextFieldInvalid()
         return true
+    }
+
+    private fun observeEventState() {
+        lifecycleScope.launchWhenCreated {
+            viewModel.mainState.collect {
+                when(it) {
+                    is EventState.Idle -> {
+
+                    }
+                    is EventState.Loading -> {
+                    }
+                    is EventState.OnData.EventEditResult -> {
+                        activityViewModel.sendEventsIntent(EventListIntent.UpdateAnEventCache(it.updateFields))
+
+                        dismiss()
+                    }
+                    is EventState.Error -> {
+                        // TODO: Handle error
+                    }
+                    else -> throw State.InvalidStateException()
+                }
+            }
+        }
     }
 
     companion object {

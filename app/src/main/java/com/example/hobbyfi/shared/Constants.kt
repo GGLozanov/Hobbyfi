@@ -1,5 +1,6 @@
 package com.example.hobbyfi.shared
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -24,6 +25,7 @@ import com.facebook.Profile
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import java.text.SimpleDateFormat
 
 
 object Constants {
@@ -55,6 +57,7 @@ object Constants {
     const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
     const val invalidStateError: String = "Invalid state to call this method in!"
     const val firestoreDeletionError: String = "Couldn't delete Firestore records needed to have been deleted!"
+    const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val imagePermissionsRequestCode = 200
@@ -217,7 +220,7 @@ object Constants {
         return chatroomTopicPrefix + chatroomId
     }
 
-    fun buildDeleteAlertDialog(
+    fun buildYesNoAlertDialog(
         context: Context,
         dialogMessage: String,
         onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
@@ -295,6 +298,9 @@ object Constants {
 
     const val EVENT_SELECTION: String = "EVENT_SELECTION"
     const val EVENT: String = "EVENT"
+
+    @SuppressLint("SimpleDateFormat")
+    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER

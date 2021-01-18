@@ -67,7 +67,6 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
         with(binding) {
             bottomSheet.apply {
                 BottomSheetBehavior.from(this).apply {
-                    setPeekHeight(1 / 4 * (Resources.getSystem().displayMetrics.heightPixels), true)
                     state = BottomSheetBehavior.STATE_EXPANDED
                 }
 
@@ -96,7 +95,7 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_delete_message -> {
-                Constants.buildDeleteAlertDialog(
+                Constants.buildYesNoAlertDialog(
                     requireContext(),
                     resources.getString(R.string.delete_message),
                     { dialogInterface, _ ->

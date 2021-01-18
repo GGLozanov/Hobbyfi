@@ -87,7 +87,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             // otherwise simply allow the user to join their chatroom
             FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(chatroom.id))
                 .addOnFailureListener(fcmTopicErrorFallback)
-                .continueWith {
+                .addOnSuccessListener {
                     updateJob = lifecycleScope.launch {
                         prefConfig.writeLastEnteredChatroomId(chatroom.id)
                         navigateToChatroom()

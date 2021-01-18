@@ -10,13 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
-import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
-import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.EventCardBinding
 import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.PrefConfig
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -25,7 +21,8 @@ import org.kodein.di.generic.instance
 
 class EventListAdapter(
     private var events: List<Event>,
-    private val onManagePressButton: (View, Event) -> Unit,
+    private val onManagePress: (View, Event) -> Unit,
+    private val onDeletePressButton: (View, Event) -> Unit
 ) : RecyclerView.Adapter<EventListAdapter.EventViewHolder>(), KodeinAware {
 
     @ExperimentalPagingApi
@@ -42,9 +39,15 @@ class EventListAdapter(
             bindImage(model, position)
         }
 
-        fun initOnManagePressButton(event: Event, onManagePressButton: (View, Event) -> Unit) {
-            binding.manageButton.setOnClickListener {
-                onManagePressButton(it, event)
+        fun initOnDeletePressButton(event: Event, onDeletePressButton: (View, Event) -> Unit) {
+            binding.deleteButton.setOnClickListener {
+                onDeletePressButton(it, event)
+            }
+        }
+
+        fun initOnManagePress(event: Event, onManagePress: (View, Event) -> Unit) {
+            binding.eventCard.setOnClickListener {
+                onManagePress(it, event)
             }
         }
 
@@ -78,7 +81,8 @@ class EventListAdapter(
 
         with(holder) {
             bind(event, position)
-            initOnManagePressButton(event, onManagePressButton)
+            initOnDeletePressButton(event, onDeletePressButton)
+            initOnManagePress(event, onManagePress)
         }
     }
 

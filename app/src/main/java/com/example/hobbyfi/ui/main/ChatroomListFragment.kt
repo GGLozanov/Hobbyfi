@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
 import com.example.hobbyfi.databinding.DialogNoRemindBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
@@ -30,15 +31,14 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
             if(joined) {
                 // this check is required for whenever this observer might be trigger by CreateChatroomFragment
                 if(viewModel.buttonSelectedChatroom != null) {
-                    FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
-                        viewModel.buttonSelectedChatroom!!.id)
-                    ).addOnCompleteListener {
+                    FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(viewModel.buttonSelectedChatroom!!.id))
+                            .addOnSuccessListener {
                         joinChatroomAndUpdate()
                         // TODO: Add clear pref option
                         when(prefConfig.readChatroomJoinRememberNavigate()) {
                             Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
                                 val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
-                                AlertDialog.Builder(requireContext())
+                                val dialog = AlertDialog.Builder(requireContext())
                                     .setView(dialogBinding.root)
                                     .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
                                         prefConfig.writeChatroomJoinRememberNavigate(
@@ -57,7 +57,8 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                         dialogInterface.dismiss()
                                     }
                                     .create()
-                                    .show()
+                                dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
+                                dialog.show()
                             }
                             Constants.NoRememberDualChoice.REMEMBER_YES.ordinal -> {
                                 navigateToChatroom()

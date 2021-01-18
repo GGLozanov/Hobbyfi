@@ -40,7 +40,6 @@ class JoinedChatroomListAdapter(
             }
         }
 
-
         override val chatroomJoinButton: MaterialButton = binding.joinChatroomButtonBar.rightButton
         override val mainImageView: ImageView = binding.chatroomImage
         override val tagsGridView: GridView = binding.tagsGridView
