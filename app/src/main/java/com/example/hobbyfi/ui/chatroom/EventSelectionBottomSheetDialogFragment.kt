@@ -46,8 +46,9 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
             false
         )
 
+        val initialEvents = activityViewModel.authEvents.value ?: emptyList()
         eventListAdapter = EventListAdapter(
-                activityViewModel.authEvents.value ?: emptyList(),
+                initialEvents,
             { _: View, event: Event ->
             val dialog = (parentFragmentManager.findFragmentByTag(event.id.toString())
                     as EventEditDialogFragment?)
@@ -70,7 +71,7 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
             )
         })
 
-        setViewsVisibilityOnEvents(activityViewModel.authEvents.value ?: emptyList())
+        setViewsVisibilityOnEvents(initialEvents)
 
         with(binding) {
             val behaviour = BottomSheetBehavior.from(bottomSheet)
@@ -80,7 +81,7 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
 
             eventList.adapter = eventListAdapter
             // TODO: Recyclerview height responsive size (if it doesn't work - static height)
-            scaleViewByScreenSizeAndReLayout(eventList, behaviour, bottomSheet, bottomSheetCoordinator, 3)
+            // scaleViewByScreenSizeAndReLayout(eventList, behaviour, bottomSheet, bottomSheetCoordinator, 3)
 
             deleteOldEventsButton.setOnClickListener {
                 Constants.buildYesNoAlertDialog(

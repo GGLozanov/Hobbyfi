@@ -307,7 +307,6 @@ class ChatroomActivity : BaseActivity(),
                 if(authUserChatroomOwner) {
                     with(binding) {
                         // TODO: On Chatroom deletes -> if no more events left, set authChatroom eventIds to  null
-
                         navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
                             Constants.buildYesNoAlertDialog(
                                 this@ChatroomActivity,
@@ -418,6 +417,7 @@ class ChatroomActivity : BaseActivity(),
                 Log.i("ChatroomActivity", "Current auth user is NOT chatroom owner")
                 drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, GravityCompat.START)
                 toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.chatroomMessageListFragment)))
+                // TODO: Add back button
             }
         }
     }

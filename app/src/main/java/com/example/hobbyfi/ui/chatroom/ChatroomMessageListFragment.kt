@@ -315,10 +315,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             setToolbarProperties(it, activity)
         })
         activityViewModel.isAuthUserChatroomOwner.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
-            if(it) {
-                activity.binding.toolbar
-                    .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
-            }
+            activity.binding.toolbar
+                .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
 
             messageListAdapter!!.setAuthUserChatromOwner(it)
         })

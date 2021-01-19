@@ -90,5 +90,6 @@ class EventListAdapter(
 
     fun setEvents(events: List<Event>) {
         this.events = events
+        notifyDataSetChanged()
     }
 }
