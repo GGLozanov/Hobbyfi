@@ -199,11 +199,15 @@ class ChatroomActivity : BaseActivity(),
                             .show()
                         sendBroadcast(Intent(Constants.CHATROOM_DELETED)
                             .apply { putExtra(Constants.CHATROOM_ID, viewModel.authChatroom.value!!.id) })
-                        FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants
-                            .chatroomTopic(viewModel.authChatroom.value!!.id)).addOnFailureListener(fcmTopicErrorFallback).continueWith {
-                            viewModel.setChatroom(null) // clear chatroom in any case
-                            finish()
-                        }
+
+                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
+                                viewModel.setChatroom(null) // clear chatroom in any case
+                                finish()
+                            },
+                            viewModel.authChatroom.value!!.id,
+                            fcmTopicErrorFallback,
+                            connectivityManager
+                        )
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
@@ -372,6 +376,8 @@ class ChatroomActivity : BaseActivity(),
     override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(this, Observer { connectionRefreshed ->
+            // connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
+            //  enter without internet (currently refetches old chatrooms in itiial joins)
             if(connectionRefreshed) {
                 Log.i("ChatroomActivity", "ChatroomActivity CONNECTED")
                 lifecycleScope.launch {
@@ -524,18 +530,14 @@ class ChatroomActivity : BaseActivity(),
     }
 
     override fun onBackPressed() {
-        FirebaseMessaging.getInstance()
-            .unsubscribeFromTopic(Constants.chatroomTopic(viewModel.authChatroom.value!!.id))
-        .addOnCompleteListener {
-            prefConfig.resetLastEnteredChatroomId()
-        }.addOnCanceledListener {
-            Log.i("ChatroomActivity", "Cancelled user unsubsription from topic upon exiting chatroom.")
-        }.addOnFailureListener {
-            it.printStackTrace()
-            Log.i("ChatroomActivity", "Failed to unsubscribe user from topic upon exiting chatroom. $it")
-        }.continueWith {
-            super.onBackPressed()
-        }
+        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
+                prefConfig.resetLastEnteredChatroomId()
+                super.onBackPressed()
+            },
+            viewModel.authChatroom.value!!.id,
+            fcmTopicErrorFallback,
+            connectivityManager
+        )
     }
 
     private fun registerCRUDReceivers() {

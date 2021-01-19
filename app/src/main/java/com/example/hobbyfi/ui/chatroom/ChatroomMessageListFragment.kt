@@ -115,7 +115,6 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
         { messageListAdapter!!.retry() },
         null,
-        userIsAChatroomOwner = true,
         showOnlyProgessBar = true
     )
 
@@ -285,6 +284,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+            // connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
+            //  enter without internet (currently refetches old chatrooms in itiial joins)
             if(connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
                 messageListAdapter!!.refresh()

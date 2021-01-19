@@ -11,7 +11,9 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
 import com.example.hobbyfi.databinding.DialogNoRemindBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
+import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.state.ChatroomListState
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
@@ -28,43 +30,47 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                 activityViewModel.updateUserWithLatestFields()
             }
 
-            if(joined) {
+            if (joined) {
                 // this check is required for whenever this observer might be trigger by CreateChatroomFragment
-                if(viewModel.buttonSelectedChatroom != null) {
-                    FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(viewModel.buttonSelectedChatroom!!.id))
-                            .addOnSuccessListener {
-                        joinChatroomAndUpdate()
-                        // TODO: Add clear pref option
-                        when(prefConfig.readChatroomJoinRememberNavigate()) {
-                            Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
-                                val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
-                                val dialog = AlertDialog.Builder(requireContext())
-                                    .setView(dialogBinding.root)
-                                    .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
-                                        prefConfig.writeChatroomJoinRememberNavigate(
-                                            if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
-                                            else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
-                                        )
+                if (viewModel.buttonSelectedChatroom != null) {
+                    Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
+                        {
+                            joinChatroomAndUpdate()
+                            // TODO: Add clear pref option
+                            when(prefConfig.readChatroomJoinRememberNavigate()) {
+                                Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
+                                    val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
+                                    val dialog = AlertDialog.Builder(requireContext())
+                                        .setView(dialogBinding.root)
+                                        .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
+                                            prefConfig.writeChatroomJoinRememberNavigate(
+                                                if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
+                                                else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
+                                            )
 
-                                        dialogInterface.dismiss()
-                                        navigateToChatroom()
-                                    }
-                                    .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
-                                        prefConfig.writeChatroomJoinRememberNavigate(
-                                            if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
-                                            else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
-                                        )
-                                        dialogInterface.dismiss()
-                                    }
-                                    .create()
-                                dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
-                                dialog.show()
+                                            dialogInterface.dismiss()
+                                            navigateToChatroom()
+                                        }
+                                        .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
+                                            prefConfig.writeChatroomJoinRememberNavigate(
+                                                if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
+                                                else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
+                                            )
+                                            dialogInterface.dismiss()
+                                        }
+                                        .create()
+                                    dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
+                                    dialog.show()
+                                }
+                                Constants.NoRememberDualChoice.REMEMBER_YES.ordinal -> {
+                                    navigateToChatroom()
+                                }
                             }
-                            Constants.NoRememberDualChoice.REMEMBER_YES.ordinal -> {
-                                navigateToChatroom()
-                            }
-                        }
-                    }.addOnFailureListener(fcmTopicErrorFallback)
+                        },
+                        viewModel.buttonSelectedChatroom!!.id,
+                        fcmTopicErrorFallback,
+                        connectivityManager
+                    )
                 } else {
                     joinChatroomAndUpdate()
                 }

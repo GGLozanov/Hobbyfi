@@ -60,7 +60,6 @@ class EventCreateFragmentViewModel(
         }
     }
 
-    @SuppressLint("SimpleDateFormat")
     private suspend fun createEvent(chatroomId: Long) {
         mainStateIntent.setState(EventState.Loading)
 

@@ -20,6 +20,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -106,14 +107,17 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
-                        FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(it.response.id))
-                                .addOnSuccessListener { task ->
-                            activityViewModel.setJoinedChatroom(true)
-                            navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
-                                activityViewModel.authUser.value,
-                                it.response
-                            ))
-                        }.addOnFailureListener(fcmTopicErrorFallback)
+                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity({
+                                activityViewModel.setJoinedChatroom(true)
+                                navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
+                                    activityViewModel.authUser.value,
+                                    it.response
+                                ))
+                            },
+                            it.response.id,
+                            fcmTopicErrorFallback,
+                            connectivityManager
+                        )
                         viewModel.resetState()
                     }
                     is ChatroomState.Error -> {

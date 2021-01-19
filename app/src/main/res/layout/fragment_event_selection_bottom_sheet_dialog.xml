@@ -45,7 +45,7 @@
                 android:id="@+id/event_list"
                 android:name="com.example.hobbyfi.ui.chatroom.EventSelectionBottomSheetDialogFragment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="250dp"
                 android:animateLayoutChanges="false"
                 android:scrollbars="vertical"
                 app:layoutManager="LinearLayoutManager"

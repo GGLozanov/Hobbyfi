@@ -15,7 +15,7 @@ import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
     private inline val onCreateChatroomButton: ((view: View) -> Unit)?,
-    private var userIsAChatroomOwner: Boolean = false,
+    private var userIsAChatroomOwner: Boolean = true,
     private val showOnlyProgessBar: Boolean = false
 ) : LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
@@ -46,7 +46,7 @@ class DefaultLoadStateAdapter(
                         R.string.list_error_text else R.string.list_suggest_text)
 
                     refreshPageButton.isVisible = loadState is LoadState.Error || userIsAChatroomOwner
-                    chatroomCreateButton.isVisible = loadState !is LoadState.Loading && !userIsAChatroomOwner
+                    chatroomCreateButton.isVisible = !userIsAChatroomOwner
                 } else {
                     // TOOD: Maybe add error header and refresh page button on error?
                     listErrorHeader.isVisible = false

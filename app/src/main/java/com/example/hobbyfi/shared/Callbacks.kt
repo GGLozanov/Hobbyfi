@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.ConnectivityManager
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -14,6 +15,8 @@ import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.messaging.FirebaseMessaging
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.lang.InstantiationException
 import kotlinx.coroutines.CancellationException
@@ -114,6 +117,42 @@ object Callbacks {
         val imm: InputMethodManager =
             context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view?.windowToken, 0)
+    }
+
+    fun subscribeToChatroomTopicByCurrentConnectivity(
+        block: () -> Unit,
+        chatroomId: Long,
+        fcmTopicFallback: OnFailureListener,
+        connectivityManager: ConnectivityManager
+    ) {
+        val subscriptionTask = FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(chatroomId))
+            .addOnFailureListener(fcmTopicFallback)
+
+        if(!connectivityManager.isConnected()) {
+            block()
+        } else {
+            subscriptionTask.addOnCompleteListener {
+                block()
+            }
+        }
+    }
+
+    fun unsubscribeToChatroomTopicByCurrentConnectivity(
+        block: () -> Unit,
+        chatroomId: Long,
+        fcmTopicFallback: OnFailureListener,
+        connectivityManager: ConnectivityManager
+    ) {
+        val unsubscriptionTask = FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(chatroomId))
+            .addOnFailureListener(fcmTopicFallback)
+
+        if(!connectivityManager.isConnected()) {
+            block()
+        } else {
+            unsubscriptionTask.addOnCompleteListener {
+                block()
+            }
+        }
     }
 
     // always throws an exception

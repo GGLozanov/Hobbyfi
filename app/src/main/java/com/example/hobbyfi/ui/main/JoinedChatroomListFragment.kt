@@ -13,8 +13,10 @@ import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractModelListFromCurrentPagingData
+import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.state.ChatroomListState
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -94,11 +96,13 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
 
                 if(left) {
                     if(viewModel.buttonSelectedChatroom != null) {
-                        FirebaseMessaging.getInstance()
-                            .unsubscribeFromTopic(Constants.chatroomTopic(viewModel.buttonSelectedChatroom!!.id))
-                            .addOnCompleteListener {
+                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
                                 leaveChatroomAndUpdate()
-                        }.addOnFailureListener(fcmTopicErrorFallback)
+                            },
+                            viewModel.buttonSelectedChatroom!!.id,
+                            fcmTopicErrorFallback,
+                            connectivityManager
+                        )
                     } else {
                         leaveChatroomAndUpdate()
                     }
@@ -129,7 +133,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
 
     override fun navigateToChatroom() {
         // only called while user is currently joining a chatroom
-        Log.i("ChatroomJListFragment", "Navigating to ChatroomActivity")
+        Log.i("ChatroomJListFragment", "Navigating to ChatroomActivity. Chatroom selected: ${viewModel.buttonSelectedChatroom}")
         navController.navigate(
             JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomActivity(
                 activityViewModel.authUser.value,
@@ -143,7 +147,8 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         navController.navigate(
             JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomCreateNavGraph(
                 activityViewModel.authUser.value!!
-            ))
+            )
+        )
     }
 
     private fun leaveChatroom() {

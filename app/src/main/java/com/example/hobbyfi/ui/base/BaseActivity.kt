@@ -20,6 +20,7 @@ abstract class BaseActivity : AppCompatActivity(), KodeinAware {
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
     lateinit var refreshConnectivityMonitor: RefreshConnectivityMonitor
+    protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

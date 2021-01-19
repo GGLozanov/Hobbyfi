@@ -93,7 +93,6 @@ class EventCreateFragment : ChatroomModelFragment(),
                     return@setOnClickListener
                 }
 
-                Log.i("EventCreateFragment", "Sending CreateEvent intent")
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(EventIntent.CreateEvent(activityViewModel.authChatroom.value!!.id))
                 }

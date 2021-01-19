@@ -20,9 +20,7 @@ import com.example.hobbyfi.adapters.chatroom.BaseChatroomListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.RefreshConnectivityMonitor
-import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
@@ -85,14 +83,16 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             }
         } else {
             // otherwise simply allow the user to join their chatroom
-            FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(chatroom.id))
-                .addOnFailureListener(fcmTopicErrorFallback)
-                .addOnSuccessListener {
+            Callbacks.subscribeToChatroomTopicByCurrentConnectivity( {
                     updateJob = lifecycleScope.launch {
                         prefConfig.writeLastEnteredChatroomId(chatroom.id)
                         navigateToChatroom()
                     }
-                } // subscribe (ex: after user logout)
+                },
+                chatroom.id,
+                fcmTopicErrorFallback,
+                connectivityManager
+            )
         }
     }
 

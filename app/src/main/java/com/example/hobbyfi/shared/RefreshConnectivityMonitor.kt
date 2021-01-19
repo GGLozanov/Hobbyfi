@@ -74,6 +74,8 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
                     if(hadLostConnectionPrior) {
                         postValue(true)
                         hadLostConnectionPrior = false
+                    } else {
+                        postValue(false)
                     }
                 }
 
@@ -94,9 +96,13 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
                 override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
                     networkCapabilities.let { capabilities ->
                         if(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) && hadLostConnectionPrior) {
-                            postValue(true)
-                            hadLostConnectionPrior = false
+                                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                            if(hadLostConnectionPrior) {
+                                postValue(true)
+                                hadLostConnectionPrior = false
+                            } else {
+                                postValue(false)
+                            }
                         }
                     }
                 }
