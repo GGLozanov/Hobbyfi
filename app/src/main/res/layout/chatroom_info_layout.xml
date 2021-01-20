@@ -8,7 +8,7 @@
             name="viewModel"
             type="com.example.hobbyfi.viewmodels.base.NameDescriptionBindable" />
         <variable
-            name="chatroomHeader"
+            name="chatroomHeaderText"
             type="java.lang.String" />
     </data>
 
@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="@{chatroomHeader}"
+            android:text="@{chatroomHeaderText}"
             android:textSize="25sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/chatroom_image"

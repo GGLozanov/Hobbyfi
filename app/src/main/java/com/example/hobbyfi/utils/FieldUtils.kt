@@ -6,7 +6,7 @@ import com.google.android.material.textfield.TextInputLayout
 
 object FieldUtils {
     fun isTextFieldInvalid(inputLayout: TextInputLayout, errorText: String): Boolean {
-        val error = inputLayout.error?.isNotBlank() == true
+        val error = inputLayout.error?.isBlank() == true
 
         if(error) {
             inputLayout.error = errorText

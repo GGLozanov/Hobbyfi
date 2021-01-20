@@ -2,10 +2,15 @@ package com.example.hobbyfi.shared
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -13,16 +18,22 @@ import androidx.fragment.app.Fragment
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.ui.chatroom.EventChooseLocationMapsActivity
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
+import com.example.hobbyfi.viewmodels.chatroom.EventAccessorViewModel
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.messaging.FirebaseMessaging
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.lang.InstantiationException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import pub.devrel.easypermissions.EasyPermissions
 import retrofit2.HttpException
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.util.*
 
 
 object Callbacks {
@@ -155,6 +166,93 @@ object Callbacks {
         }
     }
 
+    @ExperimentalCoroutinesApi
+    fun initDateTimeDatePickerDialog(
+        context: Context,
+        listener: DatePickerDialog.OnDateSetListener,
+        viewModel: EventAccessorViewModel
+    ) {
+        val c = Calendar.getInstance()
+        val initialYear = c.get(Calendar.YEAR)
+        val initialMonth = c.get(Calendar.MONTH)
+        val initialDay = c.get(Calendar.DAY_OF_MONTH)
+
+        val dialog = DatePickerDialog(
+            context,
+            listener,
+            initialYear,
+            initialMonth,
+            initialDay
+        )
+        dialog.datePicker.minDate = c.timeInMillis
+        initDateTimePickerDialogDismissHandler(context, dialog, viewModel)
+        dialog.show()
+    }
+
+    @ExperimentalCoroutinesApi
+    fun initDateTimePickerDialogDismissHandler(
+        context: Context,
+        dialog: AlertDialog,
+        viewModel: EventAccessorViewModel
+    ) {
+        dialog.setOnCancelListener {
+            Constants.buildYesNoAlertDialog(
+                context,
+                context.resources.getString(R.string.keep_date),
+                { dialogInterface: DialogInterface, _: Int ->
+                    dialogInterface.dismiss()
+                },
+                { dialogInterface: DialogInterface, _: Int ->
+                    viewModel.setEventDate(null)
+                    dialogInterface.dismiss()
+                }
+            )
+        }
+    }
+
+    @ExperimentalCoroutinesApi
+    fun onEventDateSet(
+        eventCalendar: Calendar,
+        year: Int,
+        month: Int,
+        day: Int,
+        viewModel: EventAccessorViewModel,
+        context: Context,
+        activity: Activity, listener: TimePickerDialog.OnTimeSetListener
+    ) {
+        eventCalendar.set(Calendar.YEAR, year)
+        eventCalendar.set(Calendar.MONTH, month)
+        eventCalendar.set(Calendar.DAY_OF_MONTH, day)
+
+        val c = Calendar.getInstance()
+        val hour = c.get(Calendar.HOUR_OF_DAY)
+        val minute = c.get(Calendar.MINUTE)
+
+        val dialog = TimePickerDialog(activity, listener, hour, minute, DateFormat.is24HourFormat(activity))
+
+        dialog.show()
+        initDateTimePickerDialogDismissHandler(context, dialog, viewModel)
+    }
+
+    @ExperimentalCoroutinesApi
+    fun onEventTimeSet(eventCalendar: Calendar, hours: Int, minutes: Int, viewModel: EventAccessorViewModel) {
+        eventCalendar.set(Calendar.HOUR_OF_DAY, hours)
+        eventCalendar.set(Calendar.MINUTE, minutes)
+
+        viewModel.setEventDate(eventCalendar.time)
+    }
+
+    @ExperimentalCoroutinesApi
+    fun startChooseEventLocationMapsActivity(fragment: Fragment, viewModel: EventAccessorViewModel) {
+        val intent = Intent(fragment.requireContext(), EventChooseLocationMapsActivity::class.java).apply {
+            putExtra(Constants.EVENT_TITLE, viewModel.name.value)
+            putExtra(Constants.EVENT_DESCRIPTION, viewModel.description.value)
+            putExtra(Constants.EVENT_LOCATION, viewModel.eventLatLng)
+        }
+
+        fragment.startActivityForResult(intent, Constants.eventLocationRequestCode)
+    }
+
     // always throws an exception
     fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
         ex.printStackTrace()
@@ -196,7 +294,7 @@ object Callbacks {
             }
             is Repository.ReauthenticationException,
             TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
-            else -> throw if(ex.message?.contains("failed to connect to") == true)
+            else -> throw if(ex is SocketTimeoutException)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
                     else Repository.UnknownErrorException(Constants.unknownError(ex.message))
         }

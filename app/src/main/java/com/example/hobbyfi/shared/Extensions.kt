@@ -10,27 +10,35 @@ import android.widget.GridView
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
+import com.example.hobbyfi.models.*
+import com.example.hobbyfi.repositories.Repository
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
-import androidx.fragment.app.Fragment
-import com.example.hobbyfi.models.*
-import com.example.hobbyfi.repositories.Repository
-import com.google.android.material.navigation.NavigationView
-import com.google.android.material.textfield.TextInputLayout
 
-inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
+inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
+    json,
+    object : TypeToken<T>() {}.type
+)
 
-inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(json, object: TypeToken<T>() {}.type)
+inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(
+    json,
+    object : TypeToken<T>() {}.type
+)
 
 fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predicate<String>): PredicateTextWatcher {
     val watcher = PredicateTextWatcher(
@@ -46,9 +54,11 @@ fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predica
 
 fun ConnectivityManager.isConnected(): Boolean {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        with(getNetworkCapabilities(
-            activeNetwork
-        )) {
+        with(
+            getNetworkCapabilities(
+                activeNetwork
+            )
+        ) {
             return this != null &&
                     hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         }
@@ -57,7 +67,7 @@ fun ConnectivityManager.isConnected(): Boolean {
     }
 }
 
-fun<T> MutableList<T>.addAllDistinct(list: List<T>) {
+fun <T> MutableList<T>.addAllDistinct(list: List<T>) {
     list.forEach {
         if(!this.contains(it)) {
             this.add(it)
@@ -65,7 +75,7 @@ fun<T> MutableList<T>.addAllDistinct(list: List<T>) {
     }
 }
 
-fun<T> List<T>.newListWithDistinct(selectedTags: List<T>): MutableList<T> {
+fun <T> List<T>.newListWithDistinct(selectedTags: List<T>): MutableList<T> {
     val newTags = this.toMutableList()
     Log.i("getNewListWith", "Original list: $newTags")
     newTags.addAll(selectedTags)
@@ -84,6 +94,12 @@ val FragmentManager.currentNavigationFragment: Fragment?
 fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     menu.clear()
     inflateMenu(menuId)
+}
+
+fun RecyclerView.listIsAtTop(): Boolean {
+    return if (childCount == 0) true else
+        getChildAt(0).top == 0 &&
+                (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition() == 0
 }
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
@@ -123,8 +139,10 @@ fun android.content.Intent.putDestructedMapExtra(data: Map<String, String>) {
 }
 
 fun android.content.Intent.putDeletedModelIdExtra(data: Map<String, String>) =
-    putExtra(Constants.DELETED_MODEL_ID, (data[Constants.ID] ?: error("Data ID must not be null!"))
-        .toLong())
+    putExtra(
+        Constants.DELETED_MODEL_ID, (data[Constants.ID] ?: error("Data ID must not be null!"))
+            .toLong()
+    )
 
 // generic go rippppp
 fun android.content.Intent.putParcelableUserExtra(data: Map<String, String>) {
@@ -152,13 +170,17 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
 
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
-fun android.content.Intent.getEventIdsExtra(): List<Long> = Constants.tagJsonConverter.fromJson(extras?.getString(Constants.EVENT_IDS))!!
+fun android.content.Intent.getEventIdsExtra(): List<Long> = Constants.tagJsonConverter.fromJson(
+    extras?.getString(
+        Constants.EVENT_IDS
+    )
+)!!
 
 val Exception.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
         this is InstantiationError || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException
 
-fun<T: Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {
+fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
         try {
@@ -166,14 +188,14 @@ fun<T: Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): L
             if(model != null) {
                 list.add(model)
             }
-        } catch(ex: IndexOutOfBoundsException) {
+        } catch (ex: IndexOutOfBoundsException) {
             Log.i("extractListFromPData", "Skipping out of bounds")
         }
     }
     return list
 }
 
-fun<T: Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
+fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
     return extractModelListFromCurrentPagingData().find(predicate)
 }
 
@@ -242,8 +264,10 @@ fun BottomNavigationView.setupWithNavController(
             val newlySelectedItemTag = graphIdToTagMap[item.itemId]
             if (selectedItemTag != newlySelectedItemTag) {
                 // Pop everything above the first fragment (the "fixed start destination")
-                fragmentManager.popBackStack(firstFragmentTag,
-                    FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                fragmentManager.popBackStack(
+                    firstFragmentTag,
+                    FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
                 val selectedFragment = fragmentManager.findFragmentByTag(newlySelectedItemTag)
                         as NavHostFragment
 
@@ -256,7 +280,8 @@ fun BottomNavigationView.setupWithNavController(
                             R.anim.nav_default_enter_anim,
                             R.anim.nav_default_exit_anim,
                             R.anim.nav_default_pop_enter_anim,
-                            R.anim.nav_default_pop_exit_anim)
+                            R.anim.nav_default_pop_exit_anim
+                        )
                         .attach(selectedFragment)
                         .setPrimaryNavigationFragment(selectedFragment)
                         .apply {

@@ -8,6 +8,8 @@ import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
+import com.example.hobbyfi.viewmodels.base.Base64ImageHolder
+import com.example.hobbyfi.viewmodels.base.Base64ImageHolderViewModel
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,8 +17,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class EventEditFragmentViewModel(application: Application, private val event: Event) : EventAccessorViewModel(application),
-    NameDescriptionBindable by NameDescriptionBindableViewModel() {
+class EventEditFragmentViewModel(
+    application: Application,
+    private val _event: Event
+) : EventAccessorViewModel(application), Base64ImageHolder by Base64ImageHolderViewModel() {
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -30,6 +34,8 @@ class EventEditFragmentViewModel(application: Application, private val event: Ev
             }
         }
     }
+
+    val event get() = _event
 
     private suspend fun updateEvent(updateFields: Map<String?, String?>) {
         mainStateIntent.setState(EventState.Loading)
@@ -47,7 +53,6 @@ class EventEditFragmentViewModel(application: Application, private val event: Ev
             )
         })
     }
-
 
     init {
         handleIntent()

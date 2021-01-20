@@ -93,21 +93,8 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                 return adheresToDefaultCachePolicy(cache, R.string.pref_last_chatrooms_fetch_time)
             }
 
-            override suspend fun loadFromDb(): Flow<Chatroom?> {
-                Log.i("ChatroomRepository", "getChatroom -> ${prefConfig.readToken()}")
-                return try {
-                    val ownerId = prefConfig.getAuthUserIdFromToken()
-
-                    hobbyfiDatabase.chatroomDao().getChatroomByOwnerId(ownerId)
-                } catch(ex: Exception) {
-                    try {
-                        Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
-                    } catch(authEx: AuthorisedRequestException) {
-                        getNewTokenWithRefresh()
-                        loadFromDb()
-                    }
-                }
-            }
+            override suspend fun loadFromDb(): Flow<Chatroom?> =
+                hobbyfiDatabase.chatroomDao().getChatroomById(prefConfig.readLastEnteredChatroomId())
 
             override suspend fun fetchFromNetwork(): CacheResponse<Chatroom>? {
                 Log.i("ChatroomRepository", "getChatroom -> fetchFromNetwork() -> fetching current auth chatroom from network")

@@ -28,7 +28,7 @@
             <include
                 android:id="@+id/chatroom_info"
                 layout="@layout/chatroom_info_layout"
-                app:chatroomHeader="@{@string/chatroom_create_header}"
+                app:chatroomHeaderText="@{@string/chatroom_create_header}"
                 app:viewModel="@{viewModel}" />
         </LinearLayout>
 

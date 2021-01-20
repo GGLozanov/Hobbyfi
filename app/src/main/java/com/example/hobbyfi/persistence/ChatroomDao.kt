@@ -31,4 +31,7 @@ abstract class ChatroomDao : BaseDao<Chatroom>() {
 
     @Query("SELECT * FROM chatrooms WHERE ownerId = :ownerId")
     abstract fun getChatroomByOwnerId(ownerId: Long): Flow<Chatroom?>
+
+    @Query("SELECT * FROM chatrooms WHERE id = :id")
+    abstract fun getChatroomById(id: Long): Flow<Chatroom?>
 }

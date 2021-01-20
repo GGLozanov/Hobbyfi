@@ -18,12 +18,18 @@ class EventSelectionBottomSheetRecyclerView: RecyclerView {
 
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
+    lateinit var coordinatorLayout: CoordinatorLayout
+
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        if (canScrollVertically(this)) {
-            parent.parent.parent.parent
-                .requestDisallowInterceptTouchEvent(true)
+        if (!canScrollVertically(this)) {
+            coordinatorLayout.requestDisallowInterceptTouchEvent(true)
         }
         return super.onInterceptTouchEvent(ev)
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        coordinatorLayout = parent.parent.parent as CoordinatorLayout
     }
 
     private fun canScrollVertically(view: RecyclerView): Boolean {
@@ -32,6 +38,6 @@ class EventSelectionBottomSheetRecyclerView: RecyclerView {
             canScroll = (layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition() == 0 // canScrollVertically(-1)
         }
         Log.i("EventSelBSRV", "CanScroll: $canScroll")
-        return canScroll
+        return !canScroll
     }
 }

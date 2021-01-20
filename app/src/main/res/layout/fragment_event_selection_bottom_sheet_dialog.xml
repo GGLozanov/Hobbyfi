@@ -6,12 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBackground"
+    android:fitsSystemWindows="true"
     tools:context=".ui.chatroom.EventSelectionBottomSheetDialogFragment">
     <LinearLayout
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:layout_behavior=".ui.custom.EventSelectionBottomSheetBehavior"
         android:orientation="vertical">
 
         <com.google.android.material.button.MaterialButton
@@ -43,17 +44,17 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/event_list"
-                android:name="com.example.hobbyfi.ui.chatroom.EventSelectionBottomSheetDialogFragment"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="250dp"
                 android:animateLayoutChanges="false"
-                android:padding="20dp"
+                android:padding="5dp"
                 android:scrollbars="vertical"
                 app:layoutManager="LinearLayoutManager"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 tools:listitem="@layout/event_card">
 
             </androidx.recyclerview.widget.RecyclerView>
+
         </FrameLayout>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

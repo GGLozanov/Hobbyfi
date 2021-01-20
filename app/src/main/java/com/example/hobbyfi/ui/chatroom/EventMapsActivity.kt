@@ -56,7 +56,6 @@ class EventMapsActivity : MapsActivity() {
 
         observeEventListState()
         observeUserGeoPoints()
-        // TODO: Start foreground location service
     }
 
     private fun observeEventListState() {

@@ -57,31 +57,13 @@ class EventCreateFragment : ChatroomModelFragment(),
 
         with(binding) {
             eventInfo.eventInfoButtonBar.leftButton.setOnClickListener { // select event date
-                val c = Calendar.getInstance()
-                val initialYear = c.get(Calendar.YEAR)
-                val initialMonth = c.get(Calendar.MONTH)
-                val initialDay = c.get(Calendar.DAY_OF_MONTH)
-
-                val dialog = DatePickerDialog(
+                Callbacks.initDateTimeDatePickerDialog(
                     requireContext(),
-                    this@EventCreateFragment,
-                    initialYear,
-                    initialMonth,
-                    initialDay
-                )
-                dialog.datePicker.minDate = c.timeInMillis
-                initDateTimePickerDialogDismissHandler(dialog)
-                dialog.show()
+                    this@EventCreateFragment, viewModel!!)
             }
 
             eventInfo.eventInfoButtonBar.rightButton.setOnClickListener { // select location
-                val intent = Intent(requireContext(), EventChooseLocationMapsActivity::class.java).apply {
-                    putExtra(Constants.EVENT_TITLE, viewModel!!.name.value)
-                    putExtra(Constants.EVENT_DESCRIPTION, viewModel!!.description.value)
-                    putExtra(Constants.EVENT_LOCATION, viewModel!!.eventLatLng)
-                }
-
-                startActivityForResult(intent, Constants.eventLocationRequestCode)
+                Callbacks.startChooseEventLocationMapsActivity(this@EventCreateFragment, viewModel!!)
             }
 
             eventInfo.eventImage.setOnClickListener {
@@ -132,16 +114,16 @@ class EventCreateFragment : ChatroomModelFragment(),
     }
 
     override fun initTextFieldValidators() {
-        with(binding) {
+        with(binding.eventInfo) {
             // Code quality TODO:
             // Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
             // with the preset predicate/error pairs
-            eventInfo.nameInputField.addTextChangedListener(
+            nameInputField.addTextChangedListener(
                 Constants.nameInputError,
                 Constants.namePredicate
             )
 
-            eventInfo.descriptionInputField.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -155,27 +137,11 @@ class EventCreateFragment : ChatroomModelFragment(),
         }
     }
 
-    override fun onDateSet(picker: DatePicker?, year: Int, month: Int, day: Int) {
-        eventCalendar.set(Calendar.YEAR, year)
-        eventCalendar.set(Calendar.MONTH, month)
-        eventCalendar.set(Calendar.DAY_OF_MONTH, day)
+    override fun onDateSet(picker: DatePicker?, year: Int, month: Int, day: Int) =
+        Callbacks.onEventDateSet(eventCalendar, year, month, day, viewModel, requireContext(), requireActivity(), this)
 
-        val c = Calendar.getInstance()
-        val hour = c.get(Calendar.HOUR_OF_DAY)
-        val minute = c.get(Calendar.MINUTE)
-
-        val dialog = TimePickerDialog(activity, this, hour, minute, DateFormat.is24HourFormat(activity))
-
-        dialog.show()
-        initDateTimePickerDialogDismissHandler(dialog)
-    }
-
-    override fun onTimeSet(picker: TimePicker?, hours: Int, minutes: Int) {
-        eventCalendar.set(Calendar.HOUR_OF_DAY, hours)
-        eventCalendar.set(Calendar.MINUTE, minutes)
-
-        viewModel.setEventDate(eventCalendar.time)
-    }
+    override fun onTimeSet(picker: TimePicker?, hours: Int, minutes: Int) =
+        Callbacks.onEventTimeSet(eventCalendar, hours, minutes, viewModel)
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -197,22 +163,6 @@ class EventCreateFragment : ChatroomModelFragment(),
                     ImageUtils.encodeImage(it)
                 )
             }
-        }
-    }
-
-    private fun initDateTimePickerDialogDismissHandler(dialog: AlertDialog) {
-        dialog.setOnCancelListener {
-            Constants.buildYesNoAlertDialog(
-                requireContext(),
-                resources.getString(R.string.keep_date),
-                { dialogInterface: DialogInterface, _: Int ->
-                    dialogInterface.dismiss()
-                },
-                { dialogInterface: DialogInterface, _: Int ->
-                    viewModel.setEventDate(null)
-                    dialogInterface.dismiss()
-                }
-            )
         }
     }
 }
