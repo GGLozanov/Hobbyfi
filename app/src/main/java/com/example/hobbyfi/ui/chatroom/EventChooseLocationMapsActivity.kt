@@ -73,7 +73,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
+        super.onMapReady(googleMap)
 
         getLocationPermission()
 
@@ -164,6 +164,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
         super.onPermissionsGranted(requestCode, perms)
+        Log.i("EventCLMActivity", "onPermissionGranted. Location perm granted: $locationPermissionGranted")
         getDeviceLocation()
         updateLocationUI()
     }

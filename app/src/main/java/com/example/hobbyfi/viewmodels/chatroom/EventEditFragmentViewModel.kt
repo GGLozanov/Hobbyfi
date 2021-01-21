@@ -56,5 +56,8 @@ class EventEditFragmentViewModel(
 
     init {
         handleIntent()
+
+        name.value = event.name
+        description.value = event.description
     }
 }

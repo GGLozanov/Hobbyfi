@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.base
 
+import android.Manifest
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -73,7 +74,7 @@ abstract class MapsActivity : AppCompatActivity(), OnMapReadyCallback, EasyPermi
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        locationPermissionGranted = requestCode == Constants.locationPermissionsRequestCode
+        locationPermissionGranted = perms.contains(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
