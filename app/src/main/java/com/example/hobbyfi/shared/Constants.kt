@@ -2,6 +2,7 @@ package com.example.hobbyfi.shared
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import androidx.fragment.app.Fragment
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
@@ -14,6 +15,9 @@ import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.util.Predicate
 import androidx.databinding.BindingAdapter
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.commit
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
@@ -130,7 +134,8 @@ object Constants {
     // should be in prefconfig but... eh
     fun isFacebookUserAuthd(): Boolean {
         if(AccessToken.getCurrentAccessToken() != null) {
-            if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile().id != null) {
+            if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile() != null
+                    && Profile.getCurrentProfile().id != null) {
                 return true
             } // facebook user access true
 
@@ -235,6 +240,31 @@ object Constants {
         dialog.show()
     }
 
+    inline fun <reified T: DialogFragment> showDistinctDialog(
+        fragmentManager: FragmentManager,
+        tag: String,
+        noinline instanceGenerator: () -> T
+    ) {
+        val dialog = (fragmentManager.findFragmentByTag(tag) as T?)
+            ?: instanceGenerator()
+        dialog.show(fragmentManager, tag)
+    }
+
+    inline fun <reified T: Fragment> addDistinctFragmentToBackStack(
+        fragmentManager: FragmentManager,
+        tag: String,
+        containerId: Int,
+        noinline instanceGenerator: () -> T
+    ) {
+        val fragment = (fragmentManager.findFragmentByTag(tag) as T?)
+            ?: instanceGenerator()
+        fragmentManager.commit {
+            setReorderingAllowed(true)
+            replace(containerId, fragment, tag)
+            addToBackStack(null)
+        }
+    }
+
     // dupped from API and whenever that changes, this needs to as well, but...
     // how else? Getting it from the server each time?
     const val CREATE_MESSAGE_TYPE: String = "CREATE_MESSAGE"
@@ -298,6 +328,7 @@ object Constants {
 
     const val EVENT_SELECTION: String = "EVENT_SELECTION"
     const val EVENT: String = "EVENT"
+    const val CALENDAR_DAY: String = "CALENDAR_DAY"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

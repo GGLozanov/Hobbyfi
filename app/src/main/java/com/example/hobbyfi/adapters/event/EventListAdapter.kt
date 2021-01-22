@@ -22,7 +22,8 @@ import org.kodein.di.generic.instance
 class EventListAdapter(
     private var events: List<Event>,
     private val onManagePress: (View, Event) -> Unit,
-    private val onDeletePressButton: (View, Event) -> Unit
+    private val onDeletePressButton: ((View, Event) -> Unit)?,
+    private val ownerDisplay: Boolean = false
 ) : RecyclerView.Adapter<EventListAdapter.EventViewHolder>(), KodeinAware {
 
     @ExperimentalPagingApi
@@ -39,9 +40,9 @@ class EventListAdapter(
             bindImage(model, position)
         }
 
-        fun initOnDeletePressButton(event: Event, onDeletePressButton: (View, Event) -> Unit) {
+        fun initOnDeletePressButton(event: Event, onDeletePressButton: ((View, Event) -> Unit)?) {
             binding.deleteButton.setOnClickListener {
-                onDeletePressButton(it, event)
+                onDeletePressButton?.invoke(it, event)
             }
         }
 
@@ -57,12 +58,13 @@ class EventListAdapter(
         override val defaultPicResId: Int = R.drawable.event_default_pic
 
         companion object {
-            fun getInstance(parent: ViewGroup, prefConfig: PrefConfig): EventViewHolder {
+            fun getInstance(parent: ViewGroup, prefConfig: PrefConfig, ownerDisplay: Boolean): EventViewHolder {
                 val binding: EventCardBinding = DataBindingUtil.inflate(
                     LayoutInflater.from(parent.context),
                     R.layout.event_card,
                     parent, false
                 )
+                binding.ownerDisplay = ownerDisplay
                 return EventViewHolder(binding, prefConfig)
             }
         }
@@ -71,7 +73,7 @@ class EventListAdapter(
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): EventViewHolder = EventViewHolder.getInstance(parent, prefConfig)
+    ): EventViewHolder = EventViewHolder.getInstance(parent, prefConfig, ownerDisplay)
 
     override fun onBindViewHolder(
         holder: EventViewHolder,

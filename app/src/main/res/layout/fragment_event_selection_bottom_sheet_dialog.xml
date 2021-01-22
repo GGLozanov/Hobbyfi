@@ -10,17 +10,38 @@
     tools:context=".ui.chatroom.EventSelectionBottomSheetDialogFragment">
 
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         app:layout_behavior=".ui.custom.EventSelectionBottomSheetBehavior">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/current_events_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/delete_old_events_button"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_centerInParent="true"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_toStartOf="@+id/delete_old_events_button"
+            android:padding="5dp"
+            android:text="@string/current_events"
+            android:textSize="20sp"
+            android:textStyle="bold">
+
+        </com.google.android.material.textview.MaterialTextView>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/delete_old_events_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
             android:layout_gravity="end"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="250dp"
@@ -28,9 +49,10 @@
 
         </com.google.android.material.button.MaterialButton>
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <FrameLayout
+        android:id="@+id/event_list_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom">

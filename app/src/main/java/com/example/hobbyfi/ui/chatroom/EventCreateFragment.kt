@@ -27,6 +27,7 @@ import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
@@ -38,7 +39,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @ExperimentalCoroutinesApi
-class EventCreateFragment : ChatroomModelFragment(),
+class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnus,
         DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private val eventCalendar = Calendar.getInstance()
 

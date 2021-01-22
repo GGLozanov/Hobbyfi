@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import com.example.hobbyfi.R
+import com.example.hobbyfi.viewmodels.auth.ResetPasswordFragmentViewModel
 
 class ResetPasswordFragment : Fragment() {
 
@@ -14,7 +16,7 @@ class ResetPasswordFragment : Fragment() {
         fun newInstance() = ResetPasswordFragment()
     }
 
-    private lateinit var viewModel: ResetPasswordViewModel
+    private val viewModel: ResetPasswordFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -22,11 +24,4 @@ class ResetPasswordFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.reset_password_fragment, container, false)
     }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(ResetPasswordViewModel::class.java)
-        // TODO: Use the ViewModel
-    }
-
 }

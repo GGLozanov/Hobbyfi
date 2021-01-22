@@ -21,6 +21,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
@@ -29,7 +30,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class ChatroomEditFragment : ChatroomModelFragment() {
+class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOnus {
     private lateinit var binding: FragmentChatroomEditBinding
     private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
         TagListViewModelFactory(requireActivity().application,

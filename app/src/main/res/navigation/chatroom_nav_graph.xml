@@ -15,8 +15,8 @@
             android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
             app:destination="@id/event_create_navigation" />
         <action
-            android:id="@+id/action_chatroomMessageListFragment_to_eventMapsActivity"
-            app:destination="@id/eventMapsActivity" />
+            android:id="@+id/action_chatroomMessageListFragment_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -47,5 +47,20 @@
         android:id="@+id/eventMapsActivity"
         android:name="com.example.hobbyfi.ui.chatroom.EventMapsActivity"
         android:label="activity_event_maps"
-        tools:layout="@layout/activity_event_maps" />
+        tools:layout="@layout/activity_event_maps" >
+        <argument
+            android:name="event"
+            app:argType="com.example.hobbyfi.models.Event" />
+    </activity>
+    <fragment
+        android:id="@+id/eventDetailsFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.EventDetailsFragment"
+        android:label="EventDetailsFragment" >
+        <action
+            android:id="@+id/action_eventDetailsFragment_to_eventMapsActivity"
+            app:destination="@id/eventMapsActivity" />
+        <argument
+            android:name="event"
+            app:argType="com.example.hobbyfi.models.Event" />
+    </fragment>
 </navigation>

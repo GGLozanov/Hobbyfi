@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
+import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.EventBroadcastReceiverFactory
 import com.example.hobbyfi.state.EventListState
@@ -15,6 +16,7 @@ import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.MapsActivity
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
+import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -29,7 +31,9 @@ import java.lang.ref.WeakReference
 
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity() {
-    private val viewModel: EventMapsActivityViewModel by viewModels()
+    private val viewModel: EventMapsActivityViewModel by viewModels(factoryProducer = {
+        EventViewModelFactory(application, intent.getParcelableExtra(Constants.EVENT)!!)
+    })
 
     // sync here
     private var deleteEventReceiver: BroadcastReceiver? = null
@@ -68,10 +72,14 @@ class EventMapsActivity : MapsActivity() {
                     is EventListState.Loading -> {
                     }
                     is EventListState.OnData.DeleteEventsCacheResult -> {
-
+                        if(it.eventIds.contains(viewModel.event.value?.id)) {
+                            emergencyActivityExit()
+                        }
                     }
                     is EventListState.OnData.DeleteAnEventCacheResult -> {
-
+                        if(viewModel.event.value?.id == it.eventId) {
+                            emergencyActivityExit()
+                        }
                     }
                     is EventListState.Error -> {
                         // TODO: Handle 'shouldReauth'/'shouldExit'
@@ -113,5 +121,10 @@ class EventMapsActivity : MapsActivity() {
         super.onDestroy()
         unregisterReceiver(deleteEventReceiver)
         unregisterReceiver(editEventReceiver)
+    }
+
+    private fun emergencyActivityExit() {
+        setResult(RESULT_CANCELED)
+        finish()
     }
 }

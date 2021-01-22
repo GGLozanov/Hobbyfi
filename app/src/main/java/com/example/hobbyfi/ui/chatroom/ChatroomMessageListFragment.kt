@@ -30,6 +30,7 @@ import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -45,7 +46,7 @@ import kotlin.properties.Delegates
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomMessageListFragment : ChatroomFragment(),
+class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidationOnus,
         BottomSheetImagePicker.OnImagesSelectedListener,
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
         RefreshConnectionAware {
@@ -147,10 +148,12 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             activityViewModel.currentAdapterUsers.value ?: emptyList()
         ) { _, message ->
             // reuse fragment for distinct messages when they don't change
-            val bottomSheet = (parentFragmentManager.findFragmentByTag(message.message)
-                    as ChatroomMessageBottomSheetDialogFragment?)
-                ?: ChatroomMessageBottomSheetDialogFragment.newInstance(message)
-            bottomSheet.show(parentFragmentManager, message.message)
+
+            Constants.showDistinctDialog(parentFragmentManager, message.message) {
+                ChatroomMessageBottomSheetDialogFragment.newInstance(
+                    message
+                )
+            }
             return@ChatroomMessageListAdapter true
         }
 

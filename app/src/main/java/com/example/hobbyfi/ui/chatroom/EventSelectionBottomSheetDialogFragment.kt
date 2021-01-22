@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
@@ -33,18 +34,17 @@ import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
+abstract class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
     // TODO: Pass in events directly (FOR NOW) because this will ONLY be avaialble for admin user
-    private val viewModel: EventSelectionBottomSheetDialogFragmentViewModel by viewModels()
 
-    private lateinit var eventListAdapter: EventListAdapter
-    private lateinit var binding: FragmentEventSelectionBottomSheetDialogBinding
+    protected abstract val eventListAdapter: EventListAdapter
+    protected lateinit var binding: FragmentEventSelectionBottomSheetDialogBinding
+    protected abstract val eventsSource: LiveData<List<Event>>
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         binding = FragmentEventSelectionBottomSheetDialogBinding.inflate(
             layoutInflater,
@@ -52,34 +52,7 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
             false
         )
 
-        val initialEvents = activityViewModel.authEvents.value ?: emptyList()
-        eventListAdapter = EventListAdapter(
-            initialEvents,
-            { v: View, event: Event ->
-               v.isEnabled = false
-                val dialog = (parentFragmentManager.findFragmentByTag(event.id.toString())
-                        as EventEditDialogFragment?)
-                    ?: EventEditDialogFragment.newInstance(event)
-                dialog.setTargetFragment(this, 400)
-                dialog.show(parentFragmentManager, event.id.toString())
-                v.postDelayed({
-                  v.isEnabled = true
-                }, 1000) // event card tap antispam
-            }, { _: View, event: Event ->
-                Constants.buildYesNoAlertDialog(
-                    requireContext(),
-                    requireContext().getString(R.string.delete_event),
-                    { dialogInterface: DialogInterface, _: Int ->
-                        lifecycleScope.launch {
-                            viewModel.sendIntent(
-                                EventIntent.DeleteEvent(event.id)
-                            )
-                        }
-                        dialogInterface.dismiss()
-                    },
-                    { dialogInterface: DialogInterface, _: Int -> dialogInterface.dismiss() }
-                )
-            })
+        val initialEvents = eventsSource.value ?: emptyList()
 
         setViewsVisibilityOnEvents(initialEvents)
 
@@ -89,9 +62,6 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
                 state = BottomSheetBehavior.STATE_EXPANDED
                 addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) {
-                        if(newState == BottomSheetBehavior.STATE_DRAGGING) {
-
-                        }
                         if (newState == BottomSheetBehavior.STATE_EXPANDED) {
                             bottomSheet.requestLayout() // reinit layout for RV notifyDataSetChanged()
                         }
@@ -108,71 +78,24 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
             // TODO: Recyclerview height responsive size (if it doesn't work - static height)
             // scaleViewByScreenSizeAndReLayout(eventList, behaviour, bottomSheet, bottomSheetCoordinator, 3)
 
-            deleteOldEventsButton.setOnClickListener {
-                Constants.buildYesNoAlertDialog(
-                    requireContext(),
-                    requireContext().getString(R.string.delete_events_batch),
-                    { dialogInterface: DialogInterface, _: Int ->
-                        lifecycleScope.launch {
-                            activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEventsCache)
-                        }
-                        dialogInterface.dismiss()
-                    },
-                    { dialogInterface: DialogInterface, _: Int -> dialogInterface.dismiss() }
-                )
-            }
-            observeEventState()
             observeEvents()
 
             return@onCreateView root
         }
     }
-    
+
     private fun observeEvents() {
-        activityViewModel.authEvents.observe(viewLifecycleOwner, Observer {
+        eventsSource.observe(viewLifecycleOwner, Observer {
             setViewsVisibilityOnEvents(it)
 
             eventListAdapter.setEvents(it)
         })
     }
 
-    private fun observeEventState() {
-        lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
-                when(it) {
-                    is EventState.Idle -> {
-
-                    }
-                    is EventState.Loading -> {
-
-                    }
-                    is EventState.OnData.EventDeleteResult -> {
-                        activityViewModel.sendEventsIntent(EventListIntent.DeleteAnEventCache(it.eventId))
-                        Toast.makeText(
-                            requireContext(),
-                            "Event successfuly deleted!",
-                            Toast.LENGTH_LONG
-                        )
-                            .show()
-                    }
-                    is EventState.Error -> {
-                        // TODO: Handle error
-                    }
-                    else -> throw State.InvalidStateException()
-                }
-            }
-        }
-    }
-
-    private fun setViewsVisibilityOnEvents(events: List<Event>) {
+    protected open fun setViewsVisibilityOnEvents(events: List<Event>) {
         with(binding) {
             eventScroll.isVisible = events.isNotEmpty()
             noEventsText.isVisible = events.isEmpty()
-            deleteOldEventsButton.isVisible = events.isNotEmpty()
         }
-    }
-
-    companion object {
-        fun newInstance() = EventSelectionBottomSheetDialogFragment()
     }
 }

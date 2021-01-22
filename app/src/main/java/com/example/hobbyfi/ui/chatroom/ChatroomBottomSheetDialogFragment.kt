@@ -30,4 +30,10 @@ abstract class ChatroomBottomSheetDialogFragment : BottomSheetDialogFragment() {
         view.requestLayout()
         behaviour.onLayoutChild(coordinatorView, bottomSheetView, ViewCompat.LAYOUT_DIRECTION_LTR)
     }
+
+    override fun onStart() {
+        super.onStart()
+        val behavior = BottomSheetBehavior.from(requireView().parent as View)
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED // reinstating for landscape mode
+    }
 }

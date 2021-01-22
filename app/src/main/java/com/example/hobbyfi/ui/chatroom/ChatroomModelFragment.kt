@@ -15,7 +15,7 @@ abstract class ChatroomModelFragment : ChatroomFragment() {
         super.onViewCreated(view, savedInstanceState)
         (requireActivity() as ChatroomActivity)
             .binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        // hacky way to fix drawer but... so is life. Use toolbars and navviews on individual fragemnts, kids!
+        // hacky way to fix drawer but... so is life. Use toolbars and navviews on individual fragments, kids!
     }
 
     @ExperimentalCoroutinesApi

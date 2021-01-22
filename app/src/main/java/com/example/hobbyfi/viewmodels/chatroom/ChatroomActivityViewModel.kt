@@ -84,7 +84,7 @@ class ChatroomActivityViewModel(
                     is EventListIntent.DeleteAnEventCache -> {
                         if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
-                            updateAndSaveEvent(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                            updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
                                 .toJson(authChatroom.value!!.eventIds?.filter { eventId -> eventId != it.eventId }))))
                         }
                     }
@@ -128,7 +128,7 @@ class ChatroomActivityViewModel(
             }
         }
         viewModelScope.launch {
-            userGeoPointStateIntent.intentAsFlow().collect {
+            userGeoPointStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is UserGeoPointIntent.FetchAuthUserGeoPoint -> {
                         fetchAuthUserGeoPoint()

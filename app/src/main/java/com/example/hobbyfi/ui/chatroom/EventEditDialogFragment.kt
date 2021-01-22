@@ -26,6 +26,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
@@ -38,7 +39,7 @@ import java.util.*
 
 
 @ExperimentalCoroutinesApi
-class EventEditDialogFragment : ChatroomDialogFragment(),
+class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidationOnus,
         DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private val eventCalendar = Calendar.getInstance()
 
@@ -123,12 +124,14 @@ class EventEditDialogFragment : ChatroomDialogFragment(),
                     }
                 }
 
-                Log.i("EventEditFragment", "EventFieldMap update: $eventUpdateFields")
                 if(eventUpdateFields.isEmpty()) {
                     Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
                         .show()
                     return@setOnClickListener
                 }
+
+                eventUpdateFields[Constants.ID] = viewModel!!.event.id.toString()
+                Log.i("EventEditFragment", "EventFieldMap update: $eventUpdateFields")
 
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(
@@ -184,13 +187,17 @@ class EventEditDialogFragment : ChatroomDialogFragment(),
 
                     }
                     is EventState.Loading -> {
+                        isCancelable = false
                     }
                     is EventState.OnData.EventEditResult -> {
+                        isCancelable = true
                         activityViewModel.sendEventsIntent(EventListIntent.UpdateAnEventCache(it.updateFields))
 
+                        viewModel.resetState()
                         dismiss()
                     }
                     is EventState.Error -> {
+                        isCancelable = true
                         (requireActivity() as ChatroomActivity)
                             .handleAuthActionableError(it.error, it.shouldReauth)
                     }

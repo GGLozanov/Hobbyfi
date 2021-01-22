@@ -4,9 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <import type="android.view.View"/>
+
         <variable
             name="event"
             type="com.example.hobbyfi.models.Event" />
+        <variable
+            name="ownerDisplay"
+            type="boolean" />
     </data>
 
     <LinearLayout
@@ -68,6 +73,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
+                    android:visibility="@{ownerDisplay ? View.VISIBLE : View.GONE}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent">

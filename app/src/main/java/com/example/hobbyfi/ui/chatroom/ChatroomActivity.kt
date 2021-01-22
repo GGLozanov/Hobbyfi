@@ -32,24 +32,23 @@ import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
 import com.example.hobbyfi.intents.*
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
+import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.OnFailureListener
-import com.google.firebase.messaging.FirebaseMessaging
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.*
-import com.example.hobbyfi.state.State
-import com.example.hobbyfi.ui.base.RefreshConnectionAware
-import com.example.hobbyfi.ui.custom.EventCalendarDecorator
-import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import org.kodein.di.generic.instance
 import java.util.*
 
@@ -60,7 +59,10 @@ class ChatroomActivity : BaseActivity(),
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
 
-    private val fcmTopicErrorFallback: OnFailureListener by instance(tag = "fcmTopicErrorFallback", this)
+    private val fcmTopicErrorFallback: OnFailureListener by instance(
+        tag = "fcmTopicErrorFallback",
+        this
+    )
 
     lateinit var binding: ActivityChatroomBinding
     private val args: ChatroomActivityArgs by navArgs()
@@ -90,7 +92,10 @@ class ChatroomActivity : BaseActivity(),
 
         // checks if called from push notification while app is killed and restarts entire backstack in that case
         if(isTaskRoot) {
-            Log.i("ChatroomActivity", "ChatroomActivity IS TASK ROOT. Regenerating parent activity backstack!")
+            Log.i(
+                "ChatroomActivity",
+                "ChatroomActivity IS TASK ROOT. Regenerating parent activity backstack!"
+            )
             val restartIntent = Intent(this, ChatroomActivity::class.java)
 
             restartIntent.putExtras(intent)
@@ -195,12 +200,22 @@ class ChatroomActivity : BaseActivity(),
                     is ChatroomState.OnData.ChatroomResult -> {
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult, is ChatroomState.OnData.DeleteChatroomCacheResult -> {
-                        Toast.makeText(this@ChatroomActivity, "Successfully deleted chatroom!", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            this@ChatroomActivity,
+                            "Successfully deleted chatroom!",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         sendBroadcast(Intent(Constants.CHATROOM_DELETED)
-                            .apply { putExtra(Constants.CHATROOM_ID, viewModel.authChatroom.value!!.id) })
+                            .apply {
+                                putExtra(
+                                    Constants.CHATROOM_ID,
+                                    viewModel.authChatroom.value!!.id
+                                )
+                            })
 
-                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
+                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
+                            {
                                 viewModel.setChatroom(null) // clear chatroom in any case
                                 finish()
                             },
@@ -210,7 +225,11 @@ class ChatroomActivity : BaseActivity(),
                         )
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
-                        Toast.makeText(this@ChatroomActivity, "Successfully updated chatroom!", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            this@ChatroomActivity,
+                            "Successfully updated chatroom!",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         viewModel.resetChatroomState()
                     }
@@ -233,9 +252,9 @@ class ChatroomActivity : BaseActivity(),
         lifecycleScope.launch {
             viewModel.usersState.collect {
                 when(it) {
-                   is UserListState.Idle -> {
+                    is UserListState.Idle -> {
 
-                   }
+                    }
                     is UserListState.Loading -> {
                         // TODO: Progressbar on RecyclerView
                     }
@@ -287,16 +306,17 @@ class ChatroomActivity : BaseActivity(),
     @ExperimentalPagingApi
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer { chatroom ->
-            if(chatroom != null) {
-                if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+            if (chatroom != null) {
+                if (supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
                     title = chatroom.name
                 }
 
                 val authUserChatroomOwner = viewModel.isAuthUserChatroomOwner.value == true
                 val chatroomHasEvents = chatroom.eventIds != null
-                val chatroomHasEventsToFetch = chatroomHasEvents && viewModel.authEvents.value == null
+                val chatroomHasEventsToFetch =
+                    chatroomHasEvents && viewModel.authEvents.value == null
 
-                if(chatroomHasEventsToFetch) {
+                if (chatroomHasEventsToFetch) {
                     lifecycleScope.launch {
                         viewModel.sendEventsIntent(
                             EventListIntent.FetchEvents
@@ -304,32 +324,36 @@ class ChatroomActivity : BaseActivity(),
                     }
                 }
 
-                if(authUserChatroomOwner) {
+                if (authUserChatroomOwner) {
                     with(binding) {
                         // TODO: On Chatroom deletes -> if no more events left, set authChatroom eventIds to  null
-                        navViewAdmin.menu.findItem(R.id.action_delete_chatroom).setOnMenuItemClickListener {
-                            Constants.buildYesNoAlertDialog(
-                                this@ChatroomActivity,
-                                Constants.confirmChatroomDeletionMessage,
-                                { dialogInterface: DialogInterface, _: Int ->
-                                    lifecycleScope.launch {
-                                        viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                        navViewAdmin.menu.findItem(R.id.action_delete_chatroom)
+                            .setOnMenuItemClickListener {
+                                Constants.buildYesNoAlertDialog(
+                                    this@ChatroomActivity,
+                                    Constants.confirmChatroomDeletionMessage,
+                                    { dialogInterface: DialogInterface, _: Int ->
+                                        lifecycleScope.launch {
+                                            viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
+                                        }
+                                        dialogInterface.dismiss()
+                                    },
+                                    { dialogInterface: DialogInterface, _: Int ->
+                                        dialogInterface.dismiss()
                                     }
-                                    dialogInterface.dismiss()
-                                },
-                                { dialogInterface: DialogInterface, _: Int ->
-                                    dialogInterface.dismiss()
+                                )
+                                return@setOnMenuItemClickListener true
+                            }
+                        navViewAdmin.menu.findItem(R.id.action_event_selection)
+                            .setOnMenuItemClickListener {
+                                Constants.showDistinctDialog(
+                                    supportFragmentManager,
+                                    Constants.EVENT_SELECTION
+                                ) {
+                                    EventAdminSelectionBottomSheetDialogFragment.newInstance()
                                 }
-                            )
-                            return@setOnMenuItemClickListener true
-                        }
-                        navViewAdmin.menu.findItem(R.id.action_event_selection).setOnMenuItemClickListener {
-                            val bottomSheet = (supportFragmentManager.findFragmentByTag(Constants.EVENT_SELECTION)
-                                    as EventSelectionBottomSheetDialogFragment?)
-                                ?: EventSelectionBottomSheetDialogFragment.newInstance()
-                            bottomSheet.show(supportFragmentManager, Constants.EVENT_SELECTION)
-                            return@setOnMenuItemClickListener true
-                        }
+                                return@setOnMenuItemClickListener true
+                            }
                     }
                 }
 
@@ -346,15 +370,20 @@ class ChatroomActivity : BaseActivity(),
 
                 // FIXME: Small coderino duperino with ChatroomTagAdapter
                 chatroom.tags?.let {
-                    val adapter = TagListAdapter(chatroom.tags!!, this@ChatroomActivity, R.layout.chatroom_tag_card)
+                    val adapter = TagListAdapter(
+                        chatroom.tags!!,
+                        this@ChatroomActivity,
+                        R.layout.chatroom_tag_card
+                    )
                     binding.tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
 
                     binding.tagsGridView.adapter = adapter
                 }
 
-                headerBinding.chatroomDescription.text = chatroom.description // two-way data-binding, y u no work??
+                headerBinding.chatroomDescription.text =
+                    chatroom.description // two-way data-binding, y u no work??
 
-                if(viewModel.currentAdapterUsers.value!!.isEmpty()) {
+                if (viewModel.currentAdapterUsers.value!!.isEmpty()) {
                     lifecycleScope.launch {
                         viewModel.sendUsersIntent(
                             UserListIntent.FetchUsers
@@ -372,12 +401,15 @@ class ChatroomActivity : BaseActivity(),
         })
     }
 
-    override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
+    override fun observeConnectionRefresh(
+        savedState: Bundle?,
+        refreshConnectivityMonitor: RefreshConnectivityMonitor
+    ) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(this, Observer { connectionRefreshed ->
             // connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
             //  enter without internet (currently refetches old chatrooms in itiial joins)
-            if(connectionRefreshed) {
+            if (connectionRefreshed) {
                 Log.i("ChatroomActivity", "ChatroomActivity CONNECTED")
                 lifecycleScope.launch {
                     viewModel.sendUsersIntent(
@@ -387,7 +419,7 @@ class ChatroomActivity : BaseActivity(),
                         ChatroomIntent.FetchChatroom
                     )
 
-                    if(viewModel.authChatroom.value?.eventIds != null) {
+                    if (viewModel.authChatroom.value?.eventIds != null) {
                         viewModel.sendEventsIntent(
                             EventListIntent.FetchEvents
                         )
@@ -407,16 +439,33 @@ class ChatroomActivity : BaseActivity(),
                 Log.i("ChatroomActivity", "Current auth user is chatroom owner")
 
                 navViewAdmin.setupWithNavController(navController)
-                toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.chatroomMessageListFragment), drawerLayout))
+                toolbar.setupWithNavController(
+                    navController, AppBarConfiguration(
+                        setOf(R.id.chatroomMessageListFragment),
+                        drawerLayout
+                    )
+                )
                 if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
                     toolbar.navigationIcon =
-                        ContextCompat.getDrawable(this@ChatroomActivity, R.drawable.ic_baseline_admin_panel_settings_24)
+                        ContextCompat.getDrawable(
+                            this@ChatroomActivity,
+                            R.drawable.ic_baseline_admin_panel_settings_24
+                        )
                 }
-                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED, GravityCompat.START)
+                drawerLayout.setDrawerLockMode(
+                    DrawerLayout.LOCK_MODE_UNDEFINED,
+                    GravityCompat.START
+                )
             } else {
                 Log.i("ChatroomActivity", "Current auth user is NOT chatroom owner")
-                drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, GravityCompat.START)
-                toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.chatroomMessageListFragment)))
+                drawerLayout.setDrawerLockMode(
+                    DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
+                    GravityCompat.START
+                )
+                toolbar.setupWithNavController(
+                    navController,
+                    AppBarConfiguration(setOf(R.id.chatroomMessageListFragment))
+                )
                 // TODO: Add back button
             }
         }
@@ -452,7 +501,7 @@ class ChatroomActivity : BaseActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if(item.itemId == R.id.action_search) {
             // TODO: Future chat search functionality with SearchView
-        } else {
+        } else if(item.itemId == R.id.action_info) {
             binding.drawerLayout.openDrawer(GravityCompat.END)
         }
 
@@ -460,9 +509,10 @@ class ChatroomActivity : BaseActivity(),
     }
 
     fun handleAuthActionableError(error: String?, shouldExit: Boolean, context: Context? = null) {
-        Toast.makeText(context ?: this@ChatroomActivity,
-                "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG)
-            .show()
+        Toast.makeText(
+            context ?: this@ChatroomActivity,
+            "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG
+        ).show()
         if(shouldExit) {
             finish()
             // TODO: Add another field (shouldReauth) for REALLY bad errors
@@ -503,7 +553,10 @@ class ChatroomActivity : BaseActivity(),
     private fun initCalendar() {
         with(binding) {
             eventCalendar.setOnTouchListener { _, motionEvent ->
-                Log.i("ChatroomActivity", "Triggered event calendar touch event w/ motion: $motionEvent")
+                Log.i(
+                    "ChatroomActivity",
+                    "Triggered event calendar touch event w/ motion: $motionEvent"
+                )
                 when(motionEvent.action) {
                     MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                         drawerLayout.requestDisallowInterceptTouchEvent(true)
@@ -515,22 +568,28 @@ class ChatroomActivity : BaseActivity(),
             eventCalendar.selectionMode = SELECTION_MODE_SINGLE
             eventCalendar.setOnDateChangedListener { calendar, date, selected ->
                 Log.i("ChatroomActivity", "Calendar selected events: ${calendar.selectedDates}")
-                val correspondingEvent: Event? = viewModel!!.authEvents.value?.find {
+                val hasAtLeastOneEvent = viewModel!!.authEvents.value?.any {
                     date == it.calendarDayFromDate }
-                if(correspondingEvent == null && selected) {
-                    Log.i("ChatroomActivity", "Calendar selected event outside event dates. Selected date: $date")
+                if(hasAtLeastOneEvent == false && selected) {
+                    Log.i(
+                        "ChatroomActivity",
+                        "Calendar selected event outside event dates. Selected date: $date"
+                    )
                     calendar.setDateSelected(date, false)
                     return@setOnDateChangedListener
                 }
 
                 Log.i("ChatroomActivity", "Calendar selected event with date: $date")
-                Log.i("ChatroomActivity", "Corresponding event: $correspondingEvent")
+                Constants.showDistinctDialog(supportFragmentManager, Constants.EVENT_SELECTION) {
+                    EventCalendarSelectionBottomSheetDialogFragment.newInstance(date)
+                }
             }
         }
     }
 
     override fun onBackPressed() {
-        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
+        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
+            {
                 prefConfig.resetLastEnteredChatroomId()
                 super.onBackPressed()
             },
@@ -574,5 +633,15 @@ class ChatroomActivity : BaseActivity(),
         unregisterReceiver(editEventReceiver)
         unregisterReceiver(deleteBatchEventReceiver)
         unregisterReceiver(deleteEventReceiver)
+    }
+
+    fun enableNavDrawer(isEnabled: Boolean) {
+        supportActionBar!!.setDisplayHomeAsUpEnabled(isEnabled)
+        supportActionBar!!.setHomeButtonEnabled(isEnabled)
+        if (isEnabled) {
+            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+        } else {
+            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        }
     }
 }
