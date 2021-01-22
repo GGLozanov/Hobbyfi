@@ -23,15 +23,16 @@ class EventSelectionBottomSheetRecyclerView: RecyclerView {
 
     constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
 
-    lateinit var coordinatorLayout: CoordinatorLayout
+    // lateinit var coordinatorLayout: CoordinatorLayout
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        when (event.actionMasked) {
+        when (event.action) {
             MotionEvent.ACTION_UP -> {
-                coordinatorLayout.requestDisallowInterceptTouchEvent(!canScrollUp())
+                parent.requestDisallowInterceptTouchEvent(canScrollUp())
+                // return onTouchEvent(event)
             }
             else -> {
-                coordinatorLayout.requestDisallowInterceptTouchEvent(false)
+                parent.requestDisallowInterceptTouchEvent(false)
             }
         }
         return super.onInterceptTouchEvent(event)
@@ -41,23 +42,23 @@ class EventSelectionBottomSheetRecyclerView: RecyclerView {
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val y = event.rawY
         when (event.actionMasked) {
-            MotionEvent.ACTION_MOVE -> {
+            MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
                 run {
                     if (!isBeingDragged) {
                         val deltaY: Float = lastMotionY - y
-                        isBeingDragged = (deltaY > 0 && canScrollDown()
-                                || deltaY < 0 && canScrollUp())
-                        if (isBeingDragged) {
-                            coordinatorLayout.requestDisallowInterceptTouchEvent(true)
+                        isBeingDragged = (deltaY > 0 && canScrollDown())
+                                || (deltaY < 0 && canScrollUp())
+                        if (reachedScrollUp()) {
+                            parent.requestDisallowInterceptTouchEvent(true)
                         } else {
-                            coordinatorLayout.requestDisallowInterceptTouchEvent(false)
+                            parent.requestDisallowInterceptTouchEvent(false)
                             return false
                         }
                     }
                 }
                 isBeingDragged = false
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_DOWN -> isBeingDragged = false
+            MotionEvent.ACTION_CANCEL -> isBeingDragged = false
         }
         lastMotionY = y
         return super.onTouchEvent(event)
@@ -65,7 +66,7 @@ class EventSelectionBottomSheetRecyclerView: RecyclerView {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        coordinatorLayout = parent.parent.parent as CoordinatorLayout
+        // coordinatorLayout = parent.parent.parent as CoordinatorLayout
     }
 
     private fun canScrollUp(): Boolean {
@@ -76,6 +77,16 @@ class EventSelectionBottomSheetRecyclerView: RecyclerView {
         val firstPosition: Int = (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
         val firstTop = getChildAt(0).top
         return firstPosition > 0 || firstTop < (layoutManager as LinearLayoutManager).paddingTop
+    }
+
+    private fun reachedScrollUp(): Boolean {
+        val childCount = childCount
+        if (childCount == 0) {
+            return false
+        }
+        val firstPosition: Int = (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+        val firstTop = getChildAt(0).top
+        return firstPosition == 0 && firstTop == 0
     }
 
     private fun canScrollDown(): Boolean {

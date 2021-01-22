@@ -76,7 +76,11 @@ class EventEditDialogFragment : ChatroomDialogFragment(),
             }
 
             eventInfo.eventInfoButtonBar.rightButton.setOnClickListener {
-                Callbacks.startChooseEventLocationMapsActivity(this@EventEditDialogFragment, viewModel!!)
+                Callbacks.startChooseEventLocationMapsActivity(
+                    this@EventEditDialogFragment,
+                    viewModel!!,
+                    LatLng(viewModel!!.event.latitude, viewModel!!.event.longitude)
+                )
             }
 
             eventEditDialogButtonBar.leftButton.setOnClickListener {

@@ -22,6 +22,7 @@ import com.example.hobbyfi.ui.chatroom.EventChooseLocationMapsActivity
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventAccessorViewModel
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView
@@ -243,11 +244,11 @@ object Callbacks {
     }
 
     @ExperimentalCoroutinesApi
-    fun startChooseEventLocationMapsActivity(fragment: Fragment, viewModel: EventAccessorViewModel) {
+    fun startChooseEventLocationMapsActivity(fragment: Fragment, viewModel: EventAccessorViewModel, latLng: LatLng? = null) {
         val intent = Intent(fragment.requireContext(), EventChooseLocationMapsActivity::class.java).apply {
             putExtra(Constants.EVENT_TITLE, viewModel.name.value)
             putExtra(Constants.EVENT_DESCRIPTION, viewModel.description.value)
-            putExtra(Constants.EVENT_LOCATION, viewModel.eventLatLng)
+            putExtra(Constants.EVENT_LOCATION, latLng ?: viewModel.eventLatLng)
         }
 
         fragment.startActivityForResult(intent, Constants.eventLocationRequestCode)

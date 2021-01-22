@@ -13,6 +13,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.databinding.FragmentEventSelectionBottomSheetDialogBinding
@@ -39,6 +40,7 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
     private lateinit var eventListAdapter: EventListAdapter
     private lateinit var binding: FragmentEventSelectionBottomSheetDialogBinding
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -53,12 +55,16 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
         val initialEvents = activityViewModel.authEvents.value ?: emptyList()
         eventListAdapter = EventListAdapter(
             initialEvents,
-            { _: View, event: Event ->
+            { v: View, event: Event ->
+               v.isEnabled = false
                 val dialog = (parentFragmentManager.findFragmentByTag(event.id.toString())
                         as EventEditDialogFragment?)
                     ?: EventEditDialogFragment.newInstance(event)
                 dialog.setTargetFragment(this, 400)
                 dialog.show(parentFragmentManager, event.id.toString())
+                v.postDelayed({
+                  v.isEnabled = true
+                }, 1000) // event card tap antispam
             }, { _: View, event: Event ->
                 Constants.buildYesNoAlertDialog(
                     requireContext(),
@@ -83,6 +89,9 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
                 state = BottomSheetBehavior.STATE_EXPANDED
                 addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
                     override fun onStateChanged(bottomSheet: View, newState: Int) {
+                        if(newState == BottomSheetBehavior.STATE_DRAGGING) {
+
+                        }
                         if (newState == BottomSheetBehavior.STATE_EXPANDED) {
                             bottomSheet.requestLayout() // reinit layout for RV notifyDataSetChanged()
                         }
@@ -157,6 +166,7 @@ class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragmen
 
     private fun setViewsVisibilityOnEvents(events: List<Event>) {
         with(binding) {
+            eventScroll.isVisible = events.isNotEmpty()
             noEventsText.isVisible = events.isEmpty()
             deleteOldEventsButton.isVisible = events.isNotEmpty()
         }
