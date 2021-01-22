@@ -16,7 +16,6 @@ import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.filter
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
 import com.prolificinteractive.materialcalendarview.CalendarDay
