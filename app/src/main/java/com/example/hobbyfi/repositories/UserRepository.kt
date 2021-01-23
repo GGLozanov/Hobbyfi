@@ -13,6 +13,7 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
+import com.google.firebase.FirebaseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -86,14 +87,18 @@ class UserRepository @ExperimentalPagingApi constructor(
         })
     }
 
-    suspend fun deleteUser(): Response? {
+    suspend fun deleteUser(username: String): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return performAuthorisedRequest({
-            hobbyfiAPI.deleteUser(
+            val response = hobbyfiAPI.deleteUser(
                 prefConfig.getAuthUserToken()!!
             )
+
+            firestore.collection(Constants.LOCATIONS_COLLECTION)
+                .document(username).delete()
+            response
         }, {
-            deleteUser()
+            deleteUser(username)
         })
     }
 

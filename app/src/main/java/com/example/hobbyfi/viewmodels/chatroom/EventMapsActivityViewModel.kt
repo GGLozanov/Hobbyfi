@@ -18,6 +18,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
@@ -25,32 +26,27 @@ import org.kodein.di.generic.instance
 class EventMapsActivityViewModel(
     application: Application,
     initialEvent: Event
-) : StateIntentViewModel<EventListState, EventListIntent>(application) {
-    private val eventRepository: EventRepository by instance(tag = "eventRepository")
+) : UserGeoPointAccessorViewModel(application, initialEvent) {
 
-    private val _event: MutableLiveData<Event> = MutableLiveData(initialEvent)
+    private val _event: MutableLiveData<Event> = MutableLiveData(_relatedEvent)
     val event: LiveData<Event> get() = _event
 
-    override val mainStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
-        override val _state: MutableStateFlow<EventListState> = MutableStateFlow(EventListState.Idle)
+    private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
+        override val _state: MutableStateFlow<EventListState> =
+            MutableStateFlow(EventListState.Idle)
     }
+    val eventsState: StateFlow<EventListState>
+        get() = eventsStateIntent.state
 
-    private val userGeoPointStateIntent: StateIntent<UserGeoPointState, UserGeoPointIntent> = object : StateIntent<UserGeoPointState, UserGeoPointIntent>() {
-        override val _state: MutableStateFlow<UserGeoPointState> = MutableStateFlow(UserGeoPointState.Idle)
-    }
-
-    val userGeoPointState: StateFlow<UserGeoPointState>
-        get() = userGeoPointStateIntent.state
+    suspend fun sendEventListIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
     init {
         handleIntent()
     }
 
-    suspend fun sendEventsIntent(intent: EventListIntent) = mainStateIntent.sendIntent(intent)
-
     override fun handleIntent() {
         viewModelScope.launch {
-            mainStateIntent.intentAsFlow().collect {
+            eventsStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveCurrentEvent(it.eventUpdateFields)
@@ -65,16 +61,37 @@ class EventMapsActivityViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            mainStateIntent.intentAsFlow().collectLatest {
+                when(it) {
+                    is UserGeoPointIntent.FetchUsersGeoPoints -> {
+
+                    }
+                    is UserGeoPointIntent.UpdateUserGeoPoint -> {
+
+                    }
+                    else -> throw Intent.InvalidIntentException()
+                }
+            }
+        }
+    }
+
+    private suspend fun getUserGeoPoints() {
+
+    }
+
+    private suspend fun updateUserGeoPoint() {
+
     }
 
     private suspend fun deleteEventsCache(eventIds: List<Long>) {
-        mainStateIntent.setState(if(eventRepository.deleteEventsCache(eventIds))
+        eventsStateIntent.setState(if(eventRepository.deleteEventsCache(eventIds))
             EventListState.OnData.DeleteEventsCacheResult(eventIds)
         else EventListState.Error(Constants.cacheDeletionError, true)) // shouldReath = shouldExit here
     }
 
     private suspend fun deleteEventCache(eventId: Long) {
-        mainStateIntent.setState(if(eventRepository.deleteEventCache(eventId))
+        eventsStateIntent.setState(if(eventRepository.deleteEventCache(eventId))
             EventListState.OnData.DeleteAnEventCacheResult(eventId)
         else EventListState.Error(Constants.cacheDeletionError, true))
     }

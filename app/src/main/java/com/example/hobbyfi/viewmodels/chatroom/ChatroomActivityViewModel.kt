@@ -31,8 +31,8 @@ class ChatroomActivityViewModel(
 ) : AuthChatroomHolderViewModel(application, user, chatroom) {
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
 
-    private var _currentAdapterUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
-    val currentAdapterUsers: LiveData<List<User>> get() = _currentAdapterUsers
+    private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
+    val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
     val authEvents: LiveData<List<Event>> get() = _authEvents
@@ -107,19 +107,19 @@ class ChatroomActivityViewModel(
                 when(it) {
                     is UserListIntent.AddAUserCache -> {
                         saveUser(it.user, false)
-                        setCurrentUsers(currentAdapterUsers.value!! + it.user)
+                        setCurrentUsers(chatroomUsers.value!! + it.user)
                     }
                     is UserListIntent.DeleteAUserCache -> {
                         deleteUserCache(it.userId, false)
-                        setCurrentUsers(currentAdapterUsers.value!!.filter { user -> user.id != it.userId })
+                        setCurrentUsers(chatroomUsers.value!!.filter { user -> user.id != it.userId })
                     }
                     is UserListIntent.UpdateAUserCache -> {
                         // TODO: Update lastUsersFetchTime or something similar for Glide signature caching
                         // TODO: Check if user has image updated? That'd retrigger every image to be refetched on next VH onBind call
-                        saveUser(currentAdapterUsers.value!!.find { user -> user.id ==
+                        saveUser(chatroomUsers.value!!.find { user -> user.id ==
                                 (it.userUpdateFields[Constants.ID] ?: error("User ID must not be null in saveUser call!")).toLong() }!!
                             .updateFromFieldMap(it.userUpdateFields), false)
-                        setCurrentUsers(currentAdapterUsers.value!!)
+                        setCurrentUsers(chatroomUsers.value!!)
                     }
                     is UserListIntent.FetchUsers -> {
                         fetchUsers()
@@ -248,6 +248,6 @@ class ChatroomActivityViewModel(
     }
 
     private fun setCurrentUsers(users: List<User>) {
-        _currentAdapterUsers.value = users
+        _chatroomUsers.value = users
     }
 }

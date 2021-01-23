@@ -23,7 +23,7 @@ import org.kodein.di.generic.instance
 // ...so neither will I!
 class ChatroomUserListAdapter(
     private var users: List<User>,
-    private val onUserCardPress: (View, User) -> Unit
+    private val onUserCardPress: ((View, User) -> Unit)? = null
 ) : RecyclerView.Adapter<ChatroomUserListAdapter.ChatroomUserViewHolder>(), KodeinAware {
 
     @ExperimentalPagingApi
@@ -48,11 +48,15 @@ class ChatroomUserListAdapter(
     class ChatroomUserViewHolder(
         private val binding: UserCardBinding,
         prefConfig: PrefConfig,
-        private val onUserCardPress: (View, User) -> Unit
+        private val onUserCardPress: ((View, User) -> Unit)?
     ) : ImageLoaderViewHolder<User>(binding.root, prefConfig) {
         companion object {
             //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup, prefConfig: PrefConfig, onUserCardPress: (View, User) -> Unit): ChatroomUserViewHolder {
+            fun getInstance(
+                parent: ViewGroup,
+                prefConfig: PrefConfig,
+                onUserCardPress: ((View, User) -> Unit)?
+            ): ChatroomUserViewHolder {
                 val binding: UserCardBinding = DataBindingUtil.inflate(
                     LayoutInflater.from(parent.context), R.layout.user_card,
                     parent, false
@@ -65,7 +69,7 @@ class ChatroomUserListAdapter(
             binding.user = user
             bindImage(user, position)
             binding.userCard.setOnClickListener {
-                onUserCardPress(it, user!!)
+                onUserCardPress?.invoke(it, user!!)
             }
         }
 

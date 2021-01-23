@@ -124,7 +124,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
         mainStateIntent.setState(try {
             val response = UserState.OnData.UserDeleteResult(
-                userRepository.deleteUser()
+                userRepository.deleteUser(_authUser.value!!.name)
             )
 
             deleteUserCache()

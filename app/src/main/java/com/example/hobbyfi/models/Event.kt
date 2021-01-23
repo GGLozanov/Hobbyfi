@@ -9,6 +9,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
 import com.prolificinteractive.materialcalendarview.CalendarDay
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -70,8 +71,24 @@ data class Event(
         return this
     }
 
-    val calendarDayFromDate: CalendarDay get() = run {
-        val dateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    @IgnoredOnParcel
+    val calendarDayFromDate: CalendarDay by lazy { calendarDayFromString(date) }
+
+    @IgnoredOnParcel
+    val calendarDayFromStartDate: CalendarDay by lazy { calendarDayFromString(startDate) }
+
+    @IgnoredOnParcel
+    val localDateTimeFromDate: LocalDateTime by lazy { localDateTimeFromString(date) }
+
+    @IgnoredOnParcel
+    val localDateTimeFromStartDate: LocalDateTime by lazy { localDateTimeFromString(startDate) }
+
+    private fun calendarDayFromString(src: String): CalendarDay {
+        val dateTime = localDateTimeFromString(src)
         return CalendarDay.from(dateTime.year, dateTime.month.value, dateTime.dayOfMonth)
+    }
+
+    private fun localDateTimeFromString(src: String): LocalDateTime {
+        return LocalDateTime.parse(src, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     }
 }

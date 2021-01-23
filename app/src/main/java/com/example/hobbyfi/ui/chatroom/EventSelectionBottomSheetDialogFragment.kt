@@ -22,7 +22,6 @@ import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.listIsAtTop
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.viewmodels.chatroom.EventSelectionBottomSheetDialogFragmentViewModel

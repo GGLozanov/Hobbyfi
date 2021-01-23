@@ -129,7 +129,7 @@ class ChatroomActivity : BaseActivity(),
         }
 
         userListAdapter = ChatroomUserListAdapter(
-            viewModel.currentAdapterUsers.value ?: emptyList()
+            viewModel.chatroomUsers.value ?: emptyList()
         ) { _: View, user: User ->
             val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
             bottomSheet.show(supportFragmentManager, bottomSheet.tag)
@@ -243,7 +243,7 @@ class ChatroomActivity : BaseActivity(),
     }
 
     private fun observeUsers() {
-        viewModel.currentAdapterUsers.observe(this, Observer {
+        viewModel.chatroomUsers.observe(this, Observer {
             userListAdapter!!.setUsers(it)
         })
     }
@@ -383,7 +383,7 @@ class ChatroomActivity : BaseActivity(),
                 headerBinding.chatroomDescription.text =
                     chatroom.description // two-way data-binding, y u no work??
 
-                if (viewModel.currentAdapterUsers.value!!.isEmpty()) {
+                if (viewModel.chatroomUsers.value!!.isEmpty()) {
                     lifecycleScope.launch {
                         viewModel.sendUsersIntent(
                             UserListIntent.FetchUsers

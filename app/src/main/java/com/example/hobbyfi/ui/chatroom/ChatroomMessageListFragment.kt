@@ -31,7 +31,6 @@ import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
@@ -42,7 +41,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import java.io.FileNotFoundException
-import kotlin.properties.Delegates
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -145,7 +143,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
         messageListAdapter = ChatroomMessageListAdapter(
             activityViewModel.isAuthUserChatroomOwner.value == true,
-            activityViewModel.currentAdapterUsers.value ?: emptyList()
+            activityViewModel.chatroomUsers.value ?: emptyList()
         ) { _, message ->
             // reuse fragment for distinct messages when they don't change
 
@@ -191,7 +189,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
     }
 
     private fun observeUsers() {
-        activityViewModel.currentAdapterUsers.observe(viewLifecycleOwner, Observer {
+        activityViewModel.chatroomUsers.observe(viewLifecycleOwner, Observer {
             Log.i("ChatroomMListFragment", "Adapter users: $it")
             if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent

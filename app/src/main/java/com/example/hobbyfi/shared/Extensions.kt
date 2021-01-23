@@ -10,7 +10,6 @@ import android.widget.GridView
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
@@ -19,12 +18,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.repositories.Repository
-import com.example.hobbyfi.ui.chatroom.ChatroomMessageBottomSheetDialogFragment
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
@@ -99,10 +95,18 @@ fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     inflateMenu(menuId)
 }
 
-fun RecyclerView.listIsAtTop(): Boolean {
-    return if (childCount == 0) true else
-        getChildAt(0).top == 0 &&
-                (layoutManager as LinearLayoutManager).findFirstVisibleItemPosition() == 0
+fun <T, K, R> LiveData<T>.combineWith(
+    liveData: LiveData<K>,
+    block: (List<User>, List<UserGeoPoint>) -> List<User>
+): LiveData<R> {
+    val result = MediatorLiveData<R>()
+    result.addSource(this) {
+        result.value = block(this.value, liveData.value)
+    }
+    result.addSource(liveData) {
+        result.value = block(this.value, liveData.value)
+    }
+    return result
 }
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
