@@ -100,8 +100,7 @@ class EventMapsActivity : MapsActivity() {
 
     override fun onMapReady(googleMap: GoogleMap) {
         super.onMapReady(googleMap)
-
-
+        
     }
 
     override fun onResume() {

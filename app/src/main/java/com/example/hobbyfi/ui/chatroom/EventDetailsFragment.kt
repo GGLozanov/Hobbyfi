@@ -3,9 +3,11 @@ package com.example.hobbyfi.ui.chatroom
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
@@ -47,7 +49,12 @@ class EventDetailsFragment : ChatroomModelFragment() {
 
     private val usersSource: LiveData<List<User>> by lazy {
         activityViewModel.chatroomUsers.combineWith(viewModel.userGeoPoints) {
-            users: List<User>, geoPoints: List<UserGeoPoint> ->
+            users: List<User>?, geoPoints: List<UserGeoPoint>? ->
+        if(users == null || geoPoints == null) {
+            Log.i("EventDetailsFragment", "usersSource by lazy: users -> $users; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
+            return@combineWith emptyList<User>()
+        }
+
         val geoPointUsernames = geoPoints.map { gp -> gp.username }
         users.filter { user -> geoPointUsernames.contains(user.name) }
     } }
@@ -72,6 +79,7 @@ class EventDetailsFragment : ChatroomModelFragment() {
         binding.viewModel = viewModel
 
         with(binding) {
+            initEventButtons()
             initMap(savedInstanceState)
             initCalendar()
             calculateEventDayDifference()
@@ -112,13 +120,35 @@ class EventDetailsFragment : ChatroomModelFragment() {
         with(binding) {
             dateRangeCalendar.selectionMode = SELECTION_MODE_NONE
 
+            val startDate = viewModel!!.relatedEvent.calendarDayFromStartDate
             dateRangeCalendar.selectRange(
-                viewModel!!.relatedEvent.calendarDayFromStartDate,
+                startDate,
                 viewModel!!.relatedEvent.calendarDayFromDate
             )
 
+            dateRangeCalendar.state().edit()
+                .setMinimumDate(startDate)
+                .commit()
             dateRangeCalendar.isPagingEnabled = false
             dateRangeCalendar.setAllowClickDaysOutsideCurrentMonth(false)
+        }
+    }
+
+    private fun initEventButtons() {
+        with(binding.eventViewButtonBar) {
+            leftButton.setOnClickListener {
+                // TODO: send new usergeopoint without event id to FireStore
+
+                parentFragmentManager.popBackStack()
+            }
+            leftButton.isVisible = activityViewModel.authUserGeoPoint.value != null
+            rightButton.setOnClickListener {
+                Intent(requireContext(), EventMapsActivity::class.java).apply {
+                    putExtra(Constants.EVENT, viewModel.relatedEvent)
+                }.run {
+                    startActivityForResult(this, Constants.eventMapsRequestCode)
+                }
+            }
         }
     }
 
@@ -152,8 +182,6 @@ class EventDetailsFragment : ChatroomModelFragment() {
         super.onAttach(context)
         val activity = requireActivity() as ChatroomActivity
         activity.title = viewModel.relatedEvent.name
-        // TODO: Handle navdrawer
-        // activity.enableNavDrawer(false)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

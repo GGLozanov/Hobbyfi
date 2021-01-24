@@ -38,7 +38,7 @@ class EventMapsActivityViewModel(
     val eventsState: StateFlow<EventListState>
         get() = eventsStateIntent.state
 
-    suspend fun sendEventListIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
+    suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
     init {
         handleIntent()

@@ -71,17 +71,13 @@ data class Event(
         return this
     }
 
-    @IgnoredOnParcel
-    val calendarDayFromDate: CalendarDay by lazy { calendarDayFromString(date) }
+    val calendarDayFromDate: CalendarDay get() = calendarDayFromString(date)
 
-    @IgnoredOnParcel
-    val calendarDayFromStartDate: CalendarDay by lazy { calendarDayFromString(startDate) }
+    val calendarDayFromStartDate: CalendarDay get() = calendarDayFromString(startDate)
 
-    @IgnoredOnParcel
-    val localDateTimeFromDate: LocalDateTime by lazy { localDateTimeFromString(date) }
+    val localDateTimeFromDate: LocalDateTime get() = localDateTimeFromString(date)
 
-    @IgnoredOnParcel
-    val localDateTimeFromStartDate: LocalDateTime by lazy { localDateTimeFromString(startDate) }
+    val localDateTimeFromStartDate: LocalDateTime get() = localDateTimeFromString(startDate)
 
     private fun calendarDayFromString(src: String): CalendarDay {
         val dateTime = localDateTimeFromString(src)

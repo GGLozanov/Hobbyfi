@@ -9,85 +9,177 @@
             type="com.example.hobbyfi.viewmodels.chatroom.EventDetailsViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/background_secondary_gradient"
-        tools:context=".ui.chatroom.EventDetailsFragment">
-
-        <LinearLayout
-            android:id="@+id/event_info_layout"
+        android:fillViewport="true"
+        android:fadeScrollbars="false"
+        android:visibility="visible"
+        tools:visibility="visible">
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/event_image"
-                android:layout_width="250dp"
-                android:layout_height="100dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_secondary_gradient"
+            tools:context=".ui.chatroom.EventDetailsFragment">
+
+            <LinearLayout
+                android:id="@+id/event_info_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
-                android:adjustViewBounds="true"
-                android:background="@drawable/rounded_container_thick"
-                android:cropToPadding="true"
-                android:padding="5dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/event_default_pic" />
+                android:background="@drawable/rounded_container"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                app:layout_constraintBottom_toTopOf="@id/map_users_layout"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/event_info_header"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/event_name"
-                android:drawableStart="@drawable/ic_baseline_event_24"
-                android:text="@{viewModel.event.name}"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/event_description"
-                android:drawableStart="@drawable/ic_baseline_edit_24"
-                android:text="@{viewModel.event.description}"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/map_users_layout"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/days_left_header"
+                    android:id="@+id/event_info_header"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:gravity="center"
+                    android:text="@string/event_info"
+                    android:textSize="36sp"
+                    android:textStyle="bold" />
 
-                <com.google.android.gms.maps.MapView
-                    android:id="@+id/map_preview"
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/event_image"
+                    android:layout_width="250dp"
+                    android:layout_height="100dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="10dp"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/rounded_container_thick"
+                    android:cropToPadding="true"
+                    android:padding="5dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/event_default_pic" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/event_name"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_baseline_event_24"
+                    android:ellipsize="marquee"
+                    android:text="@{viewModel.relatedEvent.name}"
+                    android:maxWidth="250dp"
+                    android:textSize="20sp" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/event_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:drawableStart="@drawable/ic_baseline_edit_24"
+                    android:text="@{viewModel.relatedEvent.description}"
+                    android:ellipsize="marquee"
+                    android:maxWidth="250dp"
+                    android:textSize="20sp" />
             </LinearLayout>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/users_list"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/map_users_layout"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_container"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                app:layout_constraintBottom_toTopOf="@id/event_view_button_bar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/event_info_layout">
 
-            </androidx.recyclerview.widget.RecyclerView>
+                <LinearLayout
+                    android:id="@+id/maps_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical"
+                    android:weightSum="100"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/users_calendar_layout"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
-            <com.prolificinteractive.materialcalendarview.MaterialCalendarView
-                android:id="@+id/date_range_calendar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/days_left_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_weight="10"
+                        android:maxWidth="100dp"
+                        android:maxLines="2"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-        <include
-            android:id="@+id/event_view_button_bar"
-            layout="@layout/button_bar_pair" />
+                    <com.google.android.gms.maps.MapView
+                        android:id="@+id/map_preview"
+                        android:layout_width="fill_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:layout_weight="90" />
+                </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <LinearLayout
+                    android:id="@+id/users_calendar_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toEndOf="@id/maps_layout"
+                    android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/maps_layout"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/users_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="8dp"
+                        app:layout_constraintBottom_toTopOf="@id/date_range_calendar"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                    </androidx.recyclerview.widget.RecyclerView>
+
+                    <com.prolificinteractive.materialcalendarview.MaterialCalendarView
+                        android:id="@+id/date_range_calendar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/users_list" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <include
+                android:id="@+id/event_view_button_bar"
+                layout="@layout/button_bar_pair"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/map_users_layout"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
 </layout>

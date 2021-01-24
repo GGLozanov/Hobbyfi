@@ -97,7 +97,7 @@ fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
 
 fun <T, K, R> LiveData<T>.combineWith(
     liveData: LiveData<K>,
-    block: (List<User>, List<UserGeoPoint>) -> List<User>
+    block: (T?, K?) -> R
 ): LiveData<R> {
     val result = MediatorLiveData<R>()
     result.addSource(this) {

@@ -71,6 +71,7 @@ object Constants {
     const val locationPermissionsRequestCode: Int = 888
 
     const val eventLocationRequestCode: Int = 999
+    const val eventMapsRequestCode: Int = 666
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(

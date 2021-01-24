@@ -60,7 +60,8 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
             eventInfo.eventInfoButtonBar.leftButton.setOnClickListener { // select event date
                 Callbacks.initDateTimeDatePickerDialog(
                     requireContext(),
-                    this@EventCreateFragment, viewModel!!)
+                    this@EventCreateFragment, viewModel!!
+                )
             }
 
             eventInfo.eventInfoButtonBar.rightButton.setOnClickListener { // select location

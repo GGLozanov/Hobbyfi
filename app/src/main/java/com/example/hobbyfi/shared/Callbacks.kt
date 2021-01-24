@@ -245,13 +245,13 @@ object Callbacks {
 
     @ExperimentalCoroutinesApi
     fun startChooseEventLocationMapsActivity(fragment: Fragment, viewModel: EventAccessorViewModel, latLng: LatLng? = null) {
-        val intent = Intent(fragment.requireContext(), EventChooseLocationMapsActivity::class.java).apply {
+        Intent(fragment.requireContext(), EventChooseLocationMapsActivity::class.java).apply {
             putExtra(Constants.EVENT_TITLE, viewModel.name.value)
             putExtra(Constants.EVENT_DESCRIPTION, viewModel.description.value)
             putExtra(Constants.EVENT_LOCATION, latLng ?: viewModel.eventLatLng)
+        }.run {
+            fragment.startActivityForResult(this, Constants.eventLocationRequestCode)
         }
-
-        fragment.startActivityForResult(intent, Constants.eventLocationRequestCode)
     }
 
     // always throws an exception
