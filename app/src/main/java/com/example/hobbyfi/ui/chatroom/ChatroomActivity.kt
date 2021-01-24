@@ -150,15 +150,6 @@ class ChatroomActivity : BaseActivity(),
         super.onStart()
 
         binding.navViewAdmin.setupWithNavController(navController)
-        navController.addOnDestinationChangedListener { _, _, _ ->
-            binding.toolbar.navigationIcon =
-                ContextCompat.getDrawable(
-                    this@ChatroomActivity,
-                    if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment
-                        && viewModel.isAuthUserChatroomOwner.value == true) R.drawable.ic_baseline_admin_panel_settings_24
-                    else { R.drawable.ic_baseline_arrow_back_24 }
-                )
-        }
 
         // TODO: Register delete/update BroadcastReceive with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
@@ -213,8 +204,7 @@ class ChatroomActivity : BaseActivity(),
                             this@ChatroomActivity,
                             "Successfully deleted chatroom!",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
+                        ).show()
                         sendBroadcast(Intent(Constants.CHATROOM_DELETED)
                             .apply {
                                 putExtra(
@@ -455,6 +445,14 @@ class ChatroomActivity : BaseActivity(),
                     )
                 )
 
+                binding.toolbar.navigationIcon =
+                    ContextCompat.getDrawable(
+                        this@ChatroomActivity,
+                        if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment)
+                                R.drawable.ic_baseline_admin_panel_settings_24
+                        else { R.drawable.ic_baseline_arrow_back_24 }
+                    )
+
                 drawerLayout.setDrawerLockMode(
                     DrawerLayout.LOCK_MODE_UNDEFINED,
                     GravityCompat.START
@@ -469,7 +467,7 @@ class ChatroomActivity : BaseActivity(),
                     navController,
                     AppBarConfiguration(setOf(R.id.chatroomMessageListFragment))
                 )
-                // TODO: Add back button
+                // TODO: Back button (white tint)
             }
         }
     }
@@ -637,15 +635,15 @@ class ChatroomActivity : BaseActivity(),
         unregisterReceiver(deleteBatchEventReceiver)
         unregisterReceiver(deleteEventReceiver)
     }
-
+    
 
 //    fun enableNavDrawer(isEnabled: Boolean) {
 //        supportActionBar!!.setDisplayHomeAsUpEnabled(isEnabled)
 //        supportActionBar!!.setHomeButtonEnabled(isEnabled)
 //        if (isEnabled) {
-//            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, GravityCompat.START)
+//            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
 //        } else {
-//            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, GravityCompat.START)
+//            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
 //        }
 //    }
 }
