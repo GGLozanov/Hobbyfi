@@ -1,8 +1,11 @@
 package com.example.hobbyfi.shared
 
+import android.app.Activity
+import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.DisplayMetrics
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
@@ -81,10 +84,12 @@ fun <T> List<T>.newListWithDistinct(selectedTags: List<T>): MutableList<T> {
     return newTags.distinct().toMutableList()
 }
 
-fun <T> List<T>.replace(newValue: T, predicate: (T) -> Boolean): List<T> {
-    return map {
+fun <T> List<T>.replaceOrAdd(newValue: T, predicate: (T) -> Boolean): List<T> {
+    val newList =  map {
         if (predicate(it)) newValue else it
     }
+
+    return if(!newList.contains(newValue)) newList + newValue else newList
 }
 
 val FragmentManager.currentNavigationFragment: Fragment?
@@ -107,6 +112,23 @@ fun <T, K, R> LiveData<T>.combineWith(
         result.value = block(this.value, liveData.value)
     }
     return result
+}
+
+fun View.setParamsBasedOnScreenOrientation(
+    activity: Activity,
+    divisorHeightPortrait: Int,
+    divisorWidthPortrait: Int,
+    divisorHeightLandscape: Int,
+    divisorWidthLandscape: Int
+) {
+    val displayMetrics = activity.resources.displayMetrics
+    if(activity.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        layoutParams.height = displayMetrics.heightPixels / divisorHeightPortrait
+        layoutParams.width = displayMetrics.widthPixels / divisorWidthPortrait
+    } else {
+        layoutParams.height = displayMetrics.heightPixels / divisorHeightLandscape
+        layoutParams.width = displayMetrics.widthPixels / divisorWidthLandscape
+    }
 }
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added

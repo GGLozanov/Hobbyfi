@@ -14,7 +14,7 @@ import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
-import com.example.hobbyfi.shared.replace
+import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -212,7 +212,7 @@ class ChatroomActivityViewModel(
                 ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
             .updateFromFieldMap(eventFields)
         saveEvent(updatedEvent)
-        _authEvents.value = _authEvents.value!!.replace(updatedEvent, { it.id == updatedEvent.id })
+        _authEvents.value = _authEvents.value!!.replaceOrAdd(updatedEvent, { it.id == updatedEvent.id })
     }
 
     private suspend fun saveEvent(event: Event) {

@@ -31,7 +31,7 @@ import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
 class EventChooseLocationMapsActivity : MapsActivity() {
-    private var marker: Marker? = null
+    private var marker: Marker? = null // no need to stay in VM because of savedInstanceState mechanisms
 
     private var eventTitle: String? = null
     private var eventDescription: String? = null
@@ -43,12 +43,17 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         super.onCreate(savedInstanceState)
 
         if (savedInstanceState != null) {
-            lastKnownLocation = savedInstanceState.getParcelable(Constants.KEY_LOCATION)
+            savedInstanceState.run {
+                lastKnownLocation = getParcelable(Constants.KEY_LOCATION)
+                eventLocation = getParcelable(Constants.LOCATION)
+                eventTitle = getString(Constants.NAME)
+                eventDescription = getString(Constants.DESCRIPTION)
+            }
+        } else {
+            eventLocation = intent.extras?.get(Constants.EVENT_LOCATION) as LatLng?
+            eventTitle = intent.extras?.get(Constants.EVENT_TITLE) as String?
+            eventDescription = intent.extras?.get(Constants.EVENT_DESCRIPTION) as String?
         }
-
-        eventTitle = intent.extras?.get(Constants.EVENT_TITLE) as String?
-        eventDescription = intent.extras?.get(Constants.EVENT_DESCRIPTION) as String?
-        eventLocation = intent.extras?.get(Constants.EVENT_LOCATION) as LatLng?
 
         val binding: ActivityEventChooseLocationMapsBinding =
             ActivityEventChooseLocationMapsBinding.inflate(layoutInflater)
@@ -67,7 +72,12 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
         map?.let {
-            outState.putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
+            outState.run {
+                putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
+                putParcelable(Constants.LOCATION, eventLocation)
+                putString(Constants.NAME, eventTitle)
+                putString(Constants.DESCRIPTION, eventDescription)
+            }
         }
         super.onSaveInstanceState(outState)
     }
@@ -82,49 +92,31 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         getDeviceLocation()
     }
 
-    private fun updateLocationUI() {
-        if (map == null) {
-            return
+    override fun updateLocationUI() {
+        super.updateLocationUI()
+        map?.setOnMyLocationButtonClickListener {
+            resetMarkerAndMoveToNew(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
+            return@setOnMyLocationButtonClickListener true
         }
-        try {
-            map?.uiSettings?.isCompassEnabled = true
 
-            if(locationPermissionGranted) {
-                map?.isMyLocationEnabled = true
-                map?.uiSettings?.isMyLocationButtonEnabled = true
-            } else {
-                map?.isMyLocationEnabled = false
-                map?.uiSettings?.isMyLocationButtonEnabled = false
-                lastKnownLocation = null
-                getLocationPermission()
+        map?.setOnMapClickListener {
+            resetMarkerAndMoveToNew(it)
+        }
+
+        map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
+            override fun onMarkerDragStart(p0: Marker?) {
             }
 
-            map?.setOnMyLocationButtonClickListener {
-                resetMarkerAndMoveToNew(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
-                return@setOnMyLocationButtonClickListener true
+            override fun onMarkerDrag(p0: Marker?) {
             }
 
-            map?.setOnMapClickListener {
-                resetMarkerAndMoveToNew(it)
+            override fun onMarkerDragEnd(newMarker: Marker?) {
+                marker = newMarker
             }
+        })
 
-            map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
-                override fun onMarkerDragStart(p0: Marker?) {
-                }
-
-                override fun onMarkerDrag(p0: Marker?) {
-                }
-
-                override fun onMarkerDragEnd(newMarker: Marker?) {
-                    marker = newMarker
-                }
-            })
-
-            eventLocation?.let {
-                resetMarkerAndMoveToNew(it)
-            }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
+        eventLocation?.let {
+            resetMarkerAndMoveToNew(it)
         }
     }
 

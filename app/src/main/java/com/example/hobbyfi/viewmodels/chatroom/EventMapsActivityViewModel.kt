@@ -9,18 +9,18 @@ import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.repositories.EventRepository
+import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.UserGeoPointState
-import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
+import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
+import java.lang.Exception
 
 @ExperimentalCoroutinesApi
 class EventMapsActivityViewModel(
@@ -39,10 +39,6 @@ class EventMapsActivityViewModel(
         get() = eventsStateIntent.state
 
     suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
-
-    init {
-        handleIntent()
-    }
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -65,10 +61,11 @@ class EventMapsActivityViewModel(
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is UserGeoPointIntent.FetchUsersGeoPoints -> {
-
+                        getUserGeoPoints()
                     }
                     is UserGeoPointIntent.UpdateUserGeoPoint -> {
-
+                        // UserGeoPoint props handed as separate arguments because of UserGeoPoint immutability
+                        updateUserGeoPoint(it.username, it.chatroomId, it.eventIds, it.geoPoint)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -76,12 +73,26 @@ class EventMapsActivityViewModel(
         }
     }
 
-    private suspend fun getUserGeoPoints() {
+    private suspend fun updateUserGeoPoint(
+        username: String,
+        chatroomId: Long,
+        eventIds: List<Long>,
+        geoPoint: GeoPoint
+    ) {
+        mainStateIntent.setState(UserGeoPointState.Loading)
 
-    }
-
-    private suspend fun updateUserGeoPoint() {
-
+        mainStateIntent.setState(try {
+            UserGeoPointState.OnData.OnUserGeoPointSetResult(
+                eventRepository.setEventUserGeoPoints(
+                    username,
+                    chatroomId,
+                    eventIds,
+                    geoPoint
+                )
+            )
+        } catch(ex: Exception) {
+            UserGeoPointState.Error(ex.message)
+        })
     }
 
     private suspend fun deleteEventsCache(eventIds: List<Long>) {
@@ -100,5 +111,14 @@ class EventMapsActivityViewModel(
         val updatedEvent = _event.value!!.updateFromFieldMap(updateFields)
         eventRepository.saveEvent(updatedEvent)
         _event.value = updatedEvent
+    }
+
+    fun updateNewGeoPointInList(geoPoint: UserGeoPoint) {
+        _userGeoPoints.value = _userGeoPoints.value!!.replaceOrAdd(
+            geoPoint, { gp -> gp.username == geoPoint.username })
+    }
+
+    init {
+        handleIntent()
     }
 }

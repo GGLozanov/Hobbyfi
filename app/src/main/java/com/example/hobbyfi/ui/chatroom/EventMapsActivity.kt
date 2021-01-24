@@ -2,34 +2,28 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.EventBroadcastReceiverFactory
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
-import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.MapsActivity
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.lang.ref.WeakReference
 
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity() {
@@ -54,7 +48,15 @@ class EventMapsActivity : MapsActivity() {
         mapFragment.getMapAsync(this)
 
         observeEventListState()
-        observeUserGeoPoints()
+        observeUserGeoPointsState()
+
+        if(viewModel.userGeoPoints.value == null) {
+            lifecycleScope.launch {
+                viewModel.sendIntent(
+                    UserGeoPointIntent.FetchUsersGeoPoints
+                )
+            }
+        }
     }
 
     private fun observeEventListState() {
@@ -88,11 +90,32 @@ class EventMapsActivity : MapsActivity() {
         }
     }
 
-    private fun observeUserGeoPoints() {
+    private fun observeUserGeoPointsState() {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
+                    is UserGeoPointState.Idle -> {
 
+                    }
+                    is UserGeoPointState.Loading -> {
+
+                    }
+                    is UserGeoPointState.OnData.OnUsersGeoPointsResult -> {
+
+                    }
+                    is UserGeoPointState.OnData.OnUserGeoPointSetResult -> {
+                        it.setUserGeoPoint.observe(this@EventMapsActivity, Observer { geoPoint ->
+                            if(geoPoint != null) {
+                                viewModel.updateNewGeoPointInList(geoPoint)
+                            } else {
+                                viewModel.setUserGeoPoints(emptyList())
+                            }
+                        })
+                    }
+                    is UserGeoPointState.Error -> {
+
+                    }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -100,7 +123,15 @@ class EventMapsActivity : MapsActivity() {
 
     override fun onMapReady(googleMap: GoogleMap) {
         super.onMapReady(googleMap)
-        
+
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        super.onPermissionsDenied(requestCode, perms)
+        Log.i("EventMapsActivity", "User has denied location permissions. Exiting from Activity!")
+        Toast.makeText(this, Constants.requiredPermissionsDeniedError, Toast.LENGTH_LONG)
+            .show()
+        emergencyActivityExit(RESULT_OK)
     }
 
     override fun onResume() {
@@ -124,7 +155,7 @@ class EventMapsActivity : MapsActivity() {
         unregisterReceiver(deleteEventBatchReceiver)
     }
 
-    private fun emergencyActivityExit() {
+    private fun emergencyActivityExit(result: Int = RESULT_CANCELED) {
         setResult(RESULT_CANCELED)
         finish()
     }

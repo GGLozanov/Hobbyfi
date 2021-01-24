@@ -62,6 +62,7 @@ object Constants {
     const val invalidStateError: String = "Invalid state to call this method in!"
     const val firestoreDeletionError: String = "Couldn't delete Firestore records needed to have been deleted!"
     const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
+    const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val imagePermissionsRequestCode = 200

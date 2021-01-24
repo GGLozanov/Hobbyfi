@@ -9,6 +9,7 @@ import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.UserGeoPointState
@@ -23,7 +24,7 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class UserGeoPointAccessorViewModel(
     application: Application,
-    protected val _relatedEvent: Event
+    protected var _relatedEvent: Event
 ) : StateIntentViewModel<UserGeoPointState, UserGeoPointIntent>(application) {
     protected val eventRepository: EventRepository by instance(tag = "eventRepository")
 
@@ -34,16 +35,39 @@ abstract class UserGeoPointAccessorViewModel(
 
     val relatedEvent get() = _relatedEvent
 
+    protected var _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData(emptyList())
+    val userGeoPoints: LiveData<List<UserGeoPoint>> = _userGeoPoints
+
     override fun handleIntent() {
         viewModelScope.launch {
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is UserGeoPointIntent.FetchUsersGeoPoints -> {
-
+                        getUserGeoPoints()
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
             }
         }
+    }
+
+    protected fun getUserGeoPoints() {
+        mainStateIntent.setState(UserGeoPointState.Loading)
+
+        mainStateIntent.setState(try {
+            val response = eventRepository.getEventUsersGeoPoint(_relatedEvent.id)
+
+            _userGeoPoints = response
+
+            UserGeoPointState.OnData.OnUsersGeoPointsResult(
+                _userGeoPoints
+            )
+        } catch(ex: Exception) {
+            UserGeoPointState.Error(ex.message)
+        })
+    }
+
+    fun setUserGeoPoints(geoPoints: List<UserGeoPoint>) {
+        _userGeoPoints.value = geoPoints
     }
 }

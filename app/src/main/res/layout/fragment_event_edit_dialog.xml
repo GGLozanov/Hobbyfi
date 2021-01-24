@@ -9,40 +9,48 @@
             type="com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".ui.chatroom.EventEditDialogFragment">
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fadeScrollbars="false"
+        android:fillViewport="true"
+        android:visibility="visible"
+        tools:visibility="visible">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".ui.chatroom.EventEditDialogFragment">
 
-        <LinearLayout
-            android:id="@+id/event_edit_outer_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/rounded_container_layered"
-            android:orientation="vertical"
-            android:padding="10dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <include
-                android:id="@+id/event_info"
-                layout="@layout/event_info_layout"
+            <LinearLayout
+                android:id="@+id/event_edit_outer_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:eventHeaderText="@{@string/event_edit_header}"
-                app:viewModel="@{viewModel}" />
+                android:background="@drawable/rounded_container_layered"
+                android:orientation="vertical"
+                android:padding="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <include
+                    android:id="@+id/event_info"
+                    layout="@layout/event_info_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:eventHeaderText="@{@string/event_edit_header}"
+                    app:viewModel="@{viewModel}" />
 
 
-            <include
-                android:id="@+id/event_edit_dialog_button_bar"
-                layout="@layout/button_bar_pair"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center" />
+                <include
+                    android:id="@+id/event_edit_dialog_button_bar"
+                    layout="@layout/button_bar_pair"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
 
-        </LinearLayout>
+            </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 </layout>

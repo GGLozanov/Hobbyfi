@@ -12,6 +12,7 @@ import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.state.UserGeoPointState
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
+import com.google.android.gms.maps.model.Marker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -22,11 +23,18 @@ class EventDetailsViewModel(
     application: Application,
     event: Event
 ) : UserGeoPointAccessorViewModel(application, event) {
-    // TODO: Implement the ViewModel
 
-    // TODO: Fetch other users & user geopoint here (?)
-    private val _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData()
-    val userGeoPoints: LiveData<List<UserGeoPoint>> = _userGeoPoints
+    private var _lastMarker: Marker? = null
+    private val lastMarker: Marker? get() = _lastMarker
+
+    fun removeAndSetLastMarker(marker: Marker?) {
+        _lastMarker?.remove()
+        _lastMarker = marker
+    }
+
+    fun setEvent(ev: Event) {
+        this._relatedEvent = ev
+    }
 
     init {
         handleIntent()

@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Location
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -36,8 +37,31 @@ abstract class MapsActivity : AppCompatActivity(), OnMapReadyCallback, EasyPermi
         )
     }
 
+    protected open fun updateLocationUI() {
+        if (map == null) {
+            return
+        }
+        try {
+            map?.uiSettings?.isCompassEnabled = true
+
+            if (locationPermissionGranted) {
+                map?.isMyLocationEnabled = true
+                map?.uiSettings?.isMyLocationButtonEnabled = true
+            } else {
+                map?.isMyLocationEnabled = false
+                map?.uiSettings?.isMyLocationButtonEnabled = false
+                lastKnownLocation = null
+                getLocationPermission()
+            }
+        } catch (e: SecurityException) {
+            Log.e("Exception: %s", e.message, e)
+        }
+    }
+
     override fun onMapReady(gMap: GoogleMap) {
         map = gMap
+
+        updateLocationUI()
     }
 
     // TODO: Use to add icon to marker

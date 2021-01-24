@@ -41,8 +41,6 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        // TODO: Handle expired token error & logout
         binding = DataBindingUtil
             .inflate(layoutInflater, R.layout.fragment_chatroom_edit, container, false)
 

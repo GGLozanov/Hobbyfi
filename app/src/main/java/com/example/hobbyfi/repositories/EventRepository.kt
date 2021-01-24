@@ -27,7 +27,7 @@ class EventRepository(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
     hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
 ): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
-    private val _userGeoPoints: MutableStateFlow<List<UserGeoPoint>> = MutableStateFlow(emptyList())
+    private val _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData(emptyList())
     private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
     fun getEvents(chatroomId: Long): Flow<List<Event>?> {
@@ -176,7 +176,7 @@ class EventRepository(
         return _userGeoPoint
     }
 
-    fun getEventUsersGeoPoint(eventId: Long): StateFlow<List<UserGeoPoint>> {
+    fun getEventUsersGeoPoint(eventId: Long): MutableLiveData<List<UserGeoPoint>> {
         firestore.collection(Constants.LOCATIONS_COLLECTION)
             .whereArrayContains(Constants.EVENT_IDS, eventId)
             .addSnapshotListener { snapshots, e ->
@@ -200,12 +200,21 @@ class EventRepository(
     }
 
     fun setEventUserGeoPoints(username: String, chatroomId: Long,
-                              eventIds: List<Long>, location: GeoPoint): LiveData<UserGeoPoint> {
+                              eventIds: List<Long>, location: GeoPoint): LiveData<UserGeoPoint?> {
+        val observer: MutableLiveData<UserGeoPoint> = MutableLiveData()
+        if(eventIds.isEmpty()) {
+            firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
+                .delete()
+            observer.value = null
+            return observer
+        }
+
         val map = hashMapOf(
             Pair(Constants.CHATROOM_ID, chatroomId),
-            Pair(Constants.LOCATION, location)
+            Pair(Constants.LOCATION, location),
+            Pair(Constants.EVENT_IDS, eventIds)
         )
-        val observer: MutableLiveData<UserGeoPoint> = MutableLiveData()
+
         firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
             .set(map)
             .addOnSuccessListener {
