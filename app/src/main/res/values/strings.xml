@@ -133,4 +133,5 @@
     <string name="keep_date">Do you want to keep the currently selected date for the event?</string>
     <string name="current_events">Current Events</string>
     <string name="event_info">Event Information</string>
+    <string name="event_details">Event Info</string>
 </resources>

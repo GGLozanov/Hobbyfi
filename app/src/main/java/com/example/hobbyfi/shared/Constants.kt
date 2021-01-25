@@ -227,45 +227,6 @@ object Constants {
         return chatroomTopicPrefix + chatroomId
     }
 
-    fun buildYesNoAlertDialog(
-        context: Context,
-        dialogMessage: String,
-        onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
-    ) {
-        val dialog = AlertDialog.Builder(context)
-            .setMessage(dialogMessage)
-            .setPositiveButton(context.getString(R.string.yes), onConfirm)
-            .setNegativeButton(context.getString(R.string.no), onCancel)
-            .create()
-
-        dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
-        dialog.show()
-    }
-
-    inline fun <reified T: DialogFragment> showDistinctDialog(
-        fragmentManager: FragmentManager,
-        tag: String,
-        noinline instanceGenerator: () -> T
-    ) {
-        val dialog = (fragmentManager.findFragmentByTag(tag) as T?)
-            ?: instanceGenerator()
-        dialog.show(fragmentManager, tag)
-    }
-
-    inline fun <reified T: Fragment> addDistinctFragmentToBackStack(
-        fragmentManager: FragmentManager,
-        tag: String,
-        containerId: Int,
-        noinline instanceGenerator: () -> T
-    ) {
-        val fragment = (fragmentManager.findFragmentByTag(tag) as T?)
-            ?: instanceGenerator()
-        fragmentManager.commit {
-            setReorderingAllowed(true)
-            replace(containerId, fragment, tag)
-            addToBackStack(null)
-        }
-    }
 
     // dupped from API and whenever that changes, this needs to as well, but...
     // how else? Getting it from the server each time?

@@ -101,7 +101,7 @@ class EventMapsActivity : MapsActivity() {
 
                     }
                     is UserGeoPointState.OnData.OnUsersGeoPointsResult -> {
-
+                        Log.i("EventMapsActivity", "Event maps activity OnUsersGeoPointsResult: ${it.userGeoPoints}")
                     }
                     is UserGeoPointState.OnData.OnUserGeoPointSetResult -> {
                         it.setUserGeoPoint.observe(this@EventMapsActivity, Observer { geoPoint ->

@@ -21,6 +21,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomMessageBottomSheetDialogBinding
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -96,8 +97,7 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_delete_message -> {
-                Constants.buildYesNoAlertDialog(
-                    requireContext(),
+                requireContext().buildYesNoAlertDialog(
                     resources.getString(R.string.delete_message),
                     { dialogInterface, _ ->
                         dialogInterface.dismiss()

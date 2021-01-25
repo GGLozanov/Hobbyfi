@@ -1,6 +1,9 @@
 package com.example.hobbyfi.shared
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -13,8 +16,10 @@ import android.widget.GridView
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.commit
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -98,6 +103,48 @@ val FragmentManager.currentNavigationFragment: Fragment?
 fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     menu.clear()
     inflateMenu(menuId)
+}
+
+
+fun Context.buildYesNoAlertDialog(
+    dialogMessage: String,
+    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
+) {
+    val dialog = AlertDialog.Builder(this)
+        .setMessage(dialogMessage)
+        .setPositiveButton(getString(R.string.yes), onConfirm)
+        .setNegativeButton(getString(R.string.no), onCancel)
+        .create()
+
+    dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
+    dialog.show()
+}
+
+inline fun <reified T: DialogFragment> FragmentManager.showDistinctDialog(
+    tag: String,
+    noinline instanceGenerator: () -> T,
+    targetFragment: Fragment? = null
+) {
+    val dialog = (findFragmentByTag(tag) as T?)
+        ?: instanceGenerator()
+    targetFragment?.let {
+        dialog.setTargetFragment(it, 400)
+    }
+    dialog.show(this, tag)
+}
+
+inline fun <reified T: Fragment> FragmentManager.addDistinctFragmentToBackStack(
+    tag: String,
+    containerId: Int,
+    noinline instanceGenerator: () -> T
+) {
+    val fragment = (findFragmentByTag(tag) as T?)
+        ?: instanceGenerator()
+    commit {
+        setReorderingAllowed(true)
+        add(containerId, fragment, tag)
+        addToBackStack(tag)
+    }
 }
 
 fun <T, K, R> LiveData<T>.combineWith(

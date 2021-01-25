@@ -21,6 +21,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -69,8 +70,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             settingsButtonBar.leftButton.setOnClickListener { // delete account button
-                Constants.buildYesNoAlertDialog(
-                    requireContext(),
+                requireContext().buildYesNoAlertDialog(
                     Constants.confirmAccountDeletionMessage,
                     { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {

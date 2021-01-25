@@ -1,9 +1,11 @@
 package com.example.hobbyfi.adapters.user
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.paging.ExperimentalPagingApi
 import androidx.recyclerview.widget.RecyclerView
@@ -77,7 +79,9 @@ class ChatroomUserListAdapter(
         override val signatureGenerator: (position: Int) -> ObjectKey = {
             ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time))
         }
-        override val defaultPicResId: Int = R.drawable.user_default_pic
+        override val defaultPicDrawable: Drawable by lazy {
+            ContextCompat.getDrawable(itemView.context, R.drawable.user_default_pic)!!
+        }
     }
 
     fun setUsers(users: List<User>) {

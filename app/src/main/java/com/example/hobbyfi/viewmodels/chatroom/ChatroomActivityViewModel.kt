@@ -40,7 +40,7 @@ class ChatroomActivityViewModel(
     private var _authUserGeoPoint: StateFlow<UserGeoPoint?> by Delegates.notNull()
     val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
 
-    fun setAuthEvents(events: List<Event>) {
+    fun setAuthEvents(events: List<Event>?) {
         _authEvents.value = events
     }
 
@@ -82,15 +82,20 @@ class ChatroomActivityViewModel(
                             .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
                     is EventListIntent.DeleteAnEventCache -> {
+                        eventsStateIntent.setState(EventListState.Idle)
                         if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
                             updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
                                 .toJson(authChatroom.value!!.eventIds?.filter { eventId -> eventId != it.eventId }))))
+                            eventsStateIntent.setState(EventListState.OnData.DeleteAnEventCacheResult(it.eventId))
                         }
                     }
                     is EventListIntent.DeleteOldEventsCache -> {
                         // TODO: wire up this with delete_old events in repo and API
                         deleteOldEvents()
+                    }
+                    is EventListIntent.DeleteEventsCache -> {
+                        deleteOldEventsCache(it.eventIds, true)
                     }
                     is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
@@ -98,7 +103,6 @@ class ChatroomActivityViewModel(
                     is EventListIntent.FetchEvents -> {
                         fetchEvents()
                     }
-                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -226,11 +230,7 @@ class ChatroomActivityViewModel(
             val response = eventRepository.deleteOldEvents()
                 ?: throw IllegalStateException(Constants.invalidStateError)
 
-            eventRepository.deleteEventsCache(response.modelList)
-            updateAndSaveChatroom(mapOf(
-                Pair(Constants.EVENT_IDS,
-                    Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !response.modelList.contains(it) }))
-            ))
+            deleteOldEventsCache(response.modelList, false)
 
             EventListState.OnData.DeleteOldEventsResult(response.modelList)
         } catch(ex: Exception) {
@@ -245,6 +245,22 @@ class ChatroomActivityViewModel(
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {
         // TODO: Add setState bool?
         userRepository.deleteUserCache(id, shouldWritePrefTime)
+    }
+
+    private suspend fun deleteOldEventsCache(eventIds: List<Long>, setState: Boolean) {
+        val success = eventRepository.deleteEventsCache(eventIds)
+        if(success) {
+            updateAndSaveChatroom(mapOf(
+                Pair(Constants.EVENT_IDS,
+                    Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
+            ))
+        }
+
+        if(setState) {
+            eventsStateIntent.setState(if(success)
+                EventListState.OnData.DeleteEventsCacheResult(eventIds)
+            else EventListState.Error(Constants.cacheDeletionError))
+        }
     }
 
     private fun setCurrentUsers(users: List<User>) {

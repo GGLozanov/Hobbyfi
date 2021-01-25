@@ -1,7 +1,9 @@
 package com.example.hobbyfi.adapters.chatroom
 
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.GridView
+import androidx.core.content.ContextCompat
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -70,7 +72,9 @@ abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
                 Constants.chatroomPageSize
             )
         }
-        override val defaultPicResId: Int = R.drawable.chatroom_default_pic
+        override val defaultPicDrawable: Drawable by lazy {
+            ContextCompat.getDrawable(itemView.context, R.drawable.chatroom_default_pic)!!
+        }
 
         abstract val tagsGridView: GridView
         abstract val chatroomJoinButton: MaterialButton

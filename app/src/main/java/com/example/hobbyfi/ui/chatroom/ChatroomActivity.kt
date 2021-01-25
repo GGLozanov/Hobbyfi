@@ -16,6 +16,7 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
@@ -100,6 +101,7 @@ class ChatroomActivity : BaseActivity(),
 
             restartIntent.putExtras(intent)
 
+            viewModel.setAuthEvents(null) // reset events for re-fetch
             TaskStackBuilder.create(this)
                 .addNextIntentWithParentStack(restartIntent)
                 .startActivities(intent.extras)
@@ -150,17 +152,16 @@ class ChatroomActivity : BaseActivity(),
         super.onStart()
 
         binding.navViewAdmin.setupWithNavController(navController)
-
         // TODO: Register delete/update BroadcastReceive with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
 
         observeChatroomState()
+        observeChatroom()
         observeUsers()
         observeUserState()
         observeUsersState()
         observeEventsState()
         observeEvents()
-        observeChatroom()
         observeChatroomOwnRights()
     }
 
@@ -284,10 +285,18 @@ class ChatroomActivity : BaseActivity(),
                         )
                     }
                     is EventListState.OnData.DeleteEventsCacheResult -> {
-
+                        Log.i("ChatroomActivity", "Received DeleteEventsCacheResult state! Deleted events id: ${it.eventIds}. Attempting to pop event fragment off backstack!")
+                        it.eventIds.forEach { id ->
+                            supportFragmentManager.popBackStack(id.toString(), FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                        }
+                    }
+                    is EventListState.OnData.DeleteAnEventCacheResult -> {
+                        Log.i("ChatroomActivity", "Received DeleteAnEventCacheResult state! Deleted event id: ${it.eventId}. Attempting to pop event fragment off backstack!")
+                        // TODO: Check if fragment visible, show toast, and pop
+                        supportFragmentManager.popBackStack(it.eventId.toString(), FragmentManager.POP_BACK_STACK_INCLUSIVE)
                     }
                     is EventListState.Error -> {
-                        handleAuthActionableError(it.error + " EVENTLIST", it.shouldReauth)
+                        handleAuthActionableError(it.error, it.shouldReauth)
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -306,6 +315,7 @@ class ChatroomActivity : BaseActivity(),
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer { chatroom ->
             if (chatroom != null) {
+                // TODO: Remove
                 if (supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
                     title = chatroom.name
                 }
@@ -328,8 +338,7 @@ class ChatroomActivity : BaseActivity(),
                         // TODO: On Chatroom deletes -> if no more events left, set authChatroom eventIds to  null
                         navViewAdmin.menu.findItem(R.id.action_delete_chatroom)
                             .setOnMenuItemClickListener {
-                                Constants.buildYesNoAlertDialog(
-                                    this@ChatroomActivity,
+                                this@ChatroomActivity.buildYesNoAlertDialog(
                                     Constants.confirmChatroomDeletionMessage,
                                     { dialogInterface: DialogInterface, _: Int ->
                                         lifecycleScope.launch {
@@ -345,12 +354,9 @@ class ChatroomActivity : BaseActivity(),
                             }
                         navViewAdmin.menu.findItem(R.id.action_event_selection)
                             .setOnMenuItemClickListener {
-                                Constants.showDistinctDialog(
-                                    supportFragmentManager,
-                                    Constants.EVENT_SELECTION
-                                ) {
+                                supportFragmentManager.showDistinctDialog(Constants.EVENT_SELECTION, {
                                     EventAdminSelectionBottomSheetDialogFragment.newInstance()
-                                }
+                                })
                                 return@setOnMenuItemClickListener true
                             }
                     }
@@ -363,7 +369,6 @@ class ChatroomActivity : BaseActivity(),
                         .signature(
                             ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
                         )
-                        // calculate current page based on item position
                         .into(headerBinding.chatroomImage)
                 }
 
@@ -445,13 +450,14 @@ class ChatroomActivity : BaseActivity(),
                     )
                 )
 
-                binding.toolbar.navigationIcon =
-                    ContextCompat.getDrawable(
-                        this@ChatroomActivity,
-                        if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment)
-                                R.drawable.ic_baseline_admin_panel_settings_24
-                        else { R.drawable.ic_baseline_arrow_back_24 }
-                    )
+                // TODO: Remove
+                if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+                    binding.toolbar.navigationIcon =
+                        ContextCompat.getDrawable(
+                            this@ChatroomActivity,
+                            R.drawable.ic_baseline_admin_panel_settings_24
+                        )
+                }
 
                 drawerLayout.setDrawerLockMode(
                     DrawerLayout.LOCK_MODE_UNDEFINED,
@@ -567,23 +573,17 @@ class ChatroomActivity : BaseActivity(),
             }
 
             eventCalendar.selectionMode = SELECTION_MODE_SINGLE
-            eventCalendar.setOnDateChangedListener { calendar, date, selected ->
+            eventCalendar.setOnDateChangedListener { calendar, date, _ ->
                 Log.i("ChatroomActivity", "Calendar selected events: ${calendar.selectedDates}")
-                val hasAtLeastOneEvent = viewModel!!.authEvents.value?.any {
-                    date == it.calendarDayFromDate }
-                if(hasAtLeastOneEvent == false && selected) {
-                    Log.i(
-                        "ChatroomActivity",
-                        "Calendar selected event outside event dates. Selected date: $date"
-                    )
-                    calendar.setDateSelected(date, false)
-                    return@setOnDateChangedListener
-                }
 
                 Log.i("ChatroomActivity", "Calendar selected event with date: $date")
-                Constants.showDistinctDialog(supportFragmentManager, Constants.EVENT_SELECTION) {
+                calendar.isEnabled = false
+                supportFragmentManager.showDistinctDialog(Constants.EVENT_SELECTION, {
                     EventCalendarSelectionBottomSheetDialogFragment.newInstance(date)
-                }
+                })
+                calendar.postDelayed({
+                    calendar.isEnabled = true
+                 },1000) // antispam
             }
         }
     }
@@ -635,15 +635,4 @@ class ChatroomActivity : BaseActivity(),
         unregisterReceiver(deleteBatchEventReceiver)
         unregisterReceiver(deleteEventReceiver)
     }
-    
-
-//    fun enableNavDrawer(isEnabled: Boolean) {
-//        supportActionBar!!.setDisplayHomeAsUpEnabled(isEnabled)
-//        supportActionBar!!.setHomeButtonEnabled(isEnabled)
-//        if (isEnabled) {
-//            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-//        } else {
-//            binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-//        }
-//    }
 }

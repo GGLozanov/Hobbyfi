@@ -16,6 +16,8 @@ import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.buildYesNoAlertDialog
+import com.example.hobbyfi.shared.showDistinctDialog
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.viewmodels.chatroom.EventSelectionBottomSheetDialogFragmentViewModel
@@ -36,17 +38,16 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
             eventsSource.value ?: emptyList(),
             { v: View, event: Event ->
                 v.isEnabled = false
-                val dialog = (parentFragmentManager.findFragmentByTag(event.id.toString())
-                        as EventEditDialogFragment?)
-                    ?: EventEditDialogFragment.newInstance(event)
-                dialog.setTargetFragment(this, 400)
-                dialog.show(parentFragmentManager, event.id.toString())
+                parentFragmentManager.showDistinctDialog(
+                    event.id.toString(),
+                    { EventEditDialogFragment.newInstance(event) },
+                    this
+                )
                 v.postDelayed({
                     v.isEnabled = true
                 }, 1000) // event card tap antispam
             }, { _: View, event: Event ->
-                Constants.buildYesNoAlertDialog(
-                    requireContext(),
+                requireContext().buildYesNoAlertDialog(
                     requireContext().getString(R.string.delete_event),
                     { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {
@@ -70,8 +71,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
        val view = super.onCreateView(inflater, container, savedInstanceState)
 
         view.findViewById<MaterialButton>(R.id.delete_old_events_button).setOnClickListener {
-            Constants.buildYesNoAlertDialog(
-                requireContext(),
+            requireContext().buildYesNoAlertDialog(
                 requireContext().getString(R.string.delete_events_batch),
                 { dialogInterface: DialogInterface, _: Int ->
                     lifecycleScope.launch {

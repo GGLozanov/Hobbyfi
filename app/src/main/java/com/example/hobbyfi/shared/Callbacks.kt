@@ -198,8 +198,7 @@ object Callbacks {
         viewModel: EventAccessorViewModel
     ) {
         dialog.setOnCancelListener {
-            Constants.buildYesNoAlertDialog(
-                context,
+            context.buildYesNoAlertDialog(
                 context.resources.getString(R.string.keep_date),
                 { dialogInterface: DialogInterface, _: Int ->
                     dialogInterface.dismiss()

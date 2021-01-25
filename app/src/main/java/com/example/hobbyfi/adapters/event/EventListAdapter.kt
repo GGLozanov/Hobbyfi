@@ -1,9 +1,11 @@
 package com.example.hobbyfi.adapters.event
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.paging.ExperimentalPagingApi
 import androidx.recyclerview.widget.RecyclerView
@@ -55,7 +57,9 @@ class EventListAdapter(
         override val mainImageView: ImageView = binding.eventImage
         override val signatureGenerator: (position: Int) -> ObjectKey = { _: Int ->
             ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time)) }
-        override val defaultPicResId: Int = R.drawable.event_default_pic
+        override val defaultPicDrawable: Drawable by lazy {
+            ContextCompat.getDrawable(itemView.context, R.drawable.event_default_pic)!!
+        }
 
         companion object {
             fun getInstance(parent: ViewGroup, prefConfig: PrefConfig, ownerDisplay: Boolean): EventViewHolder {

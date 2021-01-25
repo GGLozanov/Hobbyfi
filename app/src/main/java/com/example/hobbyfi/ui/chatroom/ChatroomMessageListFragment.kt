@@ -146,12 +146,11 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
             activityViewModel.chatroomUsers.value ?: emptyList()
         ) { _, message ->
             // reuse fragment for distinct messages when they don't change
-
-            Constants.showDistinctDialog(parentFragmentManager, message.message) {
+            parentFragmentManager.showDistinctDialog(message.message, {
                 ChatroomMessageBottomSheetDialogFragment.newInstance(
                     message
                 )
-            }
+            })
             return@ChatroomMessageListAdapter true
         }
 

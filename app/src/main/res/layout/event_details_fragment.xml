@@ -4,6 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <import type="android.view.View"/>
+
         <variable
             name="viewModel"
             type="com.example.hobbyfi.viewmodels.chatroom.EventDetailsViewModel" />
@@ -66,10 +68,11 @@
                         android:layout_marginBottom="10dp"
                         android:adjustViewBounds="true"
                         android:background="@drawable/rounded_container_thick"
+                        android:src="@drawable/event_default_pic"
+                        app:srcCompat="@drawable/event_default_pic"
                         android:cropToPadding="true"
                         android:padding="5dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/event_default_pic" />
+                        android:scaleType="centerCrop" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/event_name"
@@ -79,6 +82,7 @@
                         android:ellipsize="marquee"
                         android:maxWidth="250dp"
                         android:text="@{viewModel.relatedEvent.name}"
+                        android:visibility="@{viewModel.relatedEvent.name.empty ? View.GONE : View.VISIBLE}"
                         android:textSize="20sp" />
 
                     <com.google.android.material.textview.MaterialTextView
@@ -90,6 +94,7 @@
                         android:ellipsize="marquee"
                         android:maxWidth="250dp"
                         android:text="@{viewModel.relatedEvent.description}"
+                        android:visibility="@{viewModel.relatedEvent.description == null ? View.GONE : View.VISIBLE}"
                         android:textSize="20sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -120,14 +125,32 @@
                         app:cardCornerRadius="10dp"
                         app:cardElevation="8dp">
 
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/users_list"
+                        <FrameLayout
+                            android:id="@+id/users_list_layout"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginBottom="8dp">
+                            android:layout_gravity="bottom">
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/no_users_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:padding="10dp"
+                                android:text="@string/no_events"
+                                android:textSize="36sp"
+                                android:textStyle="bold"
+                                android:visibility="gone">
+                            </com.google.android.material.textview.MaterialTextView>
 
-                        </androidx.recyclerview.widget.RecyclerView>
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/users_list"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginBottom="8dp">
+
+                            </androidx.recyclerview.widget.RecyclerView>
+                        </FrameLayout>
                     </com.google.android.material.card.MaterialCardView>
 
                     <com.google.android.material.card.MaterialCardView
@@ -166,25 +189,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
-                    <RelativeLayout
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/maps_actions_layout"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignEnd="@id/map_preview"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@id/map_preview"
-                        android:layout_marginStart="8dp"
                         app:layout_constraintTop_toTopOf="parent">
 
                         <com.google.android.material.textview.MaterialTextView
                             android:id="@+id/days_left_header"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
                             android:maxWidth="100dp"
                             android:maxLines="3"
                             android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toTopOf="@id/event_view_button_bar"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
 
                         <include
                             android:id="@+id/event_view_button_bar"
@@ -192,8 +218,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignBaseline="@id/days_left_header"
-                            android:layout_marginBottom="16dp" />
-                    </RelativeLayout>
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/days_left_header" />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <com.google.android.gms.maps.MapView
                         android:id="@+id/map_preview"

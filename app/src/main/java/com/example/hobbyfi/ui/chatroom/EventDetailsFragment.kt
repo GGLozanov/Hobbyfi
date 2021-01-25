@@ -182,8 +182,19 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     private fun initEventButtons() {
         with(binding.eventViewButtonBar) {
             leftButton.setOnClickListener {
-                // TODO: send new usergeopoint without event id to FireStore
-
+                activityViewModel.authUserGeoPoint.value?.let {
+                    lifecycleScope.launch {
+                        val (username, chatroomId, eventIds, geoPoint) = it
+                        viewModel.sendIntent(
+                            UserGeoPointIntent.UpdateUserGeoPoint(
+                                username,
+                                chatroomId,
+                                eventIds.filter { id -> id != viewModel.relatedEvent.id },
+                                geoPoint
+                            )
+                        )
+                    }
+                }
                 parentFragmentManager.popBackStack()
             }
             leftButton.isVisible = activityViewModel.authUserGeoPoint.value != null
@@ -202,7 +213,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             usersList.setParamsBasedOnScreenOrientation(
                 requireActivity(),
                 3,
-                2,
+                3,
                 2,
                 3
             )
@@ -227,6 +238,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     private fun observeEventUsers() {
         usersSource.observe(viewLifecycleOwner, Observer {
             Log.i("EventDetailsFragment", "Users from users source: $it")
+            binding.noUsersText.isVisible = it.isEmpty()
+            binding.usersList.isVisible = it.isNotEmpty()
+
             userListAdapter.setUsers(it)
         })
     }
@@ -240,7 +254,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     Glide.with(requireContext())
                         .load(it.photoUrl)
                         .into(binding.eventImage)
-                    setToolbarTitleWithEventName()
+                    setToolbarTitle()
                     setCalendarDateData()
                     map?.let { m -> setMapsData(m) }
                 }
@@ -260,6 +274,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
 
     override fun setViewParamsOnRotationChange() {
         with(binding) {
+            // FIXME: Code dup by adding these as extension funcs scoped to the given views
             mapPreview.setParamsBasedOnScreenOrientation(
                 requireActivity(),
                 3,
@@ -274,18 +289,25 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                 2,
                 3
             )
+            usersList.setParamsBasedOnScreenOrientation(
+                requireActivity(),
+                3,
+                3,
+                2,
+                3
+            )
         }
     }
 
     @ExperimentalCoroutinesApi
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        setToolbarTitleWithEventName()
+        setToolbarTitle()
     }
 
-    private fun setToolbarTitleWithEventName() {
+    private fun setToolbarTitle() {
         val activity = requireActivity() as ChatroomActivity
-        activity.title = viewModel.relatedEvent.name
+        activity.title = resources.getString(R.string.event_details)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -16,6 +16,7 @@ import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.addDistinctFragmentToBackStack
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
 import com.prolificinteractive.materialcalendarview.CalendarDay
@@ -36,8 +37,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
             { v: View, event: Event ->
                 v.isEnabled = false
 
-                Constants.addDistinctFragmentToBackStack(
-                    parentFragmentManager,
+                parentFragmentManager.addDistinctFragmentToBackStack(
                     event.id.toString(),
                     R.id.nav_host_fragment
                 ) { EventDetailsFragment.newInstance(event) }
