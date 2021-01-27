@@ -25,6 +25,7 @@ import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventAccessorViewModel
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.FirebaseException
 import com.google.firebase.messaging.FirebaseMessaging
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView
 import io.jsonwebtoken.ExpiredJwtException
@@ -106,14 +107,13 @@ object Callbacks {
         ) // start activity and await result
     }
 
-    fun requestLocationForEventCreate(
+    fun requestLocationForMapsAccess(
         activity: Activity,
         permissionRequestCode: Int = Constants.locationPermissionsRequestCode
     ): Boolean {
         return if(EasyPermissions.hasPermissions(
                 activity,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-            )) {
+                Manifest.permission.ACCESS_FINE_LOCATION,)) {
             true
         } else {
             EasyPermissions.requestPermissions(
@@ -258,7 +258,7 @@ object Callbacks {
     fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
         ex.printStackTrace()
         when(ex) {
-            is HobbyfiAPI.NoConnectivityException -> throw Exception(Constants.noConnectionError)
+            is HobbyfiAPI.NoConnectivityException, is FirebaseException -> throw Exception(Constants.noConnectionError)
             is HttpException -> {
                 when (ex.code()) {
                     400 -> { // bad request (missing data)
@@ -294,7 +294,7 @@ object Callbacks {
                 else Repository.ReauthenticationException(Constants.expiredTokenError)
             }
             is Repository.ReauthenticationException,
-            TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
+                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
             else -> throw if(ex is SocketTimeoutException)
                 Repository.ReauthenticationException(Constants.serverConnectionError)
                     else Repository.UnknownErrorException(Constants.unknownError(ex.message))

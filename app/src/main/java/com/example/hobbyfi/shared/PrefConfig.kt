@@ -125,6 +125,34 @@ class PrefConfig(private val context: Context) {
         )
     }
 
+    fun writeRequestingLocationUpdates(requesting: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_requesting_location_updates),
+            requesting
+        ).apply()
+    }
+
+    fun resetRequestingLocationUpdates() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_requesting_location_updates)).apply()
+    }
+
+    fun readRequestingLocationUpdates(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_requesting_location_updates),
+            false
+        )
+    }
+
+    fun registerPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun unregisterPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())

@@ -101,7 +101,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
         mainStateIntent.setState(try {
             val result = UserState.OnData.UserUpdateResult(
-                userRepository.editUser(userFields),
+                userRepository.editUser(userFields, authUser.value!!.name),
                 userFields
             )
 

@@ -9,6 +9,7 @@ import android.net.*
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
@@ -18,6 +19,7 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
 
     override val kodein: Kodein by kodein(context)
     private val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
+    private val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     private lateinit var connectivityManagerCallback: ConnectivityManager.NetworkCallback
 
@@ -40,7 +42,7 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
                 lollipopNetworkAvailableRequest()
             else -> {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                    context.registerReceiver(networkReceiver, IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")) // android.net.ConnectivityManager.CONNECTIVITY_ACTION
+                    localBroadcastManager.registerReceiver(networkReceiver, IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")) // android.net.ConnectivityManager.CONNECTIVITY_ACTION
                 }
             }
         }
@@ -51,7 +53,7 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             connectivityManager.unregisterNetworkCallback(connectivityManagerCallback)
         } else {
-            context.unregisterReceiver(networkReceiver)
+            localBroadcastManager.unregisterReceiver(networkReceiver)
         }
     }
 

@@ -60,7 +60,8 @@ object Constants {
     const val fcmTopicError: String = "Couldn't access realtime messaging services! Please check your connection or consult with Google, as this error is not ours!"
     const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
     const val invalidStateError: String = "Invalid state to call this method in!"
-    const val firestoreDeletionError: String = "Couldn't delete Firestore records needed to have been deleted!"
+    const val firestoreDeletionError: String = "Couldn't delete remote source records needed to have been deleted!"
+    const val firestoreUpdateError: String = "Couldn't update remote source records that needed to have been updated!"
     const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
     const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
@@ -292,6 +293,11 @@ object Constants {
     const val EVENT_SELECTION: String = "EVENT_SELECTION"
     const val EVENT: String = "EVENT"
     const val CALENDAR_DAY: String = "CALENDAR_DAY"
+
+    const val UPDATED_LOCATION: String = "UPDATED_LOCATION"
+    const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
+    const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
+    const val USER_GEO_POINT: String = "USER_GEO_POINT"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

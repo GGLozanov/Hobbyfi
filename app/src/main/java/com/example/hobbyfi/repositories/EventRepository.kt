@@ -212,7 +212,7 @@ class EventRepository(
         val map = hashMapOf(
             Pair(Constants.CHATROOM_ID, chatroomId),
             Pair(Constants.LOCATION, location),
-            Pair(Constants.EVENT_IDS, eventIds)
+            Pair(Constants.EVENT_IDS, eventIds),
         )
 
         firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
@@ -222,7 +222,7 @@ class EventRepository(
                 observer.value = UserGeoPoint(username, chatroomId, eventIds, location)
             }
             .addOnFailureListener {
-                throw it
+                throw FirebaseException(Constants.firestoreUpdateError)
             }
         return observer
     }

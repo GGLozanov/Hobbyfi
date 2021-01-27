@@ -75,15 +75,38 @@ class UserRepository @ExperimentalPagingApi constructor(
         }.asFlow()
     }
 
-    suspend fun editUser(userFields: Map<String?, String?>): Response? {
+    suspend fun editUser(userFields: Map<String?, String?>, originalUsername: String): Response? {
         Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
+            // renaming/resetting geopoint records
+            if(userFields.containsKey(Constants.USERNAME)) {
+                val username = userFields[Constants.USERNAME]
+                    ?: error("Username in editUser UserRepository call must not be null after check for contains()!")
+                firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
+                    .get().addOnSuccessListener {
+                        if(it != null && it.exists() && it.data != null
+                                && it.data!!.isNotEmpty()) {
+                            firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
+                                .set(it.data!!).addOnSuccessListener {
+                                    firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
+                                        .delete()
+                                }.addOnFailureListener {
+                                    throw FirebaseException(Constants.firestoreUpdateError)
+                                }
+                        } else {
+                            Log.w("UserRepository", "Found   but couldn't ")
+                        }
+                    }.addOnFailureListener {
+                        throw FirebaseException(Constants.firestoreDeletionError)
+                    }
+            }
+
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
                 userFields
             )
         }, {
-            editUser(userFields) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
+            editUser(userFields, originalUsername) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
         })
     }
 

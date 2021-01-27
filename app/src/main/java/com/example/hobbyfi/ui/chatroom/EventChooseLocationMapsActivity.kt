@@ -1,33 +1,24 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
-import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventChooseLocationMapsBinding
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.MapsActivity
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
 class EventChooseLocationMapsActivity : MapsActivity() {
@@ -36,6 +27,9 @@ class EventChooseLocationMapsActivity : MapsActivity() {
     private var eventTitle: String? = null
     private var eventDescription: String? = null
     private var eventLocation: LatLng? = null
+
+    // location retrieved by the Fused Location Provider.
+    private var lastKnownLocation: Location? = null
 
     private var exitFromConfirm = false
 
@@ -87,13 +81,15 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
         getLocationPermission()
 
-        updateLocationUI()
-
         getDeviceLocation()
     }
 
     override fun updateLocationUI() {
         super.updateLocationUI()
+        if(!locationPermissionGranted) {
+            lastKnownLocation = null
+        }
+
         map?.setOnMyLocationButtonClickListener {
             resetMarkerAndMoveToNew(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
             return@setOnMyLocationButtonClickListener true
@@ -161,6 +157,10 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         updateLocationUI()
     }
 
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        // not much to do for now, I guess?
+    }
+
     override fun onBackPressed() {
         if(!exitFromConfirm) {
             val dialog = AlertDialog.Builder(this)
@@ -187,7 +187,18 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
     private fun resetMarkerAndMoveToNew(latLng: LatLng) {
         marker?.remove()
-        marker = moveMarkerAndCamera(latLng, eventTitle, eventDescription)
+        marker = addMarkerAndAnimateCamera(latLng, eventTitle, eventDescription)
+    }
+
+    private fun addMarkerAndAnimateCamera(latLng: LatLng, title: String? = null, description: String? = null): Marker? {
+        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
+        return map?.addMarker(
+            MarkerOptions()
+                .title(title)
+                .snippet(description)
+                .draggable(true)
+                .position(latLng)
+        )
     }
 
     private fun sendMarkerLocationResultBack() {

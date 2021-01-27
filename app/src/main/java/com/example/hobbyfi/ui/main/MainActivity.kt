@@ -25,6 +25,7 @@ import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.ui.base.OnAuthStateReset
 import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
@@ -35,7 +36,7 @@ import kotlinx.coroutines.flow.collect
 
 
 @ExperimentalCoroutinesApi
-class MainActivity : BaseActivity(), OnAuthStateReset {
+class MainActivity : NavigationActivity(), OnAuthStateReset {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
         AuthUserViewModelFactory(application, if (intent.extras != null) args.user else null)
     })
@@ -82,8 +83,8 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-        registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
-        registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
+        localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
+        localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
 
         with(binding) {
             val view = root
@@ -252,7 +253,7 @@ class MainActivity : BaseActivity(), OnAuthStateReset {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(chatroomDeletedReceiver)
-        unregisterReceiver(authStateReceiver)
+        localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
+        localBroadcastManager.unregisterReceiver(authStateReceiver)
     }
 }

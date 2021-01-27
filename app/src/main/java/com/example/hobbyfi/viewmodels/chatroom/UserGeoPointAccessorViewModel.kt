@@ -14,6 +14,7 @@ import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.UserGeoPointState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
+import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,10 +46,36 @@ abstract class UserGeoPointAccessorViewModel(
                     is UserGeoPointIntent.FetchUsersGeoPoints -> {
                         getUserGeoPoints()
                     }
+                    is UserGeoPointIntent.UpdateUserGeoPoint -> {
+                        // UserGeoPoint props handed as separate arguments because of UserGeoPoint immutability
+                        updateUserGeoPoint(it.username, it.chatroomId, it.eventIds, it.geoPoint)
+                    }
                     else -> throw Intent.InvalidIntentException()
                 }
             }
         }
+    }
+
+    protected suspend fun updateUserGeoPoint(
+        username: String,
+        chatroomId: Long,
+        eventIds: List<Long>,
+        geoPoint: GeoPoint
+    ) {
+        mainStateIntent.setState(UserGeoPointState.Loading)
+
+        mainStateIntent.setState(try {
+            UserGeoPointState.OnData.OnUserGeoPointSetResult(
+                eventRepository.setEventUserGeoPoints(
+                    username,
+                    chatroomId,
+                    eventIds,
+                    geoPoint
+                )
+            )
+        } catch(ex: java.lang.Exception) {
+            UserGeoPointState.Error(ex.message)
+        })
     }
 
     protected fun getUserGeoPoints() {

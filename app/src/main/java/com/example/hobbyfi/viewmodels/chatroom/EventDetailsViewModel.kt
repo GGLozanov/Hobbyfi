@@ -36,6 +36,13 @@ class EventDetailsViewModel(
         this._relatedEvent = ev
     }
 
+    private var _invokedJoinEventButton: Boolean = false
+    val invokedJoinEventButton get() = _invokedJoinEventButton
+
+    fun setInvokedJoinEventButton(invoked: Boolean) {
+        _invokedJoinEventButton = invoked
+    }
+
     init {
         handleIntent()
     }

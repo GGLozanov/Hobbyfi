@@ -128,9 +128,9 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         editMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
         deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
 
-        activity.registerReceiver(createMessageReceiver, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
-        activity.registerReceiver(editMessageReceiver, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
-        activity.registerReceiver(deleteMessageReceiver, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(createMessageReceiver!!, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(editMessageReceiver!!, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(deleteMessageReceiver!!, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
     }
 
     override fun onCreateView(
@@ -181,7 +181,9 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
             observeUsers()
             observeMessageState()
             observeMessagesState()
-            observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity).refreshConnectivityMonitor)
+            observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity)
+                .refreshConnectivityMonitor
+            )
 
             return@onCreateView root
         }
@@ -366,9 +368,9 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         val activity = requireActivity()
 
         if(!activity.isTaskRoot) {
-            activity.unregisterReceiver(createMessageReceiver)
-            activity.unregisterReceiver(editMessageReceiver)
-            activity.unregisterReceiver(deleteMessageReceiver)
+            localBroadcastManager.unregisterReceiver(createMessageReceiver!!)
+            localBroadcastManager.unregisterReceiver(editMessageReceiver!!)
+            localBroadcastManager.unregisterReceiver(deleteMessageReceiver!!)
         }
     }
 

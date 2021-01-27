@@ -4,6 +4,7 @@ import android.content.Context
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.api.HobbyfiAPI
@@ -32,6 +33,9 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         }
         bind(tag = "locationManager") from singleton { applicationContext!!.getSystemService(
             Context.LOCATION_SERVICE) as LocationManager
+        }
+        bind(tag = "localBroadcastManager") from singleton {
+            LocalBroadcastManager.getInstance(applicationContext!!)
         }
         bind(tag = "api") from singleton { HobbyfiAPI.invoke(instance(tag = "connectivityManager")) }
         bind(tag = "database") from singleton { HobbyfiDatabase.getInstance(context = applicationContext) }

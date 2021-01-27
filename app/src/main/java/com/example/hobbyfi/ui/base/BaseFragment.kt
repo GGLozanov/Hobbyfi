@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.shared.Callbacks
@@ -26,6 +27,7 @@ abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.Permissio
         // no need for weakreference this time because PrefConfig will use appContext!
     protected lateinit var navController: NavController
     protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
+    protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

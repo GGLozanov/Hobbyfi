@@ -38,6 +38,7 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
@@ -54,7 +55,7 @@ import org.kodein.di.generic.instance
 import java.util.*
 
 @ExperimentalCoroutinesApi
-class ChatroomActivity : BaseActivity(),
+class ChatroomActivity : NavigationActivity(),
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, RefreshConnectionAware {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
@@ -206,7 +207,7 @@ class ChatroomActivity : BaseActivity(),
                             "Successfully deleted chatroom!",
                             Toast.LENGTH_LONG
                         ).show()
-                        sendBroadcast(Intent(Constants.CHATROOM_DELETED)
+                        localBroadcastManager.sendBroadcast(Intent(Constants.CHATROOM_DELETED)
                             .apply {
                                 putExtra(
                                     Constants.CHATROOM_ID,
@@ -523,7 +524,7 @@ class ChatroomActivity : BaseActivity(),
         if(shouldExit) {
             finish()
             // TODO: Add another field (shouldReauth) for REALLY bad errors
-            sendBroadcast(Intent(Constants.LOGOUT))
+            localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
         }
     }
 
@@ -613,26 +614,30 @@ class ChatroomActivity : BaseActivity(),
         deleteBatchEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_BATCH_TYPE)
         deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
 
-        registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
-        registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
-        registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
-        registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
-        registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
-        registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
-        registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
-        registerReceiver(deleteBatchEventReceiver, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
-        registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
+        with(localBroadcastManager) {
+            registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
+            registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
+            registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
+            registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
+            registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
+            registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
+            registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
+            registerReceiver(deleteBatchEventReceiver, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
+            registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
+        }
     }
 
     private fun unregisterCRUDReceivers() {
-        unregisterReceiver(editChatroomReceiver)
-        unregisterReceiver(deleteChatroomReceiver)
-        unregisterReceiver(editUserReceiver)
-        unregisterReceiver(joinUserReceiver)
-        unregisterReceiver(leaveUserReceiver)
-        unregisterReceiver(createEventReceiver)
-        unregisterReceiver(editEventReceiver)
-        unregisterReceiver(deleteBatchEventReceiver)
-        unregisterReceiver(deleteEventReceiver)
+        with(localBroadcastManager) {
+            unregisterReceiver(editChatroomReceiver)
+            unregisterReceiver(deleteChatroomReceiver)
+            unregisterReceiver(editUserReceiver)
+            unregisterReceiver(joinUserReceiver)
+            unregisterReceiver(leaveUserReceiver)
+            unregisterReceiver(createEventReceiver)
+            unregisterReceiver(editEventReceiver)
+            unregisterReceiver(deleteBatchEventReceiver)
+            unregisterReceiver(deleteEventReceiver)
+        }
     }
 }

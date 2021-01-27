@@ -20,6 +20,7 @@
     <string name="pref_last_chatroom_messages_fetch_time">com.example.preference_last_chatroom_messages_fetch_time</string>
     <string name="pref_chatroom_join_remember_navigate">com.example.preference_chatroom_join_remember_navigate</string>
     <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
+    <string name="pref_requesting_location_updates">com.example.preference_requesting_location_updates</string>
     <string name="pref_first_app_boot">com.example.first_app_boot</string> <!-- TODO: Used for future onboarding -->
 
     <string name="default_notification_channel_id">HOBBYFI_NOTIFICATION_CHANNEL</string>
@@ -134,4 +135,12 @@
     <string name="current_events">Current Events</string>
     <string name="event_info">Event Information</string>
     <string name="event_details">Event Info</string>
+
+    <string name="request_location_updates">Request location updates</string>
+    <string name="remove_location_updates">Remove location updates</string>
+
+    <string name="location_updated">Location Updated: %1$s</string>
+    <string name="launch_activityG">Go back</string>
+    <string name="location_monitor_permission_explanation">We need to monitor your location while you\'re using the app in order to partake in the event effectively with others. We can take your app settings to enable those permissions or go back to the previous screen.</string>
+    <string name="choose_location_maps_CD">Confirm Location</string>
 </resources>

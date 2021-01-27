@@ -1,8 +1,8 @@
 package com.example.hobbyfi.shared
 
-import android.app.Activity
-import android.app.AlertDialog
+import android.app.*
 import android.content.Context
+import android.content.Context.ACTIVITY_SERVICE
 import android.content.DialogInterface
 import android.content.res.Configuration
 import android.net.ConnectivityManager
@@ -13,6 +13,7 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
+import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
@@ -105,19 +106,45 @@ fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     inflateMenu(menuId)
 }
 
-
 fun Context.buildYesNoAlertDialog(
     dialogMessage: String,
-    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
+    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener,
+    onDismiss: DialogInterface.OnDismissListener? = null
 ) {
-    val dialog = AlertDialog.Builder(this)
-        .setMessage(dialogMessage)
-        .setPositiveButton(getString(R.string.yes), onConfirm)
-        .setNegativeButton(getString(R.string.no), onCancel)
-        .create()
+   val dialogBuilder = AlertDialog.Builder(this)
+    .setMessage(dialogMessage)
+    .setPositiveButton(getString(R.string.yes), onConfirm)
+    .setNegativeButton(getString(R.string.no), onCancel)
 
-    dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
-    dialog.show()
+   onDismiss?.let {
+       dialogBuilder.setOnDismissListener(it)
+   }
+
+   dialogBuilder.create().apply {
+       window!!.setBackgroundDrawableResource(R.color.colorBackground)
+       show()
+   }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun Context.createNotificationChannel(): NotificationChannel {
+    val channelId = resources.getString(R.string.default_notification_channel_id)
+    val name = getString(R.string.channel_name)
+    val descriptionText = getString(R.string.channel_description)
+    val importance = NotificationManager.IMPORTANCE_DEFAULT
+    val channel = NotificationChannel(
+        channelId,
+        name,
+        importance
+    ).apply {
+        description = descriptionText
+    }
+
+    // Register the channel with the system
+    val notificationManager: NotificationManager =
+        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager.createNotificationChannel(channel)
+    return channel
 }
 
 inline fun <reified T: DialogFragment> FragmentManager.showDistinctDialog(
@@ -177,6 +204,13 @@ fun View.setParamsBasedOnScreenOrientation(
         layoutParams.width = displayMetrics.widthPixels / divisorWidthLandscape
     }
 }
+
+@Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
+fun <T> Context.isServiceForegrounded(service: Class<T>) =
+    (getSystemService(ACTIVITY_SERVICE) as? ActivityManager)
+        ?.getRunningServices(Integer.MAX_VALUE)
+        ?.find { it.service.className == service.name }
+        ?.foreground == true
 
 // credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
 fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {

@@ -41,6 +41,7 @@ class EventMapsActivityViewModel(
     suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
     override fun handleIntent() {
+        super.handleIntent()
         viewModelScope.launch {
             eventsStateIntent.intentAsFlow().collectLatest {
                 when(it) {
@@ -57,42 +58,6 @@ class EventMapsActivityViewModel(
                 }
             }
         }
-        viewModelScope.launch {
-            mainStateIntent.intentAsFlow().collectLatest {
-                when(it) {
-                    is UserGeoPointIntent.FetchUsersGeoPoints -> {
-                        getUserGeoPoints()
-                    }
-                    is UserGeoPointIntent.UpdateUserGeoPoint -> {
-                        // UserGeoPoint props handed as separate arguments because of UserGeoPoint immutability
-                        updateUserGeoPoint(it.username, it.chatroomId, it.eventIds, it.geoPoint)
-                    }
-                    else -> throw Intent.InvalidIntentException()
-                }
-            }
-        }
-    }
-
-    private suspend fun updateUserGeoPoint(
-        username: String,
-        chatroomId: Long,
-        eventIds: List<Long>,
-        geoPoint: GeoPoint
-    ) {
-        mainStateIntent.setState(UserGeoPointState.Loading)
-
-        mainStateIntent.setState(try {
-            UserGeoPointState.OnData.OnUserGeoPointSetResult(
-                eventRepository.setEventUserGeoPoints(
-                    username,
-                    chatroomId,
-                    eventIds,
-                    geoPoint
-                )
-            )
-        } catch(ex: Exception) {
-            UserGeoPointState.Error(ex.message)
-        })
     }
 
     private suspend fun deleteEventsCache(eventIds: List<Long>) {
@@ -116,6 +81,13 @@ class EventMapsActivityViewModel(
     fun updateNewGeoPointInList(geoPoint: UserGeoPoint) {
         _userGeoPoints.value = _userGeoPoints.value!!.replaceOrAdd(
             geoPoint, { gp -> gp.username == geoPoint.username })
+    }
+
+    private var _receivedFirstLocation = false
+    val receivedFirstLocation get() = _receivedFirstLocation
+
+    fun setReceivedFirstLocation(received: Boolean) {
+        _receivedFirstLocation = received
     }
 
     init {

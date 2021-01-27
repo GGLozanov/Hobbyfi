@@ -15,8 +15,9 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityAuthBinding
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.ui.base.BaseActivity
+import com.example.hobbyfi.ui.base.NavigationActivity
 
-class AuthActivity : BaseActivity() {
+class AuthActivity : NavigationActivity() {
 
     private lateinit var binding: ActivityAuthBinding
 

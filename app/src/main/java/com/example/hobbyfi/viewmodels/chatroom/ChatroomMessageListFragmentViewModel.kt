@@ -32,8 +32,9 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomMessageListFragmentViewModel(application: Application) :
-    StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
+class ChatroomMessageListFragmentViewModel(
+    application: Application
+) : StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     private val messageRepository: MessageRepository by instance(tag = "messageRepository")
     private var currentMessages: Flow<PagingData<Message>>? = null
 
