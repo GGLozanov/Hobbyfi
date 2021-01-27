@@ -14,7 +14,7 @@ abstract class BroadcastReceiverFactory {
             if(intent.action == intentAction) {
                 // people do checks here ^; idk why given the intent filter
                 if (onReceiveLog != null) {
-                    Log.i((context as Activity)::class.simpleName, onReceiveLog)
+                    Log.i(context::class.simpleName, onReceiveLog)
                 }
 
                 // if nothing passed => even the chatroom owner and/or auth user will be notified!
@@ -22,7 +22,7 @@ abstract class BroadcastReceiverFactory {
                     onCorrectAction(intent)
                 } else {
                     if (onNoNotifyLog != null) {
-                        Log.i((context as Activity)::class.simpleName, onNoNotifyLog)
+                        Log.i(context::class.simpleName, onNoNotifyLog)
                     }
                 }
             }
