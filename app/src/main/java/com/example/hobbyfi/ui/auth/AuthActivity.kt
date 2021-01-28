@@ -27,14 +27,12 @@ class AuthActivity : NavigationActivity() {
         with(binding) {
             val view = root
             setContentView(view)
+            initNavController()
+
+            binding.toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.loginFragment, R.id.registerFragment)))
 
             setSupportActionBar(toolbar)
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        binding.toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.loginFragment, R.id.registerFragment)))
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

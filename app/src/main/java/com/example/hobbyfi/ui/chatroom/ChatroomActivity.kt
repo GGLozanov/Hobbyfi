@@ -91,6 +91,7 @@ class ChatroomActivity : NavigationActivity(),
         binding = ActivityChatroomBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+        initNavController()
 
         // checks if called from push notification while app is killed and restarts entire backstack in that case
         if(isTaskRoot) {
@@ -139,6 +140,8 @@ class ChatroomActivity : NavigationActivity(),
         }
 
         with(binding) {
+            navViewAdmin.setupWithNavController(navController)
+
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
             usersList.adapter = userListAdapter
 
@@ -152,7 +155,6 @@ class ChatroomActivity : NavigationActivity(),
     override fun onStart() {
         super.onStart()
 
-        binding.navViewAdmin.setupWithNavController(navController)
         // TODO: Register delete/update BroadcastReceive with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
 

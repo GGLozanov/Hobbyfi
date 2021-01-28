@@ -1,12 +1,11 @@
 package com.example.spendidly.utils
 
-import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
-import androidx.annotation.RequiresApi
+import android.widget.EditText
 import androidx.core.util.Predicate
-import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+
 
 // TODO: Should be replaced with TextInputLayout doOnTextChanged{} calls
 class PredicateTextWatcher(

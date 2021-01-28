@@ -22,8 +22,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
 class EventChooseLocationMapsActivity : MapsActivity() {
-    private var marker: Marker? = null // no need to stay in VM because of savedInstanceState mechanisms
-
     private var eventTitle: String? = null
     private var eventDescription: String? = null
     private var eventLocation: LatLng? = null
@@ -65,15 +63,12 @@ class EventChooseLocationMapsActivity : MapsActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        map?.let {
-            outState.run {
-                putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
-                putParcelable(Constants.LOCATION, eventLocation)
-                putString(Constants.NAME, eventTitle)
-                putString(Constants.DESCRIPTION, eventDescription)
-            }
-        }
-        super.onSaveInstanceState(outState)
+        super.onSaveInstanceState(outState.apply {
+            putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
+            putParcelable(Constants.LOCATION, eventLocation)
+            putString(Constants.NAME, eventTitle)
+            putString(Constants.DESCRIPTION, eventDescription)
+        })
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -91,12 +86,14 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         }
 
         map?.setOnMyLocationButtonClickListener {
-            resetMarkerAndMoveToNew(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
+            resetDraggableEventMarkerAndMoveToNew(
+                LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude),
+            )
             return@setOnMyLocationButtonClickListener true
         }
 
         map?.setOnMapClickListener {
-            resetMarkerAndMoveToNew(it)
+            resetDraggableEventMarkerAndMoveToNew(it)
         }
 
         map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
@@ -112,7 +109,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         })
 
         eventLocation?.let {
-            resetMarkerAndMoveToNew(it)
+            resetDraggableEventMarkerAndMoveToNew(it)
         }
     }
 
@@ -125,7 +122,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null && eventLocation == null) {
-                            resetMarkerAndMoveToNew(LatLng(
+                            resetDraggableEventMarkerAndMoveToNew(LatLng(
                                 lastKnownLocation!!.latitude,
                                 lastKnownLocation!!.longitude
                             ))
@@ -185,19 +182,12 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         }
     }
 
-    private fun resetMarkerAndMoveToNew(latLng: LatLng) {
-        marker?.remove()
-        marker = addMarkerAndAnimateCamera(latLng, eventTitle, eventDescription)
-    }
-
-    private fun addMarkerAndAnimateCamera(latLng: LatLng, title: String? = null, description: String? = null): Marker? {
-        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
-        return map?.addMarker(
-            MarkerOptions()
-                .title(title)
-                .snippet(description)
-                .draggable(true)
-                .position(latLng)
+    private fun resetDraggableEventMarkerAndMoveToNew(latLng: LatLng) {
+        resetEventMarkerAndMoveToNew(
+            latLng,
+            eventTitle,
+            eventDescription,
+            true
         )
     }
 

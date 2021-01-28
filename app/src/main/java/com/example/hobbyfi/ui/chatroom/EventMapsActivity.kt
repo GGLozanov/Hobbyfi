@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.*
+import android.content.res.Configuration
 import android.location.Location
 import android.net.Uri
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.map
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
@@ -28,6 +30,7 @@ import com.example.hobbyfi.ui.base.MapsActivity
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -67,6 +70,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 )
 
                 val receivedLocation = intent.extras?.get(Constants.UPDATED_LOCATION) as Location
+                viewModel.setLastReceivedLocation(receivedLocation)
 
                 val initialGeoPoint = this@EventMapsActivity.intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
                 // GeoPoint HERE is immutable (in this activity),
@@ -100,7 +104,13 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 .service
             serviceBound = true
 
-            binding.enableLocationUpdatesFab.callOnClick() // start the service for location tracking if applicable
+            if(prefConfig.readRequestLocationServiceRunning()) {
+                enableLocationUpdates() // start the service for location tracking if applicable
+            } else {
+                locationUpdatesService?.removeLocationUpdates()
+            }
+
+            setFABState(prefConfig.readRequestingLocationUpdates())
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -122,10 +132,10 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             if(!checkAndUpdateLocationPermission()) {
                 getLocationPermission()
             } else {
-                if(viewModel.userGeoPoints.value == null) {
+                if(viewModel.userGeoPoints.value?.isEmpty() == true) {
                     lifecycleScope.launch {
                         viewModel.sendIntent(
-                            UserGeoPointIntent.FetchUsersGeoPoints
+                            UserGeoPointIntent.FetchUsersGeoPoints(getUserGeoPointFromCurrentIntent().username)
                         )
                     }
                 }
@@ -134,7 +144,23 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
         observeEventListState()
         observeUserGeoPointsState()
+    }
+
+    override fun onMapReady(gMap: GoogleMap) {
+        super.onMapReady(gMap)
+        observeEvent()
         observeUserGeoPoints()
+        viewModel.forceEventObservation()
+        viewModel.forceUserGeoPointsObservation()
+
+        map?.setOnMyLocationButtonClickListener {
+            viewModel.lastReceivedLocation?.let {
+                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    LatLng(it.latitude, it.longitude), DEFAULT_ZOOM.toFloat()
+                ))
+            }
+            true
+        }
     }
 
     override fun onStart() {
@@ -143,19 +169,17 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
         binding.disableLocationUpdatesFab.setOnClickListener {
             locationUpdatesService?.removeLocationUpdates()
+            Toast.makeText(this, "Location updates disabled!", Toast.LENGTH_LONG)
+                .show()
         }
 
         binding.enableLocationUpdatesFab.setOnClickListener {
-            if(!checkAndUpdateLocationPermission()) {
-                getLocationPermission()
-            } else {
-                locationUpdatesService?.requestLocationUpdates(
-                    viewModel.relatedEvent, intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
-                )
+            if(enableLocationUpdates()) {
+                Toast.makeText(this, "Location updates enabled!", Toast.LENGTH_LONG)
+                    .show()
             }
         }
-
-        setFABState(prefConfig.readRequestingLocationUpdates())
+        setFABState(prefConfig.readRequestLocationServiceRunning())
 
         bindService(
             Intent(this, EventLocationUpdatesService::class.java),
@@ -212,16 +236,15 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                     is UserGeoPointState.OnData.OnUserGeoPointSetResult -> {
                         it.setUserGeoPoint.observe(this@EventMapsActivity, Observer { geoPoint ->
                             if (geoPoint != null) {
-                                viewModel.updateNewGeoPointInList(geoPoint)
+                                // viewModel.updateNewGeoPointInList(geoPoint) -> don't add geopoint to other users list
 
-                                if(!viewModel.receivedFirstLocation) {
+                                if(viewModel.lastReceivedLocation == null) {
                                     map?.animateCamera(
                                         CameraUpdateFactory.newLatLngZoom(
                                             LatLng(geoPoint.geoPoint.latitude, geoPoint.geoPoint.longitude),
                                             DEFAULT_ZOOM.toFloat()
                                         )
                                     )
-                                    viewModel.setReceivedFirstLocation(true)
                                 }
                             } else {
                                 viewModel.setUserGeoPoints(emptyList())
@@ -239,12 +262,28 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     private fun observeUserGeoPoints() {
-        viewModel.userGeoPoints.observe(this, Observer {
+        // hacky magic number fix for default values on the equator
+        // Heh, I mean what are the *chances* of anyone picking a location there and it not appearing?!
+        // A lot. A lot. This does need to be fixed eventually.
+        viewModel.userGeoPoints.map {
+            it.filter { gp -> !gp.geoPoint.latitude.equals(0.0) && !gp.geoPoint.longitude.equals(0.0) }
+        }. observe(this, Observer {
+            Log.i("EventMapsActivity", "User geo points: $it")
             it.forEach { geoPoint ->
-                if(geoPoint.username != (intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint).username) {
-                    addGeoPointMarker(geoPoint)
-                }
+                addGeoPointMarker(geoPoint)
             }
+        })
+    }
+
+    private fun observeEvent() {
+        viewModel.event.observe(this, Observer {
+            Log.i("EventMapsActivity", "Received Event from observer in EventMapsActivity! $it")
+            resetEventMarkerAndAddNew(
+                LatLng(it.latitude, it.longitude),
+                it.name,
+                it.description,
+                false
+            )
         })
     }
 
@@ -252,7 +291,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         super.updateLocationUI()
         map?.setOnMyLocationButtonClickListener {
             viewModel.userGeoPoints.value?.find {
-                it.username == (intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint).username
+                it.username == getUserGeoPointFromCurrentIntent().username
             }?.let {
                 map?.animateCamera(
                     CameraUpdateFactory.newLatLngZoom(
@@ -275,14 +314,14 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         if(viewModel.userGeoPoints.value == null) {
             lifecycleScope.launch {
                 viewModel.sendIntent(
-                    UserGeoPointIntent.FetchUsersGeoPoints
+                    UserGeoPointIntent.FetchUsersGeoPoints(getUserGeoPointFromCurrentIntent().username)
                 )
             }
         }
 
         updateLocationUI()
         locationUpdatesService?.requestLocationUpdates(
-            viewModel.relatedEvent, intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
+            viewModel.relatedEvent, getUserGeoPointFromCurrentIntent()
         )
     }
 
@@ -353,6 +392,12 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             unregisterReceiver(editEventReceiver!!)
             unregisterReceiver(deleteEventBatchReceiver!!)
         }
+        prefConfig.writeRequestingLocationUpdates(binding.disableLocationUpdatesFab.isEnabled)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        prefConfig.writeRequestingLocationUpdates(binding.disableLocationUpdatesFab.isEnabled)
     }
 
     override fun onStop() {
@@ -363,6 +408,11 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         prefConfig
             .unregisterPrefsListener(this)
         super.onStop()
+    }
+
+    override fun onBackPressed() {
+        locationUpdatesService?.removeLocationUpdates()
+        super.onBackPressed()
     }
 
     override fun onSharedPreferenceChanged(sharedPrefs: SharedPreferences, key: String) {
@@ -396,4 +446,17 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         setResult(result)
         finish()
     }
+
+    private fun enableLocationUpdates(): Boolean = if(!checkAndUpdateLocationPermission()) {
+            getLocationPermission()
+            false
+        } else {
+            locationUpdatesService?.requestLocationUpdates(
+                viewModel.relatedEvent, getUserGeoPointFromCurrentIntent()
+            )
+            true
+        }
+
+    private fun getUserGeoPointFromCurrentIntent(): UserGeoPoint =
+        intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
 }

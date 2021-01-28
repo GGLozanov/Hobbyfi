@@ -17,10 +17,7 @@ import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -56,8 +53,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         // Inflate the layout for this fragment
         binding = FragmentChatroomCreateBinding.inflate(inflater, container, false)
         binding.viewModel = viewModel
-
-        initTextFieldValidators()
 
         with(binding) {
             chatroomInfo.chatroomImage.setOnClickListener {
@@ -141,14 +136,14 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     }
 
     override fun initTextFieldValidators() {
-        with(binding) {
+        with(binding.chatroomInfo) {
             // TODO: Fix code dup with other layouts like these and find a way to extract this in a single method call or something
-            chatroomInfo.nameInputField.addTextChangedListener(
+            nameInputField.addTextChangedListener(
                 Constants.nameInputError,
                 Constants.namePredicate
             )
 
-            chatroomInfo.descriptionInputField.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
@@ -159,6 +154,19 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(chatroomInfo.nameInputField, Constants.nameInputError) ||
                     FieldUtils.isTextFieldInvalid(chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding.chatroomInfo) {
+            nameInputField.removeAllEditTextWatchers()
+            descriptionInputField.removeAllEditTextWatchers()
         }
     }
 

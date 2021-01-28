@@ -30,8 +30,7 @@ abstract class UserGeoPointAccessorViewModel(
     protected val eventRepository: EventRepository by instance(tag = "eventRepository")
 
     override val mainStateIntent: StateIntent<UserGeoPointState, UserGeoPointIntent> = object : StateIntent<UserGeoPointState, UserGeoPointIntent>() {
-        override val _state: MutableStateFlow<UserGeoPointState> = MutableStateFlow(
-            UserGeoPointState.Idle)
+        override val _state: MutableStateFlow<UserGeoPointState> = MutableStateFlow(UserGeoPointState.Idle)
     }
 
     val relatedEvent get() = _relatedEvent
@@ -44,7 +43,7 @@ abstract class UserGeoPointAccessorViewModel(
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is UserGeoPointIntent.FetchUsersGeoPoints -> {
-                        getUserGeoPoints()
+                        getUserGeoPoints(it.authGeoPointUsername)
                     }
                     is UserGeoPointIntent.UpdateUserGeoPoint -> {
                         // UserGeoPoint props handed as separate arguments because of UserGeoPoint immutability
@@ -56,7 +55,7 @@ abstract class UserGeoPointAccessorViewModel(
         }
     }
 
-    protected suspend fun updateUserGeoPoint(
+    protected fun updateUserGeoPoint(
         username: String,
         chatroomId: Long,
         eventIds: List<Long>,
@@ -78,11 +77,11 @@ abstract class UserGeoPointAccessorViewModel(
         })
     }
 
-    protected fun getUserGeoPoints() {
+    protected fun getUserGeoPoints(geoPointUserUsername: String?) {
         mainStateIntent.setState(UserGeoPointState.Loading)
 
         mainStateIntent.setState(try {
-            val response = eventRepository.getEventUsersGeoPoint(_relatedEvent.id)
+            val response = eventRepository.getEventUsersGeoPoint(_relatedEvent.id, geoPointUserUsername)
 
             _userGeoPoints = response
 

@@ -18,10 +18,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.buildYesNoAlertDialog
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -59,8 +56,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             false
         )
         binding.viewModel = viewModel
-
-        initTextFieldValidators()
 
         with(binding) {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
@@ -218,6 +213,19 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(usernameInputField, Constants.usernameInputError) ||
                     FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            usernameInputField.removeAllEditTextWatchers()
+            descriptionInputField.removeAllEditTextWatchers()
         }
     }
 

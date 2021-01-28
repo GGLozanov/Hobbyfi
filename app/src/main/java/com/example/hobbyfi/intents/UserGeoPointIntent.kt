@@ -4,7 +4,7 @@ import com.google.firebase.firestore.GeoPoint
 
 sealed class UserGeoPointIntent : Intent {
     object FetchAuthUserGeoPoint : UserGeoPointIntent()
-    object FetchUsersGeoPoints: UserGeoPointIntent()
+    data class FetchUsersGeoPoints(val authGeoPointUsername: String?) : UserGeoPointIntent()
 
     data class UpdateUserGeoPoint(
         val username: String,

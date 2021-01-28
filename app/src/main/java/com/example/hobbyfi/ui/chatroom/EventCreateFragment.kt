@@ -24,6 +24,7 @@ import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
@@ -136,6 +137,19 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         with(binding.eventInfo) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
                     FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding.eventInfo) {
+            nameInputField.removeAllEditTextWatchers()
+            descriptionInputField.removeAllEditTextWatchers()
         }
     }
 

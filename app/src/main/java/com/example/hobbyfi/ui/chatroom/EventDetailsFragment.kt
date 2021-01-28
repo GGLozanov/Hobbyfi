@@ -110,7 +110,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
 
             if(viewModel!!.userGeoPoints.value?.isEmpty() == true) {
                 lifecycleScope.launch {
-                    viewModel!!.sendIntent(UserGeoPointIntent.FetchUsersGeoPoints)
+                    viewModel!!.sendIntent(
+                        UserGeoPointIntent.FetchUsersGeoPoints(activityViewModel.authUserGeoPoint.value?.username)
+                    )
                 }
             }
 
@@ -415,6 +417,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     override fun onResume() {
         super.onResume()
         calculateEventDayDifference()
+        map?.let {
+            setMapsData(it)
+        }
         binding.mapPreview.onResume()
     }
 

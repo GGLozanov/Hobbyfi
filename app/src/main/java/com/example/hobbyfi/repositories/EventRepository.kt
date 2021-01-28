@@ -18,6 +18,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.google.firebase.FirebaseException
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -176,8 +177,9 @@ class EventRepository(
         return _userGeoPoint
     }
 
-    fun getEventUsersGeoPoint(eventId: Long): MutableLiveData<List<UserGeoPoint>> {
+    fun getEventUsersGeoPoint(eventId: Long, username: String?): MutableLiveData<List<UserGeoPoint>> {
         firestore.collection(Constants.LOCATIONS_COLLECTION)
+            .whereNotEqualTo(FieldPath.documentId(), username)
             .whereArrayContains(Constants.EVENT_IDS, eventId)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {

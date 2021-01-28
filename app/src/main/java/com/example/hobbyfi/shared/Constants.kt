@@ -298,6 +298,7 @@ object Constants {
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
     const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
+    const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

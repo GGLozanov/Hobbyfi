@@ -21,6 +21,7 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -45,8 +46,6 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
             .inflate(layoutInflater, R.layout.fragment_chatroom_edit, container, false)
 
         binding.viewModel = viewModel
-
-        initTextFieldValidators()
 
         with(binding) {
             lifecycleOwner = this@ChatroomEditFragment
@@ -134,16 +133,29 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
     }
 
     override fun initTextFieldValidators() {
-        with(binding) {
-            chatroomInfo.nameInputField.addTextChangedListener(
+        with(binding.chatroomInfo) {
+            nameInputField.addTextChangedListener(
                 Constants.nameInputError,
                 Constants.namePredicate
             )
 
-            chatroomInfo.descriptionInputField.addTextChangedListener(
+            descriptionInputField.addTextChangedListener(
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            chatroomInfo.nameInputField.removeAllEditTextWatchers()
+            chatroomInfo.descriptionInputField.removeAllEditTextWatchers()
         }
     }
 

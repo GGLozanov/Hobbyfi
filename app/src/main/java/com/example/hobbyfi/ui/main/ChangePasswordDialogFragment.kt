@@ -16,6 +16,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.BaseDialogFragment
@@ -44,7 +45,6 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         )
 
         binding.viewModel = viewModel
-        initTextFieldValidators()
 
         with(binding) {
             lifecycleOwner = this@ChangePasswordDialogFragment
@@ -120,6 +120,20 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
                     || FieldUtils.isTextFieldInvalid(newPasswordInputField, Constants.passwordInputError) ||
                         FieldUtils.isTextFieldInvalid(confirmNewPasswordInputField, Constants.confirmPasswordInputError)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            passwordInputField.removeAllEditTextWatchers()
+            newPasswordInputField.removeAllEditTextWatchers()
+            confirmNewPasswordInputField.removeAllEditTextWatchers()
         }
     }
 }

@@ -18,6 +18,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -48,14 +49,10 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
         binding.viewModel = viewModel
 
-        initTextFieldValidators()
-
         with(binding) {
             lifecycleOwner = this@RegisterFragment
 
             val view = root
-
-            initTextFieldValidators()
 
             profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
                 Callbacks.requestImage(this@RegisterFragment)
@@ -159,6 +156,22 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                 Constants.descriptionInputError,
                 Constants.descriptionPredicate
             )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            emailInputField.removeAllEditTextWatchers()
+            passwordInputField.removeAllEditTextWatchers()
+            confirmPasswordInputField.removeAllEditTextWatchers()
+            usernameInputField.removeAllEditTextWatchers()
+            descriptionInputField.removeAllEditTextWatchers()
         }
     }
 

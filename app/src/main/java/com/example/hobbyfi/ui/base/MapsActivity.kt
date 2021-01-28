@@ -19,6 +19,8 @@ import pub.devrel.easypermissions.EasyPermissions
 
 abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
         EasyPermissions.PermissionCallbacks {
+    protected var marker: Marker? = null // no need to stay in VM because of savedInstanceState mechanisms
+
     protected var map: GoogleMap? = null
     protected lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     // default location (Sydney, Australia) and default zoom to use when location permission is
@@ -26,10 +28,6 @@ abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
     protected val defaultLocation = LatLng(-33.8523341, 151.2106085)
 
     protected var locationPermissionGranted = false
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     protected fun getLocationPermission() {
         locationPermissionGranted = Callbacks.requestLocationForMapsAccess(
@@ -39,6 +37,7 @@ abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
 
     override fun onMapReady(gMap: GoogleMap) {
         map = gMap
+        checkAndUpdateLocationPermission()
         updateLocationUI()
     }
 
@@ -68,6 +67,55 @@ abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
         }
     }
 
+    protected fun resetEventMarkerAndMoveToNew(
+        latLng: LatLng,
+        eventTitle: String?,
+        eventDescription: String?,
+        draggable: Boolean
+    ) {
+        marker?.remove()
+        marker = addMarkerAndAnimateCamera(latLng, eventTitle, eventDescription, draggable)
+    }
+
+    private fun addMarkerAndAnimateCamera(
+        latLng: LatLng,
+        title: String? = null,
+        description: String? = null,
+        draggable: Boolean = true
+    ): Marker? {
+        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
+        return addMarker(
+            latLng,
+            title,
+            description,
+            draggable
+        )
+    }
+
+    protected fun resetEventMarkerAndAddNew(
+        latLng: LatLng,
+        eventTitle: String? = null,
+        eventDescription: String? = null,
+        draggable: Boolean = true
+    ) {
+        marker?.remove()
+        marker = addMarker(latLng, eventTitle, eventDescription, draggable)
+    }
+
+    private fun addMarker(
+        latLng: LatLng,
+        title: String?,
+        description: String?,
+        draggable: Boolean
+    ): Marker? =
+        map?.addMarker(
+            MarkerOptions()
+                .title(title)
+                .snippet(description)
+                .draggable(draggable)
+                .position(latLng)
+        )
+
     // TODO: Use to add icon to marker
     protected fun bitmapDescriptorFromVector(
         context: Context,
@@ -92,6 +140,15 @@ abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
         locationPermissionGranted = perms.contains(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
     companion object {

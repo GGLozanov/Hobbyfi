@@ -24,6 +24,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.BaseActivity
@@ -58,8 +59,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
     ): View {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
-
-        initTextFieldValidators()
 
         binding.viewModel = viewModel
         with(binding) {
@@ -106,6 +105,19 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 Constants.passwordInputError,
                 Constants.passwordPredicate()
             )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            emailInputField.removeAllEditTextWatchers()
+            passwordInputField.removeAllEditTextWatchers()
         }
     }
 

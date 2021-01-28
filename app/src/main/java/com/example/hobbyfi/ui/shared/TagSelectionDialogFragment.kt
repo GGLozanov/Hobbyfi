@@ -43,7 +43,8 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
         adapter = TagSelectionListAdapter(
             args.tags.toMutableList(),
-            viewModel.initialSelectedTags.toMutableList() // new list to modify tags
+            savedInstanceState?.getParcelableArrayList<Tag>(Constants.TAGS)?.toMutableList() ?:
+                viewModel.initialSelectedTags.toMutableList() // new list to modify tags
         )
 
         with(binding) {
@@ -83,6 +84,13 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
                 binding.customTagCreateButton.visibility = View.GONE // can't create custom tags in editing/other places
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.apply {
+            putParcelableArray(Constants.TAGS, adapter.getSelectedTags().toTypedArray())
+        }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroyView() {

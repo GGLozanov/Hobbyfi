@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.shared
 
 import android.app.Application
+import android.graphics.PointF
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.viewmodels.base.BaseViewModel
@@ -17,8 +18,19 @@ class CustomTagCreateDialogFragmentViewModel(application: Application) : BaseVie
 
     val colour: MutableLiveData<String> = MutableLiveData()
 
+    private var _lastSelectorPosition: PointF? = null
+    val lastSelectorPosition: PointF? get() = _lastSelectorPosition
+
     fun setOnColourChangedListener(colourPickerView: ColorPickerView) {
         colourPickerView.setColorListener(ColorEnvelopeListener { colorEnvelope, _ ->
+            if(_lastSelectorPosition == null) {
+                _lastSelectorPosition = PointF()
+            }
+
+            _lastSelectorPosition?.let {
+                it.x = colourPickerView.selectorX
+                it.y = colourPickerView.selectorY
+            }
             colour.value = "#" + colorEnvelope.hexCode
         })
     }

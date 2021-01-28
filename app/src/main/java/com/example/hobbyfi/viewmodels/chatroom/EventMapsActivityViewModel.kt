@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -83,11 +84,20 @@ class EventMapsActivityViewModel(
             geoPoint, { gp -> gp.username == geoPoint.username })
     }
 
-    private var _receivedFirstLocation = false
-    val receivedFirstLocation get() = _receivedFirstLocation
+    private var _lastReceivedLocation: Location? = null
+    val lastReceivedLocation get() = _lastReceivedLocation
 
-    fun setReceivedFirstLocation(received: Boolean) {
-        _receivedFirstLocation = received
+    fun setLastReceivedLocation(loc: Location?) {
+        _lastReceivedLocation = loc
+    }
+
+    // little bruh hack; w/e
+    fun forceEventObservation() {
+        _event.value = _event.value
+    }
+
+    fun forceUserGeoPointsObservation() {
+        _userGeoPoints.value = _userGeoPoints.value
     }
 
     init {

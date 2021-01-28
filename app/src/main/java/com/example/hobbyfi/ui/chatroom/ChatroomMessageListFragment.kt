@@ -257,7 +257,6 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
                     }
                     is MessageState.OnData.MessageCreateResult -> {
-
                         viewModel.message.value = null // reset msg
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
@@ -361,6 +360,18 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
     override fun assertTextFieldsInvalidity(): Boolean {
         return FieldUtils.isTextFieldInvalid(binding.messageInputField, Constants.messageInputError)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            messageInputField.removeAllEditTextWatchers()
+        }
     }
 
     override fun onDestroy() {

@@ -87,7 +87,6 @@
 
         <activity
             android:name=".ui.auth.AuthActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -97,24 +96,20 @@
         </activity>
         <activity
             android:name=".ui.chatroom.ChatroomActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_chatroom"
             android:launchMode="singleTop"
             android:parentActivityName=".ui.main.MainActivity" />
         <activity
             android:name=".ui.chatroom.EventChooseLocationMapsActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:parentActivityName=".ui.chatroom.ChatroomActivity"
             android:label="@string/title_activity_event_choose_location_maps" />
         <activity
             android:name=".ui.chatroom.EventMapsActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:launchMode="singleTop"
             android:label="@string/title_activity_event_maps"
             android:parentActivityName=".ui.chatroom.ChatroomActivity" />
         <activity
             android:name=".ui.main.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:parentActivityName=".ui.auth.AuthActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity

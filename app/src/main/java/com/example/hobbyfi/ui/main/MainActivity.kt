@@ -90,45 +90,46 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
             val view = root
             setContentView(view)
             setSupportActionBar(toolbar)
+            initNavController()
 
             bottomNav.setOnNavigationItemReselectedListener {
                 // avoid fragment recreation (do nothing here)
             }
-
-            bottomNav.setupWithNavController(
-                navGraphIds = listOf(
-                    R.navigation.user_profile_nav_graph,
-                    R.navigation.joined_chatroom_nav_graph,
-                    R.navigation.chatroom_list_nav_graph
-                ),
-                fragmentManager = supportFragmentManager,
-                containerId = R.id.nav_host_fragment,
-                intent = intent
-            ).observe(this@MainActivity, Observer {
-                navController = it
-                navController.graph.startDestination = when(bottomNav.selectedItemId) {
-                    R.id.userProfileFragment -> R.id.user_profile_nav
-                    R.id.joinedChatroomListFragment -> R.id.joined_chatroom_list_nav
-                    R.id.chatroomListFragment -> R.id.chatroom_list_nav
-                    else -> R.id.user_profile_nav
-                }
-                toolbar.setupWithNavController(
-                    navController, AppBarConfiguration(
-                        setOf(
-                            R.id.userProfileFragment,
-                            R.id.chatroomListFragment,
-                            R.id.joinedChatroomListFragment
-                        )
-                    )
-                )
-
-            })
         }
     }
 
     override fun onStart() {
         super.onStart()
+        observeUserState()
+    }
 
+    override fun onResume() {
+        binding.bottomNav.setupWithNavController(
+            navGraphIds = listOf(
+                R.navigation.user_profile_nav_graph,
+                R.navigation.joined_chatroom_nav_graph,
+                R.navigation.chatroom_list_nav_graph
+            ),
+            fragmentManager = supportFragmentManager,
+            containerId = R.id.nav_host_fragment,
+            intent = intent
+        ).observe(this@MainActivity, Observer {
+            navController = it
+
+            binding.toolbar.setupWithNavController(
+                navController, AppBarConfiguration(
+                    setOf(
+                        R.id.userProfileFragment,
+                        R.id.chatroomListFragment,
+                        R.id.joinedChatroomListFragment
+                    )
+                )
+            )
+        })
+        super.onResume()
+    }
+
+    private fun observeUserState() {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
@@ -199,8 +200,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                             this@MainActivity,
                             "Something went wrong! ${it.error}",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
+                        ).show()
                         if (it.shouldReauth) {
                             logout()
                         }

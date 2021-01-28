@@ -15,8 +15,8 @@ import org.kodein.di.generic.instance
 abstract class NavigationActivity : BaseActivity() {
     protected lateinit var navController: NavController
 
-    override fun onStart() {
-        super.onStart()
+    // called AFTER setContentView!
+    protected fun initNavController() {
         try {
             val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
             navController = navHostFragment.navController

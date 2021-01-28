@@ -145,6 +145,21 @@ class PrefConfig(private val context: Context) {
         )
     }
 
+    fun writeRequestLocationServiceRunning(running: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            Constants.REQUEST_LOCATION_SERVICE_RUNNING,
+            running
+        ).apply()
+    }
+
+    fun readRequestLocationServiceRunning(): Boolean {
+        return sharedPreferences.getBoolean(
+            Constants.REQUEST_LOCATION_SERVICE_RUNNING,
+            true
+        )
+    }
+
     fun registerPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
     }

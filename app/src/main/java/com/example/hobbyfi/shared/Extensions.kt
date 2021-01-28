@@ -8,10 +8,12 @@ import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
+import android.widget.EditText
 import android.widget.GridView
 import androidx.annotation.RequiresApi
 import androidx.core.util.Predicate
@@ -37,6 +39,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Field
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -59,6 +62,35 @@ fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predica
     )
     return watcher
 }
+
+fun TextInputLayout.removeAllEditTextWatchers() {
+    editText!!.removeAllTextWatchers()
+}
+
+fun EditText.removeAllTextWatchers() {
+    try {
+        val field: Field? = findField("mListeners", javaClass)
+        if (field != null) {
+            field.isAccessible = true
+            val list = field.get(this) as ArrayList<TextWatcher> //IllegalAccessException
+            list.clear()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+private fun findField(name: String, type: Class<*>): Field? {
+    for (declaredField in type.declaredFields) {
+        if (declaredField.name == name) {
+            return declaredField
+        }
+    }
+    return if (type.superclass != null) {
+        findField(name, type.superclass)
+    } else null
+}
+
 
 fun ConnectivityManager.isConnected(): Boolean {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -318,7 +350,8 @@ fun BottomNavigationView.setupWithNavController(
     navGraphIds: List<Int>,
     fragmentManager: FragmentManager,
     containerId: Int,
-    intent: android.content.Intent
+    intent: android.content.Intent,
+    defaultIndex: Int = 0
 ): LiveData<NavController> {
 
     // Map of tags
@@ -343,7 +376,7 @@ fun BottomNavigationView.setupWithNavController(
         // Obtain its id
         val graphId = navHostFragment.navController.graph.id
 
-        if (index == 0) {
+        if (index == defaultIndex) {
             firstFragmentGraphId = graphId
         }
 
@@ -354,7 +387,7 @@ fun BottomNavigationView.setupWithNavController(
         if (this.selectedItemId == graphId) {
             // Update livedata with the selected graph
             selectedNavController.value = navHostFragment.navController
-            attachNavHostFragment(fragmentManager, navHostFragment, index == 0)
+            attachNavHostFragment(fragmentManager, navHostFragment, index == defaultIndex)
         } else {
             detachNavHostFragment(fragmentManager, navHostFragment)
         }
