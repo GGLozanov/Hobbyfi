@@ -53,6 +53,7 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
     }
     private lateinit var onMessageOptionSelected: OnMessageOptionSelected
 
+    @ExperimentalCoroutinesApi
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -73,7 +74,7 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
                 }
 
                 menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex.matches(message.message) &&
-                        !message.isTimeline // TODO: Change when add text to image messages
+                        !message.isTimeline && activityViewModel.authUser.value?.id == message.userSentId // TODO: Change when add text to image messages
                 setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
             }
 

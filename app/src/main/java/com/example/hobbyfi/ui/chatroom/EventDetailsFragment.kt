@@ -195,11 +195,11 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             leftButton.setOnClickListener {
                 activityViewModel.authUserGeoPoint.value?.let {
                     lifecycleScope.launch {
-                        val (username, chatroomId, eventIds, geoPoint) = it
+                        val (username, chatroomIds, eventIds, geoPoint) = it
                         viewModel.sendIntent(
                             UserGeoPointIntent.UpdateUserGeoPoint(
                                 username,
-                                chatroomId,
+                                chatroomIds.filter { id -> id != activityViewModel.authChatroom.value!!.id },
                                 eventIds.filter { id -> id != viewModel.relatedEvent.id },
                                 geoPoint
                             )
@@ -217,9 +217,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                             UserGeoPointIntent.UpdateUserGeoPoint(
                                 activityViewModel.authUserGeoPoint.value?.username
                                     ?: activityViewModel.authUser.value!!.name,
-                                activityViewModel.authUserGeoPoint.value?.chatroomId
-                                    ?: activityViewModel.authChatroom.value!!.id,
-                                activityViewModel.authUserGeoPoint.value?.eventIds?.filter { id -> id != viewModel.relatedEvent.id }
+                                activityViewModel.authUserGeoPoint.value?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id)
+                                    ?: listOf(activityViewModel.authChatroom.value!!.id),
+                                activityViewModel.authUserGeoPoint.value?.eventIds?.plus(viewModel.relatedEvent.id)
                                     ?: listOf(viewModel.relatedEvent.id),
                                 activityViewModel.authUserGeoPoint.value?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
                             )

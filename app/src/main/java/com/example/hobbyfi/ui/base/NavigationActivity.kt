@@ -16,7 +16,7 @@ abstract class NavigationActivity : BaseActivity() {
     protected lateinit var navController: NavController
 
     // called AFTER setContentView!
-    protected fun initNavController() {
+    protected open fun initNavController() {
         try {
             val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
             navController = navHostFragment.navController

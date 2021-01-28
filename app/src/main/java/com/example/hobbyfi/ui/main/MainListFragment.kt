@@ -128,14 +128,17 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             }
 
             initChatroomListAdapter()
-
-            observeChatroomEntryState()
-            observeAuthUser()
-            observeChatroomsState()
             observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity).refreshConnectivityMonitor)
 
             return@onCreateView root
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        observeChatroomEntryState()
+        observeAuthUser()
+        observeChatroomsState()
     }
 
     private fun initChatroomListAdapter() {

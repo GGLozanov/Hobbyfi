@@ -140,8 +140,6 @@ class ChatroomActivity : NavigationActivity(),
         }
 
         with(binding) {
-            navViewAdmin.setupWithNavController(navController)
-
             usersList.addItemDecoration(VerticalSpaceItemDecoration(10))
             usersList.adapter = userListAdapter
 
@@ -440,11 +438,19 @@ class ChatroomActivity : NavigationActivity(),
 
     @ExperimentalPagingApi
     private fun initTopNavigation(chatroomOwner: Boolean) {
-        with(binding) {
-            toolbar.setNavigationIconTint(Color.WHITE)
-            if(chatroomOwner) {
-                Log.i("ChatroomActivity", "Current auth user is chatroom owner")
+        binding.toolbar.setNavigationIconTint(Color.WHITE)
+        setToolbarAdminIconOnOwnership(chatroomOwner)
+    }
 
+    @ExperimentalPagingApi
+    override fun onResume() {
+        super.onResume()
+        assertGooglePlayAvailability()
+        registerCRUDReceivers()
+        with(binding) {
+            navViewChatroom.setupWithNavController(navController)
+
+            if(viewModel!!.isAuthUserChatroomOwner.value == true) {
                 navViewAdmin.setupWithNavController(navController)
                 toolbar.setupWithNavController(
                     navController, AppBarConfiguration(
@@ -453,21 +459,12 @@ class ChatroomActivity : NavigationActivity(),
                     )
                 )
 
-                // TODO: Remove
-                if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
-                    binding.toolbar.navigationIcon =
-                        ContextCompat.getDrawable(
-                            this@ChatroomActivity,
-                            R.drawable.ic_baseline_admin_panel_settings_24
-                        )
-                }
-
                 drawerLayout.setDrawerLockMode(
                     DrawerLayout.LOCK_MODE_UNDEFINED,
                     GravityCompat.START
                 )
+                setToolbarAdminIconOnOwnership(true)
             } else {
-                Log.i("ChatroomActivity", "Current auth user is NOT chatroom owner")
                 drawerLayout.setDrawerLockMode(
                     DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                     GravityCompat.START
@@ -479,12 +476,7 @@ class ChatroomActivity : NavigationActivity(),
                 // TODO: Back button (white tint)
             }
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-        assertGooglePlayAvailability()
-        registerCRUDReceivers()
         // TODO: Move receiver registration after chatroom/users/event fetches!!!
     }
 
@@ -500,6 +492,17 @@ class ChatroomActivity : NavigationActivity(),
             || availability == SERVICE_DISABLED) {
             googleApiInstance.makeGooglePlayServicesAvailable(this)
             // TODO: onBackPressed?
+        }
+    }
+
+    @ExperimentalPagingApi
+    private fun setToolbarAdminIconOnOwnership(owner: Boolean?) {
+        if(owner == true && supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+            binding.toolbar.navigationIcon =
+                ContextCompat.getDrawable(
+                    this@ChatroomActivity,
+                    R.drawable.ic_baseline_admin_panel_settings_24
+                )
         }
     }
 

@@ -15,6 +15,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.UserGeoPointState
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,10 +85,10 @@ class EventMapsActivityViewModel(
             geoPoint, { gp -> gp.username == geoPoint.username })
     }
 
-    private var _lastReceivedLocation: Location? = null
+    private var _lastReceivedLocation: LatLng? = null
     val lastReceivedLocation get() = _lastReceivedLocation
 
-    fun setLastReceivedLocation(loc: Location?) {
+    fun setLastReceivedLocation(loc: LatLng?) {
         _lastReceivedLocation = loc
     }
 

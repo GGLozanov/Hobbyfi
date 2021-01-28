@@ -379,9 +379,15 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         val activity = requireActivity()
 
         if(!activity.isTaskRoot) {
-            localBroadcastManager.unregisterReceiver(createMessageReceiver!!)
-            localBroadcastManager.unregisterReceiver(editMessageReceiver!!)
-            localBroadcastManager.unregisterReceiver(deleteMessageReceiver!!)
+            createMessageReceiver?.let {
+                localBroadcastManager.unregisterReceiver(it)
+            }
+            editMessageReceiver?.let {
+                localBroadcastManager.unregisterReceiver(it)
+            }
+            deleteMessageReceiver?.let {
+                localBroadcastManager.unregisterReceiver(it)
+            }
         }
     }
 

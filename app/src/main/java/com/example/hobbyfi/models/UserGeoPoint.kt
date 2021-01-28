@@ -4,13 +4,11 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.Keep
 import com.google.firebase.firestore.GeoPoint
-import kotlinx.parcelize.Parcelize
-import kotlinx.parcelize.RawValue
 
 @Keep
 data class UserGeoPoint(
     val username: String,
-    val chatroomId: Long,
+    val chatroomIds: List<Long>,
     val eventIds: List<Long>,
     val geoPoint: GeoPoint
 ) : Parcelable { // custom parcelable in lieu of annotation because GeoPoint can't be serialized directly
@@ -18,7 +16,7 @@ data class UserGeoPoint(
 
     override fun writeToParcel(parcel: Parcel, i: Int) {
         parcel.writeString(username)
-        parcel.writeLong(chatroomId)
+        parcel.writeArray(chatroomIds.toTypedArray())
         parcel.writeArray(eventIds.toTypedArray())
         parcel.writeDouble(geoPoint.latitude)
         parcel.writeDouble(geoPoint.longitude)
@@ -34,7 +32,7 @@ data class UserGeoPoint(
 
     private constructor(parcel: Parcel) : this(
         username = parcel.readString()!!,
-        chatroomId = parcel.readLong(),
+        chatroomIds = parcel.readArray(Long::class.java.classLoader)!!.toList() as List<Long>,
         eventIds = parcel.readArray(Long::class.java.classLoader)!!.toList() as List<Long>,
         geoPoint = GeoPoint(parcel.readDouble(), parcel.readDouble())
     )

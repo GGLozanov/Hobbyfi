@@ -18,6 +18,7 @@ import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
 import com.google.firebase.FirebaseException
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.sendBlocking
@@ -147,10 +148,14 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             )
 
             firestore.collection(Constants.LOCATIONS_COLLECTION)
-                .whereEqualTo(Constants.CHATROOM_ID, chatroomId)
+                .whereArrayContains(Constants.CHATROOM_ID, chatroomId)
                 .get().addOnSuccessListener {
                     it.documents.forEach { doc ->
-                        doc.reference.delete()
+                        if((doc[Constants.CHATROOM_ID] as List<Long>).size == 1) {
+                            doc.reference.delete()
+                        } else {
+                            doc.reference.update(Constants.CHATROOM_ID, FieldValue.arrayRemove(chatroomId))
+                        }
                     }
                 }.addOnFailureListener {
                     throw FirebaseException(Constants.firestoreDeletionError)

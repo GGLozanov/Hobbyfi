@@ -57,7 +57,7 @@ abstract class UserGeoPointAccessorViewModel(
 
     protected fun updateUserGeoPoint(
         username: String,
-        chatroomId: Long,
+        chatroomIds: List<Long>,
         eventIds: List<Long>,
         geoPoint: GeoPoint
     ) {
@@ -67,7 +67,7 @@ abstract class UserGeoPointAccessorViewModel(
             UserGeoPointState.OnData.OnUserGeoPointSetResult(
                 eventRepository.setEventUserGeoPoints(
                     username,
-                    chatroomId,
+                    chatroomIds,
                     eventIds,
                     geoPoint
                 )

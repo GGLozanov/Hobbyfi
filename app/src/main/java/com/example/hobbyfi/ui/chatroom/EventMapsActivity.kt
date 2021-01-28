@@ -17,7 +17,6 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.services.EventLocationUpdatesService
 import com.example.hobbyfi.shared.Constants
@@ -70,7 +69,6 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 )
 
                 val receivedLocation = intent.extras?.get(Constants.UPDATED_LOCATION) as Location
-                viewModel.setLastReceivedLocation(receivedLocation)
 
                 val initialGeoPoint = this@EventMapsActivity.intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
                 // GeoPoint HERE is immutable (in this activity),
@@ -79,7 +77,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                     viewModel.sendIntent(
                         UserGeoPointIntent.UpdateUserGeoPoint(
                             initialGeoPoint.username,
-                            initialGeoPoint.chatroomId,
+                            initialGeoPoint.chatroomIds,
                             initialGeoPoint.eventIds,
                             GeoPoint(receivedLocation.latitude, receivedLocation.longitude)
                         )
@@ -104,7 +102,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 .service
             serviceBound = true
 
-            if(prefConfig.readRequestLocationServiceRunning()) {
+            if(prefConfig.readRequestingLocationUpdates()) {
                 enableLocationUpdates() // start the service for location tracking if applicable
             } else {
                 locationUpdatesService?.removeLocationUpdates()
@@ -156,7 +154,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         map?.setOnMyLocationButtonClickListener {
             viewModel.lastReceivedLocation?.let {
                 map?.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    LatLng(it.latitude, it.longitude), DEFAULT_ZOOM.toFloat()
+                    it, DEFAULT_ZOOM.toFloat()
                 ))
             }
             true
@@ -179,7 +177,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                     .show()
             }
         }
-        setFABState(prefConfig.readRequestLocationServiceRunning())
+        setFABState(prefConfig.readRequestingLocationUpdates())
 
         bindService(
             Intent(this, EventLocationUpdatesService::class.java),
@@ -238,14 +236,16 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                             if (geoPoint != null) {
                                 // viewModel.updateNewGeoPointInList(geoPoint) -> don't add geopoint to other users list
 
+                                val location = LatLng(geoPoint.geoPoint.latitude, geoPoint.geoPoint.longitude)
                                 if(viewModel.lastReceivedLocation == null) {
                                     map?.animateCamera(
                                         CameraUpdateFactory.newLatLngZoom(
-                                            LatLng(geoPoint.geoPoint.latitude, geoPoint.geoPoint.longitude),
+                                            location,
                                             DEFAULT_ZOOM.toFloat()
                                         )
                                     )
                                 }
+                                viewModel.setLastReceivedLocation(location)
                             } else {
                                 viewModel.setUserGeoPoints(emptyList())
                             }
@@ -392,12 +392,6 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             unregisterReceiver(editEventReceiver!!)
             unregisterReceiver(deleteEventBatchReceiver!!)
         }
-        prefConfig.writeRequestingLocationUpdates(binding.disableLocationUpdatesFab.isEnabled)
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        prefConfig.writeRequestingLocationUpdates(binding.disableLocationUpdatesFab.isEnabled)
     }
 
     override fun onStop() {

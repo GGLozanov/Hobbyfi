@@ -8,7 +8,7 @@ sealed class UserGeoPointIntent : Intent {
 
     data class UpdateUserGeoPoint(
         val username: String,
-        val chatroomId: Long,
+        val chatroomId: List<Long>,
         val eventIds: List<Long>,
         val geoPoint: GeoPoint
     ) : UserGeoPointIntent()

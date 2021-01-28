@@ -41,6 +41,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
                 eventTitle = getString(Constants.NAME)
                 eventDescription = getString(Constants.DESCRIPTION)
             }
+            Log.i("EventCLMActivity", "Location (Event): ${eventLocation}")
         } else {
             eventLocation = intent.extras?.get(Constants.EVENT_LOCATION) as LatLng?
             eventTitle = intent.extras?.get(Constants.EVENT_TITLE) as String?
@@ -62,13 +63,15 @@ class EventChooseLocationMapsActivity : MapsActivity() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        super.onSaveInstanceState(outState.apply {
+    override fun onSaveInstanceState(outState: Bundle) {
+        Log.i("EventCLMActivity", "Location event: $eventLocation")
+        outState.apply {
             putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
             putParcelable(Constants.LOCATION, eventLocation)
             putString(Constants.NAME, eventTitle)
             putString(Constants.DESCRIPTION, eventDescription)
-        })
+        }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -105,6 +108,8 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
             override fun onMarkerDragEnd(newMarker: Marker?) {
                 marker = newMarker
+                eventLocation = marker?.position
+                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(marker?.position, DEFAULT_ZOOM.toFloat()))
             }
         })
 
@@ -189,6 +194,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
             eventDescription,
             true
         )
+        eventLocation = marker?.position
     }
 
     private fun sendMarkerLocationResultBack() {

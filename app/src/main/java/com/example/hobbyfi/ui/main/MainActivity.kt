@@ -104,6 +104,11 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     }
 
     override fun onResume() {
+        initNavController()
+        super.onResume()
+    }
+
+    override fun initNavController() {
         binding.bottomNav.setupWithNavController(
             navGraphIds = listOf(
                 R.navigation.user_profile_nav_graph,
@@ -115,7 +120,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
             intent = intent
         ).observe(this@MainActivity, Observer {
             navController = it
-
             binding.toolbar.setupWithNavController(
                 navController, AppBarConfiguration(
                     setOf(
@@ -126,7 +130,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                 )
             )
         })
-        super.onResume()
     }
 
     private fun observeUserState() {

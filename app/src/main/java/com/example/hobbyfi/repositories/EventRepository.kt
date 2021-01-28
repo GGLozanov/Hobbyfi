@@ -164,12 +164,12 @@ class EventRepository(
                     throw e
                 }
 
-                val userChatroomId = doc?.getLong(Constants.CHATROOM_ID)
+                val userChatroomIds = doc?.get(Constants.CHATROOM_ID) as List<Long>?
                 val geoPoint = doc?.getGeoPoint(Constants.LOCATION)
                 val eventIds = doc?.get(Constants.EVENT_IDS) as List<Long>?
 
-                val userGeoPoint = if(userChatroomId == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null
-                    else UserGeoPoint(doc.id, userChatroomId, eventIds, geoPoint)
+                val userGeoPoint = if(userChatroomIds == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null
+                    else UserGeoPoint(doc.id, userChatroomIds, eventIds, geoPoint)
 
                 Log.i("EventRepository", "getEventUserGeoPoint -> Received user Geo Point: $userGeoPoint")
                 _userGeoPoint.value = userGeoPoint
@@ -189,11 +189,13 @@ class EventRepository(
 
                 val geoPoints = ArrayList<UserGeoPoint?>()
                 for (doc in snapshots!!) {
-                    val userChatroomId = doc.getLong(Constants.CHATROOM_ID)
+                    Log.i("EventRepository", "Received docs from getEventUserGeoPoint: ${doc.data}")
+
+                    val userChatroomIds = doc.get(Constants.CHATROOM_ID) as List<Long>?
                     val geoPoint = doc.getGeoPoint(Constants.LOCATION)
                     val eventIds = doc.get(Constants.EVENT_IDS) as List<Long>?
-                    geoPoints.add(if(userChatroomId == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null else
-                        UserGeoPoint(doc.id, userChatroomId, eventIds, geoPoint))
+                    geoPoints.add(if(userChatroomIds == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null else
+                        UserGeoPoint(doc.id, userChatroomIds, eventIds, geoPoint))
                 }
 
                 _userGeoPoints.value = geoPoints.filterNotNull()
@@ -201,7 +203,7 @@ class EventRepository(
         return _userGeoPoints
     }
 
-    fun setEventUserGeoPoints(username: String, chatroomId: Long,
+    fun setEventUserGeoPoints(username: String, chatroomIds: List<Long>,
                               eventIds: List<Long>, location: GeoPoint): LiveData<UserGeoPoint?> {
         val observer: MutableLiveData<UserGeoPoint> = MutableLiveData()
         if(eventIds.isEmpty()) {
@@ -212,7 +214,7 @@ class EventRepository(
         }
 
         val map = hashMapOf(
-            Pair(Constants.CHATROOM_ID, chatroomId),
+            Pair(Constants.CHATROOM_ID, chatroomIds),
             Pair(Constants.LOCATION, location),
             Pair(Constants.EVENT_IDS, eventIds),
         )
@@ -220,8 +222,8 @@ class EventRepository(
         firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
             .set(map)
             .addOnSuccessListener {
-                Log.i("EventRepository", "Added User GeoPoint record to DB (chatroom_id: $chatroomId, location: $location)")
-                observer.value = UserGeoPoint(username, chatroomId, eventIds, location)
+                Log.i("EventRepository", "Added User GeoPoint record to DB (chatroom_id: $chatroomIds, location: $location)")
+                observer.value = UserGeoPoint(username, chatroomIds, eventIds, location)
             }
             .addOnFailureListener {
                 throw FirebaseException(Constants.firestoreUpdateError)
