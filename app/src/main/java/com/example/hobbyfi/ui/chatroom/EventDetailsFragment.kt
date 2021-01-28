@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityNodeInfo.CollectionInfo.SELECTION_MODE_NONE
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.core.content.ContextCompat
@@ -29,7 +30,7 @@ import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.combineWith
-import com.example.hobbyfi.viewmodels.chatroom.EventDetailsViewModel
+import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.setParamsBasedOnScreenOrientation
@@ -45,7 +46,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.GeoPoint
 import com.prolificinteractive.materialcalendarview.CalendarDay
-import com.prolificinteractive.materialcalendarview.MaterialCalendarView.SELECTION_MODE_NONE
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -57,7 +57,7 @@ import java.util.*
 class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     // TODO: Abstract DeviceRotationViewAware impl to higher fragments and handle rotation for all views
 
-    private val viewModel: EventDetailsViewModel by viewModels(factoryProducer = {
+    private val viewModel: EventDetailsFragmentViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             requireActivity().application,
             requireArguments()[Constants.EVENT] as Event

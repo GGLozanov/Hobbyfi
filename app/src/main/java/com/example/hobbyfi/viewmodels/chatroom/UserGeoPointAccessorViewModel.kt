@@ -81,9 +81,7 @@ abstract class UserGeoPointAccessorViewModel(
         mainStateIntent.setState(UserGeoPointState.Loading)
 
         mainStateIntent.setState(try {
-            val response = eventRepository.getEventUsersGeoPoint(_relatedEvent.id, geoPointUserUsername)
-
-            _userGeoPoints = response
+            _userGeoPoints = eventRepository.getEventUsersGeoPoint(_relatedEvent.id, geoPointUserUsername)
 
             UserGeoPointState.OnData.OnUsersGeoPointsResult(
                 _userGeoPoints

@@ -122,6 +122,11 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         binding = ActivityEventMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        if(viewModel.initialStart) {
+            prefConfig.writeRequestingLocationUpdates(true)
+            viewModel.setInitialStart(false)
+        }
+
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -149,7 +154,6 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         observeEvent()
         observeUserGeoPoints()
         viewModel.forceEventObservation()
-        viewModel.forceUserGeoPointsObservation()
 
         map?.setOnMyLocationButtonClickListener {
             viewModel.lastReceivedLocation?.let {
@@ -235,7 +239,6 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                         it.setUserGeoPoint.observe(this@EventMapsActivity, Observer { geoPoint ->
                             if (geoPoint != null) {
                                 // viewModel.updateNewGeoPointInList(geoPoint) -> don't add geopoint to other users list
-
                                 val location = LatLng(geoPoint.geoPoint.latitude, geoPoint.geoPoint.longitude)
                                 if(viewModel.lastReceivedLocation == null) {
                                     map?.animateCamera(
@@ -269,6 +272,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             it.filter { gp -> !gp.geoPoint.latitude.equals(0.0) && !gp.geoPoint.longitude.equals(0.0) }
         }. observe(this, Observer {
             Log.i("EventMapsActivity", "User geo points: $it")
+            // TODO: Remove previous markers
             it.forEach { geoPoint ->
                 addGeoPointMarker(geoPoint)
             }
@@ -363,6 +367,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
     override fun onResume() {
         super.onResume()
+        prefConfig.writeRequestLocationServiceRunning(false)
         eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(
             viewModel, this
         )
@@ -377,15 +382,15 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             )
             registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
             registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
-            registerReceiver(
-                deleteEventBatchReceiver!!,
-                IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE)
-            )
+            registerReceiver(deleteEventBatchReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
         }
+
+        setFABState(prefConfig.readRequestingLocationUpdates())
     }
 
     override fun onPause() {
         super.onPause()
+        prefConfig.writeRequestLocationServiceRunning(true)
         with(localBroadcastManager) {
             unregisterReceiver(locationUpdateReceiver)
             unregisterReceiver(deleteEventReceiver!!)
@@ -395,18 +400,23 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
     }
 
     override fun onStop() {
-        if(serviceBound) {
-            unbindService(locationServiceConnection) // promote to foreground service by unbinding
-            serviceBound = false
-        }
+        unbindServiceIfBound()
         prefConfig
             .unregisterPrefsListener(this)
         super.onStop()
     }
 
     override fun onBackPressed() {
+        unbindServiceIfBound()
         locationUpdatesService?.removeLocationUpdates()
         super.onBackPressed()
+    }
+
+    private fun unbindServiceIfBound() {
+        if(serviceBound) {
+            unbindService(locationServiceConnection) // promote to foreground service by unbinding
+            serviceBound = false
+        }
     }
 
     override fun onSharedPreferenceChanged(sharedPrefs: SharedPreferences, key: String) {
@@ -453,4 +463,9 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
     private fun getUserGeoPointFromCurrentIntent(): UserGeoPoint =
         intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
+
+    override fun onDestroy() {
+        super.onDestroy()
+        prefConfig.writeRequestLocationServiceRunning(true)
+    }
 }

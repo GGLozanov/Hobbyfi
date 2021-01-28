@@ -187,17 +187,18 @@ class EventRepository(
                     throw e
                 }
 
-                val geoPoints = ArrayList<UserGeoPoint?>()
+                val geoPoints = mutableListOf<UserGeoPoint?>()
                 for (doc in snapshots!!) {
                     Log.i("EventRepository", "Received docs from getEventUserGeoPoint: ${doc.data}")
 
-                    val userChatroomIds = doc.get(Constants.CHATROOM_ID) as List<Long>?
-                    val geoPoint = doc.getGeoPoint(Constants.LOCATION)
-                    val eventIds = doc.get(Constants.EVENT_IDS) as List<Long>?
+                    val userChatroomIds = doc?.get(Constants.CHATROOM_ID) as List<Long>?
+                    val geoPoint = doc?.getGeoPoint(Constants.LOCATION)
+                    val eventIds = doc?.get(Constants.EVENT_IDS) as List<Long>?
+
                     geoPoints.add(if(userChatroomIds == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null else
                         UserGeoPoint(doc.id, userChatroomIds, eventIds, geoPoint))
                 }
-
+                Log.i("EventRepository", "UserGeoPoints list: ${geoPoints}")
                 _userGeoPoints.value = geoPoints.filterNotNull()
             }
         return _userGeoPoints

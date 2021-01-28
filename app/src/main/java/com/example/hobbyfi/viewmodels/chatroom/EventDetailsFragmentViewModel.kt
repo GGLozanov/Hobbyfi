@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class EventDetailsViewModel(
+class EventDetailsFragmentViewModel(
     application: Application,
     event: Event
 ) : UserGeoPointAccessorViewModel(application, event) {

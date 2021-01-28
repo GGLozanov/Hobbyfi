@@ -65,13 +65,12 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         Log.i("EventCLMActivity", "Location event: $eventLocation")
-        outState.apply {
+        super.onSaveInstanceState(outState.apply {
             putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
             putParcelable(Constants.LOCATION, eventLocation)
             putString(Constants.NAME, eventTitle)
             putString(Constants.DESCRIPTION, eventDescription)
-        }
-        super.onSaveInstanceState(outState)
+        })
     }
 
     override fun onMapReady(googleMap: GoogleMap) {

@@ -8,7 +8,7 @@
 
         <variable
             name="viewModel"
-            type="com.example.hobbyfi.viewmodels.chatroom.EventDetailsViewModel" />
+            type="com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel" />
     </data>
 
     <androidx.core.widget.NestedScrollView

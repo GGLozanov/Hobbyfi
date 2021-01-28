@@ -92,6 +92,13 @@ class EventMapsActivityViewModel(
         _lastReceivedLocation = loc
     }
 
+    private var _initialStart: Boolean = true
+    val initialStart get() = _initialStart
+
+    fun setInitialStart(initialStart: Boolean) {
+        _initialStart = initialStart
+    }
+
     // little bruh hack; w/e
     fun forceEventObservation() {
         _event.value = _event.value

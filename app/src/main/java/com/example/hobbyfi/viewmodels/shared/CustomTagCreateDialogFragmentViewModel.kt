@@ -18,19 +18,8 @@ class CustomTagCreateDialogFragmentViewModel(application: Application) : BaseVie
 
     val colour: MutableLiveData<String> = MutableLiveData()
 
-    private var _lastSelectorPosition: PointF? = null
-    val lastSelectorPosition: PointF? get() = _lastSelectorPosition
-
     fun setOnColourChangedListener(colourPickerView: ColorPickerView) {
         colourPickerView.setColorListener(ColorEnvelopeListener { colorEnvelope, _ ->
-            if(_lastSelectorPosition == null) {
-                _lastSelectorPosition = PointF()
-            }
-
-            _lastSelectorPosition?.let {
-                it.x = colourPickerView.selectorX
-                it.y = colourPickerView.selectorY
-            }
             colour.value = "#" + colorEnvelope.hexCode
         })
     }

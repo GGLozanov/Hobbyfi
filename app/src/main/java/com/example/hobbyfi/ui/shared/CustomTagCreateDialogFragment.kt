@@ -33,7 +33,7 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
          binding =
             DataBindingUtil.inflate(
@@ -54,17 +54,6 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
 
         binding.cancelButton.setOnClickListener {
             dismiss()
-        }
-
-        if(viewModel.lastSelectorPosition == null) {
-            binding.colorPicker.selectCenter()
-        } else {
-            viewModel.lastSelectorPosition?.let {
-                binding.colorPicker.setSelectorPoint(
-                    it.x.roundToInt(),
-                    it.y.roundToInt()
-                )
-            }
         }
 
         binding.confirmCustomTagButton.setOnClickListener {

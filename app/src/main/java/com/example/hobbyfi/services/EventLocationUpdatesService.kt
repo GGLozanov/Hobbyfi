@@ -1,12 +1,15 @@
 package com.example.hobbyfi.services
 
 import android.app.*
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.location.Location
 import android.os.*
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
@@ -36,7 +39,7 @@ class EventLocationUpdatesService : Service(), KodeinAware {
     private var relatedEvent: Event? = null
     private var initialAuthUserGeoPoint: UserGeoPoint? = null
 
-    private val mBinder: IBinder = LocalBinder()
+    private val binder: IBinder = LocalBinder()
 
     // local binder only for this given process; no use for IPC methods
     inner class LocalBinder : Binder() {
@@ -45,8 +48,8 @@ class EventLocationUpdatesService : Service(), KodeinAware {
     }
 
     // verifies activity state depending on unbinding through configuration change OR actual foreground state change
-    // relegates activiation of service in cases where the activity is simply rotated or multi-window is enabled
-    // i.e. config chagne
+    // relegates activation of service in cases where the activity is simply rotated or multi-window is enabled
+    // i.e. config change
     private var isChangingConfiguration = false
 
     private lateinit var notificationManager: NotificationManager
@@ -114,7 +117,7 @@ class EventLocationUpdatesService : Service(), KodeinAware {
         Log.i(TAG, "Triggered onBind()")
         stopForeground(true) // reset any notifications
         isChangingConfiguration = false
-        return mBinder
+        return binder
     }
 
     override fun onRebind(intent: Intent?) {
@@ -152,10 +155,6 @@ class EventLocationUpdatesService : Service(), KodeinAware {
         }
     }
 
-    /**
-     * Removes location updates. Note that in this sample we merely log the
-     * [SecurityException].
-     */
     fun removeLocationUpdates() {
         Log.i(TAG, "Removing location updates")
         try {
@@ -170,16 +169,21 @@ class EventLocationUpdatesService : Service(), KodeinAware {
 
     @ExperimentalCoroutinesApi
     override fun onUnbind(intent: Intent): Boolean {
-        Log.i(TAG, "Last client unbound from service")
+        Log.i(
+            TAG,
+            "Last client unbound from service. Is changing config: ${isChangingConfiguration}"
+        )
 
         // Called when the last client (EventMapsActivity) unbinds from this
-        // service. If this method is called due to a configuration change in MainActivity,
+        // service. If this method is called due to a configuration change in EventMapsActivity,
         // do nothing. Otherwise, make this service a foreground service.
-        if (!isChangingConfiguration && prefConfig.readRequestingLocationUpdates()) {
+        if((prefConfig.readRequestLocationServiceRunning()  || !isChangingConfiguration)
+                && prefConfig.readRequestingLocationUpdates()) {
             Log.i(TAG, "Starting foreground service")
 
             startForeground(SERVICE_NOTIFICATION_ID, buildNotification())
         }
+
         return true // ensures onRebind() is called upon client coming back
     }
 
@@ -206,11 +210,9 @@ class EventLocationUpdatesService : Service(), KodeinAware {
         )
 
         // The PendingIntent to launch activity.
-        Log.i(TAG, "related event: $relatedEvent and initialAuthUserGP: $initialAuthUserGeoPoint")
         val activityPendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, EventMapsActivity::class.java).apply {
-
                 putExtra(Constants.EVENT, relatedEvent)
                 putExtra(Constants.USER_GEO_POINT, initialAuthUserGeoPoint)
             }, PendingIntent.FLAG_UPDATE_CURRENT
@@ -228,11 +230,15 @@ class EventLocationUpdatesService : Service(), KodeinAware {
                 R.drawable.ic_baseline_cancel_24, getString(R.string.remove_location_updates),
                 servicePendingIntent
             )
+            color = ContextCompat.getColor(
+                this@EventLocationUpdatesService,
+                R.color.colorBackground
+            )
+            setSmallIcon(applicationInfo.icon)
             setContentText(text)
             setContentTitle(LocationUtils.getLocationTitle(applicationContext))
             setOngoing(true)
             priority = NotificationCompat.PRIORITY_HIGH
-            setSmallIcon(R.mipmap.ic_launcher)
             setTicker(text)
             setWhen(System.currentTimeMillis())
 
@@ -252,7 +258,7 @@ class EventLocationUpdatesService : Service(), KodeinAware {
                         Log.w(TAG, "Failed to get location.")
                     }
                 }
-        } catch(ex: SecurityException) {
+        } catch (ex: SecurityException) {
             Log.e(TAG, "Lost location permission. $ex")
         }
     }

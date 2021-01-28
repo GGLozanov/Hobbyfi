@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.shared
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -87,10 +88,9 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.apply {
-            putParcelableArray(Constants.TAGS, adapter.getSelectedTags().toTypedArray())
-        }
-        super.onSaveInstanceState(outState)
+        super.onSaveInstanceState(outState.apply {
+            putParcelableArrayList(Constants.TAGS, ArrayList(adapter.getSelectedTags()))
+        })
     }
 
     override fun onDestroyView() {
