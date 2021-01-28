@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
+import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
@@ -30,6 +31,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
             it.filter { event -> (requireArguments()[Constants.CALENDAR_DAY] as CalendarDay) ==
                     event.calendarDayFromDate }
         } } // livedata filter {} go brrr
+    private lateinit var navController: NavController // only need it here in all the bottomsheets
 
     override val eventListAdapter: EventListAdapter by lazy {
         EventListAdapter(
@@ -37,10 +39,13 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
             { v: View, event: Event ->
                 v.isEnabled = false
 
-                parentFragmentManager.addDistinctFragmentToBackStack(
-                    event.id.toString(),
-                    R.id.nav_host_fragment
-                ) { EventDetailsFragment.newInstance(event) }
+                navController.navigate(
+                    ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToEventDetailsFragment(event)
+                )
+//                parentFragmentManager.addDistinctFragmentToBackStack(
+//                    event.id.toString(),
+//                    R.id.nav_host_fragment
+//                ) { EventDetailsFragment.newInstance(event) }
                 dismiss()
 
                 v.postDelayed({
@@ -58,6 +63,11 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
         view.findViewById<MaterialButton>(R.id.delete_old_events_button).isVisible = false
         view.findViewById<MaterialTextView>(R.id.current_events_header).isVisible = false
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        navController = findNavController()
     }
 
     companion object {

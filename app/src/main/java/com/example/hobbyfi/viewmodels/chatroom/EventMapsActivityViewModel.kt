@@ -81,7 +81,7 @@ class EventMapsActivityViewModel(
     }
 
     fun updateNewGeoPointInList(geoPoint: UserGeoPoint) {
-        _userGeoPoints.value = _userGeoPoints.value!!.replaceOrAdd(
+        _userGeoPoints?.value = _userGeoPoints?.value?.replaceOrAdd(
             geoPoint, { gp -> gp.username == geoPoint.username })
     }
 
@@ -102,10 +102,6 @@ class EventMapsActivityViewModel(
     // little bruh hack; w/e
     fun forceEventObservation() {
         _event.value = _event.value
-    }
-
-    fun forceUserGeoPointsObservation() {
-        _userGeoPoints.value = _userGeoPoints.value
     }
 
     init {

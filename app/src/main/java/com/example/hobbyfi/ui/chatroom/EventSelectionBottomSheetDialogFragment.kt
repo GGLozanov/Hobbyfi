@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
@@ -77,10 +78,13 @@ abstract class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDial
             // TODO: Recyclerview height responsive size (if it doesn't work - static height)
             // scaleViewByScreenSizeAndReLayout(eventList, behaviour, bottomSheet, bottomSheetCoordinator, 3)
 
-            observeEvents()
-
             return@onCreateView root
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        observeEvents()
     }
 
     private fun observeEvents() {

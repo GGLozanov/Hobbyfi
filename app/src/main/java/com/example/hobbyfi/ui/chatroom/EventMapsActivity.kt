@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
@@ -83,8 +84,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                         )
                     )
                 }
-            }
-            else {
+            } else {
                 Log.e(
                     "EventMapsActivity",
                     "locationUpdateReceiver called with wrong intent action!"
@@ -135,7 +135,8 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             if(!checkAndUpdateLocationPermission()) {
                 getLocationPermission()
             } else {
-                if(viewModel.userGeoPoints.value?.isEmpty() == true) {
+                if(viewModel.userGeoPoints == null || viewModel.userGeoPoints?.value == null
+                        || viewModel.userGeoPoints?.value?.isEmpty() == true) {
                     lifecycleScope.launch {
                         viewModel.sendIntent(
                             UserGeoPointIntent.FetchUsersGeoPoints(getUserGeoPointFromCurrentIntent().username)
@@ -146,14 +147,13 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         }
 
         observeEventListState()
-        observeUserGeoPointsState()
     }
 
     override fun onMapReady(gMap: GoogleMap) {
         super.onMapReady(gMap)
         observeEvent()
-        observeUserGeoPoints()
         viewModel.forceEventObservation()
+        observeUserGeoPointsState()
 
         map?.setOnMyLocationButtonClickListener {
             viewModel.lastReceivedLocation?.let {
@@ -230,10 +230,10 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
                     }
                     is UserGeoPointState.OnData.OnUsersGeoPointsResult -> {
-                        Log.i(
-                            "EventMapsActivity",
-                            "Event maps activity OnUsersGeoPointsResult: ${it.userGeoPoints}"
-                        )
+                        Log.i("EventMapsActivity",
+                            "Event maps activity OnUsersGeoPointsResult: ${it.userGeoPoints}")
+                        observeUserGeoPoints(it.userGeoPoints)
+                        viewModel.forceUserGeoPointsObservation()
                     }
                     is UserGeoPointState.OnData.OnUserGeoPointSetResult -> {
                         it.setUserGeoPoint.observe(this@EventMapsActivity, Observer { geoPoint ->
@@ -264,13 +264,13 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         }
     }
 
-    private fun observeUserGeoPoints() {
+    private fun observeUserGeoPoints(users: LiveData<List<UserGeoPoint>>) {
         // hacky magic number fix for default values on the equator
         // Heh, I mean what are the *chances* of anyone picking a location there and it not appearing?!
         // A lot. A lot. This does need to be fixed eventually.
-        viewModel.userGeoPoints.map {
+        users.map {
             it.filter { gp -> !gp.geoPoint.latitude.equals(0.0) && !gp.geoPoint.longitude.equals(0.0) }
-        }. observe(this, Observer {
+        }.observe(this, Observer {
             Log.i("EventMapsActivity", "User geo points: $it")
             // TODO: Remove previous markers
             it.forEach { geoPoint ->
@@ -294,7 +294,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
     override fun updateLocationUI() {
         super.updateLocationUI()
         map?.setOnMyLocationButtonClickListener {
-            viewModel.userGeoPoints.value?.find {
+            viewModel.userGeoPoints?.value?.find {
                 it.username == getUserGeoPointFromCurrentIntent().username
             }?.let {
                 map?.animateCamera(
@@ -315,7 +315,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             return
         }
 
-        if(viewModel.userGeoPoints.value == null) {
+        if(viewModel.userGeoPoints?.value == null) {
             lifecycleScope.launch {
                 viewModel.sendIntent(
                     UserGeoPointIntent.FetchUsersGeoPoints(getUserGeoPointFromCurrentIntent().username)

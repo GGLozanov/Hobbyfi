@@ -31,7 +31,6 @@ abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.Permissio
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        super.onActivityCreated(savedInstanceState)
         navController = findNavController()
     }
 

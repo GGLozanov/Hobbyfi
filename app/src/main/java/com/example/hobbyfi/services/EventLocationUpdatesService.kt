@@ -177,7 +177,7 @@ class EventLocationUpdatesService : Service(), KodeinAware {
         // Called when the last client (EventMapsActivity) unbinds from this
         // service. If this method is called due to a configuration change in EventMapsActivity,
         // do nothing. Otherwise, make this service a foreground service.
-        if((prefConfig.readRequestLocationServiceRunning()  || !isChangingConfiguration)
+        if((prefConfig.readRequestLocationServiceRunning() || !isChangingConfiguration)
                 && prefConfig.readRequestingLocationUpdates()) {
             Log.i(TAG, "Starting foreground service")
 

@@ -21,6 +21,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
+import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
@@ -44,8 +45,10 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.datepicker.MaterialCalendar
 import com.google.firebase.firestore.GeoPoint
 import com.prolificinteractive.materialcalendarview.CalendarDay
+import com.prolificinteractive.materialcalendarview.MaterialCalendarView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -60,24 +63,33 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     private val viewModel: EventDetailsFragmentViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             requireActivity().application,
-            requireArguments()[Constants.EVENT] as Event
+            args.event
         )
     })
+
+    private val args: EventDetailsFragmentArgs by navArgs()
 
     private var map: GoogleMap? = null // TODO: Config change perseverance?
     private lateinit var binding: EventDetailsFragmentBinding
 
     private val usersSource: LiveData<List<User>> by lazy {
-        activityViewModel.chatroomUsers.combineWith(viewModel.userGeoPoints) {
-            users: List<User>?, geoPoints: List<UserGeoPoint>? ->
-        if(users == null || geoPoints == null) {
-            Log.i("EventDetailsFragment", "usersSource by lazy: users -> $users; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
-            return@combineWith emptyList<User>()
-        }
+        viewModel.userGeoPoints?.let {
+            activityViewModel.chatroomUsers.combineWith(it) {
+                    users: List<User>?, geoPoints: List<UserGeoPoint>? ->
+                if(users == null || geoPoints == null) {
+                    Log.i("EventDetailsFragment", "usersSource by lazy: users -> $users; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
+                    return@combineWith emptyList<User>()
+                }
 
-        val geoPointUsernames = geoPoints.map { gp -> gp.username }
-        users.filter { user -> geoPointUsernames.contains(user.name) }
-    } }
+                val geoPointUsernames = geoPoints.map { gp -> gp.username }
+                Log.i("EventDetailsFragment", "GeoPoints: ${geoPointUsernames}")
+                Log.i("EventDetailsFragment", "users: ${users}")
+                return@combineWith users.filter { user -> geoPointUsernames.contains(user.name) }
+            }
+        }
+        Log.i("EventDetailsFragment", "UserGeoPoints are null => returning empty list")
+        return@lazy activityViewModel.chatroomUsers.map { emptyList() }
+    }
 
     private val userListAdapter: ChatroomUserListAdapter by lazy {
         ChatroomUserListAdapter(
@@ -99,16 +111,16 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         binding.viewModel = viewModel
 
         with(binding) {
-            initEventButtons()
             initMap(savedInstanceState)
+            initEventButtons()
             initCalendar()
             calculateEventDayDifference()
             initUserList()
             observeEvent()
-            observeEventUsers()
             observeUserGeoPointState()
 
-            if(viewModel!!.userGeoPoints.value?.isEmpty() == true) {
+            if(viewModel!!.userGeoPoints == null || viewModel!!.userGeoPoints?.value == null
+                    || viewModel!!.userGeoPoints?.value?.isEmpty() == true) {
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(
                         UserGeoPointIntent.FetchUsersGeoPoints(activityViewModel.authUserGeoPoint.value?.username)
@@ -162,7 +174,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                 2,
                 3
             )
-            dateRangeCalendar.selectionMode = SELECTION_MODE_NONE
+            dateRangeCalendar.selectionMode = MaterialCalendarView.SELECTION_MODE_NONE
 
             setCalendarDateData()
         }
@@ -259,13 +271,23 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         )
     }
 
-    private fun observeEventUsers() {
-        usersSource.observe(viewLifecycleOwner, Observer {
-            Log.i("EventDetailsFragment", "Users from users source: $it")
-            binding.noUsersText.isVisible = it.isEmpty()
-            binding.usersList.isVisible = it.isNotEmpty()
+    private fun observeEventUsers(users: LiveData<List<UserGeoPoint>>) {
+        users.combineWith(activityViewModel.chatroomUsers) { geoPoints: List<UserGeoPoint>?, chatroomUsers: List<User>? ->
+                if(chatroomUsers == null || geoPoints == null) {
+                    Log.i("EventDetailsFragment", "usersSource by lazy: users -> $chatroomUsers; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
+                    return@combineWith emptyList<User>()
+                }
 
-            userListAdapter.setUsers(it)
+                val geoPointUsernames = geoPoints.map { gp -> gp.username }
+                Log.i("EventDetailsFragment", "GeoPoints: ${geoPointUsernames}")
+                Log.i("EventDetailsFragment", "users: ${chatroomUsers}")
+                return@combineWith chatroomUsers.filter { user -> geoPointUsernames.contains(user.name) }
+        }.observe(viewLifecycleOwner, Observer {
+                Log.i("EventDetailsFragment", "Users from users source: $it")
+                binding.noUsersText.isVisible = it.isEmpty()
+                binding.usersList.isVisible = it.isNotEmpty()
+
+                userListAdapter.setUsers(it)
         })
     }
 
@@ -275,10 +297,12 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             .observe(viewLifecycleOwner, Observer {
                 if(it != null) {
                     viewModel.setEvent(it)
-                    Glide.with(requireContext())
-                        .load(it.photoUrl)
-                        .into(binding.eventImage)
-                    setToolbarTitle()
+                    it.photoUrl?.let { photoUrl ->
+                        Glide.with(requireContext())
+                            .load(photoUrl)
+                            .placeholder(binding.eventImage.drawable)
+                            .into(binding.eventImage)
+                    }
                     setCalendarDateData()
                     map?.let { m -> setMapsData(m) }
                 }
@@ -298,7 +322,6 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     is UserGeoPointState.OnData.OnUserGeoPointSetResult -> {
                         // after every update, the snapshotlistener is triggered and the new geoPoint is received in activiy VM
                         // therefore, with each geoPoint update here the activity's geoPoint is updated
-
                         it.setUserGeoPoint.observe(viewLifecycleOwner, Observer { geoPoint ->
                             if(geoPoint != null && geoPoint.eventIds.contains(viewModel.relatedEvent.id)) {
                                 // user joined event
@@ -309,18 +332,18 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                                 navigateToEventMaps(geoPoint)
                             } else {
                                 // user left event
-                                parentFragmentManager.popBackStack()
+                                navController.popBackStack()
                             }
                         })
                     }
                     is UserGeoPointState.OnData.OnUsersGeoPointsResult -> {
-
+                        observeEventUsers(it.userGeoPoints)
                     }
                     is UserGeoPointState.Error -> {
                         Toast.makeText(requireContext(), it.error, LENGTH_LONG)
                             .show()
                         if(it.shouldReauth) {
-                            parentFragmentManager.popBackStack()
+                            navController.popBackStack()
                         }
                     }
                     else -> throw State.InvalidStateException()
@@ -366,17 +389,6 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                 3
             )
         }
-    }
-
-    @ExperimentalCoroutinesApi
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        setToolbarTitle()
-    }
-
-    private fun setToolbarTitle() {
-        val activity = requireActivity() as ChatroomActivity
-        activity.title = resources.getString(R.string.event_details)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

@@ -55,7 +55,7 @@
     <fragment
         android:id="@+id/eventDetailsFragment"
         android:name="com.example.hobbyfi.ui.chatroom.EventDetailsFragment"
-        android:label="EventDetailsFragment" >
+        android:label="Event Info">
         <action
             android:id="@+id/action_eventDetailsFragment_to_eventMapsActivity"
             app:destination="@id/eventMapsActivity" />

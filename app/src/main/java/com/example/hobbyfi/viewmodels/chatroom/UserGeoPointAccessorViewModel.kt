@@ -35,8 +35,8 @@ abstract class UserGeoPointAccessorViewModel(
 
     val relatedEvent get() = _relatedEvent
 
-    protected var _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData(emptyList())
-    val userGeoPoints: LiveData<List<UserGeoPoint>> = _userGeoPoints
+    protected var _userGeoPoints: MutableLiveData<List<UserGeoPoint>>? = null
+    val userGeoPoints: LiveData<List<UserGeoPoint>>? = _userGeoPoints
 
     override fun handleIntent() {
         viewModelScope.launch {
@@ -84,14 +84,19 @@ abstract class UserGeoPointAccessorViewModel(
             _userGeoPoints = eventRepository.getEventUsersGeoPoint(_relatedEvent.id, geoPointUserUsername)
 
             UserGeoPointState.OnData.OnUsersGeoPointsResult(
-                _userGeoPoints
+                _userGeoPoints!!
             )
         } catch(ex: Exception) {
             UserGeoPointState.Error(ex.message)
         })
     }
 
+
     fun setUserGeoPoints(geoPoints: List<UserGeoPoint>) {
-        _userGeoPoints.value = geoPoints
+        _userGeoPoints?.value = geoPoints
+    }
+
+    fun forceUserGeoPointsObservation() {
+        _userGeoPoints?.value = _userGeoPoints?.value
     }
 }
