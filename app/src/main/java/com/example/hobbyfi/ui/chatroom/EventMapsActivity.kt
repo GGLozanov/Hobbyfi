@@ -22,6 +22,7 @@ import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.services.EventLocationUpdatesService
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.EventBroadcastReceiverFactory
+import com.example.hobbyfi.shared.animateMarker
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.State
@@ -33,6 +34,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -154,6 +156,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         observeEvent()
         viewModel.forceEventObservation()
         observeUserGeoPointsState()
+        viewModel.forceUserGeoPointsObservation()
 
         map?.setOnMyLocationButtonClickListener {
             viewModel.lastReceivedLocation?.let {
@@ -194,10 +197,8 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         lifecycleScope.launchWhenCreated {
             viewModel.eventsState.collect {
                 when(it) {
-                    is EventListState.Idle -> {
+                    is EventListState.Idle, is EventListState.Loading -> {
 
-                    }
-                    is EventListState.Loading -> {
                     }
                     is EventListState.OnData.DeleteEventsCacheResult -> {
                         if (it.eventIds.contains(viewModel.event.value?.id)) {
@@ -272,10 +273,44 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             it.filter { gp -> !gp.geoPoint.latitude.equals(0.0) && !gp.geoPoint.longitude.equals(0.0) }
         }.observe(this, Observer {
             Log.i("EventMapsActivity", "User geo points: $it")
-            // TODO: Remove previous markers
-            it.forEach { geoPoint ->
-                addGeoPointMarker(geoPoint)
+            if(viewModel.userMarkers == null) {
+                val markers = mutableListOf<Marker>()
+                it.forEach { geoPoint ->
+                    markers.add(addGeoPointMarker(geoPoint)!!)
+                }
+                viewModel.setUserMarkers(markers)
+                return@Observer
             }
+
+            val containedGeoPoints = it.filter { geoPoint ->
+                viewModel.userMarkers!!.any { marker -> marker.title == geoPoint.username }
+            }
+            val animMarkersWithNewPos = it.mapNotNull { geoPoint ->
+                viewModel.userMarkers!!.find { marker -> marker.title == geoPoint.username }
+            }.associateWith { marker ->
+                val gp = it.find { geoPoint -> geoPoint.username == marker.title }!!
+                LatLng(gp.geoPoint.latitude, gp.geoPoint.longitude)
+            } // animate markers map with their latlngs
+            val newGeoPoints = it - containedGeoPoints // add marker list
+            val removeMarkersList = viewModel.userMarkers!!.filterNot { marker ->
+                it.any { geoPoint -> geoPoint.username == marker.title }
+            } // remove marker list
+
+            animMarkersWithNewPos.forEach { (marker, latLng) ->
+                marker.animateMarker(latLng)
+            } // animate old geo point markers
+
+            val newMarkers = mutableListOf<Marker>()
+            newGeoPoints.forEach { geoPoint ->
+                newMarkers.add(addGeoPointMarker(geoPoint)!!)
+            } // add new geo point markers
+            viewModel.setUserMarkers(viewModel.userMarkers!! + newMarkers)
+
+            removeMarkersList.forEach { rmMarker ->
+                rmMarker.remove()
+            } // remove markers
+
+            viewModel.setUserMarkers(viewModel.userMarkers!! - removeMarkersList)
         })
     }
 
@@ -325,7 +360,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
         updateLocationUI()
         locationUpdatesService?.requestLocationUpdates(
-            viewModel.relatedEvent, getUserGeoPointFromCurrentIntent()
+            viewModel.event.value!!, getUserGeoPointFromCurrentIntent()
         )
     }
 
@@ -403,7 +438,15 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         unbindServiceIfBound()
         prefConfig
             .unregisterPrefsListener(this)
+        viewModel.setUserMarkers(null)
         super.onStop()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        viewModel.userGeoPoints?.let {
+            observeUserGeoPoints(it)
+        }
     }
 
     override fun onBackPressed() {
@@ -456,7 +499,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
             false
         } else {
             locationUpdatesService?.requestLocationUpdates(
-                viewModel.relatedEvent, getUserGeoPointFromCurrentIntent()
+                viewModel.event.value!!, getUserGeoPointFromCurrentIntent()
             )
             true
         }
@@ -467,5 +510,6 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
     override fun onDestroy() {
         super.onDestroy()
         prefConfig.writeRequestLocationServiceRunning(true)
+        viewModel.setUserMarkers(null)
     }
 }

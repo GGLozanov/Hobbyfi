@@ -1,5 +1,6 @@
 package com.example.hobbyfi.shared
 
+import android.animation.ValueAnimator
 import android.app.*
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
@@ -9,7 +10,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.text.TextWatcher
-import android.util.DisplayMetrics
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
@@ -33,6 +33,8 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.repositories.Repository
 import com.example.spendidly.utils.PredicateTextWatcher
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.textfield.TextInputLayout
@@ -40,6 +42,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Field
+
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -90,7 +93,6 @@ private fun findField(name: String, type: Class<*>): Field? {
         findField(name, type.superclass)
     } else null
 }
-
 
 fun ConnectivityManager.isConnected(): Boolean {
     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -179,7 +181,7 @@ fun Context.createNotificationChannel(): NotificationChannel {
     return channel
 }
 
-inline fun <reified T: DialogFragment> FragmentManager.showDistinctDialog(
+inline fun <reified T : DialogFragment> FragmentManager.showDistinctDialog(
     tag: String,
     noinline instanceGenerator: () -> T,
     targetFragment: Fragment? = null
@@ -192,7 +194,7 @@ inline fun <reified T: DialogFragment> FragmentManager.showDistinctDialog(
     dialog.show(this, tag)
 }
 
-inline fun <reified T: Fragment> FragmentManager.addDistinctFragmentToBackStack(
+inline fun <reified T : Fragment> FragmentManager.addDistinctFragmentToBackStack(
     tag: String,
     containerId: Int,
     noinline instanceGenerator: () -> T
@@ -235,6 +237,21 @@ fun View.setParamsBasedOnScreenOrientation(
         layoutParams.height = displayMetrics.heightPixels / divisorHeightLandscape
         layoutParams.width = displayMetrics.widthPixels / divisorWidthLandscape
     }
+}
+
+fun Marker.animateMarker(newLatLng: LatLng) {
+    val startValues: DoubleArray =
+        doubleArrayOf(position.latitude, position.longitude)
+    val endValues: DoubleArray = doubleArrayOf(newLatLng.latitude, newLatLng.longitude)
+    val latLngAnimator: ValueAnimator =
+        ValueAnimator.ofObject(DoubleArrayEvaluator(), startValues, endValues)
+    latLngAnimator.duration = 600
+    latLngAnimator.interpolator = android.view.animation.DecelerateInterpolator()
+    latLngAnimator.addUpdateListener({ animation ->
+        val animatedValue = animation.animatedValue as DoubleArray
+        setPosition(LatLng(animatedValue[0], animatedValue[1]))
+    }) // lerp the anim
+    latLngAnimator.start()
 }
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho

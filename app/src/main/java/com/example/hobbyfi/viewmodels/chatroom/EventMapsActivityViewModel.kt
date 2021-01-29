@@ -16,6 +16,7 @@ import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.UserGeoPointState
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,13 @@ class EventMapsActivityViewModel(
 
     private val _event: MutableLiveData<Event> = MutableLiveData(_relatedEvent)
     val event: LiveData<Event> get() = _event
+
+    private var _userMarkers: List<Marker>? = null
+    val userMarkers: List<Marker>? get() = _userMarkers
+
+    fun setUserMarkers(markers: List<Marker>?) {
+        _userMarkers = markers
+    }
 
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
         override val _state: MutableStateFlow<EventListState> =
