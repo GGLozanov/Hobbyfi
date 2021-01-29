@@ -119,6 +119,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
     override fun setViewsVisibilityOnEvents(events: List<Event>) {
         super.setViewsVisibilityOnEvents(events)
         binding.deleteOldEventsButton.isVisible = events.isNotEmpty()
+        binding.currentEventsHeader.isVisible = events.isNotEmpty()
     }
 
     companion object {

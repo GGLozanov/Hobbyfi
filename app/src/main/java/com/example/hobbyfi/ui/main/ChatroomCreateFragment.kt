@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.main
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -41,10 +42,19 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.clear()
+    }
+
     private val fcmTopicErrorFallback: OnFailureListener by instance(
         tag = "fcmTopicErrorFallback",
         MainApplication.applicationContext
     )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -97,7 +107,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         activityViewModel.sendIntent(
                             UserIntent.UpdateUserCache(mapOf(
                                 Pair(Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                    activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id))
+                                    activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id))
                                 )
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment

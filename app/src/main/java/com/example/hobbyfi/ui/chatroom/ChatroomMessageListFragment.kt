@@ -217,7 +217,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
                     is MessageListState.OnData.MessagesResult -> {
                         it.messages.catch { e ->
                             e.printStackTrace()
-                            if((e as Exception).isCritical) {
+                            if(e.isCritical) {
                                 Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
                                     .show()
                                 // TODO: Switch to `startActivityForResult` calls cuz process death

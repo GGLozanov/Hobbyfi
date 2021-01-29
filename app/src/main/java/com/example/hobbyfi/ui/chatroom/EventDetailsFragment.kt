@@ -123,7 +123,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     || viewModel!!.userGeoPoints?.value?.isEmpty() == true) {
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(
-                        UserGeoPointIntent.FetchUsersGeoPoints(activityViewModel.authUserGeoPoint.value?.username)
+                        UserGeoPointIntent.FetchUsersGeoPoints(activityViewModel.authUserGeoPoint?.value?.username)
                     )
                 }
             }
@@ -205,7 +205,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     private fun initEventButtons() {
         with(binding.eventViewButtonBar) {
             leftButton.setOnClickListener {
-                activityViewModel.authUserGeoPoint.value?.let {
+                activityViewModel.authUserGeoPoint!!.value?.let { // user should NEVER leave event without a predefined user point
                     lifecycleScope.launch {
                         val (username, chatroomIds, eventIds, geoPoint) = it
                         viewModel.sendIntent(
@@ -219,25 +219,26 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     }
                 }
             }
-            val userInEvent = activityViewModel.authUserGeoPoint.value != null &&
-                    activityViewModel.authUserGeoPoint.value!!.eventIds.contains(viewModel.relatedEvent.id)
+            val userInEvent = activityViewModel.authUserGeoPoint != null &&
+                    activityViewModel.authUserGeoPoint?.value != null &&
+                    activityViewModel.authUserGeoPoint?.value!!.eventIds.contains(viewModel.relatedEvent.id)
             leftButton.isVisible = userInEvent
             rightButton.setOnClickListener {
                 lifecycleScope.launch {
                     if(!userInEvent) {
                         viewModel.sendIntent(
                             UserGeoPointIntent.UpdateUserGeoPoint(
-                                activityViewModel.authUserGeoPoint.value?.username
+                                activityViewModel.authUserGeoPoint?.value?.username
                                     ?: activityViewModel.authUser.value!!.name,
-                                activityViewModel.authUserGeoPoint.value?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id)
+                                activityViewModel.authUserGeoPoint?.value?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id)
                                     ?: listOf(activityViewModel.authChatroom.value!!.id),
-                                activityViewModel.authUserGeoPoint.value?.eventIds?.plus(viewModel.relatedEvent.id)
+                                activityViewModel.authUserGeoPoint?.value?.eventIds?.plus(viewModel.relatedEvent.id)
                                     ?: listOf(viewModel.relatedEvent.id),
-                                activityViewModel.authUserGeoPoint.value?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
+                                activityViewModel.authUserGeoPoint?.value?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
                             )
                         )
                     } else {
-                        navigateToEventMaps(activityViewModel.authUserGeoPoint.value!!)
+                        navigateToEventMaps(activityViewModel.authUserGeoPoint!!.value!!) // user should NEVER not have event at this point here
                     }
                 }
             }

@@ -270,7 +270,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         // Heh, I mean what are the *chances* of anyone picking a location there and it not appearing?!
         // A lot. A lot. This does need to be fixed eventually.
         users.map {
-            it.filter { gp -> !gp.geoPoint.latitude.equals(0.0) && !gp.geoPoint.longitude.equals(0.0) }
+            it.filterNot { gp -> gp.geoPoint.latitude.equals(0.0) && gp.geoPoint.longitude.equals(0.0) }
         }.observe(this, Observer {
             Log.i("EventMapsActivity", "User geo points: $it")
             if(viewModel.userMarkers == null) {
@@ -452,6 +452,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
     override fun onBackPressed() {
         unbindServiceIfBound()
         locationUpdatesService?.removeLocationUpdates()
+        setResult(RESULT_OK)
         super.onBackPressed()
     }
 

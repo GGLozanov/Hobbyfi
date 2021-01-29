@@ -37,8 +37,8 @@ class ChatroomActivityViewModel(
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
     val authEvents: LiveData<List<Event>> get() = _authEvents
 
-    private var _authUserGeoPoint: StateFlow<UserGeoPoint?> by Delegates.notNull()
-    val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
+    private var _authUserGeoPoint: StateFlow<UserGeoPoint?>? = null
+    val authUserGeoPoint: StateFlow<UserGeoPoint?>? get() = _authUserGeoPoint
 
     fun setAuthEvents(events: List<Event>?) {
         _authEvents.value = events
@@ -154,7 +154,7 @@ class ChatroomActivityViewModel(
             _authUserGeoPoint = eventRepository.getEventUserGeoPoint(authUser.value!!.name)
 
             UserGeoPointState.OnData.OnAuthUserGeoPointResult(
-                _authUserGeoPoint
+                _authUserGeoPoint!!
             ) // TODO: Do something with state (collect it, at least)
         } catch(ex: Exception) {
             ex.printStackTrace()
@@ -173,7 +173,7 @@ class ChatroomActivityViewModel(
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
-                    (e as Exception).isCritical
+                    e.isCritical
                 )
             )
         }.collectLatest {
@@ -196,7 +196,7 @@ class ChatroomActivityViewModel(
             eventsStateIntent.setState(
                 EventListState.Error(
                     e.message,
-                    (e as Exception).isCritical
+                    e.isCritical
                 )
             )
         }.collect {

@@ -127,7 +127,7 @@ interface HobbyfiAPI {
         @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
         @Field(Constants.IMAGE) image: String?,
-        @Field(Constants.TAGS + "[]") tags: List<Tag>?
+        @Field(Constants.TAGS + "[]") tags: String?
     ): IdResponse?
 
     /**

@@ -89,7 +89,7 @@ abstract class AuthChatroomHolderViewModel(
             chatroomStateIntent.setState(
                 ChatroomState.Error(
                     e.message,
-                    shouldExit = (e as Exception).isCritical
+                    shouldExit = e.isCritical
                 )
             )
         }.collect {
@@ -123,9 +123,9 @@ abstract class AuthChatroomHolderViewModel(
         val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
                 userRepository.deleteUsersCache(_authUser.value!!.id)
 
-        // TODO: Change to save user list with chatroom IDs for one-to-many connection
         updateAndSaveUser(mapOf(
-            Pair(Constants.CHATROOM_ID, "0")
+            Pair(Constants.CHATROOM_IDS,
+                Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
         )) // nullify chatroom for cache user after deletion
 
         if(setState) {

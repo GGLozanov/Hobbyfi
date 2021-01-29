@@ -82,11 +82,13 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         // observe flow returned from networkBoundFetcher and change state upon emitted value
         userRepository.getUser().catch { e ->
             e.printStackTrace()
+            Log.i("AuthUserHolderVM", "User error: ${e::class.java.simpleName}")
             mainStateIntent.setState(
                 UserState.Error(
                     e.message,
-                    shouldReauth = (e as Exception).isCritical
-                ))
+                    shouldReauth = e.isCritical
+                )
+            )
         }.collect {
             if(it != null) {
                 setUser(it)

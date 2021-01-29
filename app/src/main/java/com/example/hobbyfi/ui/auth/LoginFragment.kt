@@ -137,7 +137,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
                 private fun validateProfileExistence() {
                     lifecycleScope.launch {
-                        Log.i("ID", Profile.getCurrentProfile().id)
                         viewModel.sendFacebookIntent(
                             FacebookIntent.ValidateFacebookUserExistence(
                                 Profile.getCurrentProfile().id.toLong()

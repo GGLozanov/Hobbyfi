@@ -123,7 +123,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                 name,
                 description,
                 base64Image,
-                if(tags.isEmpty()) null else tags
+                if(tags.isEmpty()) null else Constants.tagJsonConverter.toJson(tags)
             )
         }, { createChatroom(name, description, base64Image, tags) })
     }

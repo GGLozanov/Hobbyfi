@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -89,8 +90,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         with(binding) {
             val view = root
             setContentView(view)
-            setSupportActionBar(toolbar)
-            initNavController()
+            setSupportActionBar(binding.toolbar)
+            if(savedInstanceState == null) {
+                initNavController()
+            } // safeguard for dupping the navcontroller setup
 
             bottomNav.setOnNavigationItemReselectedListener {
                 // avoid fragment recreation (do nothing here)
@@ -104,8 +107,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     }
 
     override fun onResume() {
-        initNavController()
         super.onResume()
+        initNavController()
     }
 
     override fun initNavController() {
@@ -150,8 +153,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                             this@MainActivity,
                             "Successfully deleted account!",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
+                        ).show()
                         logout()
                     }
                     is UserState.OnData.UserUpdateResult -> {
@@ -167,7 +169,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                                 userChatroomFields = mapOf(
                                     Pair(
                                         Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                            viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
+                                            viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID]
+                                                ?: listOf(it.userFields[Constants.CHATROOM_ID]))
                                         )
                                     )
                                 )
@@ -193,8 +196,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                                 this@MainActivity,
                                 "Successfully updated fields!",
                                 Toast.LENGTH_LONG
-                            )
-                                .show()
+                            ).show()
                         }
                         viewModel.resetState()
                     }
@@ -258,5 +260,9 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         super.onDestroy()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
         localBroadcastManager.unregisterReceiver(authStateReceiver)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

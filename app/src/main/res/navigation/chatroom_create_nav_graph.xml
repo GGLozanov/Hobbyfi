@@ -40,7 +40,9 @@
         </action>
         <action
             android:id="@+id/action_chatroomCreateFragment_to_chatroomActivity"
-            app:destination="@id/chatroomActivity" />
+            app:destination="@id/chatroomActivity"
+            app:popUpTo="@id/chatroom_create_nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
     <include app:graph="@navigation/tag_nav_graph" />
 </navigation>

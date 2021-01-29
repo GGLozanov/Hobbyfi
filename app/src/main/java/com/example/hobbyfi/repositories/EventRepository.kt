@@ -178,10 +178,15 @@ class EventRepository(
     }
 
     fun getEventUsersGeoPoint(eventId: Long, username: String?): MutableLiveData<List<UserGeoPoint>> {
-        firestore.collection(Constants.LOCATIONS_COLLECTION)
-            .whereNotEqualTo(FieldPath.documentId(), username)
+        Log.i("EventRepository", "EventUserGeoPoint FETCHER username: $username")
+        val query = firestore.collection(Constants.LOCATIONS_COLLECTION)
             .whereArrayContains(Constants.EVENT_IDS, eventId)
-            .addSnapshotListener { snapshots, e ->
+
+        username?.let {
+            query.whereNotEqualTo(FieldPath.documentId(), username)
+        }
+
+        query.addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     Log.w("EventRepository", "User GeoPoint Firestore listener error!", e)
                     throw e
@@ -189,6 +194,10 @@ class EventRepository(
 
                 val geoPoints = mutableListOf<UserGeoPoint?>()
                 for (doc in snapshots!!) {
+                    if(doc.id == username) {
+                        continue
+                    }
+
                     Log.i("EventRepository", "Received docs from getEventUserGeoPoint: ${doc.data}")
 
                     val userChatroomIds = doc?.get(Constants.CHATROOM_ID) as List<Long>?

@@ -32,6 +32,7 @@ import androidx.paging.PagingDataAdapter
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.utils.TokenUtils
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
@@ -335,9 +336,9 @@ fun android.content.Intent.getEventIdsExtra(): List<Long> = Constants.tagJsonCon
     )
 )!!
 
-val Exception.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
+val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
         this is InstantiationError || this is Repository.NetworkException ||
-        this is Repository.UnknownErrorException
+        this is Repository.UnknownErrorException || this is TokenUtils.InvalidStoredTokenException
 
 fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()

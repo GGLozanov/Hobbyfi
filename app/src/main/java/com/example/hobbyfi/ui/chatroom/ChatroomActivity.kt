@@ -201,29 +201,21 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is ChatroomState.OnData.ChatroomResult -> {
                     }
-                    is ChatroomState.OnData.ChatroomDeleteResult, is ChatroomState.OnData.DeleteChatroomCacheResult -> {
+                    is ChatroomState.OnData.ChatroomDeleteResult -> {
                         Toast.makeText(
                             this@ChatroomActivity,
                             "Successfully deleted chatroom!",
                             Toast.LENGTH_LONG
                         ).show()
-                        localBroadcastManager.sendBroadcast(Intent(Constants.CHATROOM_DELETED)
-                            .apply {
-                                putExtra(
-                                    Constants.CHATROOM_ID,
-                                    viewModel.authChatroom.value!!.id
-                                )
-                            })
-
-                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
-                            {
-                                viewModel.setChatroom(null) // clear chatroom in any case
-                                finish()
-                            },
-                            viewModel.authChatroom.value!!.id,
-                            fcmTopicErrorFallback,
-                            connectivityManager
-                        )
+                        leaveDeletedChatroom()
+                    }
+                    is ChatroomState.OnData.DeleteChatroomCacheResult -> {
+                        Toast.makeText(
+                            this@ChatroomActivity,
+                            "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        leaveDeletedChatroom()
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         Toast.makeText(
@@ -241,6 +233,25 @@ class ChatroomActivity : NavigationActivity(),
                 }
             }
         }
+    }
+
+    private fun leaveDeletedChatroom() {
+        localBroadcastManager.sendBroadcast(Intent(Constants.CHATROOM_DELETED)
+            .apply {
+                putExtra(
+                    Constants.CHATROOM_ID,
+                    viewModel.authChatroom.value!!.id
+                )
+            })
+
+        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
+            viewModel.setChatroom(null) // clear chatroom in any case
+            finish()
+        },
+            viewModel.authChatroom.value!!.id,
+            fcmTopicErrorFallback,
+            connectivityManager
+        )
     }
 
     private fun observeUsers() {
@@ -263,7 +274,7 @@ class ChatroomActivity : NavigationActivity(),
                         viewModel.resetUserListState()
                     }
                     is UserListState.Error -> {
-                        handleAuthActionableError(it.error + " USERLIST", it.shouldReauth)
+                        handleAuthActionableError(it.error, it.shouldReauth)
                     }
                 }
             }

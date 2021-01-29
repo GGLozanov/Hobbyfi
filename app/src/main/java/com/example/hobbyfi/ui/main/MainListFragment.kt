@@ -52,7 +52,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
 
     protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
         e.printStackTrace()
-        if((e as Exception).isCritical) {
+        if(e.isCritical) {
             Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
                 .show()
             (requireActivity() as MainActivity).logout()
@@ -153,6 +153,11 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             chatroomList.adapter = chatroomListAdapter.withLoadStateFooter(loadStateAdapter!!)
 
             swiperefresh.setOnRefreshListener {
+                if(chatroomListAdapter.itemCount == 0) {
+                    swiperefresh.isRefreshing = false
+                    return@setOnRefreshListener
+                }
+
                 chatroomListAdapter.refresh()
                 // should trickle down to remote mediator and VM
             }
