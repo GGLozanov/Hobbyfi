@@ -40,6 +40,7 @@ import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 
 
 @ExperimentalCoroutinesApi
@@ -73,19 +74,9 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
                 val receivedLocation = intent.extras?.get(Constants.UPDATED_LOCATION) as Location
 
-                val initialGeoPoint = this@EventMapsActivity.intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
                 // GeoPoint HERE is immutable (in this activity),
                 // which means it's safe to use the one received from EventDetailsFragment
-                lifecycleScope.launch {
-                    viewModel.sendIntent(
-                        UserGeoPointIntent.UpdateUserGeoPoint(
-                            initialGeoPoint.username,
-                            initialGeoPoint.chatroomIds,
-                            initialGeoPoint.eventIds,
-                            GeoPoint(receivedLocation.latitude, receivedLocation.longitude)
-                        )
-                    )
-                }
+                sendLocationUpdateIntentWithInitialUserGeoPoint(receivedLocation.latitude, receivedLocation.longitude)
             } else {
                 Log.e(
                     "EventMapsActivity",
@@ -124,28 +115,25 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         binding = ActivityEventMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if(viewModel.initialStart) {
-            prefConfig.writeRequestingLocationUpdates(false)
-            // initialStart is useless now but due to feedback from friend, location updates are NOT initially enabled
-            viewModel.setInitialStart(false)
-        }
-
         val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+            .findFragmentById(R.id.map_container) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        if(prefConfig.readRequestingLocationUpdates()) {
-            if(!checkAndUpdateLocationPermission()) {
-                getLocationPermission()
-            } else {
-                if(viewModel.userGeoPoints == null || viewModel.userGeoPoints?.value == null
-                        || viewModel.userGeoPoints?.value?.isEmpty() == true) {
-                    lifecycleScope.launch {
-                        viewModel.sendIntent(
-                            UserGeoPointIntent.FetchUsersGeoPoints(getUserGeoPointFromCurrentIntent().username)
-                        )
-                    }
+        if(!checkAndUpdateLocationPermission()) {
+            getLocationPermission()
+        } else {
+            if(viewModel.userGeoPoints == null || viewModel.userGeoPoints?.value == null
+                    || viewModel.userGeoPoints?.value?.isEmpty() == true) {
+                lifecycleScope.launch {
+                    viewModel.sendIntent(
+                        UserGeoPointIntent.FetchUsersGeoPoints(getUserGeoPointFromCurrentIntent().username)
+                    )
                 }
+            }
+            if(viewModel.initialStart) {
+                buildLocationTrackingDialog()
+                // initialStart is useless now but due to feedback from friend, location updates are NOT initially enabled
+                viewModel.setInitialStart(false)
             }
         }
 
@@ -161,9 +149,12 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
         map?.setOnMyLocationButtonClickListener {
             viewModel.lastReceivedLocation?.let {
-                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    it, DEFAULT_ZOOM.toFloat()
-                ))
+                // TODO: Remove this and keep the direct null check
+                if(it.latitude != 0.0 && it.longitude != 0.0) {
+                    map?.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        it, DEFAULT_ZOOM.toFloat()
+                    ))
+                }
             }
             true
         }
@@ -173,16 +164,35 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         super.onStart()
         prefConfig.registerPrefsListener(this)
 
-        binding.disableLocationUpdatesFab.setOnClickListener {
-            locationUpdatesService?.removeLocationUpdates()
-            Toast.makeText(this, "Location updates disabled!", Toast.LENGTH_LONG)
-                .show()
-        }
-
-        binding.enableLocationUpdatesFab.setOnClickListener {
-            if(enableLocationUpdates()) {
-                Toast.makeText(this, "Location updates enabled!", Toast.LENGTH_LONG)
+        with(binding) {
+            disableLocationUpdatesFab.setOnClickListener {
+                locationUpdatesService?.removeLocationUpdates()
+                Toast.makeText(this@EventMapsActivity, "Location updates disabled!", Toast.LENGTH_LONG)
                     .show()
+            }
+
+            enableLocationUpdatesFab.setOnClickListener {
+                if(enableLocationUpdates()) {
+                    Toast.makeText(this@EventMapsActivity, "Location updates enabled!", Toast.LENGTH_LONG)
+                        .show()
+                }
+            }
+
+            resetLocationFab.setOnClickListener {
+                if(prefConfig.readRequestingLocationUpdates()) {
+                    Toast.makeText(this@EventMapsActivity, Constants.canOnlyResetOnNoUpdate, Toast.LENGTH_LONG)
+                        .show()
+                }
+
+                if(viewModel.lastReceivedLocation != null) {
+                    sendLocationUpdateIntentWithInitialUserGeoPoint(
+                        0.0, 0.0
+                    )
+                }
+            }
+
+            goToEventLocationFab.setOnClickListener {
+                animateCameraToCurrentEventMarker()
             }
         }
         setFABState(prefConfig.readRequestingLocationUpdates())
@@ -251,6 +261,12 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                                     )
                                 }
                                 viewModel.setLastReceivedLocation(location)
+
+                                // TODO: Replace with null check
+                                if(geoPoint.geoPoint.latitude == 0.0 && geoPoint.geoPoint.longitude == 0.0) {
+                                    Toast.makeText(this@EventMapsActivity, Constants.locationReset, Toast.LENGTH_LONG)
+                                        .show()
+                                }
                             } else {
                                 viewModel.setUserGeoPoints(emptyList())
                             }
@@ -283,6 +299,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 return@Observer
             }
 
+            // FIXME: Highly unoptimised
             val containedGeoPoints = it.filter { geoPoint ->
                 viewModel.userMarkers!!.any { marker -> marker.title == geoPoint.username }
             }
@@ -360,9 +377,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         }
 
         updateLocationUI()
-        locationUpdatesService?.requestLocationUpdates(
-            viewModel.event.value!!, getUserGeoPointFromCurrentIntent()
-        )
+        buildLocationTrackingDialog()
     }
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
@@ -370,12 +385,9 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         val onDialogCancel = { dialogInterface: DialogInterface, _: Int ->
             Log.i(
                 "EventMapsActivity",
-                "User has denied location permissions. Exiting from Activity!"
+                "User has denied location permissions. Remaining in Activity!"
             )
-            Toast.makeText(this, Constants.requiredPermissionsDeniedError, Toast.LENGTH_LONG)
-                .show()
             dialogInterface.dismiss()
-            emergencyActivityExit(RESULT_OK)
         }
         buildYesNoAlertDialog(
             getString(R.string.location_monitor_permission_explanation),
@@ -508,6 +520,45 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
     private fun getUserGeoPointFromCurrentIntent(): UserGeoPoint =
         intent.extras!![Constants.USER_GEO_POINT] as UserGeoPoint
+
+    private fun sendLocationUpdateIntentWithInitialUserGeoPoint(lat: Double, long: Double) {
+        val initialGeoPoint = getUserGeoPointFromCurrentIntent()
+        lifecycleScope.launch {
+            viewModel.sendIntent(
+                UserGeoPointIntent.UpdateUserGeoPoint(
+                    initialGeoPoint.username,
+                    initialGeoPoint.chatroomIds,
+                    initialGeoPoint.eventIds,
+                    GeoPoint(lat, long)
+                )
+            )
+        }
+    }
+
+    private fun buildLocationTrackingDialog() {
+        if(!checkAndUpdateLocationPermission()) {
+            throw IllegalStateException(Constants.incorrectCallToBuildLocationTrackingDialog)
+        }
+
+        val onCancel = { dialogInterface: DialogInterface, _: Int ->
+            animateCameraToCurrentEventMarker()
+            dialogInterface.dismiss()
+        }
+        // TODO: Convert to Remember-No-RememberYes dialog
+        buildYesNoAlertDialog(
+            getString(R.string.location_monitor_ask),
+            { dialogInterface: DialogInterface, _: Int ->
+                locationUpdatesService?.requestLocationUpdates(
+                    viewModel.event.value!!, getUserGeoPointFromCurrentIntent()
+                )
+                dialogInterface.dismiss()
+            },
+            onCancel,
+            { dialogInterface: DialogInterface ->
+                onCancel(dialogInterface, DialogInterface.BUTTON_NEGATIVE)
+            }
+        )
+    }
 
     override fun onDestroy() {
         super.onDestroy()

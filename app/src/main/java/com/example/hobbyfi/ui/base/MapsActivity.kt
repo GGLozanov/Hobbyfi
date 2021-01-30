@@ -71,24 +71,33 @@ abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
         latLng: LatLng,
         eventTitle: String?,
         eventDescription: String?,
-        draggable: Boolean
+        draggable: Boolean,
+        predefDescriptorColour: Float = BitmapDescriptorFactory.HUE_CYAN
     ) {
         marker?.remove()
-        marker = addMarkerAndAnimateCamera(latLng, eventTitle, eventDescription, draggable)
+        marker = addMarkerAndAnimateCamera(
+            latLng,
+            eventTitle,
+            eventDescription,
+            draggable,
+            predefDescriptorColour
+        )
     }
 
     private fun addMarkerAndAnimateCamera(
         latLng: LatLng,
         title: String? = null,
         description: String? = null,
-        draggable: Boolean = true
+        draggable: Boolean = true,
+        predefDescriptorColour: Float = BitmapDescriptorFactory.HUE_RED
     ): Marker? {
         map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
         return addMarker(
             latLng,
             title,
             description,
-            draggable
+            draggable,
+            predefDescriptorColour
         )
     }
 
@@ -96,25 +105,31 @@ abstract class MapsActivity : BaseActivity(), OnMapReadyCallback,
         latLng: LatLng,
         eventTitle: String? = null,
         eventDescription: String? = null,
-        draggable: Boolean = true
+        draggable: Boolean = true,
+        predefDescriptorColour: Float = BitmapDescriptorFactory.HUE_CYAN
     ) {
         marker?.remove()
-        marker = addMarker(latLng, eventTitle, eventDescription, draggable)
+        marker = addMarker(latLng, eventTitle, eventDescription, draggable, predefDescriptorColour)
     }
 
     private fun addMarker(
         latLng: LatLng,
         title: String?,
         description: String?,
-        draggable: Boolean
+        draggable: Boolean,
+        predefDescriptorColour: Float
     ): Marker? =
         map?.addMarker(
             MarkerOptions()
                 .title(title)
                 .snippet(description)
                 .draggable(draggable)
+                .icon(BitmapDescriptorFactory.defaultMarker(predefDescriptorColour))
                 .position(latLng)
         )
+
+    protected fun animateCameraToCurrentEventMarker() =
+        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(marker?.position, DEFAULT_ZOOM.toFloat()))
 
     // TODO: Use to add icon to marker
     protected fun bitmapDescriptorFromVector(

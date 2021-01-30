@@ -23,7 +23,9 @@ class EventCreateFragmentViewModel(
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.CreateEvent -> {
-                        createEvent(it.chatroomId)
+                        viewModelScope.launch { // again, potential img upload, blah blah
+                            createEvent(it.chatroomId)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

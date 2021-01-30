@@ -2,6 +2,7 @@ package com.example.hobbyfi.models
 
 import android.os.Parcelable
 import androidx.annotation.Keep
+import androidx.core.view.isVisible
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.hobbyfi.BuildConfig
@@ -11,6 +12,7 @@ import com.google.gson.annotations.SerializedName
 import com.prolificinteractive.materialcalendarview.CalendarDay
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -87,4 +89,6 @@ data class Event(
     private fun localDateTimeFromString(src: String): LocalDateTime {
         return LocalDateTime.parse(src, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     }
+
+    fun calculateDateDiff(): Duration = Duration.between(LocalDateTime.now(), localDateTimeFromDate)
 }

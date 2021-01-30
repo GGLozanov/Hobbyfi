@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 
 @ExperimentalCoroutinesApi
-class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
+class LoginFragment : AuthFragment() {
 
     companion object {
         val tag: String = "LoginFragment"
@@ -64,6 +64,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         binding.viewModel = viewModel
         with(binding) {
             lifecycleOwner = this@LoginFragment
+
+            val root: View = root
 
             loginButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
@@ -270,6 +272,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                             it.token?.jwt,
                             it.token?.refreshJwt,
                         )
+                        viewModel.resetTokenState()
                     }
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()

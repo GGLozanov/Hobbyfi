@@ -276,6 +276,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
                             it.shouldExit,
                             requireContext()
                         )
+                        viewModel.resetMessageState()
                     }
                 }
             }

@@ -36,11 +36,13 @@ class EventBroadcastReceiverFactory private constructor(
     private val eventIdEditChecker: (Intent) -> Boolean = { intent: Intent -> eventIdChecker((
             intent.getDestructedMapExtra()[Constants.ID] ?: error("Event ID must not be null in Event Edit Id Checker!")).toLong()) }
     private val eventIdDeleteChecker: (Intent) -> Boolean = { intent: Intent -> eventIdChecker(
-        intent.getDeletedModelIdExtra()) }
+        intent.getDeletedModelIdExtra()
+    ) }
     private val eventIdBatchDeleteChecker: (Intent) -> Boolean = { intent: Intent -> eventIdBatchChecker(
-        Constants.tagJsonConverter.fromJson(intent.getDestructedMapExtra()[Constants.EVENT_IDS])) }
-    private val eventIdCreateChecker: (Intent) -> Boolean = {
-        chatroomActivityViewModel?.isAuthUserChatroomOwner?.value == false }
+        Constants.tagJsonConverter.fromJson(intent.getDestructedMapExtra()[Constants.EVENT_IDS])
+    ) }
+    private val eventIdCreateChecker: (Intent) -> Boolean = { if(chatroomActivityViewModel == null) false else
+        !chatroomActivityViewModel.isAuthUserChatroomOwner.value!! }
 
     override fun createActionatedReceiver(action: String): BroadcastReceiver =
         // always see these messages because owner CANNOT edit/delete chatroom while in Maps activity
@@ -58,7 +60,7 @@ class EventBroadcastReceiverFactory private constructor(
                             )
                         }
                     },
-                    onReceiveLog = "Got me a broadcast receievrino for DELETE CHATROOOOOM",
+                    onReceiveLog = "Got me a broadcast receievrino for ADD EVENT!",
                     isNotChatroomOwnerOrShouldSee = eventIdCreateChecker
                 )
             }

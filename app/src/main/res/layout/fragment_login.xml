@@ -9,12 +9,15 @@
             type="com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel" />
     </data>
 
+
     <ScrollView
         android:id="@+id/login_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/background_secondary_gradient"
         android:fadeScrollbars="false"
         android:fillViewport="false"
+        android:overScrollMode="always"
         android:visibility="visible"
         tools:visibility="visible">
 

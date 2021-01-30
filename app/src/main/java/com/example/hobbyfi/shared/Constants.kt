@@ -64,7 +64,10 @@ object Constants {
     const val firestoreUpdateError: String = "Couldn't update remote source records that needed to have been updated!"
     const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
     const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
+    const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
+
+    const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777
@@ -213,6 +216,8 @@ object Constants {
 
     const val takeMeThere: String = "Get me in the room!"
     const val noPlease: String = "Nah, let me browse."
+
+    const val locationReset: String = "Location successfuly reset!"
 
     const val userProfileImageDir = "user_pfps"
     fun chatroomProfileImageDir(chatroomId: Long): String {

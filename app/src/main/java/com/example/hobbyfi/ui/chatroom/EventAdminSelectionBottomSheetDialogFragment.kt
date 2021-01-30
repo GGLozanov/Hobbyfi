@@ -15,7 +15,6 @@ import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.shared.showDistinctDialog
 import com.example.hobbyfi.state.EventState
@@ -74,8 +73,13 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
             requireContext().buildYesNoAlertDialog(
                 requireContext().getString(R.string.delete_events_batch),
                 { dialogInterface: DialogInterface, _: Int ->
-                    lifecycleScope.launch {
-                        activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEventsCache)
+                    if(areThereOldEventsToDelete()) {
+                        lifecycleScope.launch {
+                            activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEvents)
+                        }
+                    } else {
+                        Toast.makeText(requireContext(), "No old events to delete!", Toast.LENGTH_LONG)
+                            .show()
                     }
                     dialogInterface.dismiss()
                 },
@@ -104,8 +108,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
                             requireContext(),
                             "Event successfuly deleted!",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
+                        ).show()
                     }
                     is EventState.Error -> {
                         // TODO: Handle error
@@ -120,6 +123,15 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
         super.setViewsVisibilityOnEvents(events)
         binding.deleteOldEventsButton.isVisible = events.isNotEmpty()
         binding.currentEventsHeader.isVisible = events.isNotEmpty()
+    }
+
+    private fun areThereOldEventsToDelete(): Boolean {
+        eventsSource.value?.forEach {
+            if(it.calculateDateDiff().isNegative) {
+                return true
+            }
+        }
+        return false
     }
 
     companion object {

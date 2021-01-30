@@ -69,7 +69,9 @@ abstract class AuthChatroomHolderViewModel(
                         deleteChatroom()
                     }
                     is ChatroomIntent.UpdateChatroom -> {
-                        updateChatroom(it.chatroomUpdateFields)
+                        viewModelScope.launch { // handling potential image upload heaviness from request
+                            updateChatroom(it.chatroomUpdateFields)
+                        }
                     }
                     is ChatroomIntent.DeleteChatroomCache -> {
                         Log.i("AuthChatromHVM", "Deleting chatroom auth chatroom cache intent sent!")

@@ -27,7 +27,9 @@ class EventEditFragmentViewModel(
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.UpdateEvent -> {
-                        updateEvent(it.eventUpdateFields)
+                        viewModelScope.launch { // img upload safeguard
+                            updateEvent(it.eventUpdateFields)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

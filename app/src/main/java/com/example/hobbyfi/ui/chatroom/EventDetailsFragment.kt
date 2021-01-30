@@ -43,6 +43,8 @@ import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.datepicker.MaterialCalendar
@@ -125,7 +127,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     || viewModel!!.userGeoPoints?.value?.isEmpty() == true) {
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(
-                        UserGeoPointIntent.FetchUsersGeoPoints(activityViewModel.authUserGeoPoint?.value?.username)
+                        UserGeoPointIntent.FetchUsersGeoPoints(activityViewModel.authUserGeoPoint.value?.username)
                     )
                 }
             }
@@ -160,9 +162,10 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             viewModel.relatedEvent.latitude, viewModel.relatedEvent.longitude
         )
 
-        val marker = MarkerOptions().position(
-            eventLatLng
-        ).title(viewModel.relatedEvent.name).snippet(viewModel.relatedEvent.description)
+        val marker = MarkerOptions().position(eventLatLng)
+            .title(viewModel.relatedEvent.name)
+            .snippet(viewModel.relatedEvent.description)
+            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
         viewModel.removeAndSetLastMarker(map.addMarker(marker))
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(eventLatLng, MapsActivity.DEFAULT_ZOOM.toFloat()))
     }
@@ -205,42 +208,45 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     }
 
     private fun initEventButtons() {
-        with(binding.eventViewButtonBar) {
-            leftButton.setOnClickListener {
-                activityViewModel.authUserGeoPoint!!.value?.let { // user should NEVER leave event without a predefined user point
-                    lifecycleScope.launch {
-                        val (username, chatroomIds, eventIds, geoPoint) = it
-                        viewModel.sendIntent(
-                            UserGeoPointIntent.UpdateUserGeoPoint(
-                                username,
-                                chatroomIds.filter { id -> id != activityViewModel.authChatroom.value!!.id },
-                                eventIds.filter { id -> id != viewModel.relatedEvent.id },
-                                geoPoint
-                            )
-                        )
+        lifecycleScope.launch {
+            activityViewModel.authUserGeoPoint.collectLatest { authUserGeoPoint ->
+                with(binding.eventViewButtonBar) {
+                    leftButton.setOnClickListener {
+                        authUserGeoPoint?.let { // user should NEVER leave event without a predefined user point
+                            lifecycleScope.launch {
+                                val (username, chatroomIds, eventIds, geoPoint) = it
+                                viewModel.sendIntent(
+                                    UserGeoPointIntent.UpdateUserGeoPoint(
+                                        username,
+                                        chatroomIds.filter { id -> id != activityViewModel.authChatroom.value!!.id },
+                                        eventIds.filter { id -> id != viewModel.relatedEvent.id },
+                                        geoPoint
+                                    )
+                                )
+                            }
+                        }
                     }
-                }
-            }
-            val userInEvent = activityViewModel.authUserGeoPoint != null &&
-                    activityViewModel.authUserGeoPoint?.value != null &&
-                    activityViewModel.authUserGeoPoint?.value!!.eventIds.contains(viewModel.relatedEvent.id)
-            leftButton.isVisible = userInEvent
-            rightButton.setOnClickListener {
-                lifecycleScope.launch {
-                    if(!userInEvent) {
-                        viewModel.sendIntent(
-                            UserGeoPointIntent.UpdateUserGeoPoint(
-                                activityViewModel.authUserGeoPoint?.value?.username
-                                    ?: activityViewModel.authUser.value!!.name,
-                                activityViewModel.authUserGeoPoint?.value?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id)
-                                    ?: listOf(activityViewModel.authChatroom.value!!.id),
-                                activityViewModel.authUserGeoPoint?.value?.eventIds?.plus(viewModel.relatedEvent.id)
-                                    ?: listOf(viewModel.relatedEvent.id),
-                                activityViewModel.authUserGeoPoint?.value?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
-                            )
-                        )
-                    } else {
-                        navigateToEventMaps(activityViewModel.authUserGeoPoint!!.value!!) // user should NEVER not have event at this point here
+                    val userInEvent = authUserGeoPoint != null &&
+                            authUserGeoPoint.eventIds.contains(viewModel.relatedEvent.id)
+                    leftButton.isVisible = userInEvent
+                    rightButton.setOnClickListener {
+                        lifecycleScope.launch {
+                            if(!userInEvent) {
+                                viewModel.sendIntent(
+                                    UserGeoPointIntent.UpdateUserGeoPoint(
+                                        authUserGeoPoint?.username
+                                            ?: activityViewModel.authUser.value!!.name,
+                                        authUserGeoPoint?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id)
+                                            ?: listOf(activityViewModel.authChatroom.value!!.id),
+                                        authUserGeoPoint?.eventIds?.plus(viewModel.relatedEvent.id)
+                                            ?: listOf(viewModel.relatedEvent.id),
+                                        authUserGeoPoint?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
+                                    )
+                                )
+                            } else {
+                                navigateToEventMaps(activityViewModel.authUserGeoPoint!!.value!!) // user should NEVER not have event at this point here
+                            }
+                        }
                     }
                 }
             }
@@ -263,9 +269,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     }
 
     private fun calculateEventDayDifference() {
-        var diff = Duration.between(LocalDateTime.now(), viewModel.relatedEvent.localDateTimeFromDate)
+        var diff = viewModel.relatedEvent.calculateDateDiff()
         if(diff.isNegative) {
-            binding.eventViewButtonBar.rightButton.isVisible = false
+            binding.eventViewButtonBar.leftButton.isVisible = false
             diff = diff.minus(diff)
         }
 
@@ -404,7 +410,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                 }
                 RESULT_CANCELED -> {
                     Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!")
-                    // parentFragmentManager.popBackStack()
+                    navController.popBackStack()
                 }
             }
         }

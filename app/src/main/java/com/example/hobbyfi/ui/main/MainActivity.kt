@@ -180,7 +180,9 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                                 userChatroomFields = mapOf(
                                     Pair(
                                         Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                            viewModel.authUser.value!!.chatroomIds?.filter { id -> it.userFields[Constants.LEAVE_CHATROOM_ID]!!.toLong() != id }
+                                            viewModel.authUser.value!!.chatroomIds?.filter { id -> (it.userFields[Constants.LEAVE_CHATROOM_ID]
+                                                    ?: error("Leave chatroom Id must not be null in collection of UpdateUser state in MainActivity"))
+                                                .toLong() != id }
                                         )
                                     )
                                 )

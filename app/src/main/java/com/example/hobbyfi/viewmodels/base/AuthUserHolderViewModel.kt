@@ -42,7 +42,9 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
                     }
                     is UserIntent.UpdateUser -> {
                         Log.i("AuthUserHolderVM", "Update User intent sent")
-                        updateUser(it.userUpdateFields)
+                        viewModelScope.launch { // new coroutine in case upload is heavy (includes img)
+                            updateUser(it.userUpdateFields)
+                        }
                     }
                     is UserIntent.UpdateUserCache -> {
                         updateAndSaveUser(it.userUpdateFields)

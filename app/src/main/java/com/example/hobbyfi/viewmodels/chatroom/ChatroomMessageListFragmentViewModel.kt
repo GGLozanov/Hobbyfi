@@ -76,11 +76,13 @@ class ChatroomMessageListFragmentViewModel(
             messageStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageIntent.CreateMessage -> {
-                        createMessage(
-                            it.message ?: message.value!!,
-                            it.userSentId,
-                            it.chatroomSentId
-                        )
+                        viewModelScope.launch {
+                            createMessage(
+                                it.message ?: message.value!!,
+                                it.userSentId,
+                                it.chatroomSentId
+                            )
+                        }
                     }
                     is MessageIntent.CreateMessageImages -> {
                         it.base64s.forEach { base64Mesage ->
@@ -98,13 +100,17 @@ class ChatroomMessageListFragmentViewModel(
                         saveNewMessage(it.message)
                     }
                     is MessageIntent.UpdateMessage -> {
-                        updateMessage(it.messageUpdateFields)
+                        viewModelScope.launch {
+                            updateMessage(it.messageUpdateFields)
+                        }
                     }
                     is MessageIntent.UpdateMessageCache -> {
                         updateAndSaveMessage(it.messageUpdateFields)
                     }
                     is MessageIntent.DeleteMessage -> {
-                        deleteMessage(it.messageId)
+                        viewModelScope.launch {
+                            deleteMessage(it.messageId)
+                        }
                     }
                     is MessageIntent.DeleteMessageCache -> {
                         deleteMessageCache(it.messageId, true)

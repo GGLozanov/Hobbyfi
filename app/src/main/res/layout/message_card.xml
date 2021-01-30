@@ -53,7 +53,7 @@
                     android:gravity="@{gravity}"
                     android:layout_marginEnd="5dp" />
 
-                <ImageView
+                <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/user_image"
                     android:layout_width="150dp"
                     android:layout_height="150dp" />

@@ -295,21 +295,29 @@ class ChatroomActivity : NavigationActivity(),
                             UserGeoPointIntent.FetchAuthUserGeoPoint
                         )
                     }
+                    is EventListState.OnData.DeleteOldEventsResult -> {
+                        Log.i("ChatroomActivity", "Received DeleteOldEventsResult state!")
+                        Toast.makeText(this@ChatroomActivity, "Successfully deleted old events!", Toast.LENGTH_LONG)
+                            .show()
+                        navController.popBackStack(R.id.chatroomMessageListFragment, false)
+                        viewModel.resetEventListState()
+                    }
                     is EventListState.OnData.DeleteEventsCacheResult -> {
                         Log.i("ChatroomActivity", "Received DeleteEventsCacheResult state! Deleted events id: ${it.eventIds}. Attempting to pop event fragment off backstack!")
-                        it.eventIds.forEach { id ->
-                            supportFragmentManager.popBackStack(id.toString(), FragmentManager.POP_BACK_STACK_INCLUSIVE)
-                        }
+                        // TODO: Check if fragment visible, show toast, and pop
+                        navController.popBackStack(R.id.chatroomMessageListFragment, false)
+                        viewModel.resetEventListState()
                     }
                     is EventListState.OnData.DeleteAnEventCacheResult -> {
                         Log.i("ChatroomActivity", "Received DeleteAnEventCacheResult state! Deleted event id: ${it.eventId}. Attempting to pop event fragment off backstack!")
                         // TODO: Check if fragment visible, show toast, and pop
-                        supportFragmentManager.popBackStack(it.eventId.toString(), FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                        navController.popBackStack(R.id.chatroomMessageListFragment, false)
+                        viewModel.resetEventListState()
                     }
                     is EventListState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
+                        viewModel.resetEventListState()
                     }
-                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -507,12 +515,12 @@ class ChatroomActivity : NavigationActivity(),
 
     @ExperimentalPagingApi
     private fun setToolbarAdminIconOnOwnership(owner: Boolean?) {
-        if(owner == true && supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
-            binding.toolbar.navigationIcon =
+        if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+            binding.toolbar.navigationIcon = if(owner == true )
                 ContextCompat.getDrawable(
                     this@ChatroomActivity,
                     R.drawable.ic_baseline_admin_panel_settings_24
-                )
+                ) else null
         }
     }
 

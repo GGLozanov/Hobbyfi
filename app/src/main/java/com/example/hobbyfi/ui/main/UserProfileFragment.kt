@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.main
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
@@ -239,7 +241,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             resultCode,
             data
         ) {
-            binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
+            Glide.with(requireContext())
+                .load(data!!.data!!)
+                .into(binding.profileImage)
             lifecycleScope.launch {
                 viewModel.base64Image.setImageBase64(
                     ImageUtils.encodeImage(it)

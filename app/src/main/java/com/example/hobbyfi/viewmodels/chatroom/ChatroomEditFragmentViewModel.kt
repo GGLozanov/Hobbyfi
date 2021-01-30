@@ -9,6 +9,6 @@ import com.example.hobbyfi.models.TagBundle
 import com.example.hobbyfi.viewmodels.base.*
 
 class ChatroomEditFragmentViewModel(application: Application, initialTags: List<Tag>) : BaseViewModel(application),
-    NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
+        NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
     var tagBundle = TagBundle(initialTags)
 }

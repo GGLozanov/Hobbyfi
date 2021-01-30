@@ -43,7 +43,9 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
             mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is ChatroomIntent.CreateChatroom -> {
-                        createChatroom(it.ownerId)
+                        viewModelScope.launch { // img upload warranting another coroutine
+                            createChatroom(it.ownerId)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
+import com.bumptech.glide.load.resource.bitmap.Downsampler
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator

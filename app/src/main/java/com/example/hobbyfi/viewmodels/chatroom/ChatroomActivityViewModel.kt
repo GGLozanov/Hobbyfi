@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 import java.lang.IllegalStateException
-import kotlin.properties.Delegates
 
 @ExperimentalCoroutinesApi
 class ChatroomActivityViewModel(
@@ -37,8 +36,8 @@ class ChatroomActivityViewModel(
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
     val authEvents: LiveData<List<Event>> get() = _authEvents
 
-    private var _authUserGeoPoint: StateFlow<UserGeoPoint?>? = null
-    val authUserGeoPoint: StateFlow<UserGeoPoint?>? get() = _authUserGeoPoint
+    private var _authUserGeoPoint: StateFlow<UserGeoPoint?> = MutableStateFlow(null)
+    val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
 
     fun setAuthEvents(events: List<Event>?) {
         _authEvents.value = events
@@ -69,6 +68,8 @@ class ChatroomActivityViewModel(
 
     fun resetChatroomState() = chatroomStateIntent.setState(ChatroomState.Idle)
 
+    fun resetEventListState() = eventsStateIntent.setState(EventListState.Idle)
+
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
@@ -90,7 +91,7 @@ class ChatroomActivityViewModel(
                             eventsStateIntent.setState(EventListState.OnData.DeleteAnEventCacheResult(it.eventId))
                         }
                     }
-                    is EventListIntent.DeleteOldEventsCache -> {
+                    is EventListIntent.DeleteOldEvents -> {
                         // TODO: wire up this with delete_old events in repo and API
                         deleteOldEvents()
                     }
@@ -154,7 +155,7 @@ class ChatroomActivityViewModel(
             _authUserGeoPoint = eventRepository.getEventUserGeoPoint(authUser.value!!.name)
 
             UserGeoPointState.OnData.OnAuthUserGeoPointResult(
-                _authUserGeoPoint!!
+                _authUserGeoPoint
             ) // TODO: Do something with state (collect it, at least)
         } catch(ex: Exception) {
             ex.printStackTrace()
@@ -192,21 +193,28 @@ class ChatroomActivityViewModel(
     private suspend fun fetchEvents() {
         eventsStateIntent.setState(EventListState.Loading)
 
-        eventRepository.getEvents(_authChatroom.value!!.id).catch { e ->
-            eventsStateIntent.setState(
-                EventListState.Error(
-                    e.message,
-                    e.isCritical
-                )
-            )
-        }.collect {
-            if(it != null) {
-                _authEvents.value = it
+        // run collection on another coroutine to avoid conflicts with intent collection
+        // that NEEDS observation but will OVERSHADOW it in the case of an incoming intent
+        // this SHOULD be the practice for ALL flow observations in VM, so TODO to avoid future mishaps
+        // (there haven't been any as of now but it's good to keep it in mind)
+        viewModelScope.launch {
+            eventRepository.getEvents(_authChatroom.value!!.id).catch { e ->
                 eventsStateIntent.setState(
-                    EventListState.OnData.EventsResult(
-                        it
+                    EventListState.Error(
+                        e.message,
+                        e.isCritical
                     )
                 )
+            }.collectLatest {
+                Log.i("ChatroomActivityVM", "Events collected: ${it}")
+                if(it != null) {
+                    _authEvents.value = it
+                    eventsStateIntent.setState(
+                        EventListState.OnData.EventsResult(
+                            it
+                        )
+                    )
+                }
             }
         }
     }

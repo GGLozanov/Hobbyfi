@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.content.DialogInterface
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -77,7 +78,7 @@ fun EditText.removeAllTextWatchers() {
         if (field != null) {
             field.isAccessible = true
             val list = field.get(this) as ArrayList<TextWatcher> //IllegalAccessException
-            list.clear()
+            list.removeAll(list.filterIsInstance<PredicateTextWatcher>())
         }
     } catch (e: Exception) {
         e.printStackTrace()
@@ -248,10 +249,10 @@ fun Marker.animateMarker(newLatLng: LatLng) {
         ValueAnimator.ofObject(DoubleArrayEvaluator(), startValues, endValues)
     latLngAnimator.duration = 600
     latLngAnimator.interpolator = android.view.animation.DecelerateInterpolator()
-    latLngAnimator.addUpdateListener({ animation ->
+    latLngAnimator.addUpdateListener { animation ->
         val animatedValue = animation.animatedValue as DoubleArray
-        setPosition(LatLng(animatedValue[0], animatedValue[1]))
-    }) // lerp the anim
+        position = LatLng(animatedValue[0], animatedValue[1])
+    } // lerp the anim
     latLngAnimator.start()
 }
 

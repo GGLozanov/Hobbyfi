@@ -10,5 +10,5 @@ sealed class EventListIntent : Intent {
     data class DeleteAnEventCache(val eventId: Long) : EventListIntent()
 
     data class DeleteEventsCache(val eventIds: List<Long>) : EventListIntent()
-    object DeleteOldEventsCache : EventListIntent()
+    object DeleteOldEvents : EventListIntent()
 }

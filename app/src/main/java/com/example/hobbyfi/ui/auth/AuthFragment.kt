@@ -6,8 +6,9 @@ import androidx.navigation.NavDirections
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 
-abstract class AuthFragment : BaseFragment(), OnAuthStateChanged {
+abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInputValidationOnus {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)

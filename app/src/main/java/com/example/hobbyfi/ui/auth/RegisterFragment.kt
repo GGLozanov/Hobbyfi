@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
+class RegisterFragment : AuthFragment() {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
@@ -117,6 +117,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                             it.token?.jwt,
                             it.token?.refreshJwt
                         )
+                        viewModel.resetTokenState()
                     }
                     else -> throw State.InvalidStateException()
                 }
