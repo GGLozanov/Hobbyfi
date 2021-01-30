@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -64,8 +65,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         with(binding) {
             lifecycleOwner = this@LoginFragment
 
-            val view: View = root
-
             loginButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
@@ -76,7 +75,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 }
             }
 
-            return@onCreateView view
+            return@onCreateView root
         }
     }
 
@@ -108,8 +107,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 
@@ -125,8 +124,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         with(binding) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(
                 emailInputField,
-                Constants.emailInputError) ||
-                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
+                Constants.emailInputError
+            ) || FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
         }
     }
 

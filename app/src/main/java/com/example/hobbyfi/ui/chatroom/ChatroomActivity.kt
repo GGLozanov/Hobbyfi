@@ -155,7 +155,6 @@ class ChatroomActivity : NavigationActivity(),
 
         // TODO: Register delete/update BroadcastReceive with User intents and Event intents
         // TODO: First fetch messages from back-end then register for receiving messages
-
         observeChatroomState()
         observeChatroom()
         observeUsers()
@@ -190,7 +189,7 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun observeChatroomState() {
-        lifecycleScope.launchWhenCreated {
+        lifecycleScope.launchWhenStarted {
             viewModel.chatroomState.collect {
                 when(it) {
                     is ChatroomState.Idle -> {
@@ -261,7 +260,7 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun observeUsersState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.usersState.collect {
                 when(it) {
                     is UserListState.Idle -> {
@@ -282,7 +281,7 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun observeEventsState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenStarted {
             viewModel.eventsState.collect {
                 when(it) {
                     is EventListState.Idle -> {
@@ -631,29 +630,29 @@ class ChatroomActivity : NavigationActivity(),
         deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
 
         with(localBroadcastManager) {
-            registerReceiver(editChatroomReceiver, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
-            registerReceiver(deleteChatroomReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
-            registerReceiver(editUserReceiver, IntentFilter(Constants.EDIT_USER_TYPE))
-            registerReceiver(joinUserReceiver, IntentFilter(Constants.JOIN_USER_TYPE))
-            registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
-            registerReceiver(createEventReceiver, IntentFilter(Constants.CREATE_EVENT_TYPE))
-            registerReceiver(editEventReceiver, IntentFilter(Constants.EDIT_EVENT_TYPE))
-            registerReceiver(deleteBatchEventReceiver, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
-            registerReceiver(deleteEventReceiver, IntentFilter(Constants.DELETE_EVENT_TYPE))
+            registerReceiver(editChatroomReceiver!!, IntentFilter(Constants.EDIT_CHATROOM_TYPE))
+            registerReceiver(deleteChatroomReceiver!!, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
+            registerReceiver(editUserReceiver!!, IntentFilter(Constants.EDIT_USER_TYPE))
+            registerReceiver(joinUserReceiver!!, IntentFilter(Constants.JOIN_USER_TYPE))
+            registerReceiver(leaveUserReceiver!!, IntentFilter(Constants.LEAVE_USER_TYPE))
+            registerReceiver(createEventReceiver!!, IntentFilter(Constants.CREATE_EVENT_TYPE))
+            registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
+            registerReceiver(deleteBatchEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
+            registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
         }
     }
 
     private fun unregisterCRUDReceivers() {
         with(localBroadcastManager) {
-            unregisterReceiver(editChatroomReceiver)
-            unregisterReceiver(deleteChatroomReceiver)
-            unregisterReceiver(editUserReceiver)
-            unregisterReceiver(joinUserReceiver)
-            unregisterReceiver(leaveUserReceiver)
-            unregisterReceiver(createEventReceiver)
-            unregisterReceiver(editEventReceiver)
-            unregisterReceiver(deleteBatchEventReceiver)
-            unregisterReceiver(deleteEventReceiver)
+            unregisterReceiver(editChatroomReceiver!!)
+            unregisterReceiver(deleteChatroomReceiver!!)
+            unregisterReceiver(editUserReceiver!!)
+            unregisterReceiver(joinUserReceiver!!)
+            unregisterReceiver(leaveUserReceiver!!)
+            unregisterReceiver(createEventReceiver!!)
+            unregisterReceiver(editEventReceiver!!)
+            unregisterReceiver(deleteBatchEventReceiver!!)
+            unregisterReceiver(deleteEventReceiver!!)
         }
     }
 }

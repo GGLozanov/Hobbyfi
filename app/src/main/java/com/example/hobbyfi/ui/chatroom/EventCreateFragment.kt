@@ -58,6 +58,8 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         binding.viewModel = viewModel
 
         with(binding) {
+            lifecycleOwner = this@EventCreateFragment
+
             eventInfo.eventInfoButtonBar.leftButton.setOnClickListener { // select event date
                 Callbacks.initDateTimeDatePickerDialog(
                     requireContext(),
@@ -140,8 +142,8 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 

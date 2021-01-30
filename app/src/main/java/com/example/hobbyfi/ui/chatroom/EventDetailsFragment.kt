@@ -111,6 +111,8 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         binding.viewModel = viewModel
 
         with(binding) {
+            lifecycleOwner = this@EventDetailsFragment
+
             initMap(savedInstanceState)
             initEventButtons()
             initCalendar()

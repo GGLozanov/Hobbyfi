@@ -159,8 +159,8 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 

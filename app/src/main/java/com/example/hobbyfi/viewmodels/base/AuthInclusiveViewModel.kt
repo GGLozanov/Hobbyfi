@@ -41,7 +41,7 @@ abstract class AuthInclusiveViewModel(
             ))
         } catch(ex: Exception) {
             ex.printStackTrace()
-            TokenState.Error(ex.localizedMessage)
+            TokenState.Error(ex.message)
         })
     }
 }

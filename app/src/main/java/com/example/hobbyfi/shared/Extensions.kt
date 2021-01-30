@@ -337,7 +337,7 @@ fun android.content.Intent.getEventIdsExtra(): List<Long> = Constants.tagJsonCon
 )!!
 
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
-        this is InstantiationError || this is Repository.NetworkException ||
+        this is io.jsonwebtoken.lang.InstantiationException || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException || this is TokenUtils.InvalidStoredTokenException
 
 fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {

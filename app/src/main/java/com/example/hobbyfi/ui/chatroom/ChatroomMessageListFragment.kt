@@ -305,6 +305,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
     override fun onStart() {
         super.onStart()
+        initTextFieldValidators()
         observeUIState()
     }
 
@@ -360,11 +361,6 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
     override fun assertTextFieldsInvalidity(): Boolean {
         return FieldUtils.isTextFieldInvalid(binding.messageInputField, Constants.messageInputError)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        initTextFieldValidators()
     }
 
     override fun onPause() {

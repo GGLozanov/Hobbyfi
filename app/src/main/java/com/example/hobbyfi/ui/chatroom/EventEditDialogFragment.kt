@@ -65,6 +65,8 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         binding.viewModel = viewModel
 
         with(binding) {
+            lifecycleOwner = this@EventEditDialogFragment
+
             val event: Event = requireArguments().getParcelable(Constants.EVENT)!!
             event.photoUrl?.let {
                 Glide.with(this@EventEditDialogFragment)
@@ -174,8 +176,8 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 

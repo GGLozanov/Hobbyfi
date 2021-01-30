@@ -125,7 +125,8 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         setContentView(binding.root)
 
         if(viewModel.initialStart) {
-            prefConfig.writeRequestingLocationUpdates(true)
+            prefConfig.writeRequestingLocationUpdates(false)
+            // initialStart is useless now but due to feedback from friend, location updates are NOT initially enabled
             viewModel.setInitialStart(false)
         }
 

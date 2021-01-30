@@ -86,8 +86,8 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         return FieldUtils.isTextFieldInvalid(binding.tagNameInputField, Constants.tagNameInputError)
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 

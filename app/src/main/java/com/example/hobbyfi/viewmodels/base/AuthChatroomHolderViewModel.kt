@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -71,6 +72,7 @@ abstract class AuthChatroomHolderViewModel(
                         updateChatroom(it.chatroomUpdateFields)
                     }
                     is ChatroomIntent.DeleteChatroomCache -> {
+                        Log.i("AuthChatromHVM", "Deleting chatroom auth chatroom cache intent sent!")
                         deleteChatroomCache(true)
                     }
                     is ChatroomIntent.UpdateChatroomCache -> {

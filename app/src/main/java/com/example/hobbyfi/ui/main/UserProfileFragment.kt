@@ -149,7 +149,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 }
 
                 if(activityViewModel.authUser.value?.description != viewModel!!.description.value) {
-                    fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
+                    if(viewModel!!.description.value?.isBlank() == false) {
+                        fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
+                    }
                 }
 
                 if((activityViewModel.authUser.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
@@ -216,8 +218,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 

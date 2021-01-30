@@ -52,7 +52,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
-            android:hint="@string/username_hint"
+            android:hint="@string/chatroom_name_hint"
             app:endIconMode="clear_text"
             app:errorEnabled="true"
             app:hintEnabled="true"
@@ -60,7 +60,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/chatroom_image"
-            app:startIconDrawable="@drawable/ic_baseline_person_24">
+            app:startIconDrawable="@drawable/ic_baseline_chat_24">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/text_input_username"

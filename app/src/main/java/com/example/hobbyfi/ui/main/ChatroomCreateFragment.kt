@@ -167,8 +167,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         initTextFieldValidators()
     }
 
