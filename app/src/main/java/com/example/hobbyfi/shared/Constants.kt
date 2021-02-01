@@ -70,6 +70,7 @@ object Constants {
     const val shareDeepLinkSuccess: String = "Successfuly shared event to Facebook!"
     const val shareDeepLinkFail: String = "Couldn't share event to Facebook! Something must have gone wrong on their end!"
     const val deepLinkGenFail: String = "Couldn't generate an appropriate share format for this event! Please contact a developer!"
+    const val eventDeleted: String = "Event you were tracking was suddenly deleted!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"

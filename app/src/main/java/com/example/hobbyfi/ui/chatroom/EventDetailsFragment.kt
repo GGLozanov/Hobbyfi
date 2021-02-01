@@ -405,11 +405,10 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         // TODO: If result == cancelled && activity request code => pop self from backstack
         if(requestCode == Constants.eventMapsRequestCode) {
             when(resultCode) {
-                RESULT_OK -> {
-
-                }
                 RESULT_CANCELED -> {
                     Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!")
+                    Toast.makeText(requireContext(), Constants.eventDeleted, LENGTH_LONG)
+                        .show()
                     navController.popBackStack()
                 }
             }
