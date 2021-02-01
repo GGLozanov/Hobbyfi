@@ -1,5 +1,6 @@
 package com.example.hobbyfi.ui.chatroom
 
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
@@ -18,9 +19,11 @@ import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.android.x.kodein
+import org.kodein.di.generic.instance
 
 abstract class ChatroomBottomSheetDialogFragment : BottomSheetDialogFragment(), KodeinAware {
     override val kodein: Kodein by kodein()
+    protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
 
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {

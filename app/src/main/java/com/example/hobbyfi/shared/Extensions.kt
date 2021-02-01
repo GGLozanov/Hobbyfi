@@ -331,11 +331,13 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
 
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
-fun android.content.Intent.getEventIdsExtra(): List<Long> = Constants.tagJsonConverter.fromJson(
-    extras?.getString(
-        Constants.EVENT_IDS
-    )
-)!!
+fun android.content.Intent.getEventIdsExtra(): List<Long> {
+     return Constants.tagJsonConverter.fromJson(
+        extras?.getString(
+            Constants.EVENT_IDS
+        )
+    )!!
+}
 
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
         this is io.jsonwebtoken.lang.InstantiationException || this is Repository.NetworkException ||

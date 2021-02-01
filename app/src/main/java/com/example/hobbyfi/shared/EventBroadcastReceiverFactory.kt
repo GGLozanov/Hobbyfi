@@ -39,7 +39,7 @@ class EventBroadcastReceiverFactory private constructor(
         intent.getDeletedModelIdExtra()
     ) }
     private val eventIdBatchDeleteChecker: (Intent) -> Boolean = { intent: Intent -> eventIdBatchChecker(
-        Constants.tagJsonConverter.fromJson(intent.getDestructedMapExtra()[Constants.EVENT_IDS])
+        intent.getEventIdsExtra()
     ) }
     private val eventIdCreateChecker: (Intent) -> Boolean = { if(chatroomActivityViewModel == null) false else
         !chatroomActivityViewModel.isAuthUserChatroomOwner.value!! }

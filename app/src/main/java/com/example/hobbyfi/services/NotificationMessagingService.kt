@@ -88,8 +88,11 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 body = "Take a look at '${data[Constants.NAME]}' and try to join in!"
             }
             Constants.EDIT_CHATROOM_TYPE, Constants.EDIT_USER_TYPE,
-            Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE, Constants.DELETE_EVENT_BATCH_TYPE -> {
+            Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE -> {
                 intent.putDestructedMapExtra(data)
+            }
+            Constants.DELETE_EVENT_BATCH_TYPE -> {
+                intent.putExtra(Constants.EVENT_IDS, data[Constants.EVENT_IDS])
             }
             Constants.DELETE_CHATROOM_TYPE, Constants.DELETE_EVENT_TYPE -> {
                 intent.putDeletedModelIdExtra(data)

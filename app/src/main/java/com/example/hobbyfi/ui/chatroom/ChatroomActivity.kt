@@ -674,10 +674,7 @@ class ChatroomActivity : NavigationActivity(),
             registerReceiver(leaveUserReceiver!!, IntentFilter(Constants.LEAVE_USER_TYPE))
             registerReceiver(createEventReceiver!!, IntentFilter(Constants.CREATE_EVENT_TYPE))
             registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
-            registerReceiver(
-                deleteBatchEventReceiver!!,
-                IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE)
-            )
+            registerReceiver(deleteBatchEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
             registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
         }
     }

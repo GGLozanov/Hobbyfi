@@ -96,6 +96,7 @@ class ChatroomActivityViewModel(
                         deleteOldEvents()
                     }
                     is EventListIntent.DeleteEventsCache -> {
+                        Log.i("ChatroomActivityVM", "Delete events cache intent received!")
                         deleteOldEventsCache(it.eventIds, true)
                     }
                     is EventListIntent.UpdateAnEventCache -> {

@@ -68,9 +68,8 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                     is ChatroomListState.OnData.JoinedChatroomsResult -> {
                         Log.i("JoinedCListFragment", "Received chatrooms user's already apart of!")
                         it.joinedChatrooms.catch(chatroomFlowCollectExceptionHandler).collectLatest { chatrooms ->
-                            setChatroomLeaveButtonVisibility()
-
                             chatroomListAdapter.submitData(chatrooms)
+                            setChatroomLeaveButtonVisibility()
                         }
                     }
                     is ChatroomListState.Error -> { // FIXME: Code dup here with other error handlings

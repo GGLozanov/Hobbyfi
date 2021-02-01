@@ -17,6 +17,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.isConnected
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
@@ -50,6 +51,12 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
         EventListAdapter(
             eventsSource.value ?: emptyList(),
             { v: View, event: Event ->
+                if(!connectivityManager.isConnected()) {
+                    Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)
+                        .show()
+                    return@EventListAdapter
+                }
+
                 v.isEnabled = false
 
                 navController.navigate(
@@ -84,6 +91,12 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
     }
 
     private fun generateFacebookEventDeeplink(event: Event) {
+        if(!connectivityManager.isConnected()) {
+            Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)
+                .show()
+            return
+        }
+
         // create branch universal object to identify deeplink
         val buo = BranchUniversalObject()
             .setCanonicalIdentifier("event/${event.id}")
