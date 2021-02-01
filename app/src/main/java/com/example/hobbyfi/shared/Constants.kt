@@ -65,6 +65,11 @@ object Constants {
     const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
     const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
     const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
+    const val showShareDialogFail: String = "Couldn't reroute to Facebook share screen! Please try again!"
+    const val shareDeepLinkCancel: String = "Event share attempt cancelled!"
+    const val shareDeepLinkSuccess: String = "Successfuly shared event to Facebook!"
+    const val shareDeepLinkFail: String = "Couldn't share event to Facebook! Something must have gone wrong on their end!"
+    const val deepLinkGenFail: String = "Couldn't generate an appropriate share format for this event! Please contact a developer!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"

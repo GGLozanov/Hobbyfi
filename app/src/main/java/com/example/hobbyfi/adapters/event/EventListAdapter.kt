@@ -1,6 +1,7 @@
 package com.example.hobbyfi.adapters.event
 
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,15 +17,18 @@ import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.databinding.EventCardBinding
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.PrefConfig
+import com.facebook.share.model.ShareLinkContent
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
 
+
+// TODO: Change onRightButtonPress back to nullable if only admin can share links for event
 class EventListAdapter(
     private var events: List<Event>,
-    private val onManagePress: (View, Event) -> Unit,
-    private val onDeletePressButton: ((View, Event) -> Unit)?,
+    private val onCardPress: (View, Event) -> Unit,
+    private val onRightButtonPress: (View, Event) -> Unit, // handles both share to facebook button and delete event button
     private val ownerDisplay: Boolean = false
 ) : RecyclerView.Adapter<EventListAdapter.EventViewHolder>(), KodeinAware {
 
@@ -42,15 +46,27 @@ class EventListAdapter(
             bindImage(model, position)
         }
 
-        fun initOnDeletePressButton(event: Event, onDeletePressButton: ((View, Event) -> Unit)?) {
-            binding.deleteButton.setOnClickListener {
-                onDeletePressButton?.invoke(it, event)
+        fun initOnRightButtonPress(
+            event: Event,
+            onUserSelectionPress: ((View, Event) -> Unit)?,
+            ownerDisplay: Boolean
+        ) {
+            if(ownerDisplay) {
+                binding.deleteButton.setOnClickListener {
+                    onUserSelectionPress?.invoke(it, event)
+                }
+            } else {
+                // TODO: Change to facebook button without using set share content
+                    // otherwise having the right buttons as separate is fucking stupid
+                binding.facebookShareButton.setOnClickListener {
+                    onUserSelectionPress?.invoke(it, event)
+                }
             }
         }
 
-        fun initOnManagePress(event: Event, onManagePress: (View, Event) -> Unit) {
+        fun initOnCardPress(event: Event, onCardPress: (View, Event) -> Unit) {
             binding.eventCard.setOnClickListener {
-                onManagePress(it, event)
+                onCardPress(it, event)
             }
         }
 
@@ -87,8 +103,8 @@ class EventListAdapter(
 
         with(holder) {
             bind(event, position)
-            initOnDeletePressButton(event, onDeletePressButton)
-            initOnManagePress(event, onManagePress)
+            initOnRightButtonPress(event, onRightButtonPress, ownerDisplay)
+            initOnCardPress(event, onCardPress)
         }
     }
 

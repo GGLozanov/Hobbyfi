@@ -62,24 +62,36 @@
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/delete_button"
+                    app:layout_constraintEnd_toStartOf="@id/button_layout"
                     app:layout_constraintStart_toEndOf="@id/event_image"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="Until February Dawns">
 
                 </com.google.android.material.textview.MaterialTextView>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/delete_button"
+                <FrameLayout
+                    android:id="@+id/button_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:visibility="@{ownerDisplay ? View.VISIBLE : View.GONE}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/delete_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:visibility="@{ownerDisplay ? View.VISIBLE : View.GONE}">
 
-                </com.google.android.material.button.MaterialButton>
+                    </com.google.android.material.button.MaterialButton>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/facebook_share_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:visibility="@{ownerDisplay ? View.GONE : View.VISIBLE}" />
+                </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

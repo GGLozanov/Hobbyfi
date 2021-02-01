@@ -40,6 +40,7 @@ import com.squareup.okhttp.Dispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
@@ -52,7 +53,7 @@ class LoginFragment : AuthFragment() {
     private val viewModel: LoginFragmentViewModel by viewModels()
     private lateinit var binding: FragmentLoginBinding
 
-    private val callbackManager: CallbackManager = CallbackManager.Factory.create()
+    private val callbackManager: CallbackManager by instance(tag = "callbackManager")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

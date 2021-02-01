@@ -6,10 +6,10 @@ import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.content.DialogInterface
 import android.content.res.Configuration
-import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Bundle
 import android.text.TextWatcher
 import android.util.Log
 import android.util.SparseArray
@@ -358,6 +358,15 @@ fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData():
 
 fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
     return extractModelListFromCurrentPagingData().find(predicate)
+}
+
+fun Bundle.toReadable(): String {
+    var string = "{"
+    for (key in keySet()) {
+        string += " " + key + "=>" + get(key) + ";"
+    }
+    string += " }"
+    return string
 }
 
 /**

@@ -16,7 +16,6 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
@@ -37,7 +36,6 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import com.example.hobbyfi.state.State
-import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
@@ -48,11 +46,14 @@ import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.OnFailureListener
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
+import io.branch.referral.Branch
+import io.branch.referral.Branch.BranchReferralInitListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 import java.util.*
+
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : NavigationActivity(),
@@ -243,14 +244,28 @@ class ChatroomActivity : NavigationActivity(),
                 )
             })
 
-        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
-            viewModel.setChatroom(null) // clear chatroom in any case
-            finish()
-        },
-            viewModel.authChatroom.value!!.id,
-            fcmTopicErrorFallback,
-            connectivityManager
-        )
+        leaveChatroom()
+    }
+
+    // for deeplink errors
+    private fun leaveChatroomWithReauth() {
+        localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
+
+        leaveChatroom()
+    }
+
+    private fun leaveChatroom() {
+        viewModel.authChatroom.value?.let {
+            Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
+                {
+                    viewModel.setChatroom(null) // clear chatroom in any case
+                    finish()
+                },
+                it.id,
+                fcmTopicErrorFallback,
+                connectivityManager
+            )
+        }
     }
 
     private fun observeUsers() {
@@ -297,19 +312,29 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is EventListState.OnData.DeleteOldEventsResult -> {
                         Log.i("ChatroomActivity", "Received DeleteOldEventsResult state!")
-                        Toast.makeText(this@ChatroomActivity, "Successfully deleted old events!", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            this@ChatroomActivity,
+                            "Successfully deleted old events!",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         navController.popBackStack(R.id.chatroomMessageListFragment, false)
                         viewModel.resetEventListState()
                     }
                     is EventListState.OnData.DeleteEventsCacheResult -> {
-                        Log.i("ChatroomActivity", "Received DeleteEventsCacheResult state! Deleted events id: ${it.eventIds}. Attempting to pop event fragment off backstack!")
+                        Log.i(
+                            "ChatroomActivity",
+                            "Received DeleteEventsCacheResult state! Deleted events id: ${it.eventIds}. Attempting to pop event fragment off backstack!"
+                        )
                         // TODO: Check if fragment visible, show toast, and pop
                         navController.popBackStack(R.id.chatroomMessageListFragment, false)
                         viewModel.resetEventListState()
                     }
                     is EventListState.OnData.DeleteAnEventCacheResult -> {
-                        Log.i("ChatroomActivity", "Received DeleteAnEventCacheResult state! Deleted event id: ${it.eventId}. Attempting to pop event fragment off backstack!")
+                        Log.i(
+                            "ChatroomActivity",
+                            "Received DeleteAnEventCacheResult state! Deleted event id: ${it.eventId}. Attempting to pop event fragment off backstack!"
+                        )
                         // TODO: Check if fragment visible, show toast, and pop
                         navController.popBackStack(R.id.chatroomMessageListFragment, false)
                         viewModel.resetEventListState()
@@ -373,9 +398,11 @@ class ChatroomActivity : NavigationActivity(),
                             }
                         navViewAdmin.menu.findItem(R.id.action_event_selection)
                             .setOnMenuItemClickListener {
-                                supportFragmentManager.showDistinctDialog(Constants.EVENT_SELECTION, {
-                                    EventAdminSelectionBottomSheetDialogFragment.newInstance()
-                                })
+                                supportFragmentManager.showDistinctDialog(
+                                    Constants.EVENT_SELECTION,
+                                    {
+                                        EventAdminSelectionBottomSheetDialogFragment.newInstance()
+                                    })
                                 return@setOnMenuItemClickListener true
                             }
                     }
@@ -607,7 +634,7 @@ class ChatroomActivity : NavigationActivity(),
                 })
                 calendar.postDelayed({
                     calendar.isEnabled = true
-                 },1000) // antispam
+                }, 1000) // antispam
             }
         }
     }
@@ -616,7 +643,9 @@ class ChatroomActivity : NavigationActivity(),
         Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
             {
                 prefConfig.resetLastEnteredChatroomId()
-                super.onBackPressed()
+                if(!isFinishing) {
+                    super.onBackPressed()
+                }
             },
             viewModel.authChatroom.value!!.id,
             fcmTopicErrorFallback,
@@ -645,7 +674,10 @@ class ChatroomActivity : NavigationActivity(),
             registerReceiver(leaveUserReceiver!!, IntentFilter(Constants.LEAVE_USER_TYPE))
             registerReceiver(createEventReceiver!!, IntentFilter(Constants.CREATE_EVENT_TYPE))
             registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
-            registerReceiver(deleteBatchEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
+            registerReceiver(
+                deleteBatchEventReceiver!!,
+                IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE)
+            )
             registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
         }
     }

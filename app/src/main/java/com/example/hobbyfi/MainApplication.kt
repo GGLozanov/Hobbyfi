@@ -15,9 +15,11 @@ import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.facebook.CallbackManager
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.tasks.OnFailureListener
+import io.branch.referral.Branch
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
@@ -80,6 +82,9 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                     .show()
             }
         }
+        bind(tag = "callbackManager") from singleton {
+            CallbackManager.Factory.create()
+        }
     }
 
     override fun onCreate() {
@@ -87,6 +92,12 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         FacebookSdk.sdkInitialize(applicationContext)
         AppEventsLogger.activateApp(this)
         MainApplication.applicationContext = applicationContext
+
+        // Branch logging for debugging
+        Branch.enableLogging()
+
+        // Branch object initialization
+        Branch.getAutoInstance(this).enableFacebookAppLinkCheck()
     }
 
     companion object {

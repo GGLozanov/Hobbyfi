@@ -14,8 +14,14 @@ import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.kodein.di.Kodein
+import org.kodein.di.KodeinAware
+import org.kodein.di.android.kodein
+import org.kodein.di.android.x.kodein
 
-abstract class ChatroomBottomSheetDialogFragment : BottomSheetDialogFragment() {
+abstract class ChatroomBottomSheetDialogFragment : BottomSheetDialogFragment(), KodeinAware {
+    override val kodein: Kodein by kodein()
+
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {
         val activityArgs: ChatroomActivityArgs by (requireActivity() as ChatroomActivity).navArgs()
