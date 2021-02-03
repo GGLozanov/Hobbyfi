@@ -293,7 +293,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                 val geoPointUsernames = geoPoints.map { gp -> gp.username }
                 Log.i("EventDetailsFragment", "GeoPoints: ${geoPointUsernames}")
                 Log.i("EventDetailsFragment", "users: ${chatroomUsers}")
-                return@combineWith chatroomUsers.filter { user -> geoPointUsernames.contains(user.name) }
+                return@combineWith chatroomUsers.filter { user -> geoPointUsernames.contains(user.name) && user.name != activityViewModel.authUserGeoPoint.value?.username }
         }.observe(viewLifecycleOwner, Observer {
                 Log.i("EventDetailsFragment", "Users from users source: $it")
                 binding.noUsersText.isVisible = it.isEmpty()

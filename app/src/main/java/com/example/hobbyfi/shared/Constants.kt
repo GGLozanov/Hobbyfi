@@ -50,7 +50,7 @@ object Constants {
     const val invalidCredentialsError: String = "Invalid credentials!"
     const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
     const val invalidTokenError: String = "Invalid access! Please login again!"
-    const val unauthorisedAccessError: String = "Unauthorised access!"
+    const val unauthorisedAccessError: String = "Unauthorised access! Please login again!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
     const val cacheDeletionError: String = "Couldn't clear old (cached) data!"
@@ -71,6 +71,9 @@ object Constants {
     const val shareDeepLinkFail: String = "Couldn't share event to Facebook! Something must have gone wrong on their end!"
     const val deepLinkGenFail: String = "Couldn't generate an appropriate share format for this event! Please contact a developer!"
     const val eventDeleted: String = "Event you were tracking was suddenly deleted!"
+    const val invalidAccessError: String = "In order to access this content, you'll need to log in, or sign up and join the chatroom first."
+    const val eventAlreadyDeleted: String = "Linked event seems to already have been deleted by the chatroom owner!"
+    const val notJoinedChatroomError: String = "Can't participate in an event whose chatroom you haven't joined!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -310,6 +313,7 @@ object Constants {
     const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
     const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
+    const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

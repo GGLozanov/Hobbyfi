@@ -16,6 +16,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityAuthBinding
 import com.example.hobbyfi.databinding.ActivityMainBinding
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.toReadable
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.NavigationActivity
@@ -24,77 +25,21 @@ import io.branch.referral.Branch
 import java.util.*
 
 class AuthActivity : NavigationActivity() {
-
+    private var restartedFromDeeplink: Boolean = false
     private lateinit var binding: ActivityAuthBinding
-
-    private val branchReferralInitListener =
-        Branch.BranchReferralInitListener { linkProperties, error ->
-            // do stuff with deep link data (nav to page, display content, etc)
-            // TODO: Decode JSON object from Facebook that MUST contain query params
-            // event id and chatroom id
-
-            // if not contains => just yeet user out of app
-            // also somehow get Facebook user id  => else yeet user to auth activity
-            if (error != null) {
-                Log.e("AuthActivity", "Deep-linking error: $error")
-                // yeet
-            } else {
-                Log.i("AuthActivity", "Current link props: ${linkProperties}")
-
-                if(linkProperties?.get("+clicked_branch_link") as Boolean) {
-                    if(linkProperties.get("+is_first_session") as Boolean) {
-                        Log.i("AuthActivity", "First session triggered")
-                        // TODO: Show future onboarding
-                    }
-
-
-                    // get fb user who pressed the button their access token
-                    // TODO: Use `is_first_session` to check whether it's first session and open onboarding
-                    // not yeet and send to EventDetailsFragment if everything's ok
-
-                    // TODO: Login with FB and wait for authorise
-                    // TODO: If unsuccessful authorise => do nothing, I guess
-                    // TODO: If successful authorise (or already authorised) => check if user exists with exists endpoint
-                    // TODO: If user exists => send to ChatroomActivity with taskRoot (destroy this Activity)
-                    // TODO: If user not exists => send to LoginFragment with AuthActivity VM flag whether they should register set to true
-                    // TODO: Allow user to select tags (set the state manually to trigger that + get email) => then register
-                    // TODO: After register, check in LoginFragment flag and if deep link = true => send to ChatroomActivity (destroy this Activity) and trigger taskRoot
-                }
-            }
-        }
-
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        // if activity is in foreground (or in backstack but partially visible) launching the same
-        // activity will skip onStart, handle this case with reInitSession
-        Branch.sessionBuilder(this).withCallback(branchReferralInitListener).reInit()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.i("AuthActivity", "intent data: ${intent.data}")
-        Log.i("AuthActivity", "intent extras: ${intent.extras}")
-        Log.i("AuthActivity", "intent app link data: ${(intent.extras?.get("al_applink_data") as Bundle?)?.toReadable()}")
-        Log.i("AuthActivity", "intent app link data: ${
-            ((intent.extras?.get("al_applink_data") as Bundle?)?.get("extras") as Bundle?)?.toReadable()
-        }")
-        Log.i("AuthActivity", "intent app link data: ${
-            ((intent.extras?.get("al_applink_data") as Bundle?)?.get("referer_app_link") as Bundle?)?.toReadable()
-        }")
-
-        AppLinkData.fetchDeferredAppLinkData(this) { data: AppLinkData? ->
-            Log.i("AuthActiivty", "app link data: ${data?.refererData?.toReadable()}")
-
-        }
-
-        Branch.sessionBuilder(this).withCallback(branchReferralInitListener)
-            .withData(if (intent != null) intent.data else null).init()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // TODO: Check link properties (lastReferringParams) and set persistent boolean in VM/savedInstanceState for deep link here
+        // TODO: invalidate boolean after user has either: registered, logged in (Facebook/normal), registered w/ Facebook
+        // TODO: still navigate to MainActivity on login/register/whatever but make the user join the chatroom they're interested in
+        // TODO: If they're not in it yet. Then, invalidate all deeplink-related stuff
+        // TODO: and trigger deeplink listener again (with auth this time) and navigate to EventDetailsFragment
+        Log.i("AuthActivity", "intent extras: ${intent.extras}")
+        restartedFromDeeplink = savedInstanceState?.getBoolean(Constants.deepLinkCall)
+            ?: Branch.getInstance().latestReferringParams["+clicked_branch_link"] as Boolean
+        // FIXME: Possible session conflicts here (getting clicked branch link as true after restarts)
+
         binding = ActivityAuthBinding.inflate(layoutInflater)
         with(binding) {
             val view = root
@@ -105,6 +50,12 @@ class AuthActivity : NavigationActivity() {
 
             setSupportActionBar(toolbar)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState.apply {
+            putBoolean(Constants.deepLinkCall, restartedFromDeeplink)
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

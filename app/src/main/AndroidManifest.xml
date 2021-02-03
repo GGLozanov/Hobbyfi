@@ -87,14 +87,18 @@
 
         <activity
             android:name=".ui.auth.AuthActivity"
-            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
+        </activity>
+        <activity
+            android:name=".ui.chatroom.ChatroomActivity"
+            android:label="@string/title_activity_chatroom"
+            android:launchMode="singleTask"
+            android:parentActivityName=".ui.main.MainActivity" >
             <intent-filter>
                 <data android:scheme="hobbyfi" />
                 <action android:name="android.intent.action.VIEW" />
@@ -113,12 +117,6 @@
                 <!-- example-alternate domain is required for App Links when the Journeys/Web SDK and Deepviews are used inside your website.  -->
                 <data android:scheme="https" android:host="dq20i-alternate.test-app.link" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".ui.chatroom.ChatroomActivity"
-            android:label="@string/title_activity_chatroom"
-            android:launchMode="singleTop"
-            android:parentActivityName=".ui.main.MainActivity" >
         </activity>
         <activity
             android:name=".ui.chatroom.EventChooseLocationMapsActivity"

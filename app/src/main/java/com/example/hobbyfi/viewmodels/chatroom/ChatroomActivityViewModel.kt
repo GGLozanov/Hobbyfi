@@ -275,4 +275,11 @@ class ChatroomActivityViewModel(
     private fun setCurrentUsers(users: List<User>) {
         _chatroomUsers.value = users
     }
+
+    var _consumedEventDeepLink: Boolean = false
+    val consumedEventDeepLink get() = _consumedEventDeepLink
+
+    fun setConsumedEventDeepLink(consumed: Boolean) {
+        _consumedEventDeepLink = consumed
+    }
 }

@@ -133,7 +133,7 @@ object Callbacks {
     }
 
     fun subscribeToChatroomTopicByCurrentConnectivity(
-        block: () -> Unit,
+        block: (() -> Unit)?,
         chatroomId: Long,
         fcmTopicFallback: OnFailureListener,
         connectivityManager: ConnectivityManager
@@ -142,10 +142,10 @@ object Callbacks {
             .addOnFailureListener(fcmTopicFallback)
 
         if(!connectivityManager.isConnected()) {
-            block()
+            block?.invoke()
         } else {
             subscriptionTask.addOnCompleteListener {
-                block()
+                block?.invoke()
             }
         }
     }
@@ -266,9 +266,9 @@ object Callbacks {
                     }
                     401 -> { // unauthorized
                         throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                        else if (!Constants.isFacebookUserAuthd())
-                            Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
-                        else Repository.ReauthenticationException(Constants.reauthError)
+                            else if (!Constants.isFacebookUserAuthd())
+                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
+                            else Repository.ReauthenticationException(Constants.reauthError)
                     }
                     404 -> { // not found
                         throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
