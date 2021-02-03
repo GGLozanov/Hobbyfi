@@ -147,7 +147,7 @@ class ChatroomActivity : NavigationActivity(),
 
         // deeplink/notification situation
         sendUserIntentFetchIntentOnCurrentNull()
-        checkDeepLinkStatusAndPerform {
+        if(!checkDeepLinkStatusAndPerform(null)) {
             sendChatroomFetchIntentOnCurrentNull()
         }
 
@@ -444,8 +444,6 @@ class ChatroomActivity : NavigationActivity(),
                     title = chatroom.name
                 }
 
-                Toast.makeText(this@ChatroomActivity, "chatroom fetch: $chatroom", Toast.LENGTH_LONG)
-                    .show()
                 val authUserChatroomOwner = viewModel.isAuthUserChatroomOwner.value == true
                 val chatroomHasEvents = chatroom.eventIds != null
                 val chatroomHasEventsToFetch =
@@ -513,7 +511,7 @@ class ChatroomActivity : NavigationActivity(),
                         (binding.tagsGridView.adapter as TagListAdapter).setTags(it)
                     }
 
-                    binding.tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
+                    binding.tagsGridView.setHeightBasedOnChildren(it.size)
                 }
 
                 headerBinding.chatroomDescription.text =
@@ -750,9 +748,9 @@ class ChatroomActivity : NavigationActivity(),
         }
     }
 
-    private fun checkDeepLinkStatusAndPerform(block: () -> Unit): Boolean {
+    private fun checkDeepLinkStatusAndPerform(block: (() -> Unit)?): Boolean {
         return if(Branch.getInstance().latestReferringParams["+clicked_branch_link"] as Boolean) {
-            block()
+            block?.invoke()
             true
         } else false
     }

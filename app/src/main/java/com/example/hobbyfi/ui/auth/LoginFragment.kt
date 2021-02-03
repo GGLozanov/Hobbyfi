@@ -219,6 +219,7 @@ class LoginFragment : AuthFragment() {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
                             .show()
 
+                        LoginManager.getInstance().logOut()
                         if((requireActivity() as BaseActivity).refreshConnectivityMonitor.value == true) {
                             if (it.error != Constants.serverConnectionError) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
@@ -228,8 +229,6 @@ class LoginFragment : AuthFragment() {
                                         .toTypedArray()
                                 )
                                 navController.navigate(action)
-                            } else {
-                                LoginManager.getInstance().logOut()
                             }
                         }
                     }
@@ -250,6 +249,7 @@ class LoginFragment : AuthFragment() {
                     }
                     is TokenState.Error -> {
                         // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
+                        LoginManager.getInstance().logOut()
                         when (it.error) {
                             Constants.missingDataError -> {
                                 Log.wtf(
