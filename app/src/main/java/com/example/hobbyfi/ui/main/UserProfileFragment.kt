@@ -89,7 +89,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         super.onViewCreated(view, savedInstanceState)
 
         with(binding) {
-            if(!Constants.isFacebookUserAuthd()) {
+            if (!Constants.isFacebookUserAuthd()) {
                 authButtonBar.leftButton.setOnClickListener { // change email button
                     navController.navigate(R.id.action_global_changeEmailDialogFragment)
                 }
@@ -111,62 +111,41 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             lifecycleScope.launch {
-                if(activityViewModel.authUser.value == null) {
+                if (activityViewModel.authUser.value == null) {
                     activityViewModel.sendIntent(UserIntent.FetchUser)
                 }
             }
 
-            // observe
-            activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
-                if (it != null) {
-                    viewModel!!.description.value = it.description
-                    viewModel!!.name.value = it.name
-                    it.tags?.let { selectedTags ->
-                        viewModel!!.tagBundle.setSelectedTags(selectedTags)
-                        viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
-                    }
-
-                    if (it.photoUrl != null) {
-                        Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
-                        Glide.with(this@UserProfileFragment).load(
-                            it.photoUrl!!
-                        ).signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time)))
-                            .placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
-                            .into(binding.profileImage)
-                    } else {
-                        // load default img (needed if img deletion is added)
-                    }
-                }
-            })
-
             confirmButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
+                if (assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
 
                 val fieldMap: MutableMap<String?, String?> = mutableMapOf()
 
-                if(activityViewModel.authUser.value?.name != viewModel!!.name.value) {
+                if (activityViewModel.authUser.value?.name != viewModel!!.name.value) {
                     fieldMap[Constants.USERNAME] = viewModel!!.name.value
                 }
 
-                if(activityViewModel.authUser.value?.description != viewModel!!.description.value) {
-                    if(viewModel!!.description.value?.isBlank() == false) {
+                if (activityViewModel.authUser.value?.description != viewModel!!.description.value) {
+                    if (viewModel!!.description.value?.isBlank() == false) {
                         fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                     }
                 }
 
-                if((activityViewModel.authUser.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
+                if ((activityViewModel.authUser.value?.tags
+                        ?: emptyList()) != viewModel!!.tagBundle.selectedTags
+                ) {
                     fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 
-                if(viewModel!!.base64Image.base64 != null) { // means user has changed their pfp
+                if (viewModel!!.base64Image.base64 != null) { // means user has changed their pfp
                     fieldMap[Constants.IMAGE] = viewModel!!.base64Image.base64
                 }
 
                 Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
-                if(fieldMap.isEmpty()) {
+                if (fieldMap.isEmpty()) {
                     Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
                         .show()
                     return@setOnClickListener
@@ -176,26 +155,60 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     activityViewModel.sendIntent(UserIntent.UpdateUser(fieldMap))
                 }
 
-                it.isEnabled = false // antispam
-                it.postDelayed({ // append delayed message to internal handler's message queue to reenable the button
-                    it.isEnabled = true
-                }, 1000 * 5) // reenable after delay
+                activityViewModel.setIsUserProfileUpdateButtonEnabled(false)
             }
+
+            observeUpdateButtonEnabled()
+            observeAuthUser()
+            observeTagsFail()
+
+            // FIXME: Code dup with other tag fragments
+            navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
+                ?.observe(viewLifecycleOwner) { selectedTags ->
+                    viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+                    viewModel!!.tagBundle.setSelectedTags(selectedTags)
+                }
         }
+    }
 
-        // FIXME: Code dup with other tag fragments
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
-            ?.observe(viewLifecycleOwner) { selectedTags ->
-                viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
-                viewModel.tagBundle.setSelectedTags(selectedTags)
-            }
-
+    private fun observeTagsFail() {
         activityViewModel.latestTagUpdateFail.observe(viewLifecycleOwner, Observer {
             if(it) {
                 viewModel.tagBundle.setSelectedTags(viewModel.originalSelectedTags)
             } else {
                 viewModel.setOriginalSelectedTags(viewModel.tagBundle.selectedTags)
             }
+        })
+    }
+
+    private fun observeAuthUser() {
+        // observe
+        activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
+            if (it != null) {
+                viewModel.description.value = it.description
+                viewModel.name.value = it.name
+                it.tags?.let { selectedTags ->
+                    viewModel.tagBundle.setSelectedTags(selectedTags)
+                    viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
+                }
+
+                if (it.photoUrl != null) {
+                    Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
+                    Glide.with(this@UserProfileFragment).load(
+                        it.photoUrl!!
+                    ).signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time)))
+                        .placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
+                        .into(binding.profileImage)
+                } else {
+                    // load default img (needed if img deletion is added)
+                }
+            }
+        })
+    }
+
+    private fun observeUpdateButtonEnabled() {
+        activityViewModel.isUserProfileUpdateButtonEnabled.observe(viewLifecycleOwner, Observer {
+            binding.confirmButton.isEnabled = it
         })
     }
 

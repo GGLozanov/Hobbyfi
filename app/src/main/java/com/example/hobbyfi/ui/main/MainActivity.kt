@@ -201,6 +201,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                             ).show()
                         }
                         viewModel.resetState()
+                        viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                     is UserState.Error -> {
                         Toast.makeText(
@@ -212,6 +213,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                             logout()
                         }
                         viewModel.resetState()
+                        viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                 }
             }

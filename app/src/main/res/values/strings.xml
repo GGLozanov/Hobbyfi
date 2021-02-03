@@ -147,5 +147,6 @@
     <string name="go_to_event_CD">Go to Event</string>
     <string name="disable_location_updates_CD">Disable Location Updates</string>
     <string name="enable_location_update_CD">Enable Location Updates</string>
-    <string name="location_monitor_ask">Do you want to automatically enable location tracking now to keep in touch with the other users in the event?</string>
+    <string name="location_monitor_ask">Do you want to automatically enable location tracking now to keep in touch with the other users in the event? If you don\'t, you won\'t be shown as a participant in the event!</string>
+    <string name="no_users">No Users</string>
 </resources>

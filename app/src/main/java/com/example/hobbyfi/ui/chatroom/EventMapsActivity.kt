@@ -182,6 +182,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 if(prefConfig.readRequestingLocationUpdates()) {
                     Toast.makeText(this@EventMapsActivity, Constants.canOnlyResetOnNoUpdate, Toast.LENGTH_LONG)
                         .show()
+                    return@setOnClickListener
                 }
 
                 if(viewModel.lastReceivedLocation != null) {
@@ -235,10 +236,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
-                    is UserGeoPointState.Idle -> {
-
-                    }
-                    is UserGeoPointState.Loading -> {
+                    is UserGeoPointState.Idle, is UserGeoPointState.Loading -> {
 
                     }
                     is UserGeoPointState.OnData.OnUsersGeoPointsResult -> {

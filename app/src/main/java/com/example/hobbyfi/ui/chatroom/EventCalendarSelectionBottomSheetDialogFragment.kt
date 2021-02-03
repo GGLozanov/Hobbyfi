@@ -120,6 +120,10 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
                 "Check out the new event storming the ${activityViewModel.authChatroom.value!!.name} chatroom: ${event.name}! ${if(event.description != null)
                     "Described as, \"${event.description}\", you are surely not to miss this spectacle!" else ""}"
             )
+            .addControlParameter(
+                "\$og_app_id",
+                getString(R.string.FB_APP_ID)
+            )
             .addControlParameter("event_id", event.id.toString())
             .addControlParameter("chatroom_id", event.chatroomId.toString())
 

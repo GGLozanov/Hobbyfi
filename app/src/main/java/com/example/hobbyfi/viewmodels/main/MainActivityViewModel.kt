@@ -28,6 +28,9 @@ class MainActivityViewModel(
     private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val leftChatroom: LiveData<Boolean> get() = _leftChatroom
     private var latestUserUpdateFields: Map<String?, String?>? = null
+    
+    private val _isUserProfileUpdateButtonEnabled: MutableLiveData<Boolean> = MutableLiveData(true)
+    val isUserProfileUpdateButtonEnabled: LiveData<Boolean> get() = _isUserProfileUpdateButtonEnabled
 
     fun resetState() {
         mainStateIntent.setState(UserState.Idle)
@@ -64,5 +67,9 @@ class MainActivityViewModel(
         } else {
             Log.wtf("MainActivityVM", "Called updateUserWithLatestFields incorrectly!")
         }
+    }
+    
+    fun setIsUserProfileUpdateButtonEnabled(en: Boolean) {
+        _isUserProfileUpdateButtonEnabled.value = en
     }
 }

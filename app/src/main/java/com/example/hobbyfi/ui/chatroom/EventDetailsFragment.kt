@@ -272,7 +272,10 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         var diff = viewModel.relatedEvent.calculateDateDiff()
         if(diff.isNegative) {
             binding.eventViewButtonBar.leftButton.isVisible = false
-            diff = diff.minus(diff)
+            binding.eventViewButtonBar.rightButton.isVisible = false
+            binding.daysLeftHeader.text = String.format(
+                Locale.ENGLISH, "Event has already concluded.")
+            return
         }
 
         binding.daysLeftHeader.text = String.format(

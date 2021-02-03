@@ -33,7 +33,7 @@ class AuthActivity : NavigationActivity() {
             // TODO: Decode JSON object from Facebook that MUST contain query params
             // event id and chatroom id
 
-            // if not contains => just yeet user out of activity
+            // if not contains => just yeet user out of app
             // also somehow get Facebook user id  => else yeet user to auth activity
             if (error != null) {
                 Log.e("AuthActivity", "Deep-linking error: $error")
@@ -42,14 +42,23 @@ class AuthActivity : NavigationActivity() {
                 Log.i("AuthActivity", "Current link props: ${linkProperties}")
 
                 if(linkProperties?.get("+clicked_branch_link") as Boolean) {
+                    if(linkProperties.get("+is_first_session") as Boolean) {
+                        Log.i("AuthActivity", "First session triggered")
+                        // TODO: Show future onboarding
+                    }
+
+
                     // get fb user who pressed the button their access token
-                   // TODO: Use `is_first_session` to check whether it's first session and open onboarding
+                    // TODO: Use `is_first_session` to check whether it's first session and open onboarding
                     // not yeet and send to EventDetailsFragment if everything's ok
-                    // TODO: Check if account for FB id exists -> #1
-                    // TODO: Check if account for FB id is in chatroom_id -> #2
-                    // TODO: route to mainactivity if only #1 but not #2 -> use login() from fragment somehow
-                    // TODO: route to chatroomactivity if #1 and #2 -> finish() this task and start new activity so to trigger `isTaskRoot` for ChatroomActivity
-                    // TODO: do nothing if both false
+
+                    // TODO: Login with FB and wait for authorise
+                    // TODO: If unsuccessful authorise => do nothing, I guess
+                    // TODO: If successful authorise (or already authorised) => check if user exists with exists endpoint
+                    // TODO: If user exists => send to ChatroomActivity with taskRoot (destroy this Activity)
+                    // TODO: If user not exists => send to LoginFragment with AuthActivity VM flag whether they should register set to true
+                    // TODO: Allow user to select tags (set the state manually to trigger that + get email) => then register
+                    // TODO: After register, check in LoginFragment flag and if deep link = true => send to ChatroomActivity (destroy this Activity) and trigger taskRoot
                 }
             }
         }
@@ -65,17 +74,20 @@ class AuthActivity : NavigationActivity() {
 
     override fun onStart() {
         super.onStart()
+        Log.i("AuthActivity", "intent data: ${intent.data}")
         Log.i("AuthActivity", "intent extras: ${intent.extras}")
         Log.i("AuthActivity", "intent app link data: ${(intent.extras?.get("al_applink_data") as Bundle?)?.toReadable()}")
-        Log.i("AuthActivity", "intent app link data: ${((intent.extras?.get("al_applink_data") as Bundle?)?.get("referer_app_link") as Bundle?)?.toReadable()}")
         Log.i("AuthActivity", "intent app link data: ${
-            ((intent.extras?.get("al_applink_data") as Bundle?)?.get("extras") as Array<*>?)?.contentToString()
+            ((intent.extras?.get("al_applink_data") as Bundle?)?.get("extras") as Bundle?)?.toReadable()
+        }")
+        Log.i("AuthActivity", "intent app link data: ${
+            ((intent.extras?.get("al_applink_data") as Bundle?)?.get("referer_app_link") as Bundle?)?.toReadable()
         }")
 
-//        AppLinkData.fetchDeferredAppLinkData(this) { data: AppLinkData? ->
-//            Log.i("AuthActiivty", "app link data: ${data?.refererData?.toReadable()}")
-//
-//        }
+        AppLinkData.fetchDeferredAppLinkData(this) { data: AppLinkData? ->
+            Log.i("AuthActiivty", "app link data: ${data?.refererData?.toReadable()}")
+
+        }
 
         Branch.sessionBuilder(this).withCallback(branchReferralInitListener)
             .withData(if (intent != null) intent.data else null).init()
