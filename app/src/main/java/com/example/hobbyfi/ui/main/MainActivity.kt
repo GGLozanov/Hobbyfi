@@ -24,6 +24,7 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.currentNavigationFragment
 import com.example.hobbyfi.shared.setupWithNavController
+import com.example.hobbyfi.shared.toReadable
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.NavigationActivity
@@ -83,6 +84,9 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+        Toast.makeText(this, "intent extras: ${intent.extras?.toReadable()}", Toast.LENGTH_LONG)
+            .show()
 
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
         localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))

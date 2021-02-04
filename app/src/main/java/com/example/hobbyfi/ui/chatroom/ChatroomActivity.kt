@@ -50,8 +50,6 @@ import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import io.branch.referral.Branch
 import io.branch.referral.Branch.BranchReferralInitListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -107,7 +105,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
 
                     sendUserIntentFetchIntentOnCurrentNull()
-                    observeEventsForDeeplink()
+                    observeEventsForDeepLink()
                 }
             } else {
                 sendUserIntentFetchIntentOnCurrentNull()
@@ -409,11 +407,12 @@ class ChatroomActivity : NavigationActivity(),
         })
     }
 
-    private fun observeEventsForDeeplink() {
+    private fun observeEventsForDeepLink() {
         viewModel.authEvents.observe(this, Observer {
             if(!viewModel.consumedEventDeepLink) {
                 checkDeepLinkStatusAndPerform {
-                    val deepLinkedEvent = it.find { event -> event.id == (Branch.getInstance().latestReferringParams["event_id"] as String).toLong() }
+                    val eventId = (Branch.getInstance().latestReferringParams["event_id"] as String).toLong()
+                    val deepLinkedEvent = it.find { event -> event.id == eventId }
                     if(deepLinkedEvent != null) {
                         if(supportFragmentManager.currentNavigationFragment !is EventDetailsFragment) {
                             navController.navigate(
@@ -613,15 +612,14 @@ class ChatroomActivity : NavigationActivity(),
 
     // checks if called from push notification while app is killed and restarts entire backstack in that case
     private fun checkNotificationOrDeepLinkCall(): Boolean {
-        var rebuildStack = false
-        // TODO: check for deeplink explicity if deeplink called from foreground
-        if(isTaskRoot) {
-            if(!prefConfig.isUserAuthenticated()) {
-                // should only EVER happen for deeplink (can't receive notifications when not logged in)
-                leaveChatroomWithRestart()
-                return true
-            }
+        if(!prefConfig.isUserAuthenticated()) {
+            // should only EVER happen for deeplink (can't receive notifications when not logged in)
+            leaveChatroomWithRestart()
+            return true
+        }
 
+        var rebuildStack = false
+        if(isTaskRoot) {
             Log.i(
                 "ChatroomActivity",
                 "ChatroomActivity IS TASK ROOT. Regenerating parent activity backstack!"
@@ -758,7 +756,7 @@ class ChatroomActivity : NavigationActivity(),
             false
         }
 
-        return if((intent.extras?.get("+is_app_link") as Boolean?) == true || clickedBranchLink) {
+        return if(intent.extras?.get("al_applink_data") != null || clickedBranchLink) {
             block?.invoke()
             true
         } else false
