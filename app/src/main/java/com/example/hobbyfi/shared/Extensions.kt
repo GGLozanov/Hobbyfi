@@ -42,7 +42,9 @@ import com.google.android.material.navigation.NavigationView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
+import org.json.JSONObject
 import java.lang.reflect.Field
 
 
@@ -333,10 +335,10 @@ fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Cons
 
 fun android.content.Intent.getEventIdsExtra(): List<Long> {
      return Constants.tagJsonConverter.fromJson(
-        extras?.getString(
-            Constants.EVENT_IDS
-        )
-    )!!
+         extras?.getString(
+             Constants.EVENT_IDS
+         )
+     )!!
 }
 
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
@@ -370,6 +372,36 @@ fun Bundle.toReadable(): String {
     string += " }"
     return string
 }
+
+fun JSONObject.toBundle(): Bundle? {
+    val bundle = Bundle()
+    val it = keys()
+    while (it.hasNext()) {
+        val key = it.next()
+        val arr = optJSONArray(key)
+        val num = optDouble(key)
+        val str = optString(key)
+        if (arr != null && arr.length() <= 0) bundle.putStringArray(
+            key,
+            arrayOf()
+        ) else if (arr != null && !java.lang.Double.isNaN(arr.optDouble(0))) {
+            val newarr = DoubleArray(arr.length())
+            for (i in 0 until arr.length()) newarr[i] = arr.optDouble(i)
+            bundle.putDoubleArray(key, newarr)
+        } else if (arr != null && arr.optString(0) != null) {
+            val newarr = arrayOfNulls<String>(arr.length())
+            for (i in 0 until arr.length()) newarr[i] = arr.optString(i)
+            bundle.putStringArray(key, newarr)
+        } else if (!num.isNaN()) bundle.putDouble(key, num) else if (str != null) bundle.putString(
+            key,
+            str
+        ) else Log.e("Extensions",
+            "JsonObject toBundle() -> unable to transform json to bundle $key"
+        )
+    }
+    return bundle
+}
+
 
 /**
  * Manages the various graphs needed for a [BottomNavigationView].

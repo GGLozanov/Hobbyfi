@@ -35,10 +35,11 @@ class AuthActivity : NavigationActivity() {
         // TODO: still navigate to MainActivity on login/register/whatever but make the user join the chatroom they're interested in
         // TODO: If they're not in it yet. Then, invalidate all deeplink-related stuff
         // TODO: and trigger deeplink listener again (with auth this time) and navigate to EventDetailsFragment
-        Log.i("AuthActivity", "intent extras: ${intent.extras}")
+        Log.i("AuthActivity", "intent extras: ${intent.extras?.toReadable()}")
         restartedFromDeeplink = savedInstanceState?.getBoolean(Constants.deepLinkCall)
-            ?: Branch.getInstance().latestReferringParams["+clicked_branch_link"] as Boolean
-        // FIXME: Possible session conflicts here (getting clicked branch link as true after restarts)
+            ?: intent.extras?.getBoolean("+clicked_branch_link") == true
+        Toast.makeText(this, "clicked br link: ${intent.extras}", Toast.LENGTH_LONG)
+            .show()
 
         binding = ActivityAuthBinding.inflate(layoutInflater)
         with(binding) {

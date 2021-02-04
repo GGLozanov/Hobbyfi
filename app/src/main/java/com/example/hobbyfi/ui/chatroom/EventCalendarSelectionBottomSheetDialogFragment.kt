@@ -68,7 +68,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
 
                 v.postDelayed({
                     v.isEnabled = true
-                }, 1000) // event card tap antispam
+                }, 1000) // event card tap antispam TODO: Fix
             }, { _: View, event: Event ->
                 generateFacebookEventDeeplink(event)
             })

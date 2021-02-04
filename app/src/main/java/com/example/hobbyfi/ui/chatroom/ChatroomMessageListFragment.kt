@@ -105,7 +105,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         }
     }
 
-    private var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadacastReceiverFactory? = null
+    private var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadcastReceiverFactory? = null
 
     private var createMessageReceiver: BroadcastReceiver? = null
     private var editMessageReceiver: BroadcastReceiver? = null
@@ -122,7 +122,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         val activity = requireActivity() as ChatroomActivity
 
         // TODO: Move receiver registration in after chatroom messages fetch!!!
-        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadacastReceiverFactory
+        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
             .getInstance(viewModel, messageListAdapter!!, activityViewModel, activity)
         createMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
         editMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)

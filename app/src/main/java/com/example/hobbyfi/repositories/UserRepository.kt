@@ -13,13 +13,11 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
+import com.example.hobbyfi.utils.TokenUtils
 import com.google.firebase.FirebaseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 // fetches both auth users & chatroom users
@@ -52,8 +50,16 @@ class UserRepository @ExperimentalPagingApi constructor(
                 } catch(ex: Exception) {
                     try {
                         Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+                    } catch(tokenEx: TokenUtils.InvalidStoredTokenException) {
+                        Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
+                        flowOf(null)
                     } catch(authEx: AuthorisedRequestException) {
-                        getNewTokenWithRefresh()
+                        try {
+                            getNewTokenWithRefresh()
+                        } catch(ex: Exception) {
+                            Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned nothing")
+                        }
+
                         loadFromDb()
                     }
                 }

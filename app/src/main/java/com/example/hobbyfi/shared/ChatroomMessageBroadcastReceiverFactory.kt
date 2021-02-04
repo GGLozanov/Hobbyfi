@@ -1,14 +1,12 @@
 package com.example.hobbyfi.shared
 
 import android.content.BroadcastReceiver
-import android.content.Intent
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +14,7 @@ import java.lang.IllegalArgumentException
 
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
-class ChatroomMessageBroadacastReceiverFactory(
+class ChatroomMessageBroadcastReceiverFactory(
     private val viewModel: ChatroomMessageListFragmentViewModel,
     private val messagesAdapter: ChatroomMessageListAdapter,
     chatroomActivityViewModel: ChatroomActivityViewModel? = null,
@@ -29,9 +27,6 @@ class ChatroomMessageBroadacastReceiverFactory(
 
     override fun createActionatedReceiver(action: String): BroadcastReceiver = when(action) {
             Constants.CREATE_MESSAGE_TYPE -> {
-                // CREATE used by both timeline and normal messages
-                // TODO: Handle auth user created/edited message (pass in intent to isNotChatroomOwnerOrShouldSee())
-                // so that message sent user id can be acccessed and checked
                 createReceiver(
                     action,
                     onCorrectAction = {
@@ -93,16 +88,16 @@ class ChatroomMessageBroadacastReceiverFactory(
         }
 
     companion object {
-        private var instance: ChatroomMessageBroadacastReceiverFactory? = null
+        private var instance: ChatroomMessageBroadcastReceiverFactory? = null
 
         fun getInstance(viewModel: ChatroomMessageListFragmentViewModel,
                         adapter: ChatroomMessageListAdapter,
                         chatroomActivityViewModel: ChatroomActivityViewModel? = null,
-                        lifecycleOwner: LifecycleOwner): ChatroomMessageBroadacastReceiverFactory {
+                        lifecycleOwner: LifecycleOwner): ChatroomMessageBroadcastReceiverFactory {
             synchronized(this) {
                 var instance = this.instance
                 if(instance == null) {
-                    instance = ChatroomMessageBroadacastReceiverFactory(viewModel, adapter,
+                    instance = ChatroomMessageBroadcastReceiverFactory(viewModel, adapter,
                         chatroomActivityViewModel, lifecycleOwner)
                 }
                 return instance

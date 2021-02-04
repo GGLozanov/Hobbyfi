@@ -33,6 +33,8 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     protected var _latestTagUpdateFail: MutableLiveData<Boolean> = MutableLiveData(false)
     val latestTagUpdateFail: LiveData<Boolean> get() = _latestTagUpdateFail
 
+    fun resetUserState() = mainStateIntent.setState(UserState.Idle)
+
     override fun handleIntent() {
         viewModelScope.launch {
             mainStateIntent.intentAsFlow().collectLatest { // collect latest doesn't cancel the [action] block after receiving a value

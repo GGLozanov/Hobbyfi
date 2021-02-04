@@ -50,8 +50,11 @@ import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import io.branch.referral.Branch
 import io.branch.referral.Branch.BranchReferralInitListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import org.kodein.di.generic.instance
 import java.util.*
 
@@ -90,30 +93,25 @@ class ChatroomActivity : NavigationActivity(),
 
     private val branchReferralInitListener =
         BranchReferralInitListener { linkProperties, error ->
-            Log.i("ChatroomActivity", "Current link props: ${linkProperties}")
-
             if(linkProperties != null && linkProperties.get("+clicked_branch_link") as Boolean) {
                 viewModel.setConsumedEventDeepLink(false)
                 if (error != null) {
                     Log.e("ChatroomActivity", "Deep-linking error: $error")
-                    leaveChatroomWithRestart()
+                    leaveChatroomWithRestart(linkParams = linkProperties)
                 } else {
-                    if (linkProperties.get("+is_first_session") as Boolean) {
+                    if(linkProperties.get("+is_first_session") as Boolean) {
                         Log.i("ChatroomActivity", "First session triggered")
-                        leaveChatroomWithRestart()
+                        leaveChatroomWithRestart(linkParams = linkProperties)
                         return@BranchReferralInitListener
                         // TODO: Show future onboarding after reauth
                     }
-                    observeEventsForDeeplink()
 
-                    // TODO: Login with FB and wait for authorise
-                    // TODO: If unsuccessful authorise => do nothing, I guess
-                    // TODO: If successful authorise (or already authorised) => check if user exists with exists endpoint
-                    // TODO: If user exists => send to ChatroomActivity with taskRoot (destroy this Activity)
-                    // TODO: If user not exists => send to LoginFragment with AuthActivity VM flag whether they should register set to true
-                    // TODO: Allow user to select tags (set the state manually to trigger that + get email) => then register
-                    // TODO: After register, check in LoginFragment flag and if deep link = true => send to ChatroomActivity (destroy this Activity) and trigger taskRoot
+                    sendUserIntentFetchIntentOnCurrentNull()
+                    observeEventsForDeeplink()
                 }
+            } else {
+                sendUserIntentFetchIntentOnCurrentNull()
+                sendChatroomFetchIntentOnCurrentNull()
             }
         }
 
@@ -145,12 +143,6 @@ class ChatroomActivity : NavigationActivity(),
         headerBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
         headerBinding.viewModel = viewModel
 
-        // deeplink/notification situation
-        sendUserIntentFetchIntentOnCurrentNull()
-        if(!checkDeepLinkStatusAndPerform(null)) {
-            sendChatroomFetchIntentOnCurrentNull()
-        }
-
         userListAdapter = ChatroomUserListAdapter(
             viewModel.chatroomUsers.value ?: emptyList()
         ) { _: View, user: User ->
@@ -172,13 +164,9 @@ class ChatroomActivity : NavigationActivity(),
     override fun onStart() {
         super.onStart()
 
-        Log.i("ChatroomActivity", "intent data: ${intent.data}")
-
         Branch.sessionBuilder(this).withCallback(branchReferralInitListener)
             .withData(if (intent != null) intent.data else null).init()
 
-        // TODO: Register delete/update BroadcastReceiver with User intents and Event intents
-        // TODO: First fetch messages from back-end then register for receiving messages
         observeChatroomState()
         observeChatroom()
         observeUsers()
@@ -215,11 +203,14 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is UserState.Error -> {
                         if(checkDeepLinkStatusAndPerform {
-                                leaveChatroomWithRestart()
+                                if(it.shouldReauth || !prefConfig.isUserAuthenticated()) {
+                                    leaveChatroomWithRestart()
+                                }
                             }) {
                             return@collect
                         } else {
                             handleAuthActionableError(it.error, it.shouldReauth)
+                            viewModel.resetUserState()
                         }
                     }
                     else -> throw State.InvalidStateException()
@@ -295,33 +286,39 @@ class ChatroomActivity : NavigationActivity(),
         leaveChatroom()
     }
 
-    private fun leaveChatroomWithReauth() {
-        localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
-
-        leaveChatroom()
-    }
-
     private fun leaveChatroom(finishAff: Boolean = false) {
-        viewModel.authChatroom.value?.let {
-            Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
-                {
-                    viewModel.setChatroom(null) // clear chatroom in any case
-                    if(finishAff) finishAffinity() else finish()
-                },
-                it.id,
-                fcmTopicErrorFallback,
-                connectivityManager
-            )
+        val leave = {
+            viewModel.setChatroom(null) // clear chatroom in any case
+            if(finishAff) finishAffinity() else finish()
+        }
+
+        if(viewModel.authChatroom.value != null) {
+            viewModel.authChatroom.value?.let {
+                Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity(
+                    leave,
+                    it.id,
+                    fcmTopicErrorFallback,
+                    connectivityManager
+                )
+            }
+        } else {
+            leave()
         }
     }
 
     // for deeplink errors
-    private fun leaveChatroomWithRestart(exitMsg: String = Constants.invalidAccessError) {
+    private fun leaveChatroomWithRestart(
+        exitMsg: String = Constants.invalidAccessError,
+        linkParams: JSONObject = Branch.getInstance().latestReferringParams
+    ) {
         // TODO: More graceful way to show this error... like a separate screen? Activity?
         Toast.makeText(this, exitMsg, Toast.LENGTH_LONG)
             .show()
         startActivity(Intent(this, AuthActivity::class.java).apply {
             putExtras(intent)
+            linkParams.toBundle()?.let {
+                putExtras(it)
+            }
         })
         leaveChatroom(true)
     }
@@ -619,6 +616,12 @@ class ChatroomActivity : NavigationActivity(),
         var rebuildStack = false
         // TODO: check for deeplink explicity if deeplink called from foreground
         if(isTaskRoot) {
+            if(!prefConfig.isUserAuthenticated()) {
+                // should only EVER happen for deeplink (can't receive notifications when not logged in)
+                leaveChatroomWithRestart()
+                return true
+            }
+
             Log.i(
                 "ChatroomActivity",
                 "ChatroomActivity IS TASK ROOT. Regenerating parent activity backstack!"
@@ -749,7 +752,13 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun checkDeepLinkStatusAndPerform(block: (() -> Unit)?): Boolean {
-        return if(Branch.getInstance().latestReferringParams["+clicked_branch_link"] as Boolean) {
+        val clickedBranchLink = try {
+            Branch.getInstance().latestReferringParams["+clicked_branch_link"] as Boolean
+        } catch(ex: Exception) {
+            false
+        }
+
+        return if((intent.extras?.get("+is_app_link") as Boolean?) == true || clickedBranchLink) {
             block?.invoke()
             true
         } else false

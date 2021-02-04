@@ -23,6 +23,7 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
             prefConfig.writeRefreshToken(refreshToken)
         }
 
+        // TODO: Check deepink; go to deeplink activity if deeplink == true; else => go to mainactivity
         navController.navigate(action)
     }
 }

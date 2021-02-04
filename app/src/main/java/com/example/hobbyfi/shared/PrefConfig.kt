@@ -172,6 +172,18 @@ class PrefConfig(private val context: Context) {
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())
 
+    fun isUserAuthenticated(): Boolean =
+        if(Constants.isFacebookUserAuthd()) {
+            true
+        } else {
+            try {
+                TokenUtils.getTokenUserIdFromStoredTokens(this).compareTo(0) != 0
+            } catch(ex: Exception) {
+                Log.w("PrefConfig", "isUserAuthenticated() -> normal token check exception")
+                false
+            }
+        }
+
     fun getAuthUserToken(): String? =
         if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else readToken()
 }
