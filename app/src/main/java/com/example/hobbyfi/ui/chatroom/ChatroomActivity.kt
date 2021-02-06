@@ -96,6 +96,7 @@ class ChatroomActivity : NavigationActivity(),
             Log.i("ChatroomActivity", "deep link props: ${linkProperties}")
             val comeFromAuthDeepLink = comeFromAuthDeepLink()
             Log.i("ChatroomActivity", "comeFromAuthDeepLink: ${comeFromAuthDeepLink}")
+            viewModel.setCurrentLinkProperties(linkProperties)
             if((linkProperties != null && getClickedBranchLinkFromLinkProps(linkProperties)) ||
                     comeFromAuthDeepLink) {
                 val safeLinkProps = linkProperties ?: Branch.getInstance().latestReferringParams
@@ -315,8 +316,9 @@ class ChatroomActivity : NavigationActivity(),
                 finishAffinity()
             } else {
                 if(sendExtrasBroadcast) {
-                    setResult(RESULT_OK, Intent().apply {
-                        putExtras(intent)
+                    localBroadcastManager.sendBroadcastSync(Intent(Constants.DEEP_LINK_YEET).apply {
+                        Log.i("ChatroomActivity", "Branch latest ref params broadcast: ${Branch.getInstance().latestReferringParams.toBundle()}")
+                        putExtras(Branch.getInstance().latestReferringParams.toBundle()!!)
                     })
                 }
                 finish()
@@ -340,7 +342,7 @@ class ChatroomActivity : NavigationActivity(),
     // for deeplink errors
     private fun leaveChatroomWithRestart(
         exitMsg: String = Constants.invalidAccessError,
-        linkParams: JSONObject = Branch.getInstance().latestReferringParams
+        linkParams: JSONObject? = viewModel.currentLinkProperties
     ) {
         // TODO: More graceful way to show this error... like a separate screen? Activity?
         Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
@@ -797,10 +799,11 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun checkDeepLinkStatusAndPerform(block: (() -> Unit)?): Boolean {
         val clickedBranchLink = try {
-            Branch.getInstance().latestReferringParams["+clicked_branch_link"] as Boolean
+            viewModel.currentLinkProperties?.get("+clicked_branch_link") as Boolean
         } catch(ex: Exception) {
             false
         }
+        Log.i("ChatroomActivity", "latest LINK PROPS: ${viewModel.currentLinkProperties}")
 
         return if(comeFromAuthDeepLink() || clickedBranchLink) {
             block?.invoke()
@@ -827,29 +830,29 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun getChatroomIdFromDeepLinkProps(
-        linkProperties: JSONObject = Branch.getInstance().latestReferringParams
+        linkProperties: JSONObject? = viewModel.currentLinkProperties
     ) =
         if(comeFromAuthDeepLink())
                 intent.extras?.getDouble(Constants.CHATROOM_ID)?.toLong() else try {
-            (linkProperties.get(Constants.CHATROOM_ID) as String).toLong()
+            (linkProperties?.get(Constants.CHATROOM_ID) as String?)?.toLong()
         } catch(ex: Exception) {
             null
         }
 
     private fun getEventIdFromDeepLinkProps(
-        linkProperties: JSONObject = Branch.getInstance().latestReferringParams
+        linkProperties: JSONObject? = viewModel.currentLinkProperties
     ) =
         if(comeFromAuthDeepLink()) intent.extras?.getDouble(Constants.EVENT_ID)?.toLong() else try {
-            (linkProperties.get(Constants.EVENT_ID) as String).toLong()
+            (linkProperties?.get(Constants.EVENT_ID) as String?)?.toLong()
         } catch(ex: Exception) {
             Log.w("ChatroomActivity", "Event id not found from extras/latestRefParams; is auth link? ${comeFromAuthDeepLink()}")
             null
         }
 
     private fun getClickedBranchLinkFromLinkProps(
-        linkProperties: JSONObject = Branch.getInstance().latestReferringParams
+        linkProperties: JSONObject? = viewModel.currentLinkProperties
     ) = try {
-        linkProperties.get("+clicked_branch_link") as Boolean
+        linkProperties?.get("+clicked_branch_link") as Boolean
     } catch(ex: Exception) {
         Log.w("ChatroomActivity", "+clicked_branch_link found from extras/latestRefParams; is auth link? ${comeFromAuthDeepLink()}")
         false

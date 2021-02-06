@@ -20,6 +20,7 @@ import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import org.kodein.di.generic.instance
 import java.lang.IllegalStateException
 
@@ -283,6 +284,12 @@ class ChatroomActivityViewModel(
 
     fun setConsumedEventDeepLink(consumed: Boolean) {
         _consumedEventDeepLink = consumed
+    }
+
+    private var _currentLinkProperties: JSONObject? = null
+    val currentLinkProperties get() = _currentLinkProperties
+    fun setCurrentLinkProperties(linkProps: JSONObject?) {
+        _currentLinkProperties = linkProps
     }
 
     fun forceIsAuthUserOwnerObservation() {

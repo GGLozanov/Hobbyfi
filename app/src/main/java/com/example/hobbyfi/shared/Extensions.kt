@@ -5,6 +5,7 @@ import android.app.*
 import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -263,6 +264,8 @@ fun <T> MutableLiveData<T>.forceObserve() {
 }
 
 fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
+
+fun comeFromAuthDeepLink(intent: Intent): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
 fun <T> Context.isServiceForegrounded(service: Class<T>) =

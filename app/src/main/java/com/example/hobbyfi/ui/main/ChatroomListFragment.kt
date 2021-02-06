@@ -35,45 +35,53 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
 
             if (joined) {
                 // this check is required for whenever this observer might be trigger by CreateChatroomFragment
-                if (viewModel.buttonSelectedChatroom != null) {
-                    Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
-                        {
-                            joinChatroomAndUpdate()
-                            // TODO: Add clear pref option
-                            when(prefConfig.readChatroomJoinRememberNavigate()) {
-                                Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
-                                    val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
-                                    val dialog = AlertDialog.Builder(requireContext())
-                                        .setView(dialogBinding.root)
-                                        .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
-                                            prefConfig.writeChatroomJoinRememberNavigate(
-                                                if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
-                                                else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
-                                            )
+                val joinChatroomWithDialog = {
+                    joinChatroomAndUpdate()
+                    // TODO: Add clear pref option
+                    when(prefConfig.readChatroomJoinRememberNavigate()) {
+                        Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
+                            val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
+                            val dialog = AlertDialog.Builder(requireContext())
+                                .setView(dialogBinding.root)
+                                .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
+                                    prefConfig.writeChatroomJoinRememberNavigate(
+                                        if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
+                                        else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
+                                    )
 
-                                            dialogInterface.dismiss()
-                                            navigateToChatroom()
-                                        }
-                                        .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
-                                            prefConfig.writeChatroomJoinRememberNavigate(
-                                                if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
-                                                else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
-                                            )
-                                            dialogInterface.dismiss()
-                                        }
-                                        .create()
-                                    dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
-                                    dialog.show()
-                                }
-                                Constants.NoRememberDualChoice.REMEMBER_YES.ordinal -> {
+                                    dialogInterface.dismiss()
                                     navigateToChatroom()
                                 }
-                            }
-                        },
-                        viewModel.buttonSelectedChatroom!!.id,
-                        fcmTopicErrorFallback,
-                        connectivityManager
-                    )
+                                .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
+                                    prefConfig.writeChatroomJoinRememberNavigate(
+                                        if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
+                                        else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
+                                    )
+                                    dialogInterface.dismiss()
+                                }
+                                .create()
+                            dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
+                            dialog.show()
+                        }
+                        Constants.NoRememberDualChoice.REMEMBER_YES.ordinal -> {
+                            navigateToChatroom()
+                        }
+                    }
+                }
+
+                if (viewModel.buttonSelectedChatroom != null) {
+                    if(activityViewModel.deepLinkExtras != null &&
+                        viewModel.buttonSelectedChatroom?.id ==
+                            activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
+                        joinChatroomWithDialog()
+                    } else {
+                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
+                            joinChatroomWithDialog,
+                            viewModel.buttonSelectedChatroom!!.id,
+                            fcmTopicErrorFallback,
+                            connectivityManager
+                        )
+                    }
                 } else {
                     joinChatroomAndUpdate()
                 }
@@ -144,13 +152,13 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
         if(activityViewModel.deepLinkExtras != null &&
                 viewModel.buttonSelectedChatroom?.id ==
-                    activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
+            activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
             startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
                 putExtras(activityViewModel.deepLinkExtras!!)
             })
 
-            finishAffinity(requireActivity())
             activityViewModel.setDeepLinkExtras(null)
+            finishAffinity(requireActivity())
         } else {
             navController.navigate(
                 ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(

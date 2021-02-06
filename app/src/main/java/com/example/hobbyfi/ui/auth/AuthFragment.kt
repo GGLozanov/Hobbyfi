@@ -31,9 +31,9 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
 
         val activity = (requireActivity() as AuthActivity)
         if(activity.restartedFromDeepLink) {
-            startActivityForResult(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
+            startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
                 putExtras(activity.intent)
-            }, Constants.deepLinkRequestCode)
+            })
 
             finishAffinity(activity)
             activity.setRestartedFromDeeplink(false)

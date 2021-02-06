@@ -83,10 +83,12 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
+
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
         )
         Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
+
 
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
         localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
@@ -172,11 +174,12 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                                 userChatroomFields = mapOf(
                                     Pair(
                                         Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                            viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID]
-                                                ?: listOf(it.userFields[Constants.CHATROOM_ID]))
+                                            viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
+                                                ?: listOf(it.userFields[Constants.CHATROOM_ID])
                                         )
                                     )
                                 )
+                                viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                                 viewModel.setJoinedChatroom(hasJoinedChatroom)
                             }
                             if (hasLeftChatroom) {
@@ -189,10 +192,9 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                                         )
                                     )
                                 )
+                                viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                                 viewModel.setLeftChatroom(hasLeftChatroom)
                             }
-
-                            viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                         } else {
                             viewModel.sendIntent(
                                 UserIntent.UpdateUserCache(it.userFields)

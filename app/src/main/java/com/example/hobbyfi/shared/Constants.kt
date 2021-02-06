@@ -316,6 +316,7 @@ object Constants {
     const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
+    const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
