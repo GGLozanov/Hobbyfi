@@ -242,15 +242,17 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                                     UserGeoPointIntent.UpdateUserGeoPoint(
                                         authUserGeoPoint?.username
                                             ?: activityViewModel.authUser.value!!.name,
-                                        authUserGeoPoint?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id)
+                                        (if(authUserGeoPoint?.chatroomIds?.contains(activityViewModel.authChatroom.value!!.id) == true) authUserGeoPoint.chatroomIds
+                                                    else authUserGeoPoint?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id))
                                             ?: listOf(activityViewModel.authChatroom.value!!.id),
-                                        authUserGeoPoint?.eventIds?.plus(viewModel.relatedEvent.id)
+                                        (if(authUserGeoPoint?.eventIds?.contains(viewModel.relatedEvent.id) == true) authUserGeoPoint.eventIds
+                                                    else authUserGeoPoint?.eventIds?.plus(viewModel.relatedEvent.id))
                                             ?: listOf(viewModel.relatedEvent.id),
                                         authUserGeoPoint?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
                                     )
                                 )
                             } else {
-                                navigateToEventMaps(activityViewModel.authUserGeoPoint!!.value!!) // user should NEVER not have event at this point here
+                                navigateToEventMaps(activityViewModel.authUserGeoPoint.value!!) // user should NEVER not have event at this point here
                             }
                         }
                     }
