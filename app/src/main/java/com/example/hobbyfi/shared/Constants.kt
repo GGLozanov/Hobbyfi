@@ -77,6 +77,7 @@ object Constants {
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
+    const val eventAlreadyConcluded: String = "Event has already concluded!"
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777

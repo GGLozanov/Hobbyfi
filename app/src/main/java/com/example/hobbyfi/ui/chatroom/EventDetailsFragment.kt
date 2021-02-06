@@ -230,7 +230,13 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                             authUserGeoPoint.eventIds.contains(viewModel.relatedEvent.id)
                     leftButton.isVisible = userInEvent
                     rightButton.setOnClickListener {
-                        lifecycleScope.launch {
+                        lifecycleScope.launch innerLaunch@ {
+                            if(calculateEventDayDifference()) {
+                                Toast.makeText(requireContext(), Constants.eventAlreadyConcluded, Toast.LENGTH_LONG)
+                                    .show()
+                                return@innerLaunch
+                            }
+
                             if(!userInEvent) {
                                 viewModel.sendIntent(
                                     UserGeoPointIntent.UpdateUserGeoPoint(
@@ -268,32 +274,36 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         }
     }
 
-    private fun calculateEventDayDifference() {
+    private fun calculateEventDayDifference(): Boolean {
         var diff = viewModel.relatedEvent.calculateDateDiff()
         if(diff.isNegative) {
             binding.eventViewButtonBar.leftButton.isVisible = false
             binding.eventViewButtonBar.rightButton.isVisible = false
             binding.daysLeftHeader.text = String.format(
                 Locale.ENGLISH, "Event has already concluded.")
-            return
+            return true
         }
 
         binding.daysLeftHeader.text = String.format(
             Locale.ENGLISH, "%d days and %d hours left", diff.toDays(), diff.toHours()
         )
+        return false
     }
 
     private fun observeEventUsers(users: LiveData<List<UserGeoPoint>>) {
         users.combineWith(activityViewModel.chatroomUsers) { geoPoints: List<UserGeoPoint>?, chatroomUsers: List<User>? ->
-                if(chatroomUsers == null || geoPoints == null) {
-                    Log.i("EventDetailsFragment", "usersSource by lazy: users -> $chatroomUsers; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
-                    return@combineWith emptyList<User>()
-                }
+            if(chatroomUsers == null || geoPoints == null) {
+                Log.i("EventDetailsFragment", "usersSource by lazy: users -> $chatroomUsers; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
+                return@combineWith emptyList<User>()
+            }
 
-                val geoPointUsernames = geoPoints.map { gp -> gp.username }
-                Log.i("EventDetailsFragment", "GeoPoints: ${geoPointUsernames}")
-                Log.i("EventDetailsFragment", "users: ${chatroomUsers}")
-                return@combineWith chatroomUsers.filter { user -> geoPointUsernames.contains(user.name) && user.name != activityViewModel.authUserGeoPoint.value?.username }
+            val geoPointUsernames = geoPoints.map { gp -> gp.username }
+            Log.i("EventDetailsFragment", "GeoPoints: ${geoPointUsernames}")
+            Log.i("EventDetailsFragment", "users: ${chatroomUsers}")
+            return@combineWith chatroomUsers.filter {
+                    user -> geoPointUsernames.contains(user.name) &&
+                        user.name != activityViewModel.authUserGeoPoint.value?.username
+            }
         }.observe(viewLifecycleOwner, Observer {
                 Log.i("EventDetailsFragment", "Users from users source: $it")
                 binding.noUsersText.isVisible = it.isEmpty()

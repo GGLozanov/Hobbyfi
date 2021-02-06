@@ -12,10 +12,7 @@ import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.repositories.EventRepository
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.forceObserve
-import com.example.hobbyfi.shared.isCritical
-import com.example.hobbyfi.shared.replaceOrAdd
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -31,6 +28,7 @@ class ChatroomActivityViewModel(
     chatroom: Chatroom?
 ) : AuthChatroomHolderViewModel(application, user, chatroom) {
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
+    private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
     private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
     val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
@@ -173,7 +171,7 @@ class ChatroomActivityViewModel(
 
         userRepository.getChatroomUsers(
             authChatroom.value!!.id,
-            authUser.value!!.id
+            prefConfig.getAuthUserIdFromToken()
         ).catch { e ->
             usersStateIntent.setState(
                 UserListState.Error(
