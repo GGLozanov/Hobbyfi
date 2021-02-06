@@ -30,7 +30,7 @@ import org.kodein.di.generic.instance
 import java.util.*
 
 
-// adapted from Google location update sample:
+// adapted from Google location update sample: https://github.com/android/location-samples/blob/main/LocationUpdatesForegroundService/app/src/main/java/com/google/android/gms/location/sample/locationupdatesforegroundservice/LocationUpdatesService.java
 class EventLocationUpdatesService : Service(), KodeinAware {
     override val kodein: Kodein by kodein(MainApplication.applicationContext)
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")

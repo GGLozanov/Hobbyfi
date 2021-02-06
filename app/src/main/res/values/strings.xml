@@ -141,7 +141,7 @@
 
     <string name="location_updated">Location Updated: %1$s</string>
     <string name="launch_activityG">Go back</string>
-    <string name="location_monitor_permission_explanation">We need to monitor your location while you\'re using the app in order to partake in the event effectively with others. We can take your app settings to enable those permissions or continue without them. You won\'t be tracked and won\'t directly participate alongisde the others but you can enable tracking with the buttons on the right. \n Go to settings screen?</string>
+    <string name="location_monitor_permission_explanation">We need to monitor your location while you\'re using the app in order to partake in the event effectively with others. We can take your app settings to enable those permissions or continue without them. You won\'t be tracked and won\'t directly participate alongisde the others but you can enable tracking with the buttons on the right. \nGo to settings screen?</string>
     <string name="choose_location_maps_CD">Confirm Location</string>
     <string name="reset_location_CD">Reset Location</string>
     <string name="go_to_event_CD">Go to Event</string>

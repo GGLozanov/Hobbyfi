@@ -21,6 +21,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 
 interface HobbyfiAPI {
@@ -291,6 +292,8 @@ interface HobbyfiAPI {
                 .newBuilder()
                 .addInterceptor(requestInterceptor)
                 .addInterceptor(loggingInterceptor)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(120, TimeUnit.SECONDS)
                 .build()
 
             return Retrofit.Builder()

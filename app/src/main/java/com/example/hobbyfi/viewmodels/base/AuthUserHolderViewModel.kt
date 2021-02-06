@@ -61,7 +61,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     }
 
     // user fetched - already saved from networkboundfetcher
-    open fun setUser(user: User) {
+    open fun setUser(user: User?) {
         _authUser.value = user
     }
 

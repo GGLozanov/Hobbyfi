@@ -21,10 +21,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.currentNavigationFragment
-import com.example.hobbyfi.shared.setupWithNavController
-import com.example.hobbyfi.shared.toReadable
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.NavigationActivity
@@ -40,7 +37,7 @@ import kotlinx.coroutines.flow.collect
 @ExperimentalCoroutinesApi
 class MainActivity : NavigationActivity(), OnAuthStateReset {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
-        AuthUserViewModelFactory(application, if (intent.extras != null) args.user else null)
+        AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
     })
     lateinit var binding: ActivityMainBinding
     private val args: MainActivityArgs by navArgs()
@@ -85,8 +82,11 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
 
-        Toast.makeText(this, "intent extras: ${intent.extras?.toReadable()}", Toast.LENGTH_LONG)
-            .show()
+        Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
+        viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
+            && viewModel.deepLinkExtras == null) intent.extras else null
+        )
+        Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
 
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
         localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
@@ -163,7 +163,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                     is UserState.OnData.UserUpdateResult -> {
                         // FIXME: This feels quite coupled as it exposes the knowledge of the fragment
                         //  ... but I can't think of any other alternative for now
-
                         val hasJoinedChatroom = it.userFields.containsKey(Constants.CHATROOM_ID)
                         val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
                         if (hasJoinedChatroom || hasLeftChatroom) {

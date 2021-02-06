@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -31,6 +32,12 @@ class MainActivityViewModel(
     
     private val _isUserProfileUpdateButtonEnabled: MutableLiveData<Boolean> = MutableLiveData(true)
     val isUserProfileUpdateButtonEnabled: LiveData<Boolean> get() = _isUserProfileUpdateButtonEnabled
+
+    private var _deepLinkExtras: Bundle? = null
+    val deepLinkExtras: Bundle? get() = _deepLinkExtras
+    fun setDeepLinkExtras(b: Bundle?) {
+        _deepLinkExtras = b
+    }
 
     fun resetState() {
         mainStateIntent.setState(UserState.Idle)

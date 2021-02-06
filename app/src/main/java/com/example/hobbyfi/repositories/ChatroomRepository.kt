@@ -28,6 +28,7 @@ import kotlinx.coroutines.withContext
 class ChatroomRepository @ExperimentalPagingApi constructor(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
 ) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+
     @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
     suspend fun getChatrooms(

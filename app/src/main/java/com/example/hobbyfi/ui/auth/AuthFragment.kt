@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.navigation.NavDirections
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -30,9 +31,9 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
 
         val activity = (requireActivity() as AuthActivity)
         if(activity.restartedFromDeepLink) {
-            startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
+            startActivityForResult(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
                 putExtras(activity.intent)
-            })
+            }, Constants.deepLinkRequestCode)
 
             finishAffinity(activity)
             activity.setRestartedFromDeeplink(false)

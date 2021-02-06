@@ -52,7 +52,7 @@ abstract class AuthChatroomHolderViewModel(
         chatroomStateIntent.sendIntent(i)
     }
 
-    override fun setUser(user: User) {
+    override fun setUser(user: User?) {
         super.setUser(user)
         _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
     }

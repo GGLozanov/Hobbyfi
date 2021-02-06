@@ -97,6 +97,7 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         Branch.enableLogging()
 
         // Branch object initialization
+        Branch.setPlayStoreReferrerCheckTimeout(0)
         Branch.getAutoInstance(this).enableFacebookAppLinkCheck()
     }
 

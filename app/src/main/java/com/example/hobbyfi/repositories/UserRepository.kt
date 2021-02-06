@@ -178,14 +178,14 @@ class UserRepository @ExperimentalPagingApi constructor(
     // need to map/filer individually in this method and not in queries
     // because filtering by json-encoded chatroom id list probably won't work
     @ExperimentalCoroutinesApi
-    suspend fun getChatroomUsers(chatroomId: Long):
+    suspend fun getChatroomUsers(chatroomId: Long, authId: Long):
             Flow<List<User>?> {
         Log.i("UserRepository", "getChatroomUsers -> getting current chatroom users")
         return object : NetworkBoundFetcher<List<User>, CacheListResponse<User>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<User>) {
                 hobbyfiDatabase.withTransaction {
                     with(hobbyfiDatabase.userDao()) {
-                        getUsersImmediateExceptId(prefConfig.getAuthUserIdFromToken())?.filter {
+                        getUsersImmediateExceptId(authId)?.filter {
                             it.chatroomIds?.contains(chatroomId) == true
                         }.let {
                             if(it != null) {

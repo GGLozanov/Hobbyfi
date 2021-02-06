@@ -28,11 +28,6 @@ class AuthActivity : NavigationActivity() {
         Log.i("AuthActivity", "intent extras: ${intent.extras?.toReadable()}")
         _restartedFromDeepLink = savedInstanceState?.getBoolean(Constants.deepLinkCall)
             ?: intent.extras?.get("al_applink_data") != null
-        if(restartedFromDeepLink) {
-            // prefConfig.writeLastEnteredChatroomId()
-        }
-        Toast.makeText(this, "branch ref first: ${Branch.getInstance().latestReferringParams}", Toast.LENGTH_LONG)
-            .show()
 
         binding = ActivityAuthBinding.inflate(layoutInflater)
         with(binding) {

@@ -13,6 +13,7 @@ import com.example.hobbyfi.models.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.forceObserve
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.*
@@ -170,7 +171,8 @@ class ChatroomActivityViewModel(
         usersStateIntent.setState(UserListState.Loading)
 
         userRepository.getChatroomUsers(
-            authChatroom.value!!.id
+            authChatroom.value!!.id,
+            authUser.value!!.id
         ).catch { e ->
             usersStateIntent.setState(
                 UserListState.Error(
@@ -281,5 +283,9 @@ class ChatroomActivityViewModel(
 
     fun setConsumedEventDeepLink(consumed: Boolean) {
         _consumedEventDeepLink = consumed
+    }
+
+    fun forceIsAuthUserOwnerObservation() {
+        isAuthUserChatroomOwner.forceObserve()
     }
 }

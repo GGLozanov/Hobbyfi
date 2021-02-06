@@ -1,29 +1,25 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
-import android.location.Location
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.forceObserve
 import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.EventListState
-import com.example.hobbyfi.state.UserGeoPointState
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
-import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.lang.Exception
 
 @ExperimentalCoroutinesApi
 class EventMapsActivityViewModel(
@@ -109,7 +105,7 @@ class EventMapsActivityViewModel(
 
     // little bruh hack; w/e
     fun forceEventObservation() {
-        _event.value = _event.value
+        _event.forceObserve()
     }
 
     init {

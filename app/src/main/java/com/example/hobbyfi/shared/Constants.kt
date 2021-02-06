@@ -86,6 +86,7 @@ object Constants {
 
     const val eventLocationRequestCode: Int = 999
     const val eventMapsRequestCode: Int = 666
+    const val deepLinkRequestCode: Int = 423
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -314,6 +315,7 @@ object Constants {
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
     const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
+    const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

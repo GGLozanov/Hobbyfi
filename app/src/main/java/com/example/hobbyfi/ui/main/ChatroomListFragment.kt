@@ -4,6 +4,8 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
@@ -15,6 +17,7 @@ import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.state.ChatroomListState
+import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -139,13 +142,24 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
     override fun navigateToChatroom() {
         // only called while user is currently joining a chatroom
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
-        navController.navigate(
-            ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
-                activityViewModel.authUser.value,
-                viewModel.buttonSelectedChatroom,
+        if(activityViewModel.deepLinkExtras != null &&
+                viewModel.buttonSelectedChatroom?.id ==
+                    activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
+            startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
+                putExtras(activityViewModel.deepLinkExtras!!)
+            })
+
+            finishAffinity(requireActivity())
+            activityViewModel.setDeepLinkExtras(null)
+        } else {
+            navController.navigate(
+                ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
+                    activityViewModel.authUser.value,
+                    viewModel.buttonSelectedChatroom,
+                )
             )
-        )
-        viewModel.setButtonSelectedChatroom(null)
+            viewModel.setButtonSelectedChatroom(null)
+        }
     }
 
     override fun navigateToChatroomCreate() {

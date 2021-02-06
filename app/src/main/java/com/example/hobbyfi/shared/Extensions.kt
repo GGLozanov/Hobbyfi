@@ -17,6 +17,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.GridView
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
@@ -46,7 +47,6 @@ import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
 import java.lang.reflect.Field
-
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -257,6 +257,12 @@ fun Marker.animateMarker(newLatLng: LatLng) {
     } // lerp the anim
     latLngAnimator.start()
 }
+
+fun <T> MutableLiveData<T>.forceObserve() {
+    this.value = this.value
+}
+
+fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
 fun <T> Context.isServiceForegrounded(service: Class<T>) =
