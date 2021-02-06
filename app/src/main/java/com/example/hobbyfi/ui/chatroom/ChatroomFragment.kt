@@ -10,7 +10,7 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-abstract class ChatroomFragment : BaseFragment(), TextFieldInputValidationOnus {
+abstract class ChatroomFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)

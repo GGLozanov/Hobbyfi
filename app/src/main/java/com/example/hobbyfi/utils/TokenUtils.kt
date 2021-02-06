@@ -18,8 +18,8 @@ import java.util.*
 
 
 object TokenUtils {
-    object InvalidStoredTokenException : Exception(Constants.unauthorisedAccessError
-            + " " + Constants.reauthError)
+    object InvalidStoredTokenException : Exception(Constants.unauthorisedAccessError + " "
+            + Constants.reauthError)
 
     /**
      * Decodes a given JWT and returns the value of the 'userId' field in the payload

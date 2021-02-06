@@ -5,9 +5,8 @@ import android.util.Log
 import kotlin.random.Random
 
 object ColourUtils {
-    fun getRandomHex(): String {
-        return String.format("#{0:X6}", Random.nextInt(0x1000000))
-    }
+    fun getRandomHex(): String =
+        String.format("#%06x", Random.nextInt(0x1000000))
 
     fun getColourOrGreen(colourHex: String?): Int {
         if(colourHex == null) {

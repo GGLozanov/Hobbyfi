@@ -1,6 +1,8 @@
 package com.example.hobbyfi.shared
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import androidx.fragment.app.Fragment
 import android.content.Context
 import android.content.DialogInterface
 import android.util.Log
@@ -13,6 +15,9 @@ import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.util.Predicate
 import androidx.databinding.BindingAdapter
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.commit
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
@@ -24,6 +29,7 @@ import com.facebook.Profile
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import java.text.SimpleDateFormat
 
 
 object Constants {
@@ -39,20 +45,39 @@ object Constants {
     const val invalidEventInfoError: String = "Please enter information date and set its location!"
     const val reauthError: String = "Logging out! Your session may have expired!"
     const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
+    const val invalidDataError: String = "Invalid data format!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
     const val invalidCredentialsError: String = "Invalid credentials!"
     const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
     const val invalidTokenError: String = "Invalid access! Please login again!"
-    const val unauthorisedAccessError: String = "Unauthorised access!"
+    const val unauthorisedAccessError: String = "Unauthorised access! Please login again!"
     const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
     const val missingDataError: String = "Missing/invalid data entered!"
     const val cacheDeletionError: String = "Couldn't clear old (cached) data!"
     const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
     const val resourceNotFoundError: String = "Requested resource not found!"
-    const val fcmTopicError: String = "Couldn't perform operation! Please check your connection or consult with Google, as this error is not ours!"
-    const val invalidViewType: String = "Invalid view type for ViewHolder!"
-    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! ${message}"
+    const val fcmTopicError: String = "Couldn't access realtime messaging services! Please check your connection or consult with Google, as this error is not ours!"
+    const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
+    const val invalidStateError: String = "Invalid state to call this method in!"
+    const val firestoreDeletionError: String = "Couldn't delete remote source records needed to have been deleted!"
+    const val firestoreUpdateError: String = "Couldn't update remote source records that needed to have been updated!"
+    const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
+    const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
+    const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
+    const val showShareDialogFail: String = "Couldn't reroute to Facebook share screen! Please try again!"
+    const val shareDeepLinkCancel: String = "Event share attempt cancelled!"
+    const val shareDeepLinkSuccess: String = "Successfuly shared event to Facebook!"
+    const val shareDeepLinkFail: String = "Couldn't share event to Facebook! Something must have gone wrong on their end!"
+    const val deepLinkGenFail: String = "Couldn't generate an appropriate share format for this event! Please contact a developer!"
+    const val eventDeleted: String = "Event you were tracking was suddenly deleted!"
+    const val invalidAccessError: String = "In order to access this content, you'll need to log in, or sign up and join the chatroom first."
+    const val eventAlreadyDeleted: String = "Linked event seems to already have been deleted by the chatroom owner!"
+    const val notJoinedChatroomError: String = "Can't participate in an event whose chatroom you haven't joined!"
+    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
+
+    const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
+    const val eventAlreadyConcluded: String = "Event has already concluded!"
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777
@@ -61,6 +86,8 @@ object Constants {
     const val locationPermissionsRequestCode: Int = 888
 
     const val eventLocationRequestCode: Int = 999
+    const val eventMapsRequestCode: Int = 666
+    const val deepLinkRequestCode: Int = 423
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -124,7 +151,8 @@ object Constants {
     // should be in prefconfig but... eh
     fun isFacebookUserAuthd(): Boolean {
         if(AccessToken.getCurrentAccessToken() != null) {
-            if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile().id != null) {
+            if(!AccessToken.getCurrentAccessToken().isExpired && Profile.getCurrentProfile() != null
+                    && Profile.getCurrentProfile().id != null) {
                 return true
             } // facebook user access true
 
@@ -197,31 +225,25 @@ object Constants {
 
     const val noUpdateFields: String = "No fields to update!"
 
+    const val takeMeThere: String = "Get me in the room!"
+    const val noPlease: String = "Nah, let me browse."
+
+    const val locationReset: String = "Location successfuly reset!"
+
     const val userProfileImageDir = "user_pfps"
     fun chatroomProfileImageDir(chatroomId: Long): String {
         return "chatroom_imgs_$chatroomId"
     }
     fun chatroomMessagesProfileImageDir(chatroomId: Long) = chatroomProfileImageDir(chatroomId) + "/messages"
-    
+    fun eventProfileImageDir(eventId: Long): String {
+        return "events_imgs_$eventId"
+    }
+
     const val chatroomTopicPrefix = "chatroom_"
     fun chatroomTopic(chatroomId: Long): String {
         return chatroomTopicPrefix + chatroomId
     }
 
-    fun buildDeleteAlertDialog(
-        context: Context,
-        dialogMessage: String,
-        onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener
-    ) {
-        val dialog = AlertDialog.Builder(context)
-            .setMessage(dialogMessage)
-            .setPositiveButton(context.getString(R.string.yes), onConfirm)
-            .setNegativeButton(context.getString(R.string.no), onCancel)
-            .create()
-
-        dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
-        dialog.show()
-    }
 
     // dupped from API and whenever that changes, this needs to as well, but...
     // how else? Getting it from the server each time?
@@ -236,6 +258,7 @@ object Constants {
     const val CREATE_EVENT_TYPE: String = "CREATE_EVENT"
     const val EDIT_EVENT_TYPE: String = "EDIT_EVENT"
     const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
+    const val DELETE_EVENT_BATCH_TYPE: String = "DELETE_EVENT_BATCH"
 
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
     const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
@@ -275,4 +298,31 @@ object Constants {
     const val EVENT_LOCATION = "EVENT_LOCATION"
     const val EVENT_TITLE: String = "EVENT_TITLE"
     const val EVENT_DESCRIPTION = "EVENT_DESCRIPTION"
+
+    const val EVENT_ID = "event_id"
+    const val EVENT_IDS: String = "event_ids"
+    const val CHATROOM_IDS: String = "chatroom_ids"
+    const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"
+
+    const val LAST_CONNECTIVITY: String = "LAST_CONNECTIVITY"
+
+    const val EVENT_SELECTION: String = "EVENT_SELECTION"
+    const val EVENT: String = "EVENT"
+    const val CALENDAR_DAY: String = "CALENDAR_DAY"
+
+    const val UPDATED_LOCATION: String = "UPDATED_LOCATION"
+    const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
+    const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
+    const val USER_GEO_POINT: String = "USER_GEO_POINT"
+    const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
+    const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
+    const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
+    const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
+
+    @SuppressLint("SimpleDateFormat")
+    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+    enum class NoRememberDualChoice {
+        REMEMBER_YES, REMEMBER_NO, NO_REMEMBER
+    }
 }

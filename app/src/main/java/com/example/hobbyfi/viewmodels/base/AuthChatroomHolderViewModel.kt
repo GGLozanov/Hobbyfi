@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -21,8 +22,11 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthChatroomHolderViewModel(application: Application, user: User?, chatroom: Chatroom?)
-    : AuthUserHolderViewModel(application, user) {
+abstract class AuthChatroomHolderViewModel(
+    application: Application,
+    user: User?,
+    chatroom: Chatroom?
+) : AuthUserHolderViewModel(application, user) {
 
     protected var _authChatroom: MutableLiveData<Chatroom?> = MutableLiveData(chatroom)
     val authChatroom: LiveData<Chatroom?> get() = _authChatroom
@@ -48,7 +52,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
         chatroomStateIntent.sendIntent(i)
     }
 
-    override fun setUser(user: User) {
+    override fun setUser(user: User?) {
         super.setUser(user)
         _isAuthUserChatroomOwner.value = isAuthUserAuthChatroomOwner()
     }
@@ -65,9 +69,12 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                         deleteChatroom()
                     }
                     is ChatroomIntent.UpdateChatroom -> {
-                        updateChatroom(it.chatroomUpdateFields)
+                        viewModelScope.launch { // handling potential image upload heaviness from request
+                            updateChatroom(it.chatroomUpdateFields)
+                        }
                     }
                     is ChatroomIntent.DeleteChatroomCache -> {
+                        Log.i("AuthChatromHVM", "Deleting chatroom auth chatroom cache intent sent!")
                         deleteChatroomCache(true)
                     }
                     is ChatroomIntent.UpdateChatroomCache -> {
@@ -80,15 +87,13 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
     }
 
     private suspend fun fetchChatroom() {
-        // TODO: If this doesn't work or seems too coupled, make a separate fetch chatroom method and add it to ChatroomState/ChatroomIntent
         chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomRepository.getChatroom().catch { e ->
-            e.printStackTrace()
             chatroomStateIntent.setState(
                 ChatroomState.Error(
-                    Constants.reauthError,
-                    shouldExit = (e as Exception).isCritical
+                    e.message,
+                    shouldExit = e.isCritical
                 )
             )
         }.collect {
@@ -104,7 +109,7 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
 
         chatroomStateIntent.setState(try {
             val response = ChatroomState.OnData.ChatroomDeleteResult(
-                chatroomRepository.deleteChatroom()
+                chatroomRepository.deleteChatroom(_authChatroom.value!!.id)
             )
 
             deleteChatroomCache()
@@ -123,7 +128,8 @@ abstract class AuthChatroomHolderViewModel(application: Application, user: User?
                 userRepository.deleteUsersCache(_authUser.value!!.id)
 
         updateAndSaveUser(mapOf(
-            Pair(Constants.CHATROOM_ID, "0")
+            Pair(Constants.CHATROOM_IDS,
+                Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
         )) // nullify chatroom for cache user after deletion
 
         if(setState) {

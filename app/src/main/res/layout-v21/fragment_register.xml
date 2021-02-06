@@ -55,7 +55,7 @@
                 android:layout_width="175dp"
                 android:layout_height="135dp"
                 android:layout_marginTop="8dp"
-                android:src="@drawable/default_pic"
+                android:src="@drawable/user_default_pic"
                 app:civ_border_color="@color/colorSecondary"
                 app:civ_border_width="3dp"
                 app:layout_constraintBottom_toTopOf="@id/email_input_field"

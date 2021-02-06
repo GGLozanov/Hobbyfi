@@ -1,56 +1,31 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Base64Image
 import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
-import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
-import java.util.*
 
 @ExperimentalCoroutinesApi
 class EventCreateFragmentViewModel(
     application: Application
-) : StateIntentViewModel<EventState, EventIntent>(application), NameDescriptionBindable by NameDescriptionBindableViewModel() {
-
-    interface OnEventCoordinatesReceived {
-        fun onEventCoordinatesReceived(latLng: LatLng)
-    }
-
-    private val eventRepository: EventRepository by instance(tag = "eventRepository")
-
-    override val mainStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
-        override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
-    }
-
-    private var eventDate: Date? = null
-    var eventLatLng: LatLng? = null
-    
-    fun setEventDate(date: Date?) {
-        eventDate = date
-    }
-
-    val base64Image: Base64Image = Base64Image()
-
+) : EventAccessorViewModel(application), Base64ImageHolder by Base64ImageHolderViewModel() {
     override fun handleIntent() {
         viewModelScope.launch {
-            mainStateIntent.intentAsFlow().collect {
+            mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.CreateEvent -> {
-                        createEvent()
+                        viewModelScope.launch { // again, potential img upload, blah blah
+                            createEvent(it.chatroomId)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -58,10 +33,10 @@ class EventCreateFragmentViewModel(
         }
     }
 
-    private suspend fun createEvent() {
+    private suspend fun createEvent(chatroomId: Long) {
         mainStateIntent.setState(EventState.Loading)
 
-        if(eventDate == null || eventLatLng == null) {
+        if(_eventDate == null || eventLatLng == null) {
             mainStateIntent.setState(EventState.Error(
                 Constants.invalidEventInfoError
             ))
@@ -69,21 +44,39 @@ class EventCreateFragmentViewModel(
         }
 
         mainStateIntent.setState(try {
-            val state = EventState.OnData.EventCreateResult(eventRepository.createEvent(
+            val parsedEventDate = Constants.dateTimeFormatter.format(_eventDate!!)
+            val response = eventRepository.createEvent(
                 name.value!!,
-                description.value!!,
-                eventDate.toString(),
+                description.value,
+                parsedEventDate,
                 base64Image.base64,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude
-            ))
+            )
 
-            state
+            val event = Event(
+                response!!.id,
+                name.value!!,
+                description.value,
+                response.startDate,
+                parsedEventDate,
+                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(response.id)
+                        + "/" + response.id + ".jpg" else null,
+                eventLatLng!!.latitude,
+                eventLatLng!!.longitude,
+                chatroomId
+            )
+
+            EventState.OnData.EventCreateResult(event)
         } catch(ex: Exception) {
             EventState.Error(
                 ex.message,
                 ex.isCritical
             )
         })
+    }
+
+    init {
+        handleIntent()
     }
 }

@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -21,34 +22,38 @@ import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
+import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.squareup.okhttp.Dispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import org.kodein.di.generic.instance
 
 
 @ExperimentalCoroutinesApi
-class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
+class LoginFragment : AuthFragment() {
 
     companion object {
         val tag: String = "LoginFragment"
-        fun newInstance() = LoginFragment()
     }
 
     private val viewModel: LoginFragmentViewModel by viewModels()
     private lateinit var binding: FragmentLoginBinding
 
-    private val callbackManager: CallbackManager = CallbackManager.Factory.create()
+    private val callbackManager: CallbackManager by instance(tag = "callbackManager")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,13 +62,11 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
-        initTextFieldValidators()
-
         binding.viewModel = viewModel
         with(binding) {
             lifecycleOwner = this@LoginFragment
 
-            val view: View = root
+            val root: View = root
 
             loginButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
@@ -75,7 +78,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 }
             }
 
-            return@onCreateView view
+            return@onCreateView root
         }
     }
 
@@ -107,12 +110,25 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            emailInputField.removeAllEditTextWatchers()
+            passwordInputField.removeAllEditTextWatchers()
+        }
+    }
+
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(
                 emailInputField,
-                Constants.emailInputError) ||
-                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
+                Constants.emailInputError
+            ) || FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
         }
     }
 
@@ -123,7 +139,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
             registerCallback(callbackManager, object : FacebookCallback<LoginResult?> {
                 private fun validateProfileExistence() {
                     lifecycleScope.launch {
-                        Log.i("ID", Profile.getCurrentProfile().id)
                         viewModel.sendFacebookIntent(
                             FacebookIntent.ValidateFacebookUserExistence(
                                 Profile.getCurrentProfile().id.toLong()
@@ -204,14 +219,17 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
                             .show()
 
-                        if (it.error != Constants.noConnectionError) {
-                            // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
-                            val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
-                                viewModel.tagBundle.selectedTags.toTypedArray(),
-                                viewModel.tagBundle.tags
-                                    .toTypedArray()
-                            )
-                            navController.navigate(action)
+                        LoginManager.getInstance().logOut()
+                        if((requireActivity() as BaseActivity).refreshConnectivityMonitor.value == true) {
+                            if (it.error != Constants.serverConnectionError) {
+                                // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
+                                val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
+                                    viewModel.tagBundle.selectedTags.toTypedArray(),
+                                    viewModel.tagBundle.tags
+                                        .toTypedArray()
+                                )
+                                navController.navigate(action)
+                            }
                         }
                     }
                 }
@@ -231,13 +249,13 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.Error -> {
                         // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
+                        LoginManager.getInstance().logOut()
                         when (it.error) {
                             Constants.missingDataError -> {
                                 Log.wtf(
                                     LoginFragment.tag,
                                     "Should never reach here if everything is ok, wtf"
                                 )
-                                throw RuntimeException()
                             }
                             else -> {
                                 Toast.makeText(context, it.error, Toast.LENGTH_LONG)
@@ -247,6 +265,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.TokenReceived -> {
                         Log.i("LoginFragment", "${navController.currentBackStackEntry}")
+                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
                         login(
                             LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                 null
@@ -254,6 +273,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                             it.token?.jwt,
                             it.token?.refreshJwt,
                         )
+                        viewModel.resetTokenState()
                     }
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
@@ -288,7 +308,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     val glide = Glide.with(this@LoginFragment)
 
                     var bmapResource: Bitmap? = null
-
                     val target = object : CustomTarget<Bitmap>() {
                         override fun onResourceReady(
                             resource: Bitmap,

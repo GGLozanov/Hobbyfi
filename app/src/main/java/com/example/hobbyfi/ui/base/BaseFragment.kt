@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.shared.Callbacks
@@ -25,10 +26,11 @@ abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.Permissio
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
         // no need for weakreference this time because PrefConfig will use appContext!
     protected lateinit var navController: NavController
+    protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
+    protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        super.onActivityCreated(savedInstanceState)
         navController = findNavController()
     }
 
@@ -50,5 +52,14 @@ abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.Permissio
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         // TODO: show toast that says user won't have access until they grant perm. . .
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        (requireActivity() as BaseActivity).refreshConnectivityMonitor.value?.let {
+            outState.putBoolean(Constants.LAST_CONNECTIVITY,
+                it
+            )
+        }
     }
 }

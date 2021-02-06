@@ -4,10 +4,6 @@
 
     <data>
         <import type="android.view.Gravity" />
-
-        <variable
-            name="message"
-            type="com.example.hobbyfi.models.Message" />
     </data>
 
     <LinearLayout
@@ -17,7 +13,6 @@
         <include
             android:id="@+id/message_card_send"
             layout="@layout/message_card"
-            app:gravity="@{Gravity.RIGHT}"
-            app:message="@{message}" />
+            app:gravity="@{Gravity.RIGHT}" />
     </LinearLayout>
 </layout>

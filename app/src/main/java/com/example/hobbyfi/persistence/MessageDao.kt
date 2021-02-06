@@ -10,8 +10,17 @@ abstract class MessageDao : BaseDao<Message>() {
     @Query("SELECT * FROM messages ORDER BY createTime DESC")
     abstract fun getMessages(): PagingSource<Int, Message>
 
+    @Query("SELECT id FROM messages WHERE chatroomSentId = :chatroomSentId")
+    abstract fun getMessagesIdsByChatroomId(chatroomSentId: Long): List<Long>
+
+    @Query("SELECT * FROM messages WHERE chatroomSentId = :chatroomSentId ORDER BY createTime DESC")
+    abstract fun getMessagesByChatroomId(chatroomSentId: Long): PagingSource<Int, Message>
+
     @Query("DELETE FROM messages")
     abstract fun deleteMessages(): Int
+
+    @Query("DELETE FROM messages WHERE chatroomSentId = :chatroomSentId")
+    abstract fun deleteMessagesByChatroomId(chatroomSentId: Long): Int
 
     @Query("DELETE FROM messages WHERE id = :id")
     abstract fun deleteMessageById(id: Long): Int

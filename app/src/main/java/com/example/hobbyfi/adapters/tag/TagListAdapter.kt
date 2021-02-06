@@ -1,100 +1,67 @@
 package com.example.hobbyfi.adapters.tag
 
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.util.Log
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.cardview.widget.CardView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
+import android.widget.ArrayAdapter
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.base.BaseViewHolder
-import com.example.hobbyfi.databinding.TagCardBinding
+import com.example.hobbyfi.databinding.ChatroomTagCardBinding
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.utils.ColourUtils
+
 
 class TagListAdapter(
-    private var tags: MutableList<Tag>,
-    private var selectedTags: MutableList<Tag>
-) : RecyclerView.Adapter<TagListAdapter.TagViewHolder>() {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TagViewHolder {
-        return TagViewHolder.getInstance(parent)
+    private var chatroomTags: List<Tag>, 
+    context: Context, resource: Int
+) : ArrayAdapter<Tag>(context, resource) {
+    override fun getCount(): Int {
+        return chatroomTags.size
     }
 
-    override fun onBindViewHolder(holder: TagViewHolder, position: Int) {
-        val tag = tags[position]
-        holder.bind(tag, position)
+    override fun getItemId(position: Int): Long {
+        return chatroomTags[position].id
+    }
 
-        Log.i("SelectedTags", selectedTags.toString())
-        Log.i("Tags", tags.toString())
+    override fun getItem(position: Int): Tag? {
+        return if (chatroomTags.isNotEmpty() && position < chatroomTags.size)
+            return chatroomTags[position]
+        else null
+    }
 
-        var color: Int
-        color = try {
-            Color.parseColor(tag.colour)
-        } catch(ex: IllegalArgumentException) {
-            Log.w("TagListAdapter" , "Invalid color for tag! Reverting to default colour")
-            Color.GREEN // default colour, idk
-        }
+    private class ChatroomTagHolder(var chatroomCardBinding: ChatroomTagCardBinding? = null)
 
-        val wasSelected = selectedTags.contains(tag)
-        with(holder.binding) {
-            tagCard.setCardBackgroundColor(
-                if(wasSelected) color
-                else ContextCompat.getColor(root.context, R.color.colorGrey)
+    /**
+     * Credit to @sergi from https://stackoverflow.com/questions/33943717/android-data-binding-with-custom-adapter
+     * for the implementation of data-binding within this method using convertView's tag to assign data binding instance
+     */
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val chatroomTagHolder: ChatroomTagHolder
+        var tagCard = convertView
+        val tag: Tag? = getItem(position)
+        if (tagCard == null) {
+            chatroomTagHolder = ChatroomTagHolder(
+                DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.chatroom_tag_card, parent, false)
             )
 
-            tagCard.setOnClickListener {
-                val isSelected = !selectedTags.contains(tag)
-
-                if(isSelected) {
-                    selectedTags.add(tag)
-                    tagCard.setCardBackgroundColor(
-                        color
-                    )
-                } else {
-                    selectedTags.remove(tag)
-                    tagCard.setCardBackgroundColor(
-                        ContextCompat.getColor(root.context, R.color.colorGrey)
-                    )
-                }
-                Log.i("TagListAdapter", "Tags: ${selectedTags}")
-            }
+            tagCard = chatroomTagHolder.chatroomCardBinding!!.root
+            tagCard.tag = chatroomTagHolder
+        } else {
+            chatroomTagHolder = tagCard.tag as ChatroomTagHolder
         }
+
+        chatroomTagHolder.chatroomCardBinding!!.tagName.setBackgroundColor(
+           ColourUtils.getColourOrGreen(tag?.colour)
+        )
+        chatroomTagHolder.chatroomCardBinding!!.tag = tag
+
+        return tagCard  // should be init'ed in any valid case
     }
 
-    class TagViewHolder(val binding: TagCardBinding) : BaseViewHolder<Tag>(binding.root) {
-        companion object {
-            //get instance of the ViewHolder
-            fun getInstance(parent: ViewGroup): TagViewHolder {
-                val tagCardBinding: TagCardBinding = DataBindingUtil.inflate(
-                    LayoutInflater.from(parent.context),
-                    R.layout.tag_card,
-                    parent, false)
-                return TagViewHolder(tagCardBinding)
-            }
-        }
 
-
-        override fun bind(tag: Tag?, position: Int) {
-            binding.tag = tag
-        }
-    }
-
-    fun setTags(tags: MutableList<Tag>) {
-        this.tags = tags
+    fun setTags(chatroomTags: List<Tag>) {
+        this.chatroomTags = chatroomTags
         notifyDataSetChanged()
     }
-
-    fun addTag(tag: Tag) {
-        this.tags.add(tag)
-        notifyDataSetChanged()
-    }
-
-    override fun getItemCount(): Int = tags.size
-
-    fun getSelectedTags(): MutableList<Tag> = selectedTags
 }

@@ -7,6 +7,8 @@ import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Base64Image
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.viewmodels.base.Base64ImageHolder
+import com.example.hobbyfi.viewmodels.base.Base64ImageHolderViewModel
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,7 +19,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 class RegisterFragmentViewModel(application: Application) : AuthFragmentViewModel(application),
-    NameDescriptionBindable by NameDescriptionBindableViewModel() {
+    NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
 
     init {
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
@@ -27,14 +29,16 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
         viewModelScope.launch {
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
-                    is TokenIntent.FetchRegisterToken -> fetchRegisterToken()
+                    is TokenIntent.FetchRegisterToken -> {
+                        viewModelScope.launch { // another coroutine in case of img upload not to slow down UI
+                            fetchRegisterToken()
+                        }
+                    }
                     else -> throw Intent.InvalidIntentException()
                 }
             }
         }
     }
-
-    var base64Image: Base64Image = Base64Image()
 
     private suspend fun fetchRegisterToken() {
         Log.i("RegisterFragmentVM", "fetchRegisterToken called")

@@ -13,8 +13,11 @@ import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
+import com.example.hobbyfi.utils.TokenUtils
+import com.google.firebase.FirebaseException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 // fetches both auth users & chatroom users
@@ -47,8 +50,16 @@ class UserRepository @ExperimentalPagingApi constructor(
                 } catch(ex: Exception) {
                     try {
                         Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+                    } catch(tokenEx: TokenUtils.InvalidStoredTokenException) {
+                        Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
+                        flowOf(null)
                     } catch(authEx: AuthorisedRequestException) {
-                        getNewTokenWithRefresh()
+                        try {
+                            getNewTokenWithRefresh()
+                        } catch(ex: Exception) {
+                            Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned nothing")
+                        }
+
                         loadFromDb()
                     }
                 }
@@ -70,26 +81,53 @@ class UserRepository @ExperimentalPagingApi constructor(
         }.asFlow()
     }
 
-    suspend fun editUser(userFields: Map<String?, String?>): Response? {
+    suspend fun editUser(userFields: Map<String?, String?>, originalUsername: String): Response? {
         Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
+            // renaming/resetting geopoint records
+            if(userFields.containsKey(Constants.USERNAME)) {
+                val username = userFields[Constants.USERNAME]
+                    ?: error("Username in editUser UserRepository call must not be null after check for contains()!")
+                firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
+                    .get().addOnSuccessListener {
+                        if(it != null && it.exists() && it.data != null
+                                && it.data!!.isNotEmpty()) {
+                            firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
+                                .set(it.data!!).addOnSuccessListener {
+                                    firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
+                                        .delete()
+                                }.addOnFailureListener {
+                                    throw FirebaseException(Constants.firestoreUpdateError)
+                                }
+                        } else {
+                            Log.w("UserRepository", "Found   but couldn't ")
+                        }
+                    }.addOnFailureListener {
+                        throw FirebaseException(Constants.firestoreDeletionError)
+                    }
+            }
+
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
                 userFields
             )
         }, {
-            editUser(userFields) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
+            editUser(userFields, originalUsername) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
         })
     }
 
-    suspend fun deleteUser(): Response? {
+    suspend fun deleteUser(username: String): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return performAuthorisedRequest({
-            hobbyfiAPI.deleteUser(
+            val response = hobbyfiAPI.deleteUser(
                 prefConfig.getAuthUserToken()!!
             )
+
+            firestore.collection(Constants.LOCATIONS_COLLECTION)
+                .document(username).delete()
+            response
         }, {
-            deleteUser()
+            deleteUser(username)
         })
     }
 
@@ -137,18 +175,31 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    // return livedata of pagedlist for users
-    suspend fun getChatroomUsers(chatroomId: Long):
+    // need to map/filer individually in this method and not in queries
+    // because filtering by json-encoded chatroom id list probably won't work
+    @ExperimentalCoroutinesApi
+    suspend fun getChatroomUsers(chatroomId: Long, authId: Long):
             Flow<List<User>?> {
         Log.i("UserRepository", "getChatroomUsers -> getting current chatroom users")
         return object : NetworkBoundFetcher<List<User>, CacheListResponse<User>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<User>) {
                 hobbyfiDatabase.withTransaction {
-                    hobbyfiDatabase.userDao().deleteUsersByChatroomIdAndExceptId(
-                        chatroomId,
-                        prefConfig.getAuthUserIdFromToken()
-                    )
-                    saveUsers(response.modelList)
+                    with(hobbyfiDatabase.userDao()) {
+                        getUsersImmediateExceptId(authId)?.filter {
+                            it.chatroomIds?.contains(chatroomId) == true
+                        }.let {
+                            if(it != null) {
+                                delete(
+                                    it,
+                                )
+                            } else {
+                                Log.w("UserRepository", "getChatroomUsers -> Filtered users from DB in saveNetworkResult call are null! " +
+                                        "Not deleting any users initially from chatroom!")
+                            }
+
+                            saveUsers(response.modelList)
+                        }
+                    }
                 }
             }
 
@@ -160,12 +211,15 @@ class UserRepository @ExperimentalPagingApi constructor(
                 return adheresToDefaultCachePolicy(cache, R.string.pref_last_chatroom_users_fetch_time)
             }
 
-            override suspend fun loadFromDb(): Flow<List<User>?> = hobbyfiDatabase.userDao().getUsersByChatroomId(chatroomId)
+            override suspend fun loadFromDb(): Flow<List<User>?> =
+                hobbyfiDatabase.userDao().getUsers().mapLatest {
+                    it?.filter { user -> user.chatroomIds?.contains(chatroomId) == true } }
 
             override suspend fun fetchFromNetwork(): CacheListResponse<User>? = performAuthorisedRequest(
                 {
                     val response = hobbyfiAPI.fetchUsers(
                         prefConfig.getAuthUserToken()!!,
+                        chatroomId
                     )
                     Log.i("UserRepository", "getUserS -> ${response?.modelList}")
                     response

@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,13 +20,24 @@ import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-class MainActivityViewModel(application: Application, user: User?)
-    : AuthUserHolderViewModel(application, user) {
+class MainActivityViewModel(
+    application: Application,
+    user: User?
+) : AuthUserHolderViewModel(application, user) {
     private val _joinedChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val joinedChatroom: LiveData<Boolean> get() = _joinedChatroom
     private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val leftChatroom: LiveData<Boolean> get() = _leftChatroom
     private var latestUserUpdateFields: Map<String?, String?>? = null
+    
+    private val _isUserProfileUpdateButtonEnabled: MutableLiveData<Boolean> = MutableLiveData(true)
+    val isUserProfileUpdateButtonEnabled: LiveData<Boolean> get() = _isUserProfileUpdateButtonEnabled
+
+    private var _deepLinkExtras: Bundle? = null
+    val deepLinkExtras: Bundle? get() = _deepLinkExtras
+    fun setDeepLinkExtras(b: Bundle?) {
+        _deepLinkExtras = b
+    }
 
     fun resetState() {
         mainStateIntent.setState(UserState.Idle)
@@ -62,5 +74,9 @@ class MainActivityViewModel(application: Application, user: User?)
         } else {
             Log.wtf("MainActivityVM", "Called updateUserWithLatestFields incorrectly!")
         }
+    }
+    
+    fun setIsUserProfileUpdateButtonEnabled(en: Boolean) {
+        _isUserProfileUpdateButtonEnabled.value = en
     }
 }

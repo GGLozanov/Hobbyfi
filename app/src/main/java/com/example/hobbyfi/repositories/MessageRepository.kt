@@ -17,39 +17,46 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-class MessageRepository @ExperimentalPagingApi constructor(
-    private val remoteMediator: MessageMediator, prefConfig: PrefConfig,
+class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
-    : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+: CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
     @ExperimentalPagingApi
-    fun getMessages(pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize)):
-            Flow<PagingData<Message>> {
+    fun getMessages(
+        pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),
+        chatroomId: Long
+    ): Flow<PagingData<Message>> {
         Log.i("MessageRepository", "getMessages -> getting current messages")
-        val pagingSource = { hobbyfiDatabase.messageDao().getMessages() }
+        val pagingSource = { hobbyfiDatabase.messageDao().getMessagesByChatroomId(chatroomId) }
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = remoteMediator
+            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId)
         ).flow
     }
 
-    suspend fun createMessage(message: String, imageMessage: Boolean): CreateTimeIdResponse? {
+    suspend fun createMessage(
+        chatroomId: Long,
+        message: String,
+        imageMessage: Boolean
+    ): CreateTimeIdResponse? {
         Log.i("MessageRepository", "createMessage -> Creating new message with auth user id")
         return performAuthorisedRequest({
             return@performAuthorisedRequest if(!imageMessage) {
                 hobbyfiAPI.createMessage(
                     prefConfig.getAuthUserToken()!!,
+                    chatroomId,
                     message,
                     null
                 )
             } else { // send base64 in separate field. . .
                 hobbyfiAPI.createMessage(
                     prefConfig.getAuthUserToken()!!,
+                    chatroomId,
                     null,
                     imageMessage = message,
                 )
             }
-        }, { createMessage(message, imageMessage) })
+        }, { createMessage(chatroomId, message, imageMessage) })
     }
 
     suspend fun deleteMessage(id: Long): Response? {

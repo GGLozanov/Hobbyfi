@@ -21,6 +21,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 
 interface HobbyfiAPI {
@@ -42,7 +43,7 @@ interface HobbyfiAPI {
         @Field(Constants.PASSWORD) password: String?,
         @Field(Constants.DESCRIPTION) description: String?,
         @Field(Constants.IMAGE) image: String?,
-        @Field(Constants.TAGS + "[]") tags: List<Tag>?
+        @Field(Constants.TAGS + "[]") tags: String?
     ): TokenResponse?
 
     /**
@@ -91,7 +92,8 @@ interface HobbyfiAPI {
      */
     @GET("api/v1.0/users/read")
     suspend fun fetchUsers(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long
     ): CacheListResponse<User>?
 
     /**
@@ -126,7 +128,7 @@ interface HobbyfiAPI {
         @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
         @Field(Constants.IMAGE) image: String?,
-        @Field(Constants.TAGS + "[]") tags: List<Tag>?
+        @Field(Constants.TAGS + "[]") tags: String?
     ): IdResponse?
 
     /**
@@ -150,10 +152,30 @@ interface HobbyfiAPI {
     /**
      *
      */
+    @GET("api/v1.0/chatroom/read")
+    suspend fun fetchChatroom(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.ID) chatroomId: Long
+    ): CacheResponse<Chatroom>?
+
+    /**
+     *
+     */
     @GET("api/v1.0/chatrooms/read")
     suspend fun fetchChatrooms(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Query(Constants.PAGE) page: Int?
+        @Query(Constants.PAGE) page: Int,
+    ): CacheListResponse<Chatroom>
+
+
+    /**
+     *
+     * This is a separate request because pagination in all chatrooms read request doesn't guarantee return of joined chatrooms on initial page
+     */
+    @GET("api/v1.0/chatrooms/read_own")
+    suspend fun fetchAuthChatrooms(
+        @Header(Constants.AUTH_HEADER) token: String?,
+        @Query(Constants.PAGE) page: Int
     ): CacheListResponse<Chatroom>
 
     /**
@@ -163,6 +185,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun createMessage(
         @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.CHATROOM_ID) chatroomId: Long,
         @Field(Constants.MESSAGE) message: String?,
         @Field(Constants.IMAGE) imageMessage: String?
     ): CreateTimeIdResponse?
@@ -173,6 +196,7 @@ interface HobbyfiAPI {
     @GET("api/v1.0/messages/read")
     suspend fun fetchMessages(
         @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long,
         @Query(Constants.PAGE) page: Int
     ): CacheListResponse<Message>
 
@@ -192,10 +216,11 @@ interface HobbyfiAPI {
         @Query(Constants.ID) id: Long
     ): Response?
 
-    @GET("api/v1.0/event/read")
+    // TODO: Modify to CacheResponse<List<Event>> when backend supports one-to-many chatroom and event connection
+    @GET("api/v1.0/events/read")
     suspend fun fetchEvent(
         @Header(Constants.AUTH_HEADER) token: String
-    ): CacheResponse<Event>
+    ): CacheListResponse<Event>
 
     /**
      *
@@ -224,8 +249,17 @@ interface HobbyfiAPI {
      */
     @DELETE("api/v1.0/event/delete")
     suspend fun deleteEvent(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.ID) eventId: Long
     ): Response?
+
+    /**
+     *
+     */
+    @DELETE("api/v1.0/event/delete_old")
+    suspend fun deleteOldEvents(
+        @Header(Constants.AUTH_HEADER) token: String
+    ): CacheListResponse<Long>?
 
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
@@ -258,6 +292,8 @@ interface HobbyfiAPI {
                 .newBuilder()
                 .addInterceptor(requestInterceptor)
                 .addInterceptor(loggingInterceptor)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .writeTimeout(120, TimeUnit.SECONDS)
                 .build()
 
             return Retrofit.Builder()

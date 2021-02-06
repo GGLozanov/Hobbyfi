@@ -18,6 +18,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -31,7 +32,7 @@ import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
-class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
+class RegisterFragment : AuthFragment() {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
 
@@ -48,14 +49,10 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
 
         binding.viewModel = viewModel
 
-        initTextFieldValidators()
-
         with(binding) {
             lifecycleOwner = this@RegisterFragment
 
             val view = root
-
-            initTextFieldValidators()
 
             profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
                 Callbacks.requestImage(this@RegisterFragment)
@@ -104,6 +101,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
+                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
 
                         login(
                             RegisterFragmentDirections.actionRegisterFragmentToMainActivity(User(
@@ -119,6 +117,7 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
                             it.token?.jwt,
                             it.token?.refreshJwt
                         )
+                        viewModel.resetTokenState()
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -161,6 +160,22 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            emailInputField.removeAllEditTextWatchers()
+            passwordInputField.removeAllEditTextWatchers()
+            confirmPasswordInputField.removeAllEditTextWatchers()
+            usernameInputField.removeAllEditTextWatchers()
+            descriptionInputField.removeAllEditTextWatchers()
+        }
+    }
+
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(emailInputField, Constants.emailInputError) ||
@@ -185,9 +200,11 @@ class RegisterFragment : AuthFragment(), TextFieldInputValidationOnus {
             data
         ) {
             binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            viewModel.base64Image.setImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
 

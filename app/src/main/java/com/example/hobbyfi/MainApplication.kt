@@ -4,17 +4,22 @@ import android.content.Context
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
+import com.bumptech.glide.load.resource.bitmap.Downsampler
 import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.facebook.CallbackManager
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.tasks.OnFailureListener
+import io.branch.referral.Branch
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
@@ -31,6 +36,9 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         }
         bind(tag = "locationManager") from singleton { applicationContext!!.getSystemService(
             Context.LOCATION_SERVICE) as LocationManager
+        }
+        bind(tag = "localBroadcastManager") from singleton {
+            LocalBroadcastManager.getInstance(applicationContext!!)
         }
         bind(tag = "api") from singleton { HobbyfiAPI.invoke(instance(tag = "connectivityManager")) }
         bind(tag = "database") from singleton { HobbyfiDatabase.getInstance(context = applicationContext) }
@@ -62,17 +70,10 @@ class MainApplication : MultiDexApplication(), KodeinAware {
             )
         }
         bind(tag = "messageRepository") from singleton { MessageRepository(
-                instance(tag = "messageMediator") as MessageMediator,
                 instance(tag = "prefConfig") as PrefConfig,
                 instance(tag = "api") as HobbyfiAPI,
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "connectivityManager") as ConnectivityManager
-            )
-        }
-        bind(tag = "messageMediator") from singleton { MessageMediator(
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI
             )
         }
         bind(tag = "fcmTopicErrorFallback") from factory { context: Context ->
@@ -81,6 +82,9 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                     .show()
             }
         }
+        bind(tag = "callbackManager") from singleton {
+            CallbackManager.Factory.create()
+        }
     }
 
     override fun onCreate() {
@@ -88,6 +92,13 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         FacebookSdk.sdkInitialize(applicationContext)
         AppEventsLogger.activateApp(this)
         MainApplication.applicationContext = applicationContext
+
+        // Branch logging for debugging
+        Branch.enableLogging()
+
+        // Branch object initialization
+        Branch.setPlayStoreReferrerCheckTimeout(0)
+        Branch.getAutoInstance(this).enableFacebookAppLinkCheck()
     }
 
     companion object {

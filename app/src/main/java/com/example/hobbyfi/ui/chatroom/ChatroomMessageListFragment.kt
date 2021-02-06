@@ -25,14 +25,12 @@ import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.shared.ChatroomMessageBroadacastReceiverFactory
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.ui.base.BaseActivity
-import com.example.hobbyfi.ui.main.MainActivity
+import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
@@ -43,12 +41,13 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import java.io.FileNotFoundException
-import kotlin.properties.Delegates
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomMessageListFragment : ChatroomFragment(),
-        BottomSheetImagePicker.OnImagesSelectedListener, ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected {
+class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidationOnus,
+        BottomSheetImagePicker.OnImagesSelectedListener,
+        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
+        RefreshConnectionAware {
     private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
@@ -57,8 +56,10 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private var messageListAdapter: ChatroomMessageListAdapter? = null
 
     private val onNormalSendMessage = View.OnClickListener {
-        if(assertTextFieldsInvalidity()) {
-
+        if(assertTextFieldsInvalidity() || viewModel.message.value == null
+                || viewModel.message.value?.isEmpty() == true) {
+            Toast.makeText(requireContext(), "Your message cannot be empty!", Toast.LENGTH_LONG)
+                .show()
             return@OnClickListener
         }
 
@@ -76,6 +77,13 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val onEditSendMessage = { editedMessage: Message ->
         View.OnClickListener {
             val messageMap = mutableMapOf<String?, String?>()
+
+            if(assertTextFieldsInvalidity() || viewModel.message.value == null
+                    || viewModel.message.value?.isEmpty() == true) {
+                Toast.makeText(requireContext(), "Your message cannot be empty!", Toast.LENGTH_LONG)
+                    .show()
+                return@OnClickListener
+            }
 
             if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
@@ -97,7 +105,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         }
     }
 
-    private var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadacastReceiverFactory? = null
+    private var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadcastReceiverFactory? = null
 
     private var createMessageReceiver: BroadcastReceiver? = null
     private var editMessageReceiver: BroadcastReceiver? = null
@@ -106,7 +114,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
     private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
         { messageListAdapter!!.retry() },
         null,
-        userHasChatroom = true
+        showOnlyProgessBar = true
     )
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -114,15 +122,15 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         val activity = requireActivity() as ChatroomActivity
 
         // TODO: Move receiver registration in after chatroom messages fetch!!!
-        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadacastReceiverFactory
+        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
             .getInstance(viewModel, messageListAdapter!!, activityViewModel, activity)
         createMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
         editMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
         deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
 
-        activity.registerReceiver(createMessageReceiver, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
-        activity.registerReceiver(editMessageReceiver, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
-        activity.registerReceiver(deleteMessageReceiver, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(createMessageReceiver!!, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(editMessageReceiver!!, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(deleteMessageReceiver!!, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
     }
 
     override fun onCreateView(
@@ -135,10 +143,14 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
         messageListAdapter = ChatroomMessageListAdapter(
             activityViewModel.isAuthUserChatroomOwner.value == true,
-            activityViewModel.currentAdapterUsers.value ?: emptyList()
+            activityViewModel.chatroomUsers.value ?: emptyList()
         ) { _, message ->
-            val bottomSheet = ChatroomMessageBottomSheetDialogFragment.newInstance(message)
-            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+            // reuse fragment for distinct messages when they don't change
+            parentFragmentManager.showDistinctDialog(message.message, {
+                ChatroomMessageBottomSheetDialogFragment.newInstance(
+                    message
+                )
+            })
             return@ChatroomMessageListAdapter true
         }
 
@@ -169,19 +181,21 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             observeUsers()
             observeMessageState()
             observeMessagesState()
-            observeConnectionRefresh()
+            observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity)
+                .refreshConnectivityMonitor
+            )
 
             return@onCreateView root
         }
     }
 
     private fun observeUsers() {
-        activityViewModel.currentAdapterUsers.observe(viewLifecycleOwner, Observer {
+        activityViewModel.chatroomUsers.observe(viewLifecycleOwner, Observer {
             Log.i("ChatroomMListFragment", "Adapter users: $it")
             if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent
                 lifecycleScope.launch {
-                    viewModel.sendIntent(MessageListIntent.FetchMessages)
+                    viewModel.sendIntent(MessageListIntent.FetchMessages(activityViewModel.authChatroom.value!!.id))
                 }
             }
 
@@ -203,11 +217,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     is MessageListState.OnData.MessagesResult -> {
                         it.messages.catch { e ->
                             e.printStackTrace()
-                            if((e as Exception).isCritical) {
+                            if(e.isCritical) {
                                 Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
                                     .show()
                                 // TODO: Switch to `startActivityForResult` calls cuz process death
-                                (requireActivity()).sendBroadcast(Intent(Constants.LOGOUT))
+                                localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
                             } else if(e !is CancellationException) {
                                 Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
                                 Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
@@ -243,7 +257,6 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
                     }
                     is MessageState.OnData.MessageCreateResult -> {
-
                         viewModel.message.value = null // reset msg
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
@@ -252,6 +265,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                     is MessageState.OnData.MessageDeleteResult -> {
                         Toast.makeText(requireContext(), "Successfully deleted message!", Toast.LENGTH_LONG)
                             .show()
+                        viewModel.resetMessageState()
                     }
                     is MessageState.OnData.DeleteMessageCacheResult -> {
                         // prolly don't do much, if anything here
@@ -262,14 +276,18 @@ class ChatroomMessageListFragment : ChatroomFragment(),
                             it.shouldExit,
                             requireContext()
                         )
+                        viewModel.resetMessageState()
                     }
                 }
             }
         }
     }
 
-    private fun observeConnectionRefresh() {
-        (requireActivity() as BaseActivity).refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+    override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
+        super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
+        refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
+            // connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
+            //  enter without internet (currently refetches old chatrooms in itiial joins)
             if(connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
                 messageListAdapter!!.refresh()
@@ -288,6 +306,7 @@ class ChatroomMessageListFragment : ChatroomFragment(),
 
     override fun onStart() {
         super.onStart()
+        initTextFieldValidators()
         observeUIState()
     }
 
@@ -299,10 +318,8 @@ class ChatroomMessageListFragment : ChatroomFragment(),
             setToolbarProperties(it, activity)
         })
         activityViewModel.isAuthUserChatroomOwner.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
-            if(it) {
-                activity.binding.toolbar
-                    .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
-            }
+            activity.binding.toolbar
+                .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
 
             messageListAdapter!!.setAuthUserChatromOwner(it)
         })
@@ -347,14 +364,27 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         return FieldUtils.isTextFieldInvalid(binding.messageInputField, Constants.messageInputError)
     }
 
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            messageInputField.removeAllEditTextWatchers()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         val activity = requireActivity()
 
         if(!activity.isTaskRoot) {
-            activity.unregisterReceiver(createMessageReceiver)
-            activity.unregisterReceiver(editMessageReceiver)
-            activity.unregisterReceiver(deleteMessageReceiver)
+            createMessageReceiver?.let {
+                localBroadcastManager.unregisterReceiver(it)
+            }
+            editMessageReceiver?.let {
+                localBroadcastManager.unregisterReceiver(it)
+            }
+            deleteMessageReceiver?.let {
+                localBroadcastManager.unregisterReceiver(it)
+            }
         }
     }
 
@@ -362,8 +392,11 @@ class ChatroomMessageListFragment : ChatroomFragment(),
         Log.i("ChatroomMListFragment", "onEditMessageSelect triggered in message list fragment for $message!")
 
         viewModel.message.value = message.message // set to edit current message from bottom sheet
-        binding.sendMessageButton.setOnClickListener(onEditSendMessage(message))
-        binding.editMessageOptionsLayout.isVisible = true // ...to the original onClickListener for send button
+        with(binding) {
+            messageInputField.editText?.setSelection(binding.messageInputField.editText!!.text.length)
+            sendMessageButton.setOnClickListener(onEditSendMessage(message))
+            editMessageOptionsLayout.isVisible = true // ...to the original onClickListener for send button
+        }
     }
 
     override fun onDeleteMessageSelect(view: View, message: Message) {

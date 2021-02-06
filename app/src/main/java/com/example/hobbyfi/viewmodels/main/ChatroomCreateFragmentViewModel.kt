@@ -21,17 +21,10 @@ import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomCreateFragmentViewModel(application: Application) : StateIntentViewModel<ChatroomState, ChatroomIntent>(application),
-    NameDescriptionBindable by NameDescriptionBindableViewModel() {
+        NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
     private val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
 
     var tagBundle: TagBundle = TagBundle()
-
-    private var _base64Image: String? = null
-    val base64Image get() = _base64Image
-
-    fun setProfileImageBase64(base64Image: String) {
-        _base64Image = base64Image
-    }
 
     override val mainStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
         override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
@@ -50,7 +43,9 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
             mainStateIntent.intentAsFlow().collect {
                 when(it) {
                     is ChatroomIntent.CreateChatroom -> {
-                        createChatroom(it.ownerId)
+                        viewModelScope.launch { // img upload warranting another coroutine
+                            createChatroom(it.ownerId)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -64,7 +59,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
             val response = chatroomRepository.createChatroom(
                 name.value!!,
                 description.value!!,
-                base64Image,
+                base64Image.base64,
                 tagBundle.selectedTags
             )
 
@@ -72,7 +67,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
                 response!!.id,
                 name.value!!,
                 description.value,
-                if(base64Image != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
+                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
                         + "/" + response.id + ".jpg" else null,
                 if(tagBundle.selectedTags.isEmpty()) null else tagBundle.selectedTags,
                 ownerId,

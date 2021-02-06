@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.shared
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +10,7 @@ import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.TagListAdapter
+import com.example.hobbyfi.adapters.tag.TagSelectionListAdapter
 import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
@@ -21,7 +22,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class TagSelectionDialogFragment : BaseDialogFragment() {
 
-    private lateinit var adapter: TagListAdapter
+    private lateinit var adapter: TagSelectionListAdapter
     private val args: TagSelectionDialogFragmentArgs by navArgs()
 
     private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
@@ -41,9 +42,10 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         _binding =
             FragmentTagSelectionDialogBinding.inflate(inflater, container, false)
 
-        adapter = TagListAdapter(
+        adapter = TagSelectionListAdapter(
             args.tags.toMutableList(),
-            viewModel.initialSelectedTags.toMutableList() // new list to modify tags
+            savedInstanceState?.getParcelableArrayList<Tag>(Constants.TAGS)?.toMutableList() ?:
+                viewModel.initialSelectedTags.toMutableList() // new list to modify tags
         )
 
         with(binding) {
@@ -70,7 +72,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
 
         with(navController.previousBackStackEntry?.destination) {
             val targetFragmentId = this?.id
-            if(targetFragmentId == R.id.registerFragment) {
+            if(targetFragmentId == R.id.registerFragment || targetFragmentId == R.id.chatroomCreateFragment) {
                 binding.customTagCreateButton.setOnClickListener {
                     if(viewModel.customTagCreateCounter >= 3) {
                         Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
@@ -83,6 +85,12 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
                 binding.customTagCreateButton.visibility = View.GONE // can't create custom tags in editing/other places
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState.apply {
+            putParcelableArrayList(Constants.TAGS, ArrayList(adapter.getSelectedTags()))
+        })
     }
 
     override fun onDestroyView() {

@@ -26,6 +26,8 @@ abstract class AuthInclusiveViewModel(
         override val _state: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
     }
 
+    fun resetTokenState() = mainStateIntent.setState(TokenState.Idle)
+
     @Bindable
     val email: MutableLiveData<String> = MutableLiveData()
 
@@ -41,7 +43,7 @@ abstract class AuthInclusiveViewModel(
             ))
         } catch(ex: Exception) {
             ex.printStackTrace()
-            TokenState.Error(ex.localizedMessage)
+            TokenState.Error(ex.message)
         })
     }
 }

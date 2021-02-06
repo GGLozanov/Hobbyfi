@@ -20,7 +20,8 @@ class MessageMediator(
     hobbyfiDatabase: HobbyfiDatabase,
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
-) : ModelRemoteMediator<Int, Message>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.MESSAGE) {
+    private val chatroomId: Long
+) : ModelMediator<Int, Message>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.MESSAGE) {
     private val messageDao = hobbyfiDatabase.messageDao()
 
     override suspend fun load(
@@ -60,7 +61,8 @@ class MessageMediator(
 
         val messagesResponse = hobbyfiAPI.fetchMessages(
             prefConfig.getAuthUserToken()!!,
-            page
+            chatroomId,
+            page,
         )
 
         val mediatorResult = saveMessages(messagesResponse, page, loadType)
@@ -80,8 +82,8 @@ class MessageMediator(
             val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_messages_fetch_time)
             if (loadType == LoadType.REFRESH || cacheTimedOut) {
                 Log.i("MessageMediator", "MESSAGE triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
-                remoteKeysDao.deleteRemoteKeyByType(remoteKeyType)
-                messageDao.deleteMessages()
+                remoteKeysDao.deleteRemoteKeysByTypeAndIds(mainRemoteKeyType, messageDao.getMessagesIdsByChatroomId(chatroomId))
+                messageDao.deleteMessagesByChatroomId(chatroomId)
             }
             val keys = mapRemoteKeysFromModelList(messagesResponse.modelList, page, isEndOfList)
             Log.i("MessageMediator", "MESSAGE RemoteKeys created. RemoteKeys: ${keys}")

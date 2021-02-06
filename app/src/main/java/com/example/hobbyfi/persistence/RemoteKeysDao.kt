@@ -13,11 +13,26 @@ abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     @Query("SELECT * FROM remoteKeys WHERE id = :id AND modelType = :remoteKeyType")
     abstract suspend fun getRemoteKeysByIdAndType(id: Long, remoteKeyType: RemoteKeyType): RemoteKeys?
 
+    @Query("SELECT * FROM remoteKeys WHERE id = :id AND id IN (:ids) AND modelType = :remoteKeyType")
+    abstract suspend fun getRemoteKeysTypeAndIds(id: Long, ids: List<Long>, remoteKeyType: RemoteKeyType): RemoteKeys?
+
+    @Query("SELECT * FROM remoteKeys WHERE id = :id AND id NOT IN (:ids) AND modelType = :remoteKeyType")
+    abstract suspend fun getRemoteKeysByTypeAndNotPresentInIds(id: Long, ids: List<Long>, remoteKeyType: RemoteKeyType): RemoteKeys?
+
+    @Query("SELECT * FROM remoteKeys WHERE id >= :id AND modelType = :remoteKeyType ORDER BY id ASC")
+    abstract suspend fun getLastRemoteKeysByTypeAndOffsetFilter(id: Long, remoteKeyType: RemoteKeyType): List<RemoteKeys>?
+
     @Query("DELETE FROM remoteKeys")
     abstract suspend fun deleteRemoteKeys()
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType")
     abstract suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType)
+
+    @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id IN (:ids)")
+    abstract suspend fun deleteRemoteKeysByTypeAndIds(remoteKeyType: RemoteKeyType, ids: List<Long>)
+
+    @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id NOT IN (:ids)")
+    abstract suspend fun deleteRemoteKeysByTypeAndNotPresentInIds(remoteKeyType: RemoteKeyType, ids: List<Long>)
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id = :id")
     abstract suspend fun deleteRemoteKeysForIdAndType(id: Long, remoteKeyType: RemoteKeyType): Int

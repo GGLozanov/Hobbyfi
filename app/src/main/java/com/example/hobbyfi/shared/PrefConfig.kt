@@ -85,9 +85,104 @@ class PrefConfig(private val context: Context) {
         ).toLong() // return different default value for Glide ObjectKey cache (always fetch)
     }
 
+    fun writeLastEnteredChatroomId(chatroomId: Long) {
+        val editor = sharedPreferences.edit()
+        editor.putInt(
+            context.getString(R.string.pref_last_entered_chatroom_id),
+            chatroomId.toInt()
+        ).apply()
+    }
+
+    fun resetLastEnteredChatroomId() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_last_entered_chatroom_id)).apply()
+    }
+
+    fun readLastEnteredChatroomId(): Long {
+        return sharedPreferences.getInt(
+            context.getString(R.string.pref_last_entered_chatroom_id),
+            0
+        ).toLong()
+    }
+
+    fun writeChatroomJoinRememberNavigate(remember: Int) {
+        val editor = sharedPreferences.edit()
+        editor.putInt(
+            context.getString(R.string.pref_chatroom_join_remember_navigate),
+            remember
+        ).apply()
+    }
+
+    fun resetChatroomJoinRememberNavigate() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_chatroom_join_remember_navigate)).apply()
+    }
+
+    fun readChatroomJoinRememberNavigate(): Int {
+        return sharedPreferences.getInt(
+            context.getString(R.string.pref_chatroom_join_remember_navigate),
+            Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
+        )
+    }
+
+    fun writeRequestingLocationUpdates(requesting: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_requesting_location_updates),
+            requesting
+        ).apply()
+    }
+
+    fun resetRequestingLocationUpdates() {
+        val editor = sharedPreferences.edit()
+        editor.remove(context.getString(R.string.pref_requesting_location_updates)).apply()
+    }
+
+    fun readRequestingLocationUpdates(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_requesting_location_updates),
+            false
+        )
+    }
+
+    fun writeRequestLocationServiceRunning(running: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            Constants.REQUEST_LOCATION_SERVICE_RUNNING,
+            running
+        ).apply()
+    }
+
+    fun readRequestLocationServiceRunning(): Boolean {
+        return sharedPreferences.getBoolean(
+            Constants.REQUEST_LOCATION_SERVICE_RUNNING,
+            true
+        )
+    }
+
+    fun registerPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun unregisterPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())
+
+    fun isUserAuthenticated(): Boolean =
+        if(Constants.isFacebookUserAuthd()) {
+            true
+        } else {
+            try {
+                TokenUtils.getTokenUserIdFromStoredTokens(this).compareTo(0) != 0
+            } catch(ex: Exception) {
+                Log.w("PrefConfig", "isUserAuthenticated() -> normal token check exception")
+                false
+            }
+        }
 
     fun getAuthUserToken(): String? =
         if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else readToken()

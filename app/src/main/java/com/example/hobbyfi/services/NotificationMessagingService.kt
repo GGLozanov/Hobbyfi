@@ -15,6 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
@@ -36,6 +37,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext)
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
+    private val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     override fun onCreate() {
         super.onCreate()
@@ -68,6 +70,8 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         var title: String? = null
         var body: String? = null
+
+        // TODO: Add support for inputting and parsing one-to-many connections for models
         when(notificationType) {
             Constants.CREATE_MESSAGE_TYPE -> {
                 intent.putParcelableMessageExtra(data)
@@ -86,6 +90,9 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             Constants.EDIT_CHATROOM_TYPE, Constants.EDIT_USER_TYPE,
             Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE -> {
                 intent.putDestructedMapExtra(data)
+            }
+            Constants.DELETE_EVENT_BATCH_TYPE -> {
+                intent.putExtra(Constants.EVENT_IDS, data[Constants.EVENT_IDS])
             }
             Constants.DELETE_CHATROOM_TYPE, Constants.DELETE_EVENT_TYPE -> {
                 intent.putDeletedModelIdExtra(data)
@@ -117,7 +124,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         } else {
             // not push notification
             Log.i("NotificationMService", "Normal notification detected. Simply sending broadcast!")
-            sendBroadcast(intent)
+            localBroadcastManager.sendBroadcast(intent)
         }
     }
 
@@ -127,7 +134,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         // TODO: ping IID (instance ID) endpoint for topic unsubscription?
 
         prefConfig.writeDeviceToken(token) // save new device token and resubscribe
-
 
         // dunno what to do here for now; not using specifics tokens for now so /shrug
         // redo subscriptions to topics here somehow...
@@ -144,7 +150,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         if(isAppInForeground) {
             // send broadcast
             Log.i("NotificationMService", "App is in FOREGROUND. Sending broadcast for current intent: ${intent}")
-            sendBroadcast(intent)
+            localBroadcastManager.sendBroadcast(intent)
         } else {
             // handle background the same way as killed state (hopefully)
             Log.i("NotificationMService", "App is in BACKGROUND. Sending push notification for current intent: ${intent}")
@@ -161,7 +167,8 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         val notification = NotificationCompat.Builder(
             this,
-            resources.getString(R.string.default_notification_channel_id)).apply {
+            resources.getString(R.string.default_notification_channel_id)
+        ).apply {
                 color = ContextCompat.getColor(this@NotificationMessagingService, R.color.colorBackground)
                 setContentTitle(pushTitle)
                 setContentText(pushBody)
@@ -169,34 +176,19 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 setContentIntent(resultPendingIntent)
                 setSmallIcon(applicationInfo.icon)
                 setAutoCancel(true)
+
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    setChannelId(resources.getString(R.string.default_notification_channel_id))
+                }
         }.build()
 
-        createNotificationChannel()
+        // >= API 26
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+        }
 
         with(NotificationManagerCompat.from(this)) {
             notify(resultPendingIntent.hashCode(), notification) // TODO: Probably move away from hash codes. . .
-        }
-    }
-
-    private fun createNotificationChannel() {
-        // > API 26
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = resources.getString(R.string.default_notification_channel_id)
-            val name = getString(R.string.channel_name)
-            val descriptionText = getString(R.string.channel_description)
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(
-                channelId,
-                name,
-                importance
-            ).apply {
-                description = descriptionText
-            }
-
-            // Register the channel with the system
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
         }
     }
 }

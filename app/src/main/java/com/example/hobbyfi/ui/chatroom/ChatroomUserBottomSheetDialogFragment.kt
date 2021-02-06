@@ -10,7 +10,7 @@ import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.Constants
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class ChatroomUserBottomSheetDialogFragment : BottomSheetDialogFragment() {
+class ChatroomUserBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

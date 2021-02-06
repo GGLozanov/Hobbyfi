@@ -13,13 +13,16 @@ import com.example.hobbyfi.databinding.FragmentCustomTagCreateDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
+import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.shared.CustomTagCreateDialogFragmentViewModel
 import com.example.spendidly.utils.PredicateTextWatcher
 import com.skydoves.colorpickerview.flag.BubbleFlag
 import com.skydoves.colorpickerview.flag.FlagMode
+import kotlin.math.roundToInt
 
 
 class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValidationOnus {
@@ -30,7 +33,7 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
          binding =
             DataBindingUtil.inflate(
@@ -72,7 +75,6 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
 
     override fun initTextFieldValidators() {
         binding.tagNameInputField.addTextChangedListener(
-
             Constants.tagNameInputError,
             Predicate {
                 return@Predicate it.isEmpty() || it.length > 25
@@ -82,5 +84,15 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
 
     override fun assertTextFieldsInvalidity(): Boolean {
         return FieldUtils.isTextFieldInvalid(binding.tagNameInputField, Constants.tagNameInputError)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.tagNameInputField.removeAllEditTextWatchers()
     }
 }

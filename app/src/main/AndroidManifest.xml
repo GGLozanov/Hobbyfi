@@ -10,7 +10,7 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Might not need it if we're not looking to track location from background -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
@@ -37,9 +37,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity
-            android:name=".ui.chatroom.EventChooseLocationMapsActivity"
-            android:label="@string/title_activity_event_choose_location_maps" />
         <!--
  Set custom default icon. This is used when no icon is set for incoming notification messages.
      See README(https://goo.gl/l4GJaQ) for more.
@@ -63,11 +60,10 @@
             </intent-filter>
         </service>
         <service
-            android:name=".services.LocationService"
-            android:exported="false">
-
-            <!-- TODO: Proper intent filters -->
-        </service>
+            android:name=".services.EventLocationUpdatesService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
@@ -91,7 +87,6 @@
 
         <activity
             android:name=".ui.auth.AuthActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -101,18 +96,39 @@
         </activity>
         <activity
             android:name=".ui.chatroom.ChatroomActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_chatroom"
-            android:launchMode="singleTop"
-            android:parentActivityName=".ui.main.MainActivity" />
+            android:launchMode="singleTask"
+            android:parentActivityName=".ui.main.MainActivity" >
+            <intent-filter>
+                <data android:scheme="hobbyfi" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+            </intent-filter>
+
+            <!-- Branch App Links (optional) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="dq20i.app.link" />
+                <data android:scheme="https" android:host="dq20i-alternate.app.link" />
+                <data android:scheme="https" android:host="dq20i.test-app.link" />
+                <!-- example-alternate domain is required for App Links when the Journeys/Web SDK and Deepviews are used inside your website.  -->
+                <data android:scheme="https" android:host="dq20i-alternate.test-app.link" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.chatroom.EventChooseLocationMapsActivity"
+            android:parentActivityName=".ui.chatroom.ChatroomActivity"
+            android:label="@string/title_activity_event_choose_location_maps" />
         <activity
             android:name=".ui.chatroom.EventMapsActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="singleTop"
             android:label="@string/title_activity_event_maps"
             android:parentActivityName=".ui.chatroom.ChatroomActivity" />
         <activity
             android:name=".ui.main.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:parentActivityName=".ui.auth.AuthActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity
@@ -127,6 +143,9 @@
                 <data android:scheme="@string/FB_LOGIN_PROTOCOL_SCHEME" />
             </intent-filter>
         </activity>
-    </application>
 
+        <meta-data android:name="io.branch.sdk.BranchKey" android:value="key_live_ad0iyfEPhx5vc99rC48TcffpqCotbLgS" />
+        <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="key_test_mo3jtnsNmz5Fl44vB4908lbirqiucGh5" />
+        <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />     <!-- Set to true to use Branch_Test_Key (useful when simulating installs and/or switching between debug and production flavors) -->
+    </application>
 </manifest>

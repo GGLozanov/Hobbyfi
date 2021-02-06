@@ -14,6 +14,7 @@
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         android:animateLayoutChanges="false"
         android:background="@drawable/background_secondary_gradient">
 
@@ -26,6 +27,7 @@
             android:animateLayoutChanges="false"
             android:scrollbars="vertical"
             app:layoutManager="LinearLayoutManager"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
             app:reverseLayout="false"
             tools:listitem="@layout/chatroom_card" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

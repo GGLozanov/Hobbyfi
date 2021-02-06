@@ -9,7 +9,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
 class UserProfileFragmentViewModel(application: Application, initialTags: List<Tag>) : BaseViewModel(application),
-    NameDescriptionBindable by NameDescriptionBindableViewModel() {
+        NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
     var tagBundle: TagBundle = TagBundle(initialTags)
     private var _originalSelectedTags: List<Tag> = tagBundle.selectedTags
     val originalSelectedTags get() = _originalSelectedTags
@@ -17,6 +17,4 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
     fun setOriginalSelectedTags(tags: List<Tag>) {
         _originalSelectedTags = tags
     }
-
-    var base64Image: Base64Image = Base64Image()
-}
+    }

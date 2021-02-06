@@ -22,7 +22,7 @@
             android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            app:cardBackgroundColor="@color/colorBackground"
+            app:cardElevation="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -30,7 +30,8 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/chatroom_card_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_container_layered">
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/chatroom_name"
@@ -71,6 +72,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:layout_marginBottom="8dp"
+                    android:gravity="center"
+                    android:maxWidth="150dp"
                     android:text="@{chatroom.description}"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -89,7 +92,7 @@
                     android:layout_gravity="center"
                     android:layout_marginBottom="8dp"
                     android:gravity="center"
-                    android:text="@{String.format(`%s %s`, (`Currently hosting an event: `), (chatroom.lastEventId != null ? `Yes!` : `No...`))}"
+                    android:text="@{String.format(`%s %s`, (`Currently hosting events? `), (chatroom.eventIds != null ? `Yes!` : `No...`))}"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toTopOf="@id/tags_grid_view"
@@ -110,7 +113,7 @@
                     android:clickable="false"
                     android:numColumns="auto_fit"
                     android:stretchMode="columnWidth"
-                    android:verticalSpacing="10dp"
+                    android:verticalSpacing="5dp"
                     android:visibility="@{chatroom.tags == null ? View.GONE : View.VISIBLE}"
                     app:layout_constraintBottom_toTopOf="@id/chatroom_interact_buttons"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -123,7 +126,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginLeft="8dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -138,8 +140,7 @@
                         android:id="@+id/chatroom_join_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginLeft="8dp" />
+                        android:layout_marginStart="8dp" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>

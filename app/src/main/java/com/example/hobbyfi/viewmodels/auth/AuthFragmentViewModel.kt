@@ -6,7 +6,6 @@ import com.example.hobbyfi.viewmodels.base.AuthInclusiveViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
-abstract class AuthFragmentViewModel(application: Application)
-    : AuthInclusiveViewModel(application) {
+abstract class AuthFragmentViewModel(application: Application) : AuthInclusiveViewModel(application) {
     var tagBundle: TagBundle = TagBundle()
 }

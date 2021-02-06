@@ -8,19 +8,15 @@ import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.models.Model
 import com.example.hobbyfi.persistence.RemoteKeysDao
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.InvalidObjectException
 
 @ExperimentalPagingApi
-abstract class ModelRemoteMediator<Key: Any, Value: Model>(
+abstract class ModelMediator<Key: Any, Value: Model>(
     protected val hobbyfiDatabase: HobbyfiDatabase,
     protected val prefConfig: PrefConfig,
     protected val hobbyfiAPI: HobbyfiAPI,
-    protected val remoteKeyType: RemoteKeyType
+    protected val mainRemoteKeyType: RemoteKeyType
 ) : RemoteMediator<Key, Value>() {
     companion object {
         val DEFAULT_PAGE_INDEX = 1
@@ -69,35 +65,35 @@ abstract class ModelRemoteMediator<Key: Any, Value: Model>(
         }
     }
 
-    private suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected open suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
+            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, mainRemoteKeyType) }
     }
 
-    private suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected open suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, remoteKeyType) }
+            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, mainRemoteKeyType) }
     }
 
-    private suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected open suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
-                remoteKeysDao.getRemoteKeysByIdAndType(modelId, remoteKeyType)
+                remoteKeysDao.getRemoteKeysByIdAndType(modelId, mainRemoteKeyType)
             }
         }
     }
 
-    protected fun mapRemoteKeysFromModelList(modelList: List<Value>, page: Int, isEndOfList: Boolean): List<RemoteKeys> {
+    protected open fun mapRemoteKeysFromModelList(modelList: List<Value>, page: Int, isEndOfList: Boolean): List<RemoteKeys> {
         val prevKey = if (page == DEFAULT_PAGE_INDEX) null else page - 1
         val nextKey = if (isEndOfList) null else page + 1
         Log.i("ModelRemoteM", "RemoteKeys calculated. Previous page: ${prevKey}; Next page: ${nextKey}")
         return modelList.map {
             RemoteKeys(id = it.id, prevKey = prevKey, nextKey = nextKey,
-                modelType = remoteKeyType
+                modelType = mainRemoteKeyType
             )
         }
     }

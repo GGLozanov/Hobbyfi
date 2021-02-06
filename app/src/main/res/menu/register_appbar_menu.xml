@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_login"
-        android:title="@string/login"
         android:icon="@drawable/ic_baseline_login_white_24"
         app:showAsAction="always|withText"
         android:menuCategory="secondary"

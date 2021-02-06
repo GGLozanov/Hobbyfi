@@ -15,11 +15,12 @@ import com.example.hobbyfi.state.UserState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.internal.notify
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
-    TwoWayDataBindable by TwoWayDataBindableViewModel() {
+        TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
     protected var _authUser: MutableLiveData<User?> = MutableLiveData(user)
@@ -32,6 +33,8 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     protected var _latestTagUpdateFail: MutableLiveData<Boolean> = MutableLiveData(false)
     val latestTagUpdateFail: LiveData<Boolean> get() = _latestTagUpdateFail
 
+    fun resetUserState() = mainStateIntent.setState(UserState.Idle)
+
     override fun handleIntent() {
         viewModelScope.launch {
             mainStateIntent.intentAsFlow().collectLatest { // collect latest doesn't cancel the [action] block after receiving a value
@@ -41,7 +44,9 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
                     }
                     is UserIntent.UpdateUser -> {
                         Log.i("AuthUserHolderVM", "Update User intent sent")
-                        updateUser(it.userUpdateFields)
+                        viewModelScope.launch { // new coroutine in case upload is heavy (includes img)
+                            updateUser(it.userUpdateFields)
+                        }
                     }
                     is UserIntent.UpdateUserCache -> {
                         updateAndSaveUser(it.userUpdateFields)
@@ -56,7 +61,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     }
 
     // user fetched - already saved from networkboundfetcher
-    open fun setUser(user: User) {
+    open fun setUser(user: User?) {
         _authUser.value = user
     }
 
@@ -81,11 +86,13 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         // observe flow returned from networkBoundFetcher and change state upon emitted value
         userRepository.getUser().catch { e ->
             e.printStackTrace()
+            Log.i("AuthUserHolderVM", "User error: ${e::class.java.simpleName}")
             mainStateIntent.setState(
                 UserState.Error(
                     e.message,
-                    shouldReauth = (e as Exception).isCritical
-                ))
+                    shouldReauth = e.isCritical
+                )
+            )
         }.collect {
             if(it != null) {
                 setUser(it)
@@ -100,19 +107,15 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
         mainStateIntent.setState(try {
             val result = UserState.OnData.UserUpdateResult(
-                userRepository.editUser(userFields),
+                userRepository.editUser(userFields, authUser.value!!.name),
                 userFields
             )
 
-            if(userIsUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
-                _latestTagUpdateFail.value = false
-            }
-
+            updateAndNotifyTagUpdateFail(userIsUpdatingTags, false)
+            
             result
         } catch(ex: Exception) {
-            if(userIsUpdatingTags) {
-                _latestTagUpdateFail.value = true
-            }
+            updateAndNotifyTagUpdateFail(userIsUpdatingTags, true)
 
             ex.printStackTrace()
             UserState.Error(
@@ -127,7 +130,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
 
         mainStateIntent.setState(try {
             val response = UserState.OnData.UserDeleteResult(
-                userRepository.deleteUser()
+                userRepository.deleteUser(_authUser.value!!.name)
             )
 
             deleteUserCache()
@@ -135,9 +138,17 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             response
         } catch(ex: Exception) {
             UserState.Error(
-                Constants.reauthError,
+                ex.message,
                 shouldReauth = ex.isCritical
             )
         })
+    }
+
+    private fun updateAndNotifyTagUpdateFail(userUpdatingTags: Boolean, failed: Boolean) {
+        if(userUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
+            _latestTagUpdateFail.apply {
+                value = false
+            }
+        }
     }
 }

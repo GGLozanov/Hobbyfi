@@ -7,9 +7,6 @@
         <import type="android.view.View"/>
 
         <variable
-            name="message"
-            type="com.example.hobbyfi.models.Message" />
-        <variable
             name="gravity"
             type="java.lang.Integer" />
     </data>
@@ -54,10 +51,9 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:gravity="@{gravity}"
-                    android:layout_marginEnd="5dp"
-                    android:text="@{message.message}" />
+                    android:layout_marginEnd="5dp" />
 
-                <ImageView
+                <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/user_image"
                     android:layout_width="150dp"
                     android:layout_height="150dp" />

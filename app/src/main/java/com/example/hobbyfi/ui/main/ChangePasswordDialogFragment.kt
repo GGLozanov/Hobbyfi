@@ -16,6 +16,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.BaseDialogFragment
@@ -44,7 +45,6 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         )
 
         binding.viewModel = viewModel
-        initTextFieldValidators()
 
         with(binding) {
             lifecycleOwner = this@ChangePasswordDialogFragment
@@ -52,6 +52,12 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             buttonBar.leftButton.setOnClickListener { dismiss() }
             buttonBar.rightButton.setOnClickListener {
                 if(assertTextFieldsInvalidity()) {
+                    return@setOnClickListener
+                }
+
+                if(viewModel!!.password.value == viewModel!!.newPassword.value) {
+                    Toast.makeText(requireContext(), "Passwords must not be the same! Please enter a new, unique password!", Toast.LENGTH_LONG)
+                        .show()
                     return@setOnClickListener
                 }
 
@@ -75,12 +81,12 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                             it.token?.jwt?.let { jwt -> prefConfig.writeToken(jwt) }
                             it.token?.refreshJwt?.let { refreshJwt -> prefConfig.writeToken(refreshJwt) }
                             activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
-                                Pair(
-                                    Constants.PASSWORD, viewModel!!.password.value!!)
+                                Pair(Constants.PASSWORD, viewModel!!.newPassword.value!!)
                             )))
+                            dismiss()
                         }
                         is TokenState.Error -> {
-                            Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
+                            Toast.makeText(requireContext(), "Invalid access! Please enter the correct ", Toast.LENGTH_LONG)
                                 .show()
                         }
                         else -> throw State.InvalidStateException()
@@ -100,7 +106,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             )
             newPasswordInputField.addTextChangedListener(
                 Constants.passwordInputError,
-                Constants.passwordPredicate(passwordInputField.editText)
+                Constants.passwordPredicate(confirmNewPasswordInputField.editText)
             )
             confirmNewPasswordInputField.addTextChangedListener(
                 Constants.confirmPasswordInputError,
@@ -114,6 +120,20 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
                     || FieldUtils.isTextFieldInvalid(newPasswordInputField, Constants.passwordInputError) ||
                         FieldUtils.isTextFieldInvalid(confirmNewPasswordInputField, Constants.confirmPasswordInputError)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            passwordInputField.removeAllEditTextWatchers()
+            newPasswordInputField.removeAllEditTextWatchers()
+            confirmNewPasswordInputField.removeAllEditTextWatchers()
         }
     }
 }

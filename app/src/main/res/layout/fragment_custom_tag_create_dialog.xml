@@ -57,7 +57,7 @@
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:includeFontPadding="true"
-                android:inputType="textEmailAddress"
+                android:inputType="textCapSentences"
                 android:singleLine="true"
                 android:text="@={viewModel.name}"
                 tools:layout_conversion_absoluteHeight="45dp"

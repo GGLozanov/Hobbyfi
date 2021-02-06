@@ -5,26 +5,21 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.hobbyfi.intents.EventIntent
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
+import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.intents.UserListIntent
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
-import com.example.hobbyfi.models.User
 import com.example.hobbyfi.repositories.EventRepository
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.isCritical
-import com.example.hobbyfi.state.ChatroomState
-import com.example.hobbyfi.state.EventState
-import com.example.hobbyfi.state.UserListState
+import com.example.hobbyfi.shared.*
+import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import org.kodein.di.generic.instance
-import java.util.stream.Collector
-import java.util.stream.Collectors
+import java.lang.IllegalStateException
 
 @ExperimentalCoroutinesApi
 class ChatroomActivityViewModel(
@@ -32,57 +27,84 @@ class ChatroomActivityViewModel(
     user: User?,
     chatroom: Chatroom?
 ) : AuthChatroomHolderViewModel(application, user, chatroom) {
-
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
+    private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
-    private var _currentAdapterUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
-    val currentAdapterUsers: LiveData<List<User>> get() = _currentAdapterUsers
+    private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
+    val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 
-    private var _authEvent: MutableLiveData<Event> = MutableLiveData()
-    val authEvent: LiveData<Event> get() = _authEvent
+    private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
+    val authEvents: LiveData<List<Event>> get() = _authEvents
 
-    fun setAuthEvent(event: Event) {
-        _authEvent.value = event
+    private var _authUserGeoPoint: StateFlow<UserGeoPoint?> = MutableStateFlow(null)
+    val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
+
+    fun setAuthEvents(events: List<Event>?) {
+        _authEvents.value = events
     }
 
-    private val eventStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
-        override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
+    private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
+        override val _state: MutableStateFlow<EventListState> = MutableStateFlow(EventListState.Idle)
     }
-    val eventState get() = eventStateIntent.state
+    val eventsState get() = eventsStateIntent.state
 
-    suspend fun sendEventIntent(intent: EventIntent) = eventStateIntent.sendIntent(intent)
-
+    suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
+    
     private val usersStateIntent: StateIntent<UserListState, UserListIntent> = object : StateIntent<UserListState, UserListIntent>() {
         override val _state: MutableStateFlow<UserListState> = MutableStateFlow(UserListState.Idle)
     }
     val usersState get() = usersStateIntent.state
 
     suspend fun sendUsersIntent(intent: UserListIntent) = usersStateIntent.sendIntent(intent)
+
+    private val userGeoPointStateIntent: StateIntent<UserGeoPointState, UserGeoPointIntent> = object : StateIntent<UserGeoPointState, UserGeoPointIntent>() {
+        override val _state: MutableStateFlow<UserGeoPointState> = MutableStateFlow(UserGeoPointState.Idle)
+    }
+    val userGeoPointState get() = userGeoPointStateIntent.state
+
+    suspend fun sendUserGeoPointIntent(intent: UserGeoPointIntent) = userGeoPointStateIntent.sendIntent(intent)
+
     fun resetUserListState() = usersStateIntent.setState(UserListState.Idle)
 
     fun resetChatroomState() = chatroomStateIntent.setState(ChatroomState.Idle)
 
+    fun resetEventListState() = eventsStateIntent.setState(EventListState.Idle)
+
     override fun handleIntent() {
         super.handleIntent()
         viewModelScope.launch {
-            eventStateIntent.intentAsFlow().collectLatest {
+            eventsStateIntent.intentAsFlow().collectLatest {
                 when(it) {
-                    is EventIntent.DeleteEvent -> {
-                        deleteEvent()
+                    is EventListIntent.AddAnEventCache -> {
+                        Log.i("ChatroomActivityVM", "Add Event to List Intent caught")
+                        saveEvent(it.event)
+                        setAuthEvents((_authEvents.value ?: emptyList()) + it.event)
+                        updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                            .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
-                    is EventIntent.UpdateEvent -> {
-                        updateEvent(it.eventUpdateFields)
+                    is EventListIntent.DeleteAnEventCache -> {
+                        eventsStateIntent.setState(EventListState.Idle)
+                        if(eventRepository.deleteEventCache(it.eventId)) {
+                            setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
+                            updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                                .toJson(authChatroom.value!!.eventIds?.filter { eventId -> eventId != it.eventId }))))
+                            eventsStateIntent.setState(EventListState.OnData.DeleteAnEventCacheResult(it.eventId))
+                        }
                     }
-                    is EventIntent.UpdateEventCache -> {
+                    is EventListIntent.DeleteOldEvents -> {
+                        // TODO: wire up this with delete_old events in repo and API
+                        deleteOldEvents()
+                    }
+                    is EventListIntent.DeleteEventsCache -> {
+                        Log.i("ChatroomActivityVM", "Delete events cache intent received!")
+                        deleteOldEventsCache(it.eventIds, true)
+                    }
+                    is EventListIntent.UpdateAnEventCache -> {
                         updateAndSaveEvent(it.eventUpdateFields)
                     }
-                    is EventIntent.CreateEventCache -> {
-                        saveEvent(it.event)
+                    is EventListIntent.FetchEvents -> {
+                        fetchEvents()
                     }
-                    is EventIntent.FetchEvent -> {
-                        fetchEvent()
-                    }
-                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -91,22 +113,33 @@ class ChatroomActivityViewModel(
                 when(it) {
                     is UserListIntent.AddAUserCache -> {
                         saveUser(it.user, false)
-                        setCurrentUsers(currentAdapterUsers.value!! + it.user)
+                        setCurrentUsers(chatroomUsers.value!! + it.user)
                     }
                     is UserListIntent.DeleteAUserCache -> {
                         deleteUserCache(it.userId, false)
-                        setCurrentUsers(currentAdapterUsers.value!!.filter { user -> user.id != it.userId })
+                        setCurrentUsers(chatroomUsers.value!!.filter { user -> user.id != it.userId })
                     }
                     is UserListIntent.UpdateAUserCache -> {
                         // TODO: Update lastUsersFetchTime or something similar for Glide signature caching
-                        saveUser(currentAdapterUsers.value!!.find { user -> user.id ==
+                        // TODO: Check if user has image updated? That'd retrigger every image to be refetched on next VH onBind call
+                        saveUser(chatroomUsers.value!!.find { user -> user.id ==
                                 (it.userUpdateFields[Constants.ID] ?: error("User ID must not be null in saveUser call!")).toLong() }!!
                             .updateFromFieldMap(it.userUpdateFields), false)
-                        setCurrentUsers(currentAdapterUsers.value!!)
+                        setCurrentUsers(chatroomUsers.value!!)
                     }
                     is UserListIntent.FetchUsers -> {
                         fetchUsers()
                     }
+                }
+            }
+        }
+        viewModelScope.launch {
+            userGeoPointStateIntent.intentAsFlow().collectLatest {
+                when(it) {
+                    is UserGeoPointIntent.FetchAuthUserGeoPoint -> {
+                        fetchAuthUserGeoPoint()
+                    }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -116,16 +149,34 @@ class ChatroomActivityViewModel(
         handleIntent()
     }
 
+    private fun fetchAuthUserGeoPoint() {
+        userGeoPointStateIntent.setState(UserGeoPointState.Loading)
+
+        userGeoPointStateIntent.setState(try {
+            _authUserGeoPoint = eventRepository.getEventUserGeoPoint(authUser.value!!.name)
+
+            UserGeoPointState.OnData.OnAuthUserGeoPointResult(
+                _authUserGeoPoint
+            ) // TODO: Do something with state (collect it, at least)
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+            UserGeoPointState.Error(
+                ex.message, shouldReauth = ex.isCritical
+            )
+        })
+    }
+
     private suspend fun fetchUsers() {
         usersStateIntent.setState(UserListState.Loading)
 
         userRepository.getChatroomUsers(
-            authChatroom.value!!.id
+            authChatroom.value!!.id,
+            prefConfig.getAuthUserIdFromToken()
         ).catch { e ->
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
-                    (e as Exception).isCritical
+                    e.isCritical
                 )
             )
         }.collectLatest {
@@ -141,94 +192,64 @@ class ChatroomActivityViewModel(
         }
     }
 
-    private suspend fun fetchEvent() {
-        eventStateIntent.setState(EventState.Loading)
+    private suspend fun fetchEvents() {
+        eventsStateIntent.setState(EventListState.Loading)
 
-        eventRepository.getEvent(_authChatroom.value!!.id).catch { e ->
-            eventStateIntent.setState(
-                EventState.Error(
-                    e.message,
-                    (e as Exception).isCritical
-                )
-            )
-        }.collect {
-            if(it != null) {
-                _authEvent.value = it
-                eventStateIntent.setState(
-                    EventState.OnData.EventResult(
-                        it
+        // run collection on another coroutine to avoid conflicts with intent collection
+        // that NEEDS observation but will OVERSHADOW it in the case of an incoming intent
+        // this SHOULD be the practice for ALL flow observations in VM, so TODO to avoid future mishaps
+        // (there haven't been any as of now but it's good to keep it in mind)
+        viewModelScope.launch {
+            eventRepository.getEvents(_authChatroom.value!!.id).catch { e ->
+                eventsStateIntent.setState(
+                    EventListState.Error(
+                        e.message,
+                        e.isCritical
                     )
                 )
+            }.collectLatest {
+                Log.i("ChatroomActivityVM", "Events collected: ${it}")
+                if(it != null) {
+                    _authEvents.value = it
+                    eventsStateIntent.setState(
+                        EventListState.OnData.EventsResult(
+                            it
+                        )
+                    )
+                }
             }
         }
     }
 
-    private suspend fun updateEvent(updateFields: Map<String?, String?>) {
-        eventStateIntent.setState(EventState.Loading)
-
-        eventStateIntent.setState(try {
-            val state = EventState.OnData.EventEditResult(eventRepository.editEvent(
-                updateFields
-            ))
-
-            updateAndSaveEvent(updateFields)
-
-            state
-        } catch(ex: Exception) {
-            ex.printStackTrace()
-
-            EventState.Error(
-                ex.message,
-                ex.isCritical
-            )
-        })
-    }
-
     private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
-        val updatedEvent = _authEvent.value!!.updateFromFieldMap(eventFields)
-        eventRepository.saveEvent(updatedEvent)
-        _authEvent.value = updatedEvent
+        val updatedEvent = _authEvents.value!!.find { it.id == (eventFields[Constants.ID]
+                ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
+            .updateFromFieldMap(eventFields)
+        saveEvent(updatedEvent)
+        _authEvents.value = _authEvents.value!!.replaceOrAdd(updatedEvent, { it.id == updatedEvent.id })
     }
 
-    private suspend fun saveEvent(updatedEvent: Event) {
-        eventRepository.saveEvent(updatedEvent)
-        _authEvent.value = updatedEvent
+    private suspend fun saveEvent(event: Event) {
+        eventRepository.saveEvent(event)
     }
 
-    private suspend fun deleteEvent() {
-        eventStateIntent.setState(EventState.Loading)
+    private suspend fun deleteOldEvents() {
+        eventsStateIntent.setState(EventListState.Loading)
 
-        eventStateIntent.setState(try {
-            val state = EventState.OnData.EventDeleteResult(
-                eventRepository.deleteEvent()
-            )
+        eventsStateIntent.setState(try {
+            val response = eventRepository.deleteOldEvents()
+                ?: throw IllegalStateException(Constants.invalidStateError)
 
-            deleteEventCache()
+            deleteOldEventsCache(response.modelList, false)
 
-            state
+            EventListState.OnData.DeleteOldEventsResult(response.modelList)
         } catch(ex: Exception) {
             ex.printStackTrace()
-
-            EventState.Error(
-                ex.message
+            EventListState.Error(
+                ex.message,
+                shouldReauth = ex.isCritical
             )
         })
-    }
-
-    // FIXME: Ge. Ne. RIIIIICS. Well, not really but still code dup with other deleteCache methods. Mitigate that
-    private suspend fun deleteEventCache(setState: Boolean = false) {
-        val success = eventRepository.deleteEventCache(_authEvent.value!!.id)
-
-        updateAndSaveChatroom(mapOf(
-            Pair(Constants.LAST_EVENT_ID, "0")
-        ))
-
-        if(setState) {
-            eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
-                else EventState.Error(Constants.cacheDeletionError))
-        } else if(!success) {
-            throw Exception(Constants.cacheDeletionError)
-        }
     }
 
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {
@@ -236,8 +257,40 @@ class ChatroomActivityViewModel(
         userRepository.deleteUserCache(id, shouldWritePrefTime)
     }
 
-    // TODO: Hide behind intent? Also, bruh conversions
+    private suspend fun deleteOldEventsCache(eventIds: List<Long>, setState: Boolean) {
+        val success = eventRepository.deleteEventsCache(eventIds)
+        if(success) {
+            updateAndSaveChatroom(mapOf(
+                Pair(Constants.EVENT_IDS,
+                    Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
+            ))
+        }
+
+        if(setState) {
+            eventsStateIntent.setState(if(success)
+                EventListState.OnData.DeleteEventsCacheResult(eventIds)
+            else EventListState.Error(Constants.cacheDeletionError))
+        }
+    }
+
     private fun setCurrentUsers(users: List<User>) {
-        _currentAdapterUsers.value = users
+        _chatroomUsers.value = users
+    }
+
+    var _consumedEventDeepLink: Boolean = false
+    val consumedEventDeepLink get() = _consumedEventDeepLink
+
+    fun setConsumedEventDeepLink(consumed: Boolean) {
+        _consumedEventDeepLink = consumed
+    }
+
+    private var _currentLinkProperties: JSONObject? = null
+    val currentLinkProperties get() = _currentLinkProperties
+    fun setCurrentLinkProperties(linkProps: JSONObject?) {
+        _currentLinkProperties = linkProps
+    }
+
+    fun forceIsAuthUserOwnerObservation() {
+        isAuthUserChatroomOwner.forceObserve()
     }
 }

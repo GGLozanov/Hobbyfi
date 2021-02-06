@@ -1,67 +1,52 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.location.Location
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
-import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventChooseLocationMapsBinding
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.example.hobbyfi.ui.base.MapsActivity
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import pub.devrel.easypermissions.EasyPermissions
 
 @ExperimentalCoroutinesApi
-class EventChooseLocationMapsActivity : AppCompatActivity(),
-        OnMapReadyCallback, EasyPermissions.PermissionCallbacks {
-    private var map: GoogleMap? = null
-    private var cameraPosition: CameraPosition? = null
-
-    private var marker: Marker? = null
-
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
+class EventChooseLocationMapsActivity : MapsActivity() {
     private var eventTitle: String? = null
     private var eventDescription: String? = null
     private var eventLocation: LatLng? = null
 
-    // default location (Sydney, Australia) and default zoom to use when location permission is
-    // not granted.
-    private val defaultLocation = LatLng(-33.8523341, 151.2106085)
-    private var locationPermissionGranted = false
-
     // location retrieved by the Fused Location Provider.
     private var lastKnownLocation: Location? = null
+
     private var exitFromConfirm = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (savedInstanceState != null) {
-            lastKnownLocation = savedInstanceState.getParcelable(Constants.KEY_LOCATION)
-            cameraPosition = savedInstanceState.getParcelable(Constants.KEY_CAMERA_POSITION)
+            savedInstanceState.run {
+                lastKnownLocation = getParcelable(Constants.KEY_LOCATION)
+                eventLocation = getParcelable(Constants.LOCATION)
+                eventTitle = getString(Constants.NAME)
+                eventDescription = getString(Constants.DESCRIPTION)
+            }
+            Log.i("EventCLMActivity", "Location (Event): ${eventLocation}")
+        } else {
+            eventLocation = intent.extras?.get(Constants.EVENT_LOCATION) as LatLng?
+            eventTitle = intent.extras?.get(Constants.EVENT_TITLE) as String?
+            eventDescription = intent.extras?.get(Constants.EVENT_DESCRIPTION) as String?
         }
-
-        eventTitle = intent.extras?.get(Constants.EVENT_TITLE) as String?
-        eventDescription = intent.extras?.get(Constants.EVENT_DESCRIPTION) as String?
-        eventLocation = intent.extras?.get(Constants.EVENT_LOCATION) as LatLng?
 
         val binding: ActivityEventChooseLocationMapsBinding =
             ActivityEventChooseLocationMapsBinding.inflate(layoutInflater)
@@ -78,55 +63,57 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        map?.let {
-            outState.putParcelable(Constants.KEY_CAMERA_POSITION, it.cameraPosition)
-            outState.putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
-        }
-        super.onSaveInstanceState(outState)
+    override fun onSaveInstanceState(outState: Bundle) {
+        Log.i("EventCLMActivity", "Location event: $eventLocation")
+        super.onSaveInstanceState(outState.apply {
+            putParcelable(Constants.KEY_LOCATION, lastKnownLocation)
+            putParcelable(Constants.LOCATION, eventLocation)
+            putString(Constants.NAME, eventTitle)
+            putString(Constants.DESCRIPTION, eventDescription)
+        })
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
+        super.onMapReady(googleMap)
 
         getLocationPermission()
-
-        updateLocationUI()
 
         getDeviceLocation()
     }
 
-    private fun updateLocationUI() {
-        if (map == null) {
-            return
+    override fun updateLocationUI() {
+        super.updateLocationUI()
+        if(!locationPermissionGranted) {
+            lastKnownLocation = null
         }
-        try {
-            map?.uiSettings?.isCompassEnabled = true
 
-            if(locationPermissionGranted) {
-                map?.isMyLocationEnabled = true
-                map?.uiSettings?.isMyLocationButtonEnabled = true
-            } else {
-                map?.isMyLocationEnabled = false
-                map?.uiSettings?.isMyLocationButtonEnabled = false
-                lastKnownLocation = null
-                getLocationPermission()
+        map?.setOnMyLocationButtonClickListener {
+            resetDraggableEventMarkerAndMoveToNew(
+                LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude),
+            )
+            return@setOnMyLocationButtonClickListener true
+        }
+
+        map?.setOnMapClickListener {
+            resetDraggableEventMarkerAndMoveToNew(it)
+        }
+
+        map?.setOnMarkerDragListener(object : GoogleMap.OnMarkerDragListener {
+            override fun onMarkerDragStart(p0: Marker?) {
             }
 
-            map?.setOnMyLocationButtonClickListener {
-                moveMarkerAndCamera(LatLng(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude))
-                return@setOnMyLocationButtonClickListener true
+            override fun onMarkerDrag(p0: Marker?) {
             }
 
-            map?.setOnMapClickListener {
-                moveMarkerAndCamera(it)
+            override fun onMarkerDragEnd(newMarker: Marker?) {
+                marker = newMarker
+                eventLocation = marker?.position
+                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(marker?.position, DEFAULT_ZOOM.toFloat()))
             }
+        })
 
-            eventLocation?.let {
-                moveMarkerAndCamera(it)
-            }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
+        eventLocation?.let {
+            resetDraggableEventMarkerAndMoveToNew(it)
         }
     }
 
@@ -139,7 +126,7 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null && eventLocation == null) {
-                            moveMarkerAndCamera(LatLng(
+                            resetDraggableEventMarkerAndMoveToNew(LatLng(
                                 lastKnownLocation!!.latitude,
                                 lastKnownLocation!!.longitude
                             ))
@@ -164,19 +151,15 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
         }
     }
 
-    private fun getLocationPermission() {
-        locationPermissionGranted = Callbacks.requestLocationForEventCreate(
-            this
-        )
-    }
-
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        locationPermissionGranted = requestCode == Constants.locationPermissionsRequestCode
+        super.onPermissionsGranted(requestCode, perms)
+        Log.i("EventCLMActivity", "onPermissionGranted. Location perm granted: $locationPermissionGranted")
+        getDeviceLocation()
         updateLocationUI()
     }
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-        // TODO: Toast or w/e
+        // not much to do for now, I guess?
     }
 
     override fun onBackPressed() {
@@ -203,46 +186,19 @@ class EventChooseLocationMapsActivity : AppCompatActivity(),
         }
     }
 
-    private fun bitmapDescriptorFromVector(
-        context: Context,
-        @DrawableRes vectorResId: Int
-    ): BitmapDescriptor? {
-        val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
-        vectorDrawable!!.setBounds(
-            0,
-            0,
-            vectorDrawable.intrinsicWidth,
-            vectorDrawable.intrinsicHeight
+    private fun resetDraggableEventMarkerAndMoveToNew(latLng: LatLng) {
+        resetEventMarkerAndMoveToNew(
+            latLng,
+            eventTitle,
+            eventDescription,
+            true
         )
-        val bitmap = Bitmap.createBitmap(
-            vectorDrawable.intrinsicWidth,
-            vectorDrawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(bitmap)
-        vectorDrawable.draw(canvas)
-        return BitmapDescriptorFactory.fromBitmap(bitmap)
-    }
-
-    // TODO: Use in EventMapsActivity as well
-    private fun moveMarkerAndCamera(latLng: LatLng) {
-        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat()))
-        marker?.remove()
-        marker = map?.addMarker(MarkerOptions()
-            .title(eventTitle)
-            .snippet(eventDescription)
-            .draggable(true)
-            .position(latLng)
-        )
+        eventLocation = marker?.position
     }
 
     private fun sendMarkerLocationResultBack() {
         val resultIntent = Intent()
         resultIntent.putExtra(Constants.EVENT_LOCATION, marker!!.position)
         setResult(Activity.RESULT_OK, resultIntent)
-    }
-
-    companion object {
-        private const val DEFAULT_ZOOM = 15
     }
 }

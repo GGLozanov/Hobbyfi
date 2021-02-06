@@ -15,6 +15,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.removeAllEditTextWatchers
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.FieldUtils
@@ -40,8 +41,6 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         )
 
         binding.viewModel = viewModel
-
-        initTextFieldValidators()
 
         with(binding) {
             lifecycleOwner = this@ChangeEmailDialogFragment
@@ -116,6 +115,20 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 Constants.confirmPasswordInputError,
                 Constants.confirmPasswordPredicate(passwordInputField.editText!!)
             )
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding) {
+            newEmailInputField.removeAllEditTextWatchers()
+            passwordInputField.removeAllEditTextWatchers()
+            confirmPasswordInputField.removeAllEditTextWatchers()
         }
     }
 

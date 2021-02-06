@@ -1,8 +1,10 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.DisplayMetrics
 import androidx.fragment.app.Fragment
@@ -10,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.navArgs
@@ -18,15 +21,17 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomMessageBottomSheetDialogBinding
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), NavigationView.OnNavigationItemSelectedListener {
-
+class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment(),
+        NavigationView.OnNavigationItemSelectedListener {
     private lateinit var binding: FragmentChatroomMessageBottomSheetDialogBinding
     private lateinit var message: Message
 
@@ -48,6 +53,7 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
     }
     private lateinit var onMessageOptionSelected: OnMessageOptionSelected
 
+    @ExperimentalCoroutinesApi
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -64,12 +70,11 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
         with(binding) {
             bottomSheet.apply {
                 BottomSheetBehavior.from(this).apply {
-                    peekHeight = 1 / 4 * (DisplayMetrics().heightPixels)
                     state = BottomSheetBehavior.STATE_EXPANDED
                 }
 
-                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex
-                    .matches(message.message) && !message.isTimeline // TODO: Change when add text to image messages
+                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex.matches(message.message) &&
+                        !message.isTimeline && activityViewModel.authUser.value?.id == message.userSentId // TODO: Change when add text to image messages
                 setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
             }
 
@@ -93,8 +98,7 @@ class ChatroomMessageBottomSheetDialogFragment : BottomSheetDialogFragment(), Na
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_delete_message -> {
-                Constants.buildDeleteAlertDialog(
-                    requireContext(),
+                requireContext().buildYesNoAlertDialog(
                     resources.getString(R.string.delete_message),
                     { dialogInterface, _ ->
                         dialogInterface.dismiss()

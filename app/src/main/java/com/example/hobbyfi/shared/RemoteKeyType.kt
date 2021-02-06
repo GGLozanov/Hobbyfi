@@ -1,5 +1,5 @@
 package com.example.hobbyfi.shared
 
 enum class RemoteKeyType {
-    MESSAGE, CHATROOM
+    MESSAGE, CHATROOM, AUTH_CHATROOM
 }

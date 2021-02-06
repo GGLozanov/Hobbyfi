@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.main
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -14,11 +15,10 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
+import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -42,10 +42,19 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.clear()
+    }
+
     private val fcmTopicErrorFallback: OnFailureListener by instance(
         tag = "fcmTopicErrorFallback",
         MainApplication.applicationContext
     )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,10 +64,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         binding = FragmentChatroomCreateBinding.inflate(inflater, container, false)
         binding.viewModel = viewModel
 
-        initTextFieldValidators()
-
         with(binding) {
-            chatroomImage.setOnClickListener {
+            chatroomInfo.chatroomImage.setOnClickListener {
                 Callbacks.requestImage(this@ChatroomCreateFragment)
             }
 
@@ -69,14 +76,14 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
-            buttonPair.leftButton.setOnClickListener { // tag select button
+            chatroomInfo.buttonBar.leftButton.setOnClickListener { // tag select button
                 navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToTagNavGraph(
                     viewModel!!.tagBundle.selectedTags.toTypedArray(),
                     viewModel!!.tagBundle.tags.toTypedArray(),
                 ))
             }
 
-            buttonPair.rightButton.setOnClickListener { // confirm button
+            chatroomInfo.buttonBar.rightButton.setOnClickListener { // confirm button
                 if(assertTextFieldsInvalidity()) {
                     return@setOnClickListener
                 }
@@ -97,18 +104,25 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         // TODO: Progressbar
                     }
                     is ChatroomState.OnData.ChatroomCreateResult -> {
-                        activityViewModel.setLatestUserUpdateFields(mapOf(
-                            Pair(Constants.CHATROOM_ID, it.response.id.toString())
+                        activityViewModel.sendIntent(
+                            UserIntent.UpdateUserCache(mapOf(
+                                Pair(Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                    activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id))
+                                )
+                            )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
-                        FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(
-                                it.response.id)).addOnCompleteListener { task ->
-                            activityViewModel.setJoinedChatroom(true)
-                            navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
-                                activityViewModel.authUser.value,
-                                it.response
-                            ))
-                        }.addOnFailureListener(fcmTopicErrorFallback)
+                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity({
+                                activityViewModel.setJoinedChatroom(true)
+                                navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
+                                    activityViewModel.authUser.value,
+                                    it.response
+                                ))
+                            },
+                            it.response.id,
+                            fcmTopicErrorFallback,
+                            connectivityManager
+                        )
                         viewModel.resetState()
                     }
                     is ChatroomState.Error -> {
@@ -132,7 +146,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     }
 
     override fun initTextFieldValidators() {
-        with(binding) {
+        with(binding.chatroomInfo) {
             // TODO: Fix code dup with other layouts like these and find a way to extract this in a single method call or something
             nameInputField.addTextChangedListener(
                 Constants.nameInputError,
@@ -148,8 +162,21 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
     override fun assertTextFieldsInvalidity(): Boolean {
         with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
-                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
+            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(chatroomInfo.nameInputField, Constants.nameInputError) ||
+                    FieldUtils.isTextFieldInvalid(chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initTextFieldValidators()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        with(binding.chatroomInfo) {
+            nameInputField.removeAllEditTextWatchers()
+            descriptionInputField.removeAllEditTextWatchers()
         }
     }
 
@@ -168,10 +195,12 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             data
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
-            binding.chatroomImage.setImageBitmap(it)
-            viewModel.setProfileImageBase64(
-                ImageUtils.encodeImage(it)
-            )
+            binding.chatroomInfo.chatroomImage.setImageBitmap(it)
+            lifecycleScope.launch {
+                viewModel.base64Image.setImageBase64(
+                    ImageUtils.encodeImage(it)
+                )
+            }
         }
     }
 }

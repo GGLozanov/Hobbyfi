@@ -32,8 +32,9 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomMessageListFragmentViewModel(application: Application) :
-    StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
+class ChatroomMessageListFragmentViewModel(
+    application: Application
+) : StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     private val messageRepository: MessageRepository by instance(tag = "messageRepository")
     private var currentMessages: Flow<PagingData<Message>>? = null
 
@@ -49,8 +50,9 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
     val messageStateIntent: StateIntent<MessageState, MessageIntent> = object : StateIntent<MessageState, MessageIntent>() {
         override val _state: MutableStateFlow<MessageState> = MutableStateFlow(MessageState.Idle)
     }
-
     val messageState get() = messageStateIntent.state
+
+    fun resetMessageState() = messageStateIntent.setState(MessageState.Idle)
 
     suspend fun sendMessageIntent(intent: MessageIntent) {
         messageStateIntent.sendIntent(intent)
@@ -65,7 +67,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageListIntent.FetchMessages -> {
-                        fetchMessages()
+                        fetchMessages(it.chatroomId)
                     }
                 }
             }
@@ -74,11 +76,13 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
             messageStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageIntent.CreateMessage -> {
-                        createMessage(
-                            it.message ?: message.value!!,
-                            it.userSentId,
-                            it.chatroomSentId
-                        )
+                        viewModelScope.launch {
+                            createMessage(
+                                it.message ?: message.value!!,
+                                it.userSentId,
+                                it.chatroomSentId
+                            )
+                        }
                     }
                     is MessageIntent.CreateMessageImages -> {
                         it.base64s.forEach { base64Mesage ->
@@ -96,13 +100,17 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
                         saveNewMessage(it.message)
                     }
                     is MessageIntent.UpdateMessage -> {
-                        updateMessage(it.messageUpdateFields)
+                        viewModelScope.launch {
+                            updateMessage(it.messageUpdateFields)
+                        }
                     }
                     is MessageIntent.UpdateMessageCache -> {
                         updateAndSaveMessage(it.messageUpdateFields)
                     }
                     is MessageIntent.DeleteMessage -> {
-                        deleteMessage(it.messageId)
+                        viewModelScope.launch {
+                            deleteMessage(it.messageId)
+                        }
                     }
                     is MessageIntent.DeleteMessageCache -> {
                         deleteMessageCache(it.messageId, true)
@@ -116,11 +124,11 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         handleIntent()
     }
 
-    private fun fetchMessages() {
+    private fun fetchMessages(chatroomId: Long) {
         mainStateIntent.setState(MessageListState.Loading)
 
         if(currentMessages == null) {
-            currentMessages = messageRepository.getMessages()
+            currentMessages = messageRepository.getMessages(chatroomId = chatroomId)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
@@ -135,7 +143,7 @@ class ChatroomMessageListFragmentViewModel(application: Application) :
         messageStateIntent.setState(
             try {
                 val state = MessageState.OnData.MessageCreateResult(
-                    messageRepository.createMessage(message, imageMessage)
+                    messageRepository.createMessage(chatroomSentId, message, imageMessage)
                 )
 
                 saveNewMessage(
