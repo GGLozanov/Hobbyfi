@@ -290,11 +290,15 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
             //  enter without internet (currently refetches old chatrooms in itiial joins)
             if(connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
-                messageListAdapter!!.refresh()
+                refreshDataOnConnectionRefresh()
             } else {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment DIS-CONNECTED")
             }
         })
+    }
+
+    override fun refreshDataOnConnectionRefresh() {
+        messageListAdapter!!.refresh()
     }
 
     private fun initMessageListAdapter() {

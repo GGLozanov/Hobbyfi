@@ -1,12 +1,13 @@
 package com.example.hobbyfi.services
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import android.util.Log
+import android.view.Display
+import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.TaskStackBuilder
@@ -19,7 +20,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -29,15 +29,24 @@ import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
+import java.util.*
+
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver, KodeinAware {
     private var isAppInForeground: Boolean = false
+    private var isAppInFocus: Boolean = true
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext)
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
     private val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
+    private val deferredBroadcastsQueue: Queue<Intent> = LinkedList()
+
+    private val windowManager: WindowManager = MainApplication.applicationContext.getSystemService(Context.WINDOW_SERVICE)
+            as WindowManager
+    private val powerManager: PowerManager = MainApplication.applicationContext.getSystemService(Context.POWER_SERVICE)
+            as PowerManager
 
     override fun onCreate() {
         super.onCreate()
@@ -51,6 +60,27 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     fun onForegroundStart() {
+        isAppInForeground = true
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    fun onForegroundResume() {
+        isAppInFocus = true
+        isAppInForeground = true
+
+        if(prefConfig.readRestartedFromChatroomTaskRoot()) {
+            return
+        }
+
+        deferredBroadcastsQueue.forEach {
+            localBroadcastManager.sendBroadcast(it)
+        }
+        deferredBroadcastsQueue.clear()
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    fun onForegroundPause() {
+        isAppInFocus = false
         isAppInForeground = true
     }
 
@@ -77,12 +107,12 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 intent.putParcelableMessageExtra(data)
                 // TODO: Add message content to notification body while trimming it
                 // TODO: Handle message being url to picture and show only "new image message received!"
-                if(data[Constants.USER_SENT_ID] != null) {
+                if (data[Constants.USER_SENT_ID] != null) {
                     title = resources.getString(R.string.create_message_notification_title)
                     body = data[Constants.MESSAGE]
                 }
             }
-            Constants.CREATE_EVENT_TYPE ->  {
+            Constants.CREATE_EVENT_TYPE -> {
                 intent.putParcelableEventExtra(data)
                 title = resources.getString(R.string.create_event_notification_title)
                 body = "Take a look at '${data[Constants.NAME]}' and try to join in!"
@@ -111,6 +141,29 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 intent.putDeletedModelIdExtra(data)
                 title = resources.getString(R.string.leave_user_notification_title)
                 body = "${data[Constants.USERNAME]} just left the chatroom!"
+            }
+        }
+
+        val display = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            display
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay
+        }
+
+        val screenOff = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT_WATCH) {
+            display?.state != Display.STATE_ON && !powerManager.isInteractive
+        } else {
+            @Suppress("DEPRECATION")
+            !powerManager.isScreenOn
+        }
+
+
+        if(((!isAppInFocus && screenOff) || (!screenOff && !isAppInForeground))) {
+            Log.i("NotificationMService", "App is in DOZE/onPause state, NOT onStop(). Adding ")
+            deferredBroadcastsQueue.add(intent)
+            if(title == null || body == null) {
+                return
             }
         }
 
@@ -146,20 +199,34 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         Log.i("NotificationMService", "DELETED MESSAGES?????")
     }
 
-    private fun handlePushMessageForChatroomByLifecycle(intent: Intent, pushTitle: String, pushBody: String) {
+    private fun handlePushMessageForChatroomByLifecycle(
+        intent: Intent,
+        pushTitle: String,
+        pushBody: String
+    ) {
         if(isAppInForeground) {
             // send broadcast
-            Log.i("NotificationMService", "App is in FOREGROUND. Sending broadcast for current intent: ${intent}")
+            Log.i(
+                "NotificationMService",
+                "App is in FOREGROUND. Sending broadcast for current intent: ${intent}"
+            )
             localBroadcastManager.sendBroadcast(intent)
         } else {
             // handle background the same way as killed state (hopefully)
-            Log.i("NotificationMService", "App is in BACKGROUND. Sending push notification for current intent: ${intent}")
+            Log.i(
+                "NotificationMService",
+                "App is in BACKGROUND. Sending push notification for current intent: ${intent}"
+            )
             intent.setClass(this, ChatroomActivity::class.java)
             sendPushNotificationForChatroom(intent, pushTitle, pushBody)
         }
     }
 
-    private fun sendPushNotificationForChatroom(pushIntent: Intent, pushTitle: String, pushBody: String) {
+    private fun sendPushNotificationForChatroom(
+        pushIntent: Intent,
+        pushTitle: String,
+        pushBody: String
+    ) {
         val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
             addNextIntent(pushIntent) // add intent
             getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT) // get PendingIntent in its entirety
@@ -169,7 +236,10 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             this,
             resources.getString(R.string.default_notification_channel_id)
         ).apply {
-                color = ContextCompat.getColor(this@NotificationMessagingService, R.color.colorBackground)
+                color = ContextCompat.getColor(
+                    this@NotificationMessagingService,
+                    R.color.colorBackground
+                )
                 setContentTitle(pushTitle)
                 setContentText(pushBody)
                 priority = NotificationCompat.PRIORITY_DEFAULT

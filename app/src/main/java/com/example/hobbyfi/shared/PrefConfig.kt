@@ -160,6 +160,21 @@ class PrefConfig(private val context: Context) {
         )
     }
 
+    fun readRestartedFromChatroomTaskRoot(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_restarted_from_chatroom_task_root),
+            false
+        )
+    }
+
+    fun writeRestartedFromChatroomTaskRoot(res: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_restarted_from_chatroom_task_root),
+            res
+        ).apply()
+    }
+
     fun registerPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
     }

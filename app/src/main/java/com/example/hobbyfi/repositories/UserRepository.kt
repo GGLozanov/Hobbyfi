@@ -54,11 +54,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                         Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
                         flowOf(null)
                     } catch(authEx: AuthorisedRequestException) {
-                        try {
-                            getNewTokenWithRefresh()
-                        } catch(ex: Exception) {
-                            Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned nothing")
-                        }
+                        getNewTokenWithRefresh()
 
                         loadFromDb()
                     }

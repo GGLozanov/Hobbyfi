@@ -577,24 +577,28 @@ class ChatroomActivity : NavigationActivity(),
             //  enter without internet (currently refetches old chatrooms in itiial joins)
             if (connectionRefreshed) {
                 Log.i("ChatroomActivity", "ChatroomActivity CONNECTED")
-                lifecycleScope.launch {
-                    viewModel.sendUsersIntent(
-                        UserListIntent.FetchUsers
-                    )
-                    viewModel.sendChatroomIntent(
-                        ChatroomIntent.FetchChatroom
-                    )
-
-                    if (viewModel.authChatroom.value?.eventIds != null) {
-                        viewModel.sendEventsIntent(
-                            EventListIntent.FetchEvents
-                        )
-                    }
-                }
+                refreshDataOnConnectionRefresh()
             } else {
                 Log.i("ChatroomActivity", "ChatroomActivity DIS-CONNECTED")
             }
         })
+    }
+
+    override fun refreshDataOnConnectionRefresh() {
+        lifecycleScope.launch {
+            viewModel.sendUsersIntent(
+                UserListIntent.FetchUsers
+            )
+            viewModel.sendChatroomIntent(
+                ChatroomIntent.FetchChatroom
+            )
+
+            if (viewModel.authChatroom.value?.eventIds != null) {
+                viewModel.sendEventsIntent(
+                    EventListIntent.FetchEvents
+                )
+            }
+        }
     }
 
     @ExperimentalPagingApi
@@ -644,6 +648,12 @@ class ChatroomActivity : NavigationActivity(),
     override fun onPause() {
         super.onPause()
         unregisterCRUDReceivers()
+        prefConfig.writeRestartedFromChatroomTaskRoot(false)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        prefConfig.writeRestartedFromChatroomTaskRoot(false)
     }
 
     // checks if called from push notification while app is killed and restarts entire backstack in that case
@@ -670,8 +680,9 @@ class ChatroomActivity : NavigationActivity(),
                 .addNextIntent(restartIntent)
                 .startActivities(restartIntent.extras)
 
-            finishAffinity()
             rebuildStack = true
+            prefConfig.writeRestartedFromChatroomTaskRoot(rebuildStack)
+            finishAffinity()
         }
         return rebuildStack
     }

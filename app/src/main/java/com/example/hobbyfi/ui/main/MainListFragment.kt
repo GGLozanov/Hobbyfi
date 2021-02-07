@@ -173,10 +173,14 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
         refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
             if(connectionRefreshed) {
                 Log.i("MainListFragment", "MainListFragment CONNECTED")
-                chatroomListAdapter.refresh()
+                refreshDataOnConnectionRefresh()
             } else {
                 Log.i("MainListFragment", "MainListFragment DIS-CONNECTED")
             }
         })
+    }
+
+    override fun refreshDataOnConnectionRefresh() {
+        chatroomListAdapter.refresh()
     }
 }
