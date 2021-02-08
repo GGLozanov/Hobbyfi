@@ -87,7 +87,7 @@ object Constants {
 
     const val eventLocationRequestCode: Int = 999
     const val eventMapsRequestCode: Int = 666
-    const val deepLinkRequestCode: Int = 423
+    const val RESULT_CHATROOM_DELETE: Int = 423
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -243,7 +243,6 @@ object Constants {
     fun chatroomTopic(chatroomId: Long): String {
         return chatroomTopicPrefix + chatroomId
     }
-
 
     // dupped from API and whenever that changes, this needs to as well, but...
     // how else? Getting it from the server each time?

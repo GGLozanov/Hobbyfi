@@ -124,7 +124,10 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             Constants.DELETE_EVENT_BATCH_TYPE -> {
                 intent.putExtra(Constants.EVENT_IDS, data[Constants.EVENT_IDS])
             }
-            Constants.DELETE_CHATROOM_TYPE, Constants.DELETE_EVENT_TYPE -> {
+            Constants.DELETE_EVENT_TYPE -> {
+                intent.putDeletedModelIdExtra(data)
+            }
+            Constants.DELETE_CHATROOM_TYPE -> {
                 intent.putDeletedModelIdExtra(data)
                 title = resources.getString(R.string.delete_chatroom_notification_title)
                 body = resources.getString(R.string.delete_chatroom_notification_body)

@@ -93,9 +93,7 @@ class ChatroomActivity : NavigationActivity(),
 
     private val branchReferralInitListener =
         BranchReferralInitListener { linkProperties, error ->
-            Log.i("ChatroomActivity", "deep link props: ${linkProperties}")
             val comeFromAuthDeepLink = comeFromAuthDeepLink()
-            Log.i("ChatroomActivity", "comeFromAuthDeepLink: ${comeFromAuthDeepLink}")
             viewModel.setCurrentLinkProperties(linkProperties)
             if((linkProperties != null && getClickedBranchLinkFromLinkProps(linkProperties)) ||
                     comeFromAuthDeepLink) {

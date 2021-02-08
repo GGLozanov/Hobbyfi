@@ -9,6 +9,8 @@ sealed class EventListIntent : Intent {
     data class UpdateAnEventCache(val eventUpdateFields: Map<String?, String?>) : EventListIntent()
     data class DeleteAnEventCache(val eventId: Long) : EventListIntent()
 
+    object RefetchEvent : EventListIntent()
+
     data class DeleteEventsCache(val eventIds: List<Long>) : EventListIntent()
     object DeleteOldEvents : EventListIntent()
 }

@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -10,7 +9,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.accessibility.AccessibilityNodeInfo.CollectionInfo.SELECTION_MODE_NONE
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.core.content.ContextCompat
@@ -26,6 +24,7 @@ import com.bumptech.glide.Glide
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.EventDetailsFragmentBinding
+import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.models.UserGeoPoint
@@ -43,19 +42,15 @@ import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.material.datepicker.MaterialCalendar
 import com.google.firebase.firestore.GeoPoint
 import com.prolificinteractive.materialcalendarview.CalendarDay
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.time.Duration
-import java.time.LocalDateTime
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -417,9 +412,23 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // TODO: If result == cancelled && activity request code => pop self from backstack
         if(requestCode == Constants.eventMapsRequestCode) {
             when(resultCode) {
+                Constants.RESULT_CHATROOM_DELETE -> {
+                    Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CHATROOM_DELETE! CHECK BACKSTACK!")
+                    lifecycleScope.launchWhenResumed {
+                        activityViewModel.sendChatroomIntent(
+                            ChatroomIntent.DeleteChatroomCache
+                        )
+                    }
+                }
+                RESULT_OK -> {
+                    // refresh data on return from EventMapsActivity
+                    // FIXME: On terms of scalability, this is a hacky solution and a better one would be to catch the service notifications
+                    // FIXME: & launch them deferred when user reaches this point
+                    // FIXME: Probably through some kind of a sharedprefs/livedata observer on a bool
+                    (requireActivity() as ChatroomActivity).refreshDataOnConnectionRefresh()
+                }
                 RESULT_CANCELED -> {
                     Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!")
                     Toast.makeText(requireContext(), Constants.eventDeleted, LENGTH_LONG)

@@ -17,7 +17,6 @@ import com.example.hobbyfi.responses.StartDateIdResponse
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.google.firebase.FirebaseException
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +31,7 @@ class EventRepository(
     private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
     fun getEvents(chatroomId: Long): Flow<List<Event>?> {
-        Log.i("EventRepository", "getEvent -> Getting current chatroom eventS!!!")
+        Log.i("EventRepository", "getEvents -> Getting current chatroom eventS!!!")
         return object : NetworkBoundFetcher<List<Event>?, CacheListResponse<Event>>() {
             override suspend fun saveNetworkResult(response: CacheListResponse<Event>) {
                 saveEvents(response.modelList, replace = true)
@@ -47,8 +46,33 @@ class EventRepository(
             override suspend fun fetchFromNetwork(): CacheListResponse<Event>? {
                 Log.i("EventRepository", "Fetching event from network for chatroom id $chatroomId!")
                 return performAuthorisedRequest({
-                    hobbyfiAPI.fetchEvent(
+                    hobbyfiAPI.fetchEvents(
                         prefConfig.getAuthUserToken()!!
+                    )
+                }, { fetchFromNetwork() })
+            }
+        }.asFlow()
+    }
+
+    // this method shouldn't be called unless specific event refresh is needed while user is in Google Maps
+    fun getEvent(eventId: Long): Flow<Event?> {
+        Log.i("EventRepository", "getEvent -> Getting current chatroom event!!!")
+        return object : NetworkBoundFetcher<Event?, CacheResponse<Event>>() {
+            override suspend fun saveNetworkResult(response: CacheResponse<Event>) {
+                saveEvent(response.model)
+            }
+
+            override fun shouldFetch(cache: Event?): Boolean = true
+
+            override suspend fun loadFromDb(): Flow<Event?> =
+                hobbyfiDatabase.eventDao().getEventById(eventId)
+
+            override suspend fun fetchFromNetwork(): CacheResponse<Event>? {
+                Log.i("EventRepository", "Fetching event from network with id: ${eventId}!")
+                return performAuthorisedRequest({
+                    hobbyfiAPI.fetchEvent(
+                        prefConfig.getAuthUserToken()!!,
+                        eventId
                     )
                 }, { fetchFromNetwork() })
             }
@@ -72,7 +96,6 @@ class EventRepository(
         }, { createEvent(name, description, date, base64Image, lat, long) })
     }
 
-    // TODO: Add id to request (event delete when one-to-many is developed)
     suspend fun deleteEvent(eventId: Long): Response? {
         Log.i("EventRepository", "deleteEvent -> Deleting chatroom event with id $eventId!!!")
 
