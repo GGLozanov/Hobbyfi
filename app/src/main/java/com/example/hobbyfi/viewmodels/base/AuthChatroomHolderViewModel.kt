@@ -39,7 +39,7 @@ abstract class AuthChatroomHolderViewModel(
 
     val chatroomState get() = chatroomStateIntent.state
 
-    private var _isAuthUserChatroomOwner = MutableLiveData(authUser.value?.id ==
+    private var _isAuthUserChatroomOwner = MutableLiveData((authUser.value?.id ?: false) ==
             authChatroom.value?.ownerId) // initial check; updated every time auth user or auth chatroom changes
     val isAuthUserChatroomOwner get() = _isAuthUserChatroomOwner
 
