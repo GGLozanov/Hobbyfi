@@ -133,12 +133,16 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/chatroom_leave_button"
+                        android:text="@string/chatroom_leave_button_text"
+                        android:drawableStart="@drawable/ic_baseline_person_remove_24"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/chatroom_join_button"
                         android:layout_width="wrap_content"
+                        android:text="@string/chatroom_join_button_text"
+                        android:drawableStart="@drawable/ic_baseline_person_add_24"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp" />
                 </LinearLayout>

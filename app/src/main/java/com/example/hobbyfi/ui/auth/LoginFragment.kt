@@ -215,8 +215,12 @@ class LoginFragment : AuthFragment() {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
                             .show()
 
-                        LoginManager.getInstance().logOut()
-                        if(connectivityManager.isConnected() == true) {
+                        // don't log out if only the email couldn't have been fetched
+                        if(!it.error.equals(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)) {
+                            LoginManager.getInstance().logOut()
+                        }
+
+                        if(connectivityManager.isConnected()) {
                             if (it.error != Constants.serverConnectionError) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
@@ -299,50 +303,50 @@ class LoginFragment : AuthFragment() {
             viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
-                val profile = Profile.getCurrentProfile()
-                val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
-                    val glide = Glide.with(this@LoginFragment)
+                Profile.getCurrentProfile()?.let {
+                    val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
+                        val glide = Glide.with(this@LoginFragment)
 
-                    var bmapResource: Bitmap? = null
-                    val target = object : CustomTarget<Bitmap>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap>?
-                        ) {
-                            bmapResource = resource
-                            continuation.resume(resource, null)
+                        var bmapResource: Bitmap? = null
+                        val target = object : CustomTarget<Bitmap>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap>?
+                            ) {
+                                bmapResource = resource
+                                continuation.resume(resource, null)
+                            }
+
+                            override fun onLoadCleared(placeholder: Drawable?) {
+                                bmapResource?.recycle()
+                                continuation.cancel(Constants.ImageFetchException())
+                            }
                         }
 
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            bmapResource?.recycle()
-                            continuation.cancel(Constants.ImageFetchException())
+                        glide
+                            .asBitmap()
+                            .load(
+                                it.getProfilePictureUri(
+                                    Constants.profileImageWidth,
+                                    Constants.profileImageHeight
+                                )
+                            ).into(target)
+
+                        continuation.invokeOnCancellation {
+                            glide.clear(target)
                         }
                     }
-
-                    glide
-                        .asBitmap()
-                        .load(
-                            profile.getProfilePictureUri(
-                                Constants.profileImageWidth,
-                                Constants.profileImageHeight
-                            )
-                        ).into(target)
-
-                    continuation.invokeOnCancellation {
-                        glide.clear(target)
-                    }
-                }
-
-                val image = ImageUtils.encodeImage(
-                    bitmap
-                )
-                viewModel.sendIntent(
-                    TokenIntent.FetchFacebookRegisterToken(
-                        AccessToken.getCurrentAccessToken().token,
-                        profile.name,
-                        image
+                    val image = ImageUtils.encodeImage(
+                        bitmap
                     )
-                )
+                    viewModel.sendIntent(
+                        TokenIntent.FetchFacebookRegisterToken(
+                            AccessToken.getCurrentAccessToken().token,
+                            it.name,
+                            image
+                        )
+                    )
+                }
             }
         }
     }

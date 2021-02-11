@@ -78,6 +78,7 @@
                     app:layout_constraintTop_toTopOf="parent">
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/delete_button"
+                        android:text="@string/delete"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -85,11 +86,13 @@
 
                     </com.google.android.material.button.MaterialButton>
 
+                    <!--TODO: Replace with actual FB button-->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/facebook_share_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
+                        android:text="@string/share_to_facebook"
                         android:visibility="@{ownerDisplay ? View.GONE : View.VISIBLE}" />
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>

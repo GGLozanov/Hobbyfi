@@ -311,6 +311,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     putExtras(intent)
                 })
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
                 finishAffinity()
             } else {
                 if(sendExtrasBroadcast) {
@@ -561,6 +562,7 @@ class ChatroomActivity : NavigationActivity(),
     @ExperimentalPagingApi
     private fun observeChatroomOwnRights() {
         viewModel.isAuthUserChatroomOwner.observe(this, Observer {
+            Log.i("ChatroomActivity", "Observing auth user is owner w/ value: ${it}")
             initTopNavigation(it)
         })
     }

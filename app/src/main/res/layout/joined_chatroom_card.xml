@@ -115,6 +115,10 @@
                 <include
                     android:id="@+id/join_chatroom_button_bar"
                     layout="@layout/button_bar_pair"
+                    app:leftButtonText="@{@string/chatroom_leave_button_text}"
+                    app:rightButtonText="@{@string/enter}"
+                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_person_remove_24}"
+                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_input_24}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"

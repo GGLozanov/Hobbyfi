@@ -33,12 +33,13 @@
             android:layout_gravity="center"
             android:layout_marginEnd="5dp"
             android:layout_marginRight="5dp"
-            android:text="create chatroom"
+            android:text="@string/create_chatroom"
             android:visibility="visible"
             app:backgroundTint="@color/colorPrimary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/refresh_page_button"
+            android:text="@string/retry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:backgroundTint="@color/colorSecondaryShade" />

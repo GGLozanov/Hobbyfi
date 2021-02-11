@@ -150,4 +150,28 @@
     <string name="enable_location_update_CD">Enable Location Updates</string>
     <string name="location_monitor_ask">Do you want to automatically enable location tracking now to keep in touch with the other users in the event? If you don\'t, you won\'t be shown as a participant in the event!</string>
     <string name="no_users">No Users</string>
+    <string name="chatroom_leave_button_text">Leave</string>
+    <string name="chatroom_join_button_text">Join</string>
+    <string name="create_chatroom">Create Chatroom</string>
+    <string name="retry">Retry</string>
+    <string name="share_to_facebook">Share</string>
+    <string name="delete_old_events">Delete Old</string>
+    <string name="create_custom">Create Custom</string>
+    <string name="choose_tags">Choose Tags</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="join_event">Join Event</string>
+    <string name="leave_event">Leave Event</string>
+    <string name="set_time">Set Date</string>
+    <string name="set_location">Set Place</string>
+    <string name="enter">Enter</string>
+    <string name="auth">Auth</string>
+    <string name="title_activity_onboarding">OnboardingActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>

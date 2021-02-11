@@ -3,19 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/auth_nav_graph"
-    app:startDestination="@id/splashScreenFragment">
+    app:startDestination="@id/loginFragment">
 
-    <fragment
-        android:id="@+id/splashScreenFragment"
-        android:name="com.example.hobbyfi.ui.auth.SplashScreenFragment"
-        android:label="Hobbyfi"
-        tools:layout="@layout/splash_screen_fragment">
-        <action
-            android:id="@+id/action_splashScreenFragment_to_loginFragment"
-            app:destination="@id/loginFragment"
-            app:popUpTo="@id/auth_nav_graph"
-            app:popUpToInclusive="true" />
-    </fragment>
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.hobbyfi.ui.auth.LoginFragment"
@@ -40,6 +29,9 @@
                 android:name="tags"
                 app:argType="com.example.hobbyfi.models.Tag[]" />
         </action>
+        <action
+            android:id="@+id/action_loginFragment_to_resetPasswordFragment"
+            app:destination="@id/resetPasswordFragment" />
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
@@ -81,4 +73,9 @@
             android:defaultValue="@null" />
     </activity>
     <include app:graph="@navigation/tag_nav_graph" />
+    <fragment
+        android:id="@+id/resetPasswordFragment"
+        android:name="com.example.hobbyfi.ui.auth.ResetPasswordFragment"
+        android:label="reset_password_fragment"
+        tools:layout="@layout/reset_password_fragment" />
 </navigation>

@@ -89,7 +89,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         )
         Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
 
-
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
         localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
 
@@ -145,14 +144,11 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
-                    is UserState.Idle -> {
+                    is UserState.Idle, is UserState.OnData.UserResult -> {
 
                     }
                     is UserState.Loading -> {
                         // TODO: Progressbar
-                    }
-                    is UserState.OnData.UserResult -> {
-                        // TODO: Something
                     }
                     is UserState.OnData.UserDeleteResult -> {
                         Toast.makeText(

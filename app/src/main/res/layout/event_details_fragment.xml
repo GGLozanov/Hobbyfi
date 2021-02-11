@@ -217,6 +217,10 @@
                         <include
                             android:id="@+id/event_view_button_bar"
                             layout="@layout/button_bar_pair"
+                            app:leftButtonText="@{@string/leave_event}"
+                            app:rightButtonText="@{@string/join_event}"
+                            app:leftButtonStartDrawable="@{@drawable/ic_baseline_tag_faces_24}"
+                            app:rightButtonStartDrawable="@{@drawable/ic_baseline_input_24}"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignBaseline="@id/days_left_header"

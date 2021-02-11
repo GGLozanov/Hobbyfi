@@ -173,7 +173,7 @@ object Constants {
     const val FAILED_RESPONSE = "failed"
     const val IMAGE_UPLOAD_SUCCESS_RESPONSE = "Image Uploaded"
     const val IMAGE_UPLOAD_FAILED_RESPONSE = "Image Upload Failed"
-    const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Error with fetching your Facebook email! Stopping login!"
+    const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Couldn't fetch Facebook email!"
     const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
     const val EXISTS_RESPONSE = "exists"
     const val INVALID_TOKEN = "invalid"

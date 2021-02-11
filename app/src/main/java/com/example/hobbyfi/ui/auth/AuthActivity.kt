@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
@@ -11,23 +12,17 @@ import com.example.hobbyfi.databinding.ActivityAuthBinding
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.toReadable
 import com.example.hobbyfi.ui.base.NavigationActivity
+import com.example.hobbyfi.viewmodels.auth.AuthActivityViewModel
 import io.branch.referral.Branch
 
 class AuthActivity : NavigationActivity() {
-    private var _restartedFromDeepLink: Boolean = false
-    val restartedFromDeepLink: Boolean get() = _restartedFromDeepLink
-
-    fun setRestartedFromDeeplink(res: Boolean) {
-        _restartedFromDeepLink = res
-    }
-
+    private val viewModel: AuthActivityViewModel by viewModels()
     private lateinit var binding: ActivityAuthBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("AuthActivity", "intent extras: ${intent.extras?.toReadable()}")
-        _restartedFromDeepLink = savedInstanceState?.getBoolean(Constants.deepLinkCall)
-            ?: intent.extras?.get("al_applink_data") != null
+        viewModel.setRestartedFromDeepLink(intent.extras?.get("al_applink_data") != null)
 
         binding = ActivityAuthBinding.inflate(layoutInflater)
         with(binding) {
@@ -39,12 +34,6 @@ class AuthActivity : NavigationActivity() {
 
             setSupportActionBar(toolbar)
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState.apply {
-            putBoolean(Constants.deepLinkCall, _restartedFromDeepLink)
-        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
