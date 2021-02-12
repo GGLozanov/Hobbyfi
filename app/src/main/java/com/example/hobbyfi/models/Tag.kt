@@ -4,6 +4,8 @@ import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.hobbyfi.shared.Constants
+import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "tags")
@@ -12,6 +14,7 @@ import kotlinx.parcelize.Parcelize
 data class Tag(
   val name: String,
   val colour: String,
+  @SerializedName(Constants.isFromFacebook)
   val isFromFacebook: Boolean = false,
   @PrimaryKey(autoGenerate = true)
   override val id: Long = 0

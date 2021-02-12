@@ -1,5 +1,6 @@
 package com.example.hobbyfi.adapters.tag
 
+import android.util.Log
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
@@ -8,6 +9,7 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import java.lang.Exception
 
+// TODO: Delete. This shit prolly isn't even used
 class TagTypeAdapter : TypeAdapter<Tag>() {
 
     override fun write(out: JsonWriter?, value: Tag?) {
@@ -33,26 +35,30 @@ class TagTypeAdapter : TypeAdapter<Tag>() {
         reader.beginObject()
         var tagName: String? = null
         var tagColour: String? = null
-        var tagFacebook = false
+        var tagFacebook: Boolean? = null
 
         while(reader.hasNext()) {
             var token = reader.peek()
 
             if(token == JsonToken.NAME) {
-                val name = reader.nextName()
                 token = reader.peek() // if ugly response peek might might not be apt since there won't be either colour or name field
-                if(name == Constants.colour) {
-                    tagColour = reader.nextString()
-                } else if(name == Constants.name) {
-                    tagName = reader.nextString()
-                } else if(name == Constants.isFromFacebook) {
-                    tagFacebook = reader.nextBoolean()
+
+                when (reader.nextName()) {
+                    Constants.colour -> {
+                        tagColour = reader.nextString()
+                    }
+                    Constants.name -> {
+                        tagName = reader.nextString()
+                    }
+                    Constants.isFromFacebook -> {
+                        tagFacebook = reader.nextBoolean()
+                    }
                 }
             }
         }
 
         reader.endObject()
 
-        return Tag(tagName!!, tagColour!!, tagFacebook)
+        return Tag(tagName!!, tagColour!!, tagFacebook!!)
     }
 }

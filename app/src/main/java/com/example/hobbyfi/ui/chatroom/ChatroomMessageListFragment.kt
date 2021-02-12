@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -143,15 +144,18 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
         messageListAdapter = ChatroomMessageListAdapter(
             activityViewModel.isAuthUserChatroomOwner.value == true,
-            activityViewModel.chatroomUsers.value ?: emptyList()
-        ) { _, message ->
-            // reuse fragment for distinct messages when they don't change
-            parentFragmentManager.showDistinctDialog(message.message, {
-                ChatroomMessageBottomSheetDialogFragment.newInstance(
-                    message
-                )
-            })
-            return@ChatroomMessageListAdapter true
+            activityViewModel.chatroomUsers.value ?: emptyList(), { _, message ->
+                // reuse fragment for distinct messages when they don't change
+                parentFragmentManager.showDistinctDialog(message.message, {
+                    ChatroomMessageBottomSheetDialogFragment.newInstance(
+                        message
+                    )
+                })
+                return@ChatroomMessageListAdapter true
+            }
+        ) { messageB ->
+            navController.navigate(ChatroomMessageListFragmentDirections
+                .actionChatroomMessageListFragmentToImageViewFragment(messageB.userImage.drawable.toBitmap()))
         }
 
         with(binding) {
@@ -208,10 +212,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatest {
                 when(it) {
-                    is MessageListState.Idle -> {
-
-                    }
-                    is MessageListState.Loading -> {
+                    is MessageListState.Idle, is MessageListState.Loading -> {
 
                     }
                     is MessageListState.OnData.MessagesResult -> {
@@ -254,7 +255,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
                     }
                     is MessageState.Loading -> {
-
+                        // TODO: stop button
                     }
                     is MessageState.OnData.MessageCreateResult -> {
                         viewModel.message.value = null // reset msg

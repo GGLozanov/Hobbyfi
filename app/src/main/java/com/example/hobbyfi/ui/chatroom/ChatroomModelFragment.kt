@@ -28,4 +28,6 @@ abstract class ChatroomModelFragment : ChatroomFragment() {
     override fun onPrepareOptionsMenu(menu: Menu) {
         menu.clear()
     }
+
+
 }

@@ -21,6 +21,7 @@ import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
@@ -42,6 +43,7 @@ import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.ui.main.MainActivity
+import com.example.hobbyfi.ui.onboard.OnboardingActivity
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
@@ -91,6 +93,8 @@ class ChatroomActivity : NavigationActivity(),
     private var createEventReceiver: BroadcastReceiver? = null
     private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
 
+    private var appBarConfig: AppBarConfiguration? = null
+
     private val branchReferralInitListener =
         BranchReferralInitListener { linkProperties, error ->
             val comeFromAuthDeepLink = comeFromAuthDeepLink()
@@ -103,9 +107,13 @@ class ChatroomActivity : NavigationActivity(),
                     Log.e("ChatroomActivity", "Deep-linking error: $error")
                     leaveChatroomWithRestart(linkParams = safeLinkProps)
                 } else {
+                    // TODO: Replace with sharedprefs check
                     if(safeLinkProps.get("+is_first_session") as Boolean && !comeFromAuthDeepLink) {
                         Log.i("ChatroomActivity", "First session triggered")
-                        leaveChatroomWithRestart(linkParams = safeLinkProps)
+                        leaveChatroomWithRestart(
+                            linkParams = safeLinkProps,
+                            leaveDestination = OnboardingActivity::class.java
+                        )
                         return@BranchReferralInitListener
                         // TODO: Show future onboarding after reauth
                     }
@@ -301,11 +309,12 @@ class ChatroomActivity : NavigationActivity(),
         leaveChatroom()
     }
 
-    private fun leaveChatroom(linkParams: JSONObject? = null, sendExtrasBroadcast: Boolean = false) {
+    private fun leaveChatroom(linkParams: JSONObject? = null, sendExtrasBroadcast: Boolean = false,
+                              leaveDestination: Class<*> = AuthActivity::class.java) {
         val leave = {
             viewModel.setChatroom(null) // clear chatroom in any case
             if(linkParams != null) {
-                startActivity(Intent(this, AuthActivity::class.java).apply {
+                startActivity(Intent(this, leaveDestination).apply {
                     linkParams.toBundle()?.let {
                         putExtras(it)
                     }
@@ -341,12 +350,13 @@ class ChatroomActivity : NavigationActivity(),
     // for deeplink errors
     private fun leaveChatroomWithRestart(
         exitMsg: String = Constants.invalidAccessError,
-        linkParams: JSONObject? = viewModel.currentLinkProperties
+        linkParams: JSONObject? = viewModel.currentLinkProperties,
+        leaveDestination: Class<*> = AuthActivity::class.java
     ) {
         // TODO: More graceful way to show this error... like a separate screen? Activity?
         Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
             .show()
-        leaveChatroom(linkParams)
+        leaveChatroom(linkParams, leaveDestination = leaveDestination)
     }
 
     private fun observeUsers() {
@@ -562,7 +572,6 @@ class ChatroomActivity : NavigationActivity(),
     @ExperimentalPagingApi
     private fun observeChatroomOwnRights() {
         viewModel.isAuthUserChatroomOwner.observe(this, Observer {
-            Log.i("ChatroomActivity", "Observing auth user is owner w/ value: ${it}")
             initTopNavigation(it)
         })
     }
@@ -603,7 +612,6 @@ class ChatroomActivity : NavigationActivity(),
 
     @ExperimentalPagingApi
     private fun initTopNavigation(chatroomOwner: Boolean) {
-        binding.toolbar.setNavigationIconTint(Color.WHITE)
         initTopNavigationNav(chatroomOwner)
         setToolbarAdminIconOnOwnership(chatroomOwner)
     }
@@ -613,27 +621,25 @@ class ChatroomActivity : NavigationActivity(),
             navViewChatroom.setupWithNavController(navController)
 
             if(chatroomOwner) {
+                appBarConfig = AppBarConfiguration(setOf(R.id.chatroomMessageListFragment), drawerLayout)
                 navViewAdmin.setupWithNavController(navController)
-                toolbar.setupWithNavController(
-                    navController,
-                    AppBarConfiguration(setOf(R.id.chatroomMessageListFragment), drawerLayout)
-                )
 
                 drawerLayout.setDrawerLockMode(
                     DrawerLayout.LOCK_MODE_UNDEFINED,
                     GravityCompat.START
                 )
             } else {
+                appBarConfig = AppBarConfiguration(setOf(R.id.chatroomMessageListFragment))
                 drawerLayout.setDrawerLockMode(
                     DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                     GravityCompat.START
                 )
-                toolbar.setupWithNavController(
-                    navController,
-                    AppBarConfiguration(setOf(R.id.chatroomMessageListFragment))
-                )
                 // TODO: Back button (white tint)
             }
+            toolbar.setupWithNavController(
+                navController,
+                appBarConfig!!
+            )
         }
     }
 
@@ -699,12 +705,15 @@ class ChatroomActivity : NavigationActivity(),
 
     @ExperimentalPagingApi
     private fun setToolbarAdminIconOnOwnership(owner: Boolean) {
-        if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
-            binding.toolbar.navigationIcon = if(owner)
-                ContextCompat.getDrawable(
+        with(binding.toolbar) {
+            if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+                setNavigationIconTint(android.graphics.Color.WHITE)
+                navigationIcon = if(owner) androidx.core.content.ContextCompat.getDrawable(
                     this@ChatroomActivity,
-                    R.drawable.ic_baseline_admin_panel_settings_24
+                    com.example.hobbyfi.R.drawable.ic_baseline_admin_panel_settings_24
                 ) else null
+            }
+            this@ChatroomActivity.setSupportActionBar(this)
         }
     }
 
@@ -926,4 +935,7 @@ class ChatroomActivity : NavigationActivity(),
             unregisterReceiver(deleteEventReceiver!!)
         }
     }
+
+    override fun onSupportNavigateUp() = navController.navigateUp(appBarConfig!!) ||
+            navController.navigateUp(binding.drawerLayout) || super.onSupportNavigateUp()
 }

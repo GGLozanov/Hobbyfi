@@ -17,6 +17,10 @@
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventDetailsFragment"
             app:destination="@id/eventDetailsFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_imageViewFragment"
+            app:destination="@id/imageViewFragment"
+            app:enterAnim="@anim/fragment_open_enter" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -62,5 +66,14 @@
         <argument
             android:name="event"
             app:argType="com.example.hobbyfi.models.Event" />
+    </fragment>
+    <fragment
+        android:id="@+id/imageViewFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ImageViewFragment"
+        android:label="View Image"
+        tools:layout="@layout/fragment_image_view" >
+        <argument
+            android:name="image"
+            app:argType="android.graphics.Bitmap" />
     </fragment>
 </navigation>

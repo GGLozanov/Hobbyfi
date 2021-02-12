@@ -32,7 +32,8 @@ import java.lang.IllegalArgumentException
 class ChatroomMessageListAdapter(
     private var isAuthUserChatroomOwner: Boolean,
     private var currentUsers: List<User>,
-    private inline val onMessageLongPress: (View, Message) -> Boolean
+    private inline val onMessageLongPress: (View, Message) -> Boolean,
+    private inline val onImageMessagePress: (MessageCardBinding) -> Unit
 ): PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
@@ -101,19 +102,19 @@ class ChatroomMessageListAdapter(
         isAuthUserChatroomOwner: Boolean,
         private val prefConfig: PrefConfig,
     ) : ChatroomMessageViewHolder(rootView, isAuthUserChatroomOwner, onMessageLongPress) {
-        override fun bind(message: Message?, position: Int) {
-            Log.i("ChatroomMListAdapter", "Message: $message")
+        override fun bind(model: Message?, position: Int) {
+            Log.i("ChatroomMListAdapter", "Message: $model")
             val userSentMessage =
-                users.find { message?.userSentId == prefConfig.getAuthUserIdFromToken() }
+                users.find { model?.userSentId == prefConfig.getAuthUserIdFromToken() }
 
             if(userSentMessage != null || isAuthUserChatroomOwner) {
                 messageCardBinding.messageCardLayout.setOnLongClickListener {
-                    onMessageLongPress(it, message!!)
+                    onMessageLongPress(it, model!!)
                 }
             }
 
             // DATA BINDING GO BRRRRRR????
-            messageCardBinding.userMessage.text = message?.message
+            messageCardBinding.userMessage.text = model?.message
         }
     }
 
@@ -198,6 +199,9 @@ class ChatroomMessageListAdapter(
                 .load(message.message)
                 .placeholder(R.drawable.ic_baseline_image_42)
                 .into(messageBinding.userImage)
+            messageBinding.messageCardLayout.setOnClickListener {
+                onImageMessagePress(messageBinding)
+            }
         }
 
         messageBinding.userImage.isVisible = isMessageImage
