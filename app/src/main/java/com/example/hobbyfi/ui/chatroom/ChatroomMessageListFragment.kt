@@ -198,8 +198,10 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
             Log.i("ChatroomMListFragment", "Adapter users: $it")
             if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent
-                lifecycleScope.launch {
-                    viewModel.sendIntent(MessageListIntent.FetchMessages(activityViewModel.authChatroom.value!!.id))
+                activityViewModel.authChatroom.value?.let {
+                    lifecycleScope.launch {
+                        viewModel.sendIntent(MessageListIntent.FetchMessages(it.id))
+                    }
                 }
             }
 
@@ -409,5 +411,10 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         lifecycleScope.launch {
             viewModel.sendMessageIntent(MessageIntent.DeleteMessage(message.id))
         }
+    }
+
+    fun resetMessages() {
+        Log.i("ChatroomMListFragment", "resetting messages")
+        viewModel.setCurrentMessages(null)
     }
 }

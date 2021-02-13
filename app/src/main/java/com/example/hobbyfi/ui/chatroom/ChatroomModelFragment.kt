@@ -2,8 +2,10 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.ui.NavigationUI
 import androidx.paging.ExperimentalPagingApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -18,6 +20,11 @@ abstract class ChatroomModelFragment : ChatroomFragment() {
         // hacky way to fix drawer but... so is life. Use toolbars and navviews on individual fragments, kids!
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     @ExperimentalCoroutinesApi
     override fun onDestroyView() {
         super.onDestroyView()
@@ -28,6 +35,4 @@ abstract class ChatroomModelFragment : ChatroomFragment() {
     override fun onPrepareOptionsMenu(menu: Menu) {
         menu.clear()
     }
-
-
 }

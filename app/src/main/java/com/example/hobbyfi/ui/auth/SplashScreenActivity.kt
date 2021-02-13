@@ -12,6 +12,7 @@ import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.ui.onboard.OnboardingActivity
 import com.example.hobbyfi.utils.TokenUtils
+import com.facebook.login.LoginManager
 import io.branch.referral.Branch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -48,6 +49,7 @@ class SplashScreenActivity : BaseActivity() {
         } catch (ex: Exception) {
             ex.printStackTrace()
             Log.i("SplashScreen", "Not authenticated. Moving to AuthActivity (LoginFragment)")
+            LoginManager.getInstance().logOut() // log out in case of already being logged in
             startActivity(Intent(this, AuthActivity::class.java).apply {
                 flags = FLAG_ACTIVITY_NEW_TASK or FLAG_ACTIVITY_CLEAR_TOP
             })

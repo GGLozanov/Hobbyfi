@@ -116,7 +116,6 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
     override fun observeAuthUser() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
-
                 setChatroomLeaveButtonVisibility()
 
                 Log.i("JoinedCListFragment", "currentJoinedChatrooms: ${viewModel.currentJoinedChatrooms}")

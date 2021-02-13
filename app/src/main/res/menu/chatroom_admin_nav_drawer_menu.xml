@@ -4,7 +4,6 @@
     <item
         android:id="@+id/chatroomEditFragment"
         android:icon="@drawable/ic_baseline_edit_24"
-        android:menuCategory="secondary"
         android:title="@string/edit_chatroom"
         android:titleCondensed="@string/edit_chatroom"
         app:showAsAction="withText" />
@@ -12,7 +11,6 @@
     <item
         android:id="@+id/event_create_navigation"
         android:icon="@drawable/ic_baseline_event_24"
-        android:menuCategory="secondary"
         android:title="@string/create_event"
         android:titleCondensed="@string/create_event"
         app:showAsAction="withText" />
@@ -20,7 +18,6 @@
     <item
         android:id="@+id/action_delete_chatroom"
         android:icon="@drawable/ic_baseline_delete_forever_24"
-        android:menuCategory="secondary"
         android:title="@string/delete_chatroom"
         android:titleCondensed="@string/delete_chatroom"
         app:showAsAction="withText" /> <!--TODO: Add dialogfragment for confirming user auth before chatroom deletion and change id to nav graph id-->

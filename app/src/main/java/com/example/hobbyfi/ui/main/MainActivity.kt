@@ -84,11 +84,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
 
-        viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
-            && viewModel.deepLinkExtras == null) intent.extras else null
-        )
-        Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
-
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
         localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
 
@@ -108,6 +103,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     override fun onStart() {
         super.onStart()
+        viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
+            && viewModel.deepLinkExtras == null) intent.extras else null
+        )
+        Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
         observeUserState()
     }
 

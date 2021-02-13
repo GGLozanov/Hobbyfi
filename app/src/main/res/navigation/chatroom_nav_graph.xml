@@ -10,17 +10,21 @@
         android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment">
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditFragment"
-            app:destination="@id/chatroomEditFragment" />
+            app:destination="@id/chatroomEditFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
-            app:destination="@id/event_create_navigation" />
+            app:destination="@id/event_create_navigation"
+            app:popUpTo="@id/chatroomMessageListFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventDetailsFragment"
-            app:destination="@id/eventDetailsFragment" />
+            app:destination="@id/eventDetailsFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_imageViewFragment"
             app:destination="@id/imageViewFragment"
-            app:enterAnim="@anim/fragment_open_enter" />
+            app:enterAnim="@anim/fragment_open_enter"
+            app:popUpTo="@id/chatroomMessageListFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"

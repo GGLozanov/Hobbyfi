@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -23,6 +24,7 @@ import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.tasks.OnFailureListener
@@ -86,7 +88,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             Callbacks.subscribeToChatroomTopicByCurrentConnectivity( {
                     updateJob = lifecycleScope.launch {
                         prefConfig.writeLastEnteredChatroomId(chatroom.id)
-                        navigateToChatroom()
+                        navigateToChatroomPerDeepLinkExtras()
                     }
                 },
                 chatroom.id,
@@ -164,9 +166,24 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
         }
     }
 
-    abstract fun navigateToChatroom()
-    
-    abstract fun navigateToChatroomCreate()
+    protected fun navigateToChatroomPerDeepLinkExtras() {
+        if(activityViewModel.deepLinkExtras != null &&
+            viewModel.buttonSelectedChatroom?.id ==
+                activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
+            startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
+                putExtras(activityViewModel.deepLinkExtras!!)
+            })
+
+            activityViewModel.setDeepLinkExtras(null)
+            ActivityCompat.finishAffinity(requireActivity())
+        } else {
+            navigateToChatroom()
+        }
+    }
+
+    protected abstract fun navigateToChatroom()
+
+    protected abstract fun navigateToChatroomCreate()
 
     override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)

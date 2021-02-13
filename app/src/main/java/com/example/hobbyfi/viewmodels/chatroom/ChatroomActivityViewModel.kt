@@ -40,7 +40,7 @@ class ChatroomActivityViewModel(
     val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
 
     fun setAuthEvents(events: List<Event>?) {
-        _authEvents.value = events
+        _authEvents.value = events ?: emptyList()
     }
 
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
