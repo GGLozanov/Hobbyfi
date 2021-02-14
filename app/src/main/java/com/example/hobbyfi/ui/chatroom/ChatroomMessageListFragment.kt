@@ -106,7 +106,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         }
     }
 
-    private var chatroomMessageBroadacastReceiverFactory: ChatroomMessageBroadcastReceiverFactory? = null
+    private var chatroomMessageBroadcastReceiverFactory: ChatroomMessageBroadcastReceiverFactory? = null
 
     private var createMessageReceiver: BroadcastReceiver? = null
     private var editMessageReceiver: BroadcastReceiver? = null
@@ -123,11 +123,11 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         val activity = requireActivity() as ChatroomActivity
 
         // TODO: Move receiver registration in after chatroom messages fetch!!!
-        chatroomMessageBroadacastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
+        chatroomMessageBroadcastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
             .getInstance(viewModel, messageListAdapter!!, activityViewModel, activity)
-        createMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
-        editMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
-        deleteMessageReceiver = chatroomMessageBroadacastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
+        createMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
+        editMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
+        deleteMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
 
         localBroadcastManager.registerReceiver(createMessageReceiver!!, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
         localBroadcastManager.registerReceiver(editMessageReceiver!!, IntentFilter(Constants.EDIT_MESSAGE_TYPE))

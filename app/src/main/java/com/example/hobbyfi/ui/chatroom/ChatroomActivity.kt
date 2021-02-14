@@ -681,7 +681,7 @@ class ChatroomActivity : NavigationActivity(),
                     DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                     GravityCompat.START
                 )
-                binding.toolbar.setNavigationIconTint(android.R.color.white)
+                binding.toolbar.setNavigationIconTint(ContextCompat.getColor(this@ChatroomActivity, android.R.color.white))
             }
             toolbar.setupWithNavController(
                 navController,
