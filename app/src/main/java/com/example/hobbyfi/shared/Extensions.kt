@@ -316,6 +316,12 @@ fun android.content.Intent.putDeletedModelIdExtra(data: Map<String, String>) =
             .toLong()
     )
 
+fun android.content.Intent.putDeletedModelUserSentIdExtra(data: Map<String, String>) =
+    putExtra(
+        Constants.DELETED_MODEL_USER_SENT_ID, (data[Constants.USER_SENT_ID] ?: error("Data User sent ID must not be null!"))
+            .toLong()
+    )
+
 // generic go rippppp
 fun android.content.Intent.putParcelableUserExtra(data: Map<String, String>) {
     putExtra(Constants.PARCELABLE_MODEL, User(data))

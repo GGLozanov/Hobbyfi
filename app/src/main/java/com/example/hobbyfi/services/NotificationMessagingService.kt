@@ -1,8 +1,11 @@
 package com.example.hobbyfi.services
 
+import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.PowerManager
 import android.util.Log
@@ -18,8 +21,12 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.paging.ExperimentalPagingApi
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
+import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -100,16 +107,18 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         var title: String? = null
         var body: String? = null
+        var isImageMessage = false
 
-        // TODO: Add support for inputting and parsing one-to-many connections for models
         when(notificationType) {
             Constants.CREATE_MESSAGE_TYPE -> {
                 intent.putParcelableMessageExtra(data)
-                // TODO: Add message content to notification body while trimming it
                 // TODO: Handle message being url to picture and show only "new image message received!"
                 if (data[Constants.USER_SENT_ID] != null) {
                     title = resources.getString(R.string.create_message_notification_title)
-                    body = data[Constants.MESSAGE]
+                    isImageMessage = data[Constants.MESSAGE]?.let { Constants.imageRegex.matches(it) } == true
+                    if(!isImageMessage) {
+                        body = data[Constants.MESSAGE]
+                    }
                 }
             }
             Constants.CREATE_EVENT_TYPE -> {
@@ -133,6 +142,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 body = resources.getString(R.string.delete_chatroom_notification_body)
             }
             Constants.DELETE_MESSAGE_TYPE -> {
+                intent.putDeletedModelUserSentIdExtra(data)
                 intent.putDeletedModelIdExtra(data)
             }
             Constants.JOIN_USER_TYPE -> {
@@ -165,13 +175,13 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         if(((!isAppInFocus && screenOff) || (!screenOff && !isAppInForeground))) {
             Log.i("NotificationMService", "App is in DOZE/onPause state, NOT onStop(). Adding ")
             deferredBroadcastsQueue.add(intent)
-            if(title == null || body == null) {
+            if((title == null || body == null) && !isImageMessage) {
                 return
             }
         }
 
-        if(title != null && body != null) {
-            // title & body set => hit a possible push notification
+        if(title != null) {
+            // title/body set => hit a possible push notification
             handlePushMessageForChatroomByLifecycle(
                 intent,
                 title,
@@ -205,7 +215,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     private fun handlePushMessageForChatroomByLifecycle(
         intent: Intent,
         pushTitle: String,
-        pushBody: String
+        pushBody: String?
     ) {
         if(isAppInForeground) {
             // send broadcast
@@ -221,20 +231,22 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 "App is in BACKGROUND. Sending push notification for current intent: ${intent}"
             )
             intent.setClass(this, ChatroomActivity::class.java)
-            sendPushNotificationForChatroom(intent, pushTitle, pushBody)
+
+            if(pushBody != null) {
+                sendNormalPushNotificationForChatroom(intent, pushTitle, pushBody)
+            } else {
+                // image notification for message - always
+                sendImagePushNotificationForChatroom(intent, pushTitle, intent.getParcelableExtra<Message>(Constants.PARCELABLE_MODEL)!!.message)
+            }
         }
     }
 
-    private fun sendPushNotificationForChatroom(
+    private fun sendNormalPushNotificationForChatroom(
         pushIntent: Intent,
         pushTitle: String,
         pushBody: String
     ) {
-        val resultPendingIntent: PendingIntent? = TaskStackBuilder.create(this).run {
-            addNextIntent(pushIntent) // add intent
-            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT) // get PendingIntent in its entirety
-        } // always start an activity with the backstack history because the chatroom can be navigated to and from
-
+        val resultPendingIntent = buildResultPendingIntent(pushIntent)
         val notification = NotificationCompat.Builder(
             this,
             resources.getString(R.string.default_notification_channel_id)
@@ -255,6 +267,52 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 }
         }.build()
 
+        sendPushNotificationToAppChannel(notification, resultPendingIntent)
+    }
+
+    private fun sendImagePushNotificationForChatroom(
+        pushIntent: Intent,
+        pushTitle: String,
+        imageURL: String
+    ) {
+        Glide.with(this)
+            .asBitmap()
+            .load(imageURL)
+            .into(object : CustomTarget<Bitmap>(){
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    val resultPendingIntent = buildResultPendingIntent(pushIntent)
+                    val notification = NotificationCompat.Builder(
+                        this@NotificationMessagingService,
+                        resources.getString(R.string.default_notification_channel_id)
+                    ).apply {
+                        color = ContextCompat.getColor(
+                            this@NotificationMessagingService,
+                            R.color.colorBackground
+                        )
+                        setContentTitle(pushTitle)
+                        setContentText(Constants.tapToViewImage)
+                        priority = NotificationCompat.PRIORITY_DEFAULT
+                        setContentIntent(resultPendingIntent)
+                        setSmallIcon(applicationInfo.icon)
+                        setLargeIcon(resource)
+                        setStyle(NotificationCompat.BigPictureStyle()
+                            .bigPicture(resource)
+                            .bigLargeIcon(null))
+                        setAutoCancel(true)
+
+                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            setChannelId(resources.getString(R.string.default_notification_channel_id))
+                        }
+                    }.build()
+
+                    sendPushNotificationToAppChannel(notification, resultPendingIntent)
+                }
+                override fun onLoadCleared(placeholder: Drawable?) {
+                }
+            })
+    }
+
+    private fun sendPushNotificationToAppChannel(notification: Notification, resultPendingIntent: PendingIntent) {
         // >= API 26
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
@@ -264,4 +322,10 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             notify(resultPendingIntent.hashCode(), notification) // TODO: Probably move away from hash codes. . .
         }
     }
+
+    private fun buildResultPendingIntent(pushIntent: Intent): PendingIntent =
+        TaskStackBuilder.create(this)
+            .addNextIntent(pushIntent) // add intent
+            .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)!! // get PendingIntent in its entirety; can't be null since flags are properly set
+        // always start an activity with the backstack history because the chatroom can be navigated to and from
 }

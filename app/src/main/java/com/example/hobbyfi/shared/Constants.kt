@@ -74,6 +74,7 @@ object Constants {
     const val invalidAccessError: String = "In order to access this content, you'll need to log in, or sign up and join the chatroom first."
     const val eventAlreadyDeleted: String = "Linked event seems to already have been deleted by the chatroom owner!"
     const val notJoinedChatroomError: String = "Can't participate in an event whose chatroom you haven't joined!"
+    const val tapToViewImage: String = "Tap to view sent image"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -259,13 +260,15 @@ object Constants {
     const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
     const val DELETE_EVENT_BATCH_TYPE: String = "DELETE_EVENT_BATCH"
 
+    const val DELETED_MODEL_USER_SENT_ID: String = "DELETED_MODEL_USER_SENT_ID"
+
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
     const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
 
-    const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED"
+    const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED" // TODO: Use
 
     // TODO: Move to DI and use it somehow...?!??
-    // Process death go brrr :(((
+    // Process death go brrr
     val tagJsonConverter: Gson = GsonBuilder()
         .registerTypeAdapter(
             Tag::class.java,

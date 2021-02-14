@@ -78,10 +78,8 @@ class ChatroomMessageBroadcastReceiverFactory(
                     onNoNotifyLog = "Current broadcastreceiver for DELETE message has targeted auth user AS owner of message. " +
                             "Aborting DELETE message intent",
                     isNotChatroomOwnerOrShouldSee = authUserIdChecker {
-                        val authUserId = chatroomActivityViewModel?.authUser?.value?.id
-                        if(chatroomActivityViewModel?.isAuthUserChatroomOwner?.value == false) (messagesAdapter.findItemFromCurrentPagingData
-                    { message -> message.id == it.getDeletedModelIdExtra() }?.userSentId) ?:
-                        authUserId else authUserId }
+                        return@authUserIdChecker it.extras!!.getLong(Constants.DELETED_MODEL_USER_SENT_ID)
+                    }
                 )
             }
             else -> throw IllegalArgumentException(Constants.invalidBroadcastAction)

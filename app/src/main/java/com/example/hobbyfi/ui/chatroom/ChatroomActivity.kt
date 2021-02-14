@@ -366,7 +366,7 @@ class ChatroomActivity : NavigationActivity(),
             } else {
                 if (sendExtrasBack) {
                     val extras = Branch.getInstance().latestReferringParams.toBundle()!!
-                    userStateCollectJob?.cancel()
+                    userStateCollectJob?.cancel() // bugs out in repeating the same user state collection otherwise
                     startActivity(Intent(this, AuthActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
                     })
@@ -681,7 +681,7 @@ class ChatroomActivity : NavigationActivity(),
                     DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                     GravityCompat.START
                 )
-                // TODO: Back button (white tint)
+                binding.toolbar.setNavigationIconTint(android.R.color.white)
             }
             toolbar.setupWithNavController(
                 navController,
