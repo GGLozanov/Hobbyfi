@@ -5,6 +5,7 @@ import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
@@ -108,6 +109,16 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
             } catch(ex: JSONException) {
                 throw Exception(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)
             }
+        }
+    }
+
+    suspend fun resetPassword(email: String): Response? {
+        Log.i("TokenRepository", "resetPassword -> resetting user password w/ email:"
+                + email + "\n login token")
+        return try {
+            hobbyfiAPI.resetPassword(email)
+        } catch(ex: Exception) {
+            Callbacks.dissectRepositoryExceptionAndThrow(ex)
         }
     }
 }

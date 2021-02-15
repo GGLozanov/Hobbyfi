@@ -30,7 +30,10 @@ class AuthActivity : NavigationActivity() {
             setContentView(view)
             initNavController()
 
-            binding.toolbar.setupWithNavController(navController, AppBarConfiguration(setOf(R.id.loginFragment, R.id.registerFragment)))
+            binding.toolbar.setupWithNavController(
+                navController,
+                AppBarConfiguration(setOf(R.id.loginFragment, R.id.registerFragment))
+            )
 
             setSupportActionBar(toolbar)
         }
@@ -49,6 +52,9 @@ class AuthActivity : NavigationActivity() {
                     navController.navigate(R.id.action_registerFragment_to_loginFragment)
                 }
             }
+            android.R.id.home -> {
+                navController.navigateUp()
+            } // explicitly handle; just in case
         }
 
         return true

@@ -328,7 +328,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
             activity.binding.toolbar
                 .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
 
-            messageListAdapter!!.setAuthUserChatromOwner(it)
+            messageListAdapter!!.setAuthUserChatroomOwner(it)
         })
     }
 

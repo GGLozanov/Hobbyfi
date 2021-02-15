@@ -76,6 +76,6 @@
     <fragment
         android:id="@+id/resetPasswordFragment"
         android:name="com.example.hobbyfi.ui.auth.ResetPasswordFragment"
-        android:label="reset_password_fragment"
-        tools:layout="@layout/reset_password_fragment" />
+        android:label="Reset Password"
+        tools:layout="@layout/fragment_reset_password" />
 </navigation>

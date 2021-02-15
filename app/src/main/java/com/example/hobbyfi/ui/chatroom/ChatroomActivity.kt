@@ -3,7 +3,6 @@ package com.example.hobbyfi.ui.chatroom
 import android.annotation.SuppressLint
 import android.content.*
 import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -14,7 +13,6 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
@@ -112,7 +110,7 @@ class ChatroomActivity : NavigationActivity(),
                     leaveChatroomWithRestart(linkParams = safeLinkProps)
                 } else {
                     // TODO: Replace with sharedprefs check
-                    if (safeLinkProps.get("+is_first_session") as Boolean && !comeFromAuthDeepLink) {
+                    if (prefConfig.readOnboardingValid() && !comeFromAuthDeepLink) {
                         Log.i("ChatroomActivity", "First session triggered")
                         leaveChatroomWithRestart(
                             linkParams = safeLinkProps,
@@ -210,7 +208,7 @@ class ChatroomActivity : NavigationActivity(),
                 R.id.chatroomMessageListFragment -> {
                     viewModel.authChatroom.value?.name
                 }
-                else ->navController.currentDestination?.label
+                else -> navController.currentDestination?.label
             }
         }
     }

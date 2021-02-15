@@ -174,4 +174,16 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="cont">Continue</string>
+    <string name="finish">Finish</string>
+    <string name="reset_password_hint">Forgot your pasword? Reset it!</string>
+    <string name="welcome_to_app">Welcome to Hobbyfi: The Hobbyists\' Platform!</string>
+    <string name="app_description">Hobbyfi\'s goal is to allow all kinds of hobbyists—from artists, to sports players, to teachers, and just plain friends—to connect with each other and interact in real time!</string>
+    <string name="auth_explanation">To begin using Hobbyfi, you\'ll first need to either log in from an existing account or create one.</string>
+    <string name="facebook_mention">You may also choose to log in with a Facebook account, if you so desire.</string>
+    <string name="chatrooms_explanation">After customising your account, you may partake in...</string>
+    <string name="app_description_outro">Rooms! You can join rooms and interact with others, join events, and much more!</string>
+    <string name="closing_onboarding">In summary, that\'s it! But Hobbyfi has a lot to offer, so be sure to explore. Thank you for making it this far :)</string>
+    <string name="reset_password_header">Reset Password</string>
+    <string name="reset">Reset</string>
 </resources>

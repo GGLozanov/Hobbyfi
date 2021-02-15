@@ -75,6 +75,9 @@ object Constants {
     const val eventAlreadyDeleted: String = "Linked event seems to already have been deleted by the chatroom owner!"
     const val notJoinedChatroomError: String = "Can't participate in an event whose chatroom you haven't joined!"
     const val tapToViewImage: String = "Tap to view sent image"
+    const val emailNotFound: String = "User with this given e-mail wasn't found!"
+    const val emailSendFail: String= "Failed to send e-mail! Please, try again!"
+    const val facebookUserSendAttempt: String = "User with this e-mail is a Facebook user and doesn't need an e-mail sent!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"

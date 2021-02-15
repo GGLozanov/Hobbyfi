@@ -84,8 +84,14 @@ class LoginFragment : AuthFragment() {
 
         initFacebookLogin()
 
-        binding.switchToRegisterSubtitle.setOnClickListener {
-            navController.navigate(R.id.action_loginFragment_to_registerFragment)
+        with(binding) {
+            switchToRegisterSubtitle.setOnClickListener {
+                navController.navigate(R.id.action_loginFragment_to_registerFragment)
+            }
+
+            resetPasswordSubtitle.setOnClickListener {
+                navController.navigate(R.id.action_loginFragment_to_resetPasswordFragment)
+            }
         }
 
         observeFacebookState()

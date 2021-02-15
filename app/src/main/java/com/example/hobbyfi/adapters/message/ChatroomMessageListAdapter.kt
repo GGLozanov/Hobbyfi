@@ -233,7 +233,7 @@ class ChatroomMessageListAdapter(
         }
     }
 
-    fun setAuthUserChatromOwner(isOwner: Boolean) {
+    fun setAuthUserChatroomOwner(isOwner: Boolean) {
         if(isAuthUserChatroomOwner != isOwner) {
             isAuthUserChatroomOwner = isOwner
             notifyDataSetChanged()

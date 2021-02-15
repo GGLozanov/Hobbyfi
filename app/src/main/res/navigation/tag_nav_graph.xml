@@ -7,7 +7,7 @@
     <dialog
         android:id="@+id/tagSelectionDialogFragment"
         android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
-        android:label="fragment_tag_selection_dialog"
+        android:label="Select Tags"
         tools:layout="@layout/fragment_tag_selection_dialog">
         <argument
             android:name="selectedTags"
@@ -23,5 +23,5 @@
     <dialog
         android:id="@+id/customTagCreateDialogFragment"
         android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"
-        android:label="CustomTagCreateDialogFragment" />
+        android:label="Create Tag" />
 </navigation>

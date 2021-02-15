@@ -80,6 +80,14 @@ interface HobbyfiAPI {
     ): TokenResponse?
 
     /**
+     *
+     */
+    @GET("api/v${API_VERSION}/user/reset_password")
+    suspend fun resetPassword(
+        @Query(Constants.EMAIL) email: String
+    ): Response?
+
+    /**
      * GET request to retrieve a user's/users' info from the server
      * @param token - JWT for the given auth user used to validate requests to secure endpoints
      * @return - a User model containing all the necessary information and the appropriate response from server

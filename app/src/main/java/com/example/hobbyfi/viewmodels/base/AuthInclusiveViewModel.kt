@@ -16,20 +16,7 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class AuthInclusiveViewModel(
     application: Application
-) : StateIntentViewModel<TokenState, TokenIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
-    // will allow subclasses to override handleIntent() to
-    // handle invalid intents and impose some form of order in an otherwise tightly coupled inheritance hierarchy
-
-    protected val tokenRepository: TokenRepository by instance(tag = "tokenRepository")
-
-    override val mainStateIntent: StateIntent<TokenState, TokenIntent> = object : StateIntent<TokenState, TokenIntent>() {
-        override val _state: MutableStateFlow<TokenState> = MutableStateFlow(TokenState.Idle)
-    }
-
-    fun resetTokenState() = mainStateIntent.setState(TokenState.Idle)
-
-    @Bindable
-    val email: MutableLiveData<String> = MutableLiveData()
+) : AuthPartialViewModel(application) {
 
     @Bindable
     val password: MutableLiveData<String> = MutableLiveData()

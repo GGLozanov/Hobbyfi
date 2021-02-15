@@ -183,6 +183,21 @@ class PrefConfig(private val context: Context) {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
+    fun readOnboardingValid(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_first_app_boot),
+            true
+        )
+    }
+
+    fun writeOnboardingValid(valid: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_first_app_boot),
+            valid
+        ).apply()
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())
