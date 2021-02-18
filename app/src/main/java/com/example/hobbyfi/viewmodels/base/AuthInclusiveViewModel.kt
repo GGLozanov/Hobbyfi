@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.TokenRepository
+import com.example.hobbyfi.shared.PredicateMutableLiveData
+import com.example.hobbyfi.shared.equalsOrBiggerThan
+import com.example.hobbyfi.shared.equalsOrLessThan
 import com.example.hobbyfi.state.TokenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +22,9 @@ abstract class AuthInclusiveViewModel(
 ) : AuthPartialViewModel(application) {
 
     @Bindable
-    val password: MutableLiveData<String> = MutableLiveData()
+    open val password: PredicateMutableLiveData<String> = PredicateMutableLiveData {  it == null ||
+            it.isEmpty() || it.length <= 4
+                || it.length >= 15 }
 
     protected suspend fun fetchLoginToken() {
         mainStateIntent.setState(TokenState.Loading)

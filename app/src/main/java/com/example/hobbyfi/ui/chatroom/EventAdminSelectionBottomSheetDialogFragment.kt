@@ -100,7 +100,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
 
                     }
                     is EventState.Loading -> {
-
+                        // TODO: Progressbar
                     }
                     is EventState.OnData.EventDeleteResult -> {
                         activityViewModel.sendEventsIntent(EventListIntent.DeleteAnEventCache(it.eventId))

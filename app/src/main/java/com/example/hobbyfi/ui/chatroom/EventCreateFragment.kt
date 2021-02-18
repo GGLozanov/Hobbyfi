@@ -1,31 +1,22 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.text.format.DateFormat
-import android.util.Log
 import android.view.*
 import android.widget.DatePicker
 import android.widget.TimePicker
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
-import com.example.hobbyfi.state.EventListState
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -36,7 +27,6 @@ import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -56,6 +46,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
             .inflate(inflater, R.layout.fragment_event_create, container, false)
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@EventCreateFragment
@@ -76,10 +67,6 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
             }
 
             confirmButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(EventIntent.CreateEvent(activityViewModel.authChatroom.value!!.id))
                 }
@@ -118,41 +105,28 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding.eventInfo) {
-            // Code quality TODO:
-            // Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
-            // with the preset predicate/error pairs
-            nameInputField.addTextChangedListener(
-                Constants.nameInputError,
-                Constants.namePredicate
-            )
+    override fun observePredicateValidators() {
+        // Code quality TODO:
+        // Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
+        // with the preset predicate/error pairs
+        viewModel.name.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, Constants.nameInputError)
+        )
 
-            descriptionInputField.addTextChangedListener(
-                Constants.descriptionInputError,
-                Constants.descriptionPredicate
-            )
-        }
+        viewModel.description.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, Constants.descriptionInputError)
+        )
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding.eventInfo) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
-                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.confirmButton))
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding.eventInfo) {
-            nameInputField.removeAllEditTextWatchers()
-            descriptionInputField.removeAllEditTextWatchers()
-        }
+        observePredicateValidators()
     }
 
     override fun onDateSet(picker: DatePicker?, year: Int, month: Int, day: Int) =

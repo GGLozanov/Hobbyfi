@@ -11,7 +11,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
@@ -20,8 +19,8 @@ import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
+import com.example.hobbyfi.shared.ViewReverseEnablerObserver
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
@@ -46,6 +45,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
             .inflate(layoutInflater, R.layout.fragment_chatroom_edit, container, false)
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@ChatroomEditFragment
@@ -54,10 +54,6 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 Callbacks.requestImage(this@ChatroomEditFragment)
             }
             chatroomInfo.buttonBar.rightButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 val fieldMap: MutableMap<String?, String?> = mutableMapOf()
 
                 if(activityViewModel.authChatroom.value?.name != viewModel!!.name.value) {
@@ -91,8 +87,8 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
 
             activityViewModel.authChatroom.observe(viewLifecycleOwner, Observer {
                 if(it != null) {
-                    viewModel!!.name.value = it.name
-                    viewModel!!.description.value = it.description
+                    viewModel!!.name.setValue(it.name)
+                    viewModel!!.description.setValue(it.description)
                     it.tags?.let { selectedTags ->
                         viewModel!!.tagBundle.setSelectedTags(selectedTags)
                         viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
@@ -132,38 +128,25 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
         }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding.chatroomInfo) {
-            nameInputField.addTextChangedListener(
-                Constants.nameInputError,
-                Constants.namePredicate
-            )
+    override fun observePredicateValidators() {
+        viewModel.name.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, Constants.nameInputError)
+        )
 
-            descriptionInputField.addTextChangedListener(
-                Constants.descriptionInputError,
-                Constants.descriptionPredicate
-            )
-        }
+        viewModel.description.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+        )
+    }
+
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.chatroomInfo.buttonBar.rightButton))
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            chatroomInfo.nameInputField.removeAllEditTextWatchers()
-            chatroomInfo.descriptionInputField.removeAllEditTextWatchers()
-        }
-    }
-
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding.chatroomInfo) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
-                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
-        }
+        observePredicateValidators()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

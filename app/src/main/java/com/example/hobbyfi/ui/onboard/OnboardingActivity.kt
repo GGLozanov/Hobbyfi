@@ -9,9 +9,6 @@ class OnboardingActivity : AppCompatActivity(), OnboardingFragment.OnPageContinu
 
     private lateinit var binding: ActivityOnboardingBinding
 
-    // TODO: Implement ViewPager2 + explanation fragments
-    // TODO: Reroute from SplashScreen OR from ChatroomActivity by deep link
-    // TODO: At the end, route to AuthActivity and branch should set the is_first_session to false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOnboardingBinding.inflate(layoutInflater)

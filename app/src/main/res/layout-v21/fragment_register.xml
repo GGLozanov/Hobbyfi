@@ -150,6 +150,7 @@
                     android:includeFontPadding="true"
                     android:inputType="textPassword"
                     android:singleLine="true"
+                    android:text="@={viewModel.confirmPassword}"
                     tools:layout_conversion_absoluteHeight="45dp"
                     tools:layout_conversion_absoluteWidth="20dp"
                     tools:layout_editor_absoluteX="4dp"

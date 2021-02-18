@@ -15,6 +15,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
@@ -57,13 +58,6 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
     private var messageListAdapter: ChatroomMessageListAdapter? = null
 
     private val onNormalSendMessage = View.OnClickListener {
-        if(assertTextFieldsInvalidity() || viewModel.message.value == null
-                || viewModel.message.value?.isEmpty() == true) {
-            Toast.makeText(requireContext(), "Your message cannot be empty!", Toast.LENGTH_LONG)
-                .show()
-            return@OnClickListener
-        }
-
         lifecycleScope.launch {
             viewModel.sendMessageIntent(
                 MessageIntent.CreateMessage(
@@ -78,13 +72,6 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
     private val onEditSendMessage = { editedMessage: Message ->
         View.OnClickListener {
             val messageMap = mutableMapOf<String?, String?>()
-
-            if(assertTextFieldsInvalidity() || viewModel.message.value == null
-                    || viewModel.message.value?.isEmpty() == true) {
-                Toast.makeText(requireContext(), "Your message cannot be empty!", Toast.LENGTH_LONG)
-                    .show()
-                return@OnClickListener
-            }
 
             if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
@@ -177,7 +164,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
             sendMessageButton.setOnClickListener(onNormalSendMessage)
             cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(onNormalSendMessage)
-                viewModel!!.message.value = null
+                viewModel!!.message.setValue(null)
                 editMessageOptionsLayout.isVisible = false
             }
 
@@ -260,7 +247,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
                         // TODO: stop button
                     }
                     is MessageState.OnData.MessageCreateResult -> {
-                        viewModel.message.value = null // reset msg
+                        viewModel.message.setValue(null) // reset msg
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
                         binding.cancelHeader.callOnClick()
@@ -313,7 +300,8 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
+        observePredicateValidators()
+        observeCombinedObserversInvalidity()
         observeUIState()
     }
 
@@ -360,22 +348,16 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         }
     }
 
-    override fun initTextFieldValidators() {
-        binding.messageInputField.addTextChangedListener(
-            Constants.messageInputError,
-            Constants.messagePredicate
+    override fun observePredicateValidators() {
+        viewModel.message.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.messageInputField, Constants.messageInputError)
         )
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        return FieldUtils.isTextFieldInvalid(binding.messageInputField, Constants.messageInputError)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            messageInputField.removeAllEditTextWatchers()
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(
+            viewLifecycleOwner, ViewReverseEnablerObserver(binding.sendMessageButton))
     }
 
     override fun onDestroy() {
@@ -398,7 +380,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
     override fun onEditMessageSelect(view: View, message: Message) {
         Log.i("ChatroomMListFragment", "onEditMessageSelect triggered in message list fragment for $message!")
 
-        viewModel.message.value = message.message // set to edit current message from bottom sheet
+        viewModel.message.setValue(message.message) // set to edit current message from bottom sheet
         with(binding) {
             messageInputField.editText?.setSelection(binding.messageInputField.editText!!.text.length)
             sendMessageButton.setOnClickListener(onEditSendMessage(message))

@@ -130,10 +130,6 @@ class EventChooseLocationMapsActivity : MapsActivity() {
                                 lastKnownLocation!!.latitude,
                                 lastKnownLocation!!.longitude
                             ))
-                            /*
-                            *                 .icon(bitmapDescriptorFromVector(this, R.drawable.ic_baseline_event_white_24))
-                                    .visible(true)
-                            * */
                         }
                     } else {
                         Log.d("EventChooseLMActivity", "Current location is null. Using defaults.")

@@ -2,6 +2,9 @@ package com.example.hobbyfi.ui.auth
 
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavDirections
@@ -41,5 +44,10 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
             finishAffinity(requireActivity())
             activityViewModel.setRestartedFromDeepLink(false)
         } else navController.navigate(action)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        observePredicateValidators()
     }
 }

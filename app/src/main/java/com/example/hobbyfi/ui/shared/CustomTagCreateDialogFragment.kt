@@ -7,22 +7,18 @@ import android.view.ViewGroup
 import androidx.core.util.Predicate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentCustomTagCreateDialogBinding
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.shared.CustomTagCreateDialogFragmentViewModel
-import com.example.spendidly.utils.PredicateTextWatcher
 import com.skydoves.colorpickerview.flag.BubbleFlag
 import com.skydoves.colorpickerview.flag.FlagMode
-import kotlin.math.roundToInt
 
 
 class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValidationOnus {
@@ -46,6 +42,8 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
+        observeCombinedObserversInvalidity()
+
         val bubbleFlag = BubbleFlag(context)
         bubbleFlag.flagMode = FlagMode.FADE
         binding.colorPicker.flagView = bubbleFlag
@@ -57,10 +55,6 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         }
 
         binding.confirmCustomTagButton.setOnClickListener {
-            if(assertTextFieldsInvalidity()) {
-                return@setOnClickListener
-            }
-
             navController.previousBackStackEntry?.savedStateHandle?.set(
                 Constants.tagsKey, Tag(
                     viewModel.name.value!!,
@@ -73,26 +67,21 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
         return binding.root
     }
 
-    override fun initTextFieldValidators() {
-        binding.tagNameInputField.addTextChangedListener(
-            Constants.tagNameInputError,
-            Predicate {
-                return@Predicate it.isEmpty() || it.length > 25
-            }
+    override fun observePredicateValidators() {
+        viewModel.name.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.tagNameInputField, Constants.tagNameInputError)
         )
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        return FieldUtils.isTextFieldInvalid(binding.tagNameInputField, Constants.tagNameInputError)
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, Observer {
+            binding.confirmCustomTagButton.isEnabled = !it
+        })
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        binding.tagNameInputField.removeAllEditTextWatchers()
+        observePredicateValidators()
     }
 }

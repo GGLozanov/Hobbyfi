@@ -21,10 +21,7 @@ import com.example.hobbyfi.databinding.FragmentEventEditDialogBinding
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -44,7 +41,6 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
     private val eventCalendar = Calendar.getInstance()
 
-    // FIXME: Code dup with EventCreateFragment by somehow scoping to common ancestor and perserving dialogfragment functionality
     private lateinit var binding: FragmentEventEditDialogBinding
     private val viewModel: EventEditFragmentViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
@@ -63,6 +59,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
             .inflate(layoutInflater, R.layout.fragment_event_edit_dialog, container, false)
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@EventEditDialogFragment
@@ -92,10 +89,6 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
             }
 
             eventEditDialogButtonBar.rightButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 val eventUpdateFields: MutableMap<String?, String?> = mutableMapOf()
 
                 if(viewModel!!.name.value != viewModel!!.event.name) {
@@ -155,38 +148,29 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding.eventInfo) {
-            nameInputField.addTextChangedListener(
-                Constants.nameInputError,
-                Constants.namePredicate
-            )
+    // common ancestor with EventCreateFragment go brrr
+    override fun observePredicateValidators() {
+        // Code quality TODO:
+        // Extract this method (from fragments and all activities) to a factory which takes a list of views and initialises them
+        // with the preset predicate/error pairs
+        viewModel.name.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, Constants.nameInputError)
+        )
 
-            descriptionInputField.addTextChangedListener(
-                Constants.descriptionInputError,
-                Constants.descriptionPredicate
-            )
-        }
+        viewModel.description.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, Constants.descriptionInputError)
+        )
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding.eventInfo) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(nameInputField, Constants.nameInputError) ||
-                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.eventEditDialogButtonBar.rightButton))
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding.eventInfo) {
-            nameInputField.removeAllEditTextWatchers()
-            descriptionInputField.removeAllEditTextWatchers()
-        }
+        observePredicateValidators()
     }
 
     override fun onDateSet(picker: DatePicker?, year: Int, month: Int, day: Int) =

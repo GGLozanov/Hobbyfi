@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
-import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -24,16 +23,13 @@ import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.BaseActivity
-import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.squareup.okhttp.Dispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -60,16 +56,14 @@ class LoginFragment : AuthFragment() {
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
+
         with(binding) {
             lifecycleOwner = this@LoginFragment
 
             val root: View = root
 
             loginButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(TokenIntent.FetchLoginToken)
                 }
@@ -99,40 +93,22 @@ class LoginFragment : AuthFragment() {
         observePotentialTags()
     }
 
-    override fun initTextFieldValidators() {
-        with(binding) {
-            emailInputField.addTextChangedListener(
-                Constants.emailInputError,
-                Constants.emailPredicate
+    override fun observePredicateValidators() {
+        with(viewModel) {
+            password.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
             )
 
-            passwordInputField.addTextChangedListener(
-                Constants.passwordInputError,
-                Constants.passwordPredicate()
+            email.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
             )
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            emailInputField.removeAllEditTextWatchers()
-            passwordInputField.removeAllEditTextWatchers()
-        }
-    }
-
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(
-                emailInputField,
-                Constants.emailInputError
-            ) || FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.loginButton))
     }
 
     private fun initFacebookLogin() {
@@ -206,7 +182,7 @@ class LoginFragment : AuthFragment() {
                         }
                     }
                     is FacebookState.OnData.EmailReceived -> {
-                        viewModel.email.value = it.email
+                        it.email?.let { it1 -> viewModel.email.setValue(it1) }
                         viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
                     }
                     is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
@@ -297,6 +273,7 @@ class LoginFragment : AuthFragment() {
                             )
                         )
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }

@@ -203,13 +203,13 @@ class EventLocationUpdatesService : Service(), KodeinAware {
 
         val text: String = LocationUtils.getLocationText(lastLocation)
 
-        // The PendingIntent that leads to a call to onStartCommand() in this service.
+        // PendingIntent leads to a call to onStartCommand() in this service.
         val servicePendingIntent = PendingIntent.getService(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // The PendingIntent to launch activity.
+        // PendingIntent to launch activity.
         val activityPendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, EventMapsActivity::class.java).apply {

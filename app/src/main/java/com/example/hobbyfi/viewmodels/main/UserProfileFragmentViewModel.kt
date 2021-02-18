@@ -17,4 +17,4 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
     fun setOriginalSelectedTags(tags: List<Tag>) {
         _originalSelectedTags = tags
     }
-    }
+}

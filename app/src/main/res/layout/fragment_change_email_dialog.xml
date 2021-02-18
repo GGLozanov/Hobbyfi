@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel" />
+            type="com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

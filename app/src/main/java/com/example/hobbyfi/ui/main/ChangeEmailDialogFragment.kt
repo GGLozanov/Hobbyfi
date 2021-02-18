@@ -14,19 +14,20 @@ import com.example.hobbyfi.databinding.FragmentChangeEmailDialogBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
+import com.example.hobbyfi.shared.ViewReverseEnablerObserver
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.FieldUtils
-import com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel
+import com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel
+import com.example.hobbyfi.viewmodels.main.ChangePasswordDialogFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
-    private val viewModel: AuthChangeDialogFragmentViewModel by viewModels()
+    private val viewModel: ChangeEmailDialogFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChangeEmailDialogBinding
 
     override fun onCreateView(
@@ -41,16 +42,13 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         )
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@ChangeEmailDialogFragment
 
             buttonBar.leftButton.setOnClickListener { dismiss() }
             buttonBar.rightButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 val newEmail = viewModel!!.email.value
                 val originalEmail = activityViewModel.authUser.value?.email
 
@@ -69,7 +67,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
             }
 
             lifecycleScope.launchWhenCreated {
-                viewModel!!.mainState.collect {
+                viewModel!!.mainState.collectLatest {
                     when(it) {
                         is TokenState.Idle -> {
 
@@ -99,44 +97,36 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding) {
-            newEmailInputField.addTextChangedListener(
-                Constants.emailInputError,
-                Constants.newEmailPredicate(activityViewModel.authUser.value?.email)
+    override fun observePredicateValidators() {
+        with(viewModel) {
+            email.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.newEmailInputField, Constants.emailInputError)
             )
 
-            passwordInputField.addTextChangedListener(
-                Constants.passwordInputError,
-                Constants.passwordPredicate(confirmPasswordInputField.editText)
+            val passwordObserver = TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
+            val confirmPasswordObserver = TextInputLayoutFocusValidatorObserver(binding.confirmPasswordInputField, Constants.confirmPasswordInputError)
+
+            passwordObserver.addDependent(confirmPasswordObserver)
+
+            password.invalidity.observe(
+                viewLifecycleOwner,
+                passwordObserver
             )
 
-            confirmPasswordInputField.addTextChangedListener(
-                Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(passwordInputField.editText!!)
+            confirmPassword.invalidity.observe(
+                viewLifecycleOwner,
+                confirmPasswordObserver
             )
         }
+    }
+
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.buttonBar.rightButton))
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            newEmailInputField.removeAllEditTextWatchers()
-            passwordInputField.removeAllEditTextWatchers()
-            confirmPasswordInputField.removeAllEditTextWatchers()
-        }
-    }
-
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(newEmailInputField, Constants.emailInputError) ||
-                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
-                || FieldUtils.isTextFieldInvalid(confirmPasswordInputField, Constants.confirmPasswordInputError)
-        }
+        observePredicateValidators()
     }
 }

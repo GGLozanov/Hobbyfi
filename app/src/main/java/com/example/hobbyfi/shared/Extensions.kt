@@ -36,7 +36,6 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.TokenUtils
-import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -59,34 +58,39 @@ inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(
     object : TypeToken<T>() {}.type
 )
 
-fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predicate<String>): PredicateTextWatcher {
-    val watcher = PredicateTextWatcher(
-        this,
-        errorText,
-        predicate
-    )
-    this.editText!!.addTextChangedListener(
-        watcher
-    )
-    return watcher
-}
 
-fun TextInputLayout.removeAllEditTextWatchers() {
-    editText!!.removeAllTextWatchers()
-}
+// original function by Zhuinden; modified to use (.any {}) for INvalidation purposes instead of validation
+fun validateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = MediatorLiveData<Boolean>().also { mediator ->
+    mediator.value = liveDatas.all { it.value == false }
 
-fun EditText.removeAllTextWatchers() {
-    try {
-        val field: Field? = findField("mListeners", javaClass)
-        if (field != null) {
-            field.isAccessible = true
-            val list = field.get(this) as ArrayList<TextWatcher> //IllegalAccessException
-            list.removeAll(list.filterIsInstance<PredicateTextWatcher>())
+    for (current in liveDatas) {
+        mediator.addSource(current) { valid ->
+            var isValid = valid
+            if (!isValid) {
+                for (liveData in liveDatas) {
+                    if (liveData !== current) {
+                        if (liveData.value != false) {
+                            isValid = true
+                            break
+                        }
+                    }
+                }
+            }
+
+            mediator.value = isValid
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 }
+
+fun<T : Comparable<*>> T?.equalsOrBiggerThan(comp: T?): Boolean =
+    compareValues(this, comp).run {
+        this >= 0
+    }
+
+fun<T : Comparable<*>> T?.equalsOrLessThan(comp: T?): Boolean =
+    compareValues(this, comp).run {
+        this <= 0
+    }
 
 private fun findField(name: String, type: Class<*>): Field? {
     for (declaredField in type.declaredFields) {
@@ -150,19 +154,19 @@ fun Context.buildYesNoAlertDialog(
     onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener,
     onDismiss: DialogInterface.OnDismissListener? = null
 ) {
-   val dialogBuilder = AlertDialog.Builder(this)
-    .setMessage(dialogMessage)
-    .setPositiveButton(getString(R.string.yes), onConfirm)
-    .setNegativeButton(getString(R.string.no), onCancel)
+    val dialogBuilder = AlertDialog.Builder(this)
+        .setMessage(dialogMessage)
+        .setPositiveButton(getString(R.string.yes), onConfirm)
+        .setNegativeButton(getString(R.string.no), onCancel)
 
-   onDismiss?.let {
-       dialogBuilder.setOnDismissListener(it)
-   }
+    onDismiss?.let {
+        dialogBuilder.setOnDismissListener(it)
+    }
 
-   dialogBuilder.create().apply {
-       window!!.setBackgroundDrawableResource(R.color.colorBackground)
-       show()
-   }
+    dialogBuilder.create().apply {
+        window!!.setBackgroundDrawableResource(R.color.colorBackground)
+        show()
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -349,11 +353,11 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
 fun android.content.Intent.getEventIdsExtra(): List<Long> {
-     return Constants.tagJsonConverter.fromJson(
-         extras?.getString(
-             Constants.EVENT_IDS
-         )
-     )!!
+    return Constants.tagJsonConverter.fromJson(
+        extras?.getString(
+            Constants.EVENT_IDS
+        )
+    )!!
 }
 
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||

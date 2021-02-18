@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -15,14 +14,9 @@ import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
@@ -48,6 +42,7 @@ class RegisterFragment : AuthFragment() {
             DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@RegisterFragment
@@ -59,12 +54,6 @@ class RegisterFragment : AuthFragment() {
             }
 
             buttonBar.rightButton.setOnClickListener { // register account
-                if(assertTextFieldsInvalidity()) {
-                    Toast.makeText(context, "Invalid information entered!", Toast.LENGTH_LONG)
-                        .show() // TODO: Extract into separate error text
-                    return@setOnClickListener
-                }
-                
                 buttonBar.rightButton.isEnabled = false
 
                 lifecycleScope.launch {
@@ -131,59 +120,42 @@ class RegisterFragment : AuthFragment() {
         }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding) {
-            emailInputField.addTextChangedListener(
-                Constants.emailInputError,
-                Constants.emailPredicate
+    override fun observePredicateValidators() {
+        with(viewModel) {
+            email.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
             )
 
-            passwordInputField.addTextChangedListener(
-                Constants.passwordInputError,
-                Constants.passwordPredicate(confirmPasswordInputField.editText)
+            val passwordObserver = TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
+            val confirmPasswordObserver = TextInputLayoutFocusValidatorObserver(binding.confirmPasswordInputField, Constants.confirmPasswordInputError)
+
+            passwordObserver.addDependent(confirmPasswordObserver)
+
+            password.invalidity.observe(
+                viewLifecycleOwner,
+                passwordObserver
             )
 
-            confirmPasswordInputField.addTextChangedListener(
-                Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(passwordInputField.editText!!)
+            confirmPassword.invalidity.observe(
+                viewLifecycleOwner,
+                confirmPasswordObserver
             )
 
-            usernameInputField.addTextChangedListener(
-                Constants.usernameInputError,
-                Constants.namePredicate
+            name.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, Constants.nameInputError)
             )
 
-            descriptionInputField.addTextChangedListener(
-                Constants.descriptionInputError,
-                Constants.descriptionPredicate
+            description.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, Constants.descriptionInputError)
             )
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            emailInputField.removeAllEditTextWatchers()
-            passwordInputField.removeAllEditTextWatchers()
-            confirmPasswordInputField.removeAllEditTextWatchers()
-            usernameInputField.removeAllEditTextWatchers()
-            descriptionInputField.removeAllEditTextWatchers()
-        }
-    }
-
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(emailInputField, Constants.emailInputError) ||
-                    FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError) ||
-                    FieldUtils.isTextFieldInvalid(usernameInputField, Constants.usernameInputError) ||
-                    FieldUtils.isTextFieldInvalid(confirmPasswordInputField, Constants.confirmPasswordInputError) ||
-                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.buttonBar.rightButton))
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

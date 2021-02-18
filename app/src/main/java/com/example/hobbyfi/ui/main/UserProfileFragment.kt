@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.main
 
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,7 +13,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentUserProfileBinding
@@ -58,6 +56,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             false
         )
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
@@ -117,10 +116,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             confirmButton.setOnClickListener {
-                if (assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 val fieldMap: MutableMap<String?, String?> = mutableMapOf()
 
                 if (activityViewModel.authUser.value?.name != viewModel!!.name.value) {
@@ -185,8 +180,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         // observe
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
             if (it != null) {
-                viewModel.description.value = it.description
-                viewModel.name.value = it.name
+                viewModel.description.setValue(it.description)
+                viewModel.name.setValue(it.name)
                 it.tags?.let { selectedTags ->
                     viewModel.tagBundle.setSelectedTags(selectedTags)
                     viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
@@ -212,39 +207,29 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         })
     }
 
-    override fun initTextFieldValidators() {
-        with(binding) {
-            usernameInputField.addTextChangedListener(
-                Constants.usernameInputError,
-                Constants.namePredicate
+    override fun observePredicateValidators() {
+        with(viewModel) {
+            name.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, Constants.nameInputError)
             )
 
-            descriptionInputField.addTextChangedListener(
-                Constants.descriptionInputError,
-                Constants.descriptionPredicate
+            description.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, Constants.descriptionInputError)
             )
         }
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(usernameInputField, Constants.usernameInputError) ||
-                    FieldUtils.isTextFieldInvalid(descriptionInputField, Constants.descriptionInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.confirmButton))
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
+        observePredicateValidators()
     }
 
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            usernameInputField.removeAllEditTextWatchers()
-            descriptionInputField.removeAllEditTextWatchers()
-        }
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

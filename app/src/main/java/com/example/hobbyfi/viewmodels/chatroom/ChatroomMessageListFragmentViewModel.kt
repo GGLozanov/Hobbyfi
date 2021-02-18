@@ -3,6 +3,7 @@ package com.example.hobbyfi.viewmodels.chatroom
 import android.app.Application
 import android.util.Base64.DEFAULT
 import androidx.databinding.Bindable
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,8 @@ import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.MessageRepository
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.PredicateMutableLiveData
+import com.example.hobbyfi.shared.equalsOrBiggerThan
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
@@ -41,7 +44,9 @@ class ChatroomMessageListFragmentViewModel(
     val areCurrentMessagesNull get() = currentMessages == null
 
     @Bindable
-    val message: MutableLiveData<String> = MutableLiveData()
+    val message: PredicateMutableLiveData<String> = PredicateMutableLiveData { it == null ||
+        it.isEmpty() || it.length >= 200
+    }
 
     override val mainStateIntent: StateIntent<MessageListState, MessageListIntent> = object : StateIntent<MessageListState, MessageListIntent>() {
         override val _state: MutableStateFlow<MessageListState> = MutableStateFlow(MessageListState.Idle)
@@ -242,4 +247,7 @@ class ChatroomMessageListFragmentViewModel(
 
         mainStateIntent.setState(state)
     }
+
+    override val combinedObserversInvalidity: LiveData<Boolean>
+        get() = message.invalidity
 }

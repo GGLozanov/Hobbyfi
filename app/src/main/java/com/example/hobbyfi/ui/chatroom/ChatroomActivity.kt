@@ -109,7 +109,6 @@ class ChatroomActivity : NavigationActivity(),
                     Log.e("ChatroomActivity", "Deep-linking error: $error")
                     leaveChatroomWithRestart(linkParams = safeLinkProps)
                 } else {
-                    // TODO: Replace with sharedprefs check
                     if (prefConfig.readOnboardingValid() && !comeFromAuthDeepLink) {
                         Log.i("ChatroomActivity", "First session triggered")
                         leaveChatroomWithRestart(
@@ -117,7 +116,6 @@ class ChatroomActivity : NavigationActivity(),
                             leaveDestination = OnboardingActivity::class.java
                         )
                         return@BranchReferralInitListener
-                        // TODO: Show future onboarding after reauth
                     }
 
                     if (prefConfig.isUserAuthenticated()) {

@@ -11,12 +11,10 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.Chatroom
 import com.example.hobbyfi.models.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.ChatroomState
@@ -26,7 +24,6 @@ import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import com.google.android.gms.tasks.OnFailureListener
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -63,6 +60,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         // Inflate the layout for this fragment
         binding = FragmentChatroomCreateBinding.inflate(inflater, container, false)
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             chatroomInfo.chatroomImage.setOnClickListener {
@@ -84,10 +82,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             chatroomInfo.buttonBar.rightButton.setOnClickListener { // confirm button
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(ChatroomIntent.CreateChatroom(activityViewModel.authUser.value!!.id))
                 }
@@ -145,39 +139,25 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding.chatroomInfo) {
-            // TODO: Fix code dup with other layouts like these and find a way to extract this in a single method call or something
-            nameInputField.addTextChangedListener(
-                Constants.nameInputError,
-                Constants.namePredicate
-            )
+    override fun observePredicateValidators() {
+        viewModel.name.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, Constants.nameInputError)
+        )
 
-            descriptionInputField.addTextChangedListener(
-                Constants.descriptionInputError,
-                Constants.descriptionPredicate
-            )
-        }
+        viewModel.description.invalidity.observe(
+            viewLifecycleOwner,
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+        )
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(chatroomInfo.nameInputField, Constants.nameInputError) ||
-                    FieldUtils.isTextFieldInvalid(chatroomInfo.descriptionInputField, Constants.descriptionInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.chatroomInfo.buttonBar.rightButton))
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding.chatroomInfo) {
-            nameInputField.removeAllEditTextWatchers()
-            descriptionInputField.removeAllEditTextWatchers()
-        }
+        observePredicateValidators()
     }
 
     @ExperimentalPagingApi

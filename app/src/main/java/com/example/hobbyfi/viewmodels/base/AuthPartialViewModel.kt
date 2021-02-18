@@ -1,11 +1,13 @@
 package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
+import android.util.Patterns
 import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.TokenRepository
+import com.example.hobbyfi.shared.PredicateMutableLiveData
 import com.example.hobbyfi.state.TokenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,5 +29,7 @@ abstract class AuthPartialViewModel(
     fun resetTokenState() = mainStateIntent.setState(TokenState.Idle)
 
     @Bindable
-    val email: MutableLiveData<String> = MutableLiveData()
+    val email: PredicateMutableLiveData<String> = PredicateMutableLiveData { it == null ||
+        it.isEmpty()  || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+    }
 }

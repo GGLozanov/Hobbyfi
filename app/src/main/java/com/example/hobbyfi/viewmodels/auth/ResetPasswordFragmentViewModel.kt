@@ -1,6 +1,7 @@
 package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
@@ -48,4 +49,6 @@ class ResetPasswordFragmentViewModel(
     init {
         handleIntent()
     }
+
+    override val combinedObserversInvalidity: LiveData<Boolean> get() = email.invalidity
 }

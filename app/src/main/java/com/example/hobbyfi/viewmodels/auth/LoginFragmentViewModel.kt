@@ -2,21 +2,27 @@ package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.TagBundle
+import com.example.hobbyfi.shared.validateBy
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.viewmodels.base.AuthInclusiveViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(application) {
+class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(application) {
+    var tagBundle: TagBundle = TagBundle()
+
     init {
         handleIntent()
     }
@@ -121,4 +127,9 @@ class LoginFragmentViewModel(application: Application) : AuthFragmentViewModel(a
             TokenState.Error(ex.message)
         })
     }
+
+    override val combinedObserversInvalidity: LiveData<Boolean> get() = validateBy(
+        password.invalidity,
+        email.invalidity
+    )
 }

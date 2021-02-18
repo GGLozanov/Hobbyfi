@@ -65,6 +65,9 @@ class OnboardingFragment : Fragment(), KodeinAware {
                         LoginManager.getInstance().logOut()
                         startActivity(Intent(requireContext(), AuthActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            requireActivity().intent.extras?.let {
+                                putExtras(it) // pass in intent extras in case of being rerouted by deeplink (keep current context alive)
+                            }
                         })
                         requireActivity().finish()
                     }
