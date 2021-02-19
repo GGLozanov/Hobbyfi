@@ -34,7 +34,7 @@ blocks:
           commands:
             - sem-version java 1.8
             - chmod +x gradlew
-            - ./gradlew build
+            - ./gradlew build --no-daemon
       epilogue:
         on_pass:
           commands:
