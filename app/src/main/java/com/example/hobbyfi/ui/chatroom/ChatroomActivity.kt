@@ -46,6 +46,7 @@ import com.example.hobbyfi.ui.onboard.OnboardingActivity
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import com.facebook.login.LoginManager
 import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.tasks.OnFailureListener
@@ -138,9 +139,11 @@ class ChatroomActivity : NavigationActivity(),
                         }
                     } else {
                         // should only EVER happen for deeplink (can't receive notifications when not logged in)
-                        leaveChatroomWithRestart()
+                        leaveChatroomWithRestart(Constants.noConnectionError)
                     }
                 }
+            } else if(linkProperties?.getString("error_message") != null) {
+                leaveChatroomWithRestart()
             } else {
                 sendUserIntentFetchIntentOnCurrentNull()
                 sendChatroomFetchIntentOnCurrentNull()
@@ -399,6 +402,12 @@ class ChatroomActivity : NavigationActivity(),
         // TODO: More graceful way to show this error... like a separate screen? Activity?
         Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
             .show()
+
+        // log out of all accounts
+        LoginManager.getInstance().logOut()
+        prefConfig.resetToken()
+        prefConfig.resetRefreshToken()
+
         leaveChatroom(linkParams, leaveDestination = leaveDestination)
     }
 

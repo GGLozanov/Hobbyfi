@@ -2,11 +2,11 @@ package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
@@ -20,6 +20,7 @@ import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -127,20 +128,23 @@ class RegisterFragment : AuthFragment() {
                 TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
             )
 
-            val passwordObserver = TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
-            val confirmPasswordObserver = TextInputLayoutFocusValidatorObserver(binding.confirmPasswordInputField, Constants.confirmPasswordInputError)
+            password.invalidity
+                .observe(viewLifecycleOwner, object : TextInputLayoutFocusObserver<Boolean>(binding.passwordInputField) {
+                override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
+                    textInputLayout.error = if(t) Constants.passwordInputError else null
+                    binding.confirmPasswordInputField.error =
+                        if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
+                }
+            })
 
-            passwordObserver.addDependent(confirmPasswordObserver)
-
-            password.invalidity.observe(
-                viewLifecycleOwner,
-                passwordObserver
-            )
-
-            confirmPassword.invalidity.observe(
-                viewLifecycleOwner,
-                confirmPasswordObserver
-            )
+            confirmPassword.invalidity
+                .observe(viewLifecycleOwner, object : TextInputLayoutFocusObserver<Boolean>(binding.confirmPasswordInputField) {
+                override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
+                    textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
+                    binding.passwordInputField.error =
+                        if(t && password.invalidity.value == true) Constants.passwordInputError else null
+                }
+            })
 
             name.invalidity.observe(
                 viewLifecycleOwner,

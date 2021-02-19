@@ -24,7 +24,8 @@ abstract class AuthInclusiveViewModel(
     @Bindable
     open val password: PredicateMutableLiveData<String> = PredicateMutableLiveData {  it == null ||
             it.isEmpty() || it.length <= 4
-                || it.length >= 15 }
+                || it.length >= 15
+    }
 
     protected suspend fun fetchLoginToken() {
         mainStateIntent.setState(TokenState.Loading)

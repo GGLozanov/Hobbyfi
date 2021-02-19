@@ -35,8 +35,6 @@ import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 abstract class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
-    // TODO: Pass in events directly (FOR NOW) because this will ONLY be avaialble for admin user
-
     protected abstract val eventListAdapter: EventListAdapter
     protected lateinit var binding: FragmentEventSelectionBottomSheetDialogBinding
     protected abstract val eventsSource: LiveData<List<Event>>

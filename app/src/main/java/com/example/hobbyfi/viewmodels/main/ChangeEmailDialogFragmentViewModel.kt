@@ -2,8 +2,7 @@ package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
 import androidx.lifecycle.LiveData
-import com.example.hobbyfi.shared.validateBy
-import com.example.hobbyfi.viewmodels.base.AuthConfirmationViewModel
+import com.example.hobbyfi.shared.invalidateBy
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ExperimentalCoroutinesApi
@@ -20,7 +19,7 @@ class ChangeEmailDialogFragmentViewModel(application: Application) : AuthChangeD
     }
 
     override val combinedObserversInvalidity: LiveData<Boolean>
-        get() = validateBy(
+        get() = invalidateBy(
             email.invalidity,
             password.invalidity,
             confirmPassword.invalidity

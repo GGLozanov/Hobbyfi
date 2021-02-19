@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.TagBundle
-import com.example.hobbyfi.shared.validateBy
+import com.example.hobbyfi.shared.invalidateBy
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,7 +58,7 @@ class RegisterFragmentViewModel(application: Application) : AuthConfirmationView
         })
     }
 
-    override val combinedObserversInvalidity: LiveData<Boolean> get() = validateBy(
+    override val combinedObserversInvalidity: LiveData<Boolean> get() = invalidateBy(
             name.invalidity,
             description.invalidity,
             password.invalidity,

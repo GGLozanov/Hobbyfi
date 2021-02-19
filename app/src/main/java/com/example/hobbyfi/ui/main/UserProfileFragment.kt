@@ -123,9 +123,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 }
 
                 if (activityViewModel.authUser.value?.description != viewModel!!.description.value) {
-                    if (viewModel!!.description.value?.isBlank() == false) {
-                        fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
-                    }
+                    fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value ?: ""
                 }
 
                 if ((activityViewModel.authUser.value?.tags

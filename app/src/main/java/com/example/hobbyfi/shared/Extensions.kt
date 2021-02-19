@@ -11,15 +11,12 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
-import android.text.TextWatcher
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
-import android.widget.EditText
 import android.widget.GridView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.util.Predicate
 import androidx.core.util.forEach
 import androidx.core.util.set
 import androidx.fragment.app.DialogFragment
@@ -40,10 +37,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
 import java.lang.reflect.Field
@@ -59,25 +54,25 @@ inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(
 )
 
 
-// original function by Zhuinden; modified to use (.any {}) for INvalidation purposes instead of validation
-fun validateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = MediatorLiveData<Boolean>().also { mediator ->
+// original function by Zhuinden; modified to work for INvalidation purposes instead of validation
+fun invalidateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = MediatorLiveData<Boolean>().also { mediator ->
     mediator.value = liveDatas.all { it.value == false }
 
     for (current in liveDatas) {
         mediator.addSource(current) { valid ->
-            var isValid = valid
-            if (!isValid) {
+            var isInvalid = valid
+            if (!isInvalid) {
                 for (liveData in liveDatas) {
                     if (liveData !== current) {
                         if (liveData.value != false) {
-                            isValid = true
+                            isInvalid = true
                             break
                         }
                     }
                 }
             }
 
-            mediator.value = isValid
+            mediator.value = isInvalid
         }
     }
 }

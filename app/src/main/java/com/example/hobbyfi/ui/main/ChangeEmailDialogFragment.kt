@@ -14,6 +14,7 @@ import com.example.hobbyfi.databinding.FragmentChangeEmailDialogBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.TextInputLayoutFocusObserver
 import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
 import com.example.hobbyfi.shared.ViewReverseEnablerObserver
 import com.example.hobbyfi.state.State
@@ -21,6 +22,7 @@ import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel
 import com.example.hobbyfi.viewmodels.main.ChangePasswordDialogFragmentViewModel
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -50,7 +52,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
             buttonBar.leftButton.setOnClickListener { dismiss() }
             buttonBar.rightButton.setOnClickListener {
                 val newEmail = viewModel!!.email.value
-                val originalEmail = activityViewModel.authUser.value?.email
+                val originalEmail = (requireActivity() as MainActivity).viewModel.authUser.value?.email
 
                 if(newEmail == originalEmail) {
                     Toast.makeText(requireContext(), "Emails must not be the same! Please enter a new, unique e-mail!", Toast.LENGTH_LONG)
@@ -78,7 +80,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                         is TokenState.TokenReceived -> {
                             it.token?.jwt?.let { jwt -> prefConfig.writeToken(jwt) }
                             it.token?.refreshJwt?.let { refreshJwt -> prefConfig.writeToken(refreshJwt) }
-                            activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
+                            (requireActivity() as MainActivity).viewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                                 Pair(Constants.EMAIL, viewModel!!.newEmail)))
                             )
                             dismiss()
@@ -104,19 +106,26 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 TextInputLayoutFocusValidatorObserver(binding.newEmailInputField, Constants.emailInputError)
             )
 
-            val passwordObserver = TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
-            val confirmPasswordObserver = TextInputLayoutFocusValidatorObserver(binding.confirmPasswordInputField, Constants.confirmPasswordInputError)
-
-            passwordObserver.addDependent(confirmPasswordObserver)
-
             password.invalidity.observe(
                 viewLifecycleOwner,
-                passwordObserver
+                object : TextInputLayoutFocusObserver<Boolean>(binding.passwordInputField) {
+                    override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
+                        textInputLayout.error = if(t) Constants.passwordInputError else null
+                        binding.confirmPasswordInputField.error =
+                            if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
+                    }
+                }
             )
 
             confirmPassword.invalidity.observe(
                 viewLifecycleOwner,
-                confirmPasswordObserver
+                object : TextInputLayoutFocusObserver<Boolean>(binding.confirmPasswordInputField) {
+                    override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
+                        textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
+                        binding.passwordInputField.error =
+                            if(t && password.invalidity.value == true) Constants.passwordInputError else null
+                    }
+                }
             )
         }
     }
