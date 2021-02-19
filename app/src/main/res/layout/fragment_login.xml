@@ -125,7 +125,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/login"
                     android:layout_marginTop="8dp"
-                    app:layout_constraintBottom_toTopOf="@id/switch_to_register_subtitle"
+                    app:layout_constraintBottom_toTopOf="@id/reset_pass_switch_page_layout"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/password_input_field">
