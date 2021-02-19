@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.chatroom
 import android.annotation.SuppressLint
 import android.content.*
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -18,6 +19,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavDestination
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -205,12 +207,16 @@ class ChatroomActivity : NavigationActivity(),
     // need to do this because it bugs out with up navigation
     private fun initDynamicToolbarTitle() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            binding.toolbar.title = when(destination.id) {
-                R.id.chatroomMessageListFragment -> {
-                    viewModel.authChatroom.value?.name
-                }
-                else -> navController.currentDestination?.label
+            setLabelOnDestination(destination)
+        }
+    }
+
+    private fun setLabelOnDestination(destination: NavDestination) {
+        binding.toolbar.title = when(destination.id) {
+            R.id.chatroomMessageListFragment -> {
+                viewModel.authChatroom.value?.name
             }
+            else -> navController.currentDestination?.label
         }
     }
 
@@ -701,6 +707,10 @@ class ChatroomActivity : NavigationActivity(),
         assertGooglePlayAvailability()
         registerCRUDReceivers()
         // TODO: Move receiver registration after chatroom/users/event fetches!!!
+
+        navController.currentDestination?.let {
+            setLabelOnDestination(it)
+        }
     }
 
     override fun onPause() {
