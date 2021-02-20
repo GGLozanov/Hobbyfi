@@ -34,7 +34,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
 
     override val eventListAdapter: EventListAdapter by lazy {
         EventListAdapter(
-            eventsSource.value ?: emptyList(),
+            eventsSource.value ?: arrayListOf(),
             { v: View, event: Event ->
                 v.isEnabled = false
                 parentFragmentManager.showDistinctDialog(

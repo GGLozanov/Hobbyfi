@@ -10,7 +10,7 @@ class TagBundle(initialTags: List<Tag>? = null) {
             Constants.predefinedTags.newListWithDistinct(initialTags)
     val tags: List<Tag> get() = _tags
 
-    private var _selectedTags: List<Tag> = initialTags ?: emptyList()
+    private var _selectedTags: List<Tag> = initialTags ?: arrayListOf()
     val selectedTags: List<Tag> get() = _selectedTags
 
     // FIXME: Code dup with RegisterFragmentViewModel. . .

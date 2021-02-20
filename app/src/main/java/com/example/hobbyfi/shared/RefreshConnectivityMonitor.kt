@@ -27,9 +27,7 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
     private var hadLostConnectionPrior: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    private val networkRequestBuilder: NetworkRequest.Builder = NetworkRequest.Builder()
-        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+    private var networkRequestBuilder: NetworkRequest.Builder? = null
 
     override fun onActive() {
         super.onActive()
@@ -37,10 +35,18 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
         when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ->
                 connectivityManager.registerDefaultNetworkCallback(getConnectivityMarshmallowManagerCallback())
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
+                networkRequestBuilder = NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 marshmallowNetworkAvailableRequest()
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ->
+            }
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
+                networkRequestBuilder = NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
                 lollipopNetworkAvailableRequest()
+            }
             else -> {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                     localBroadcastManager.registerReceiver(networkReceiver, IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")) // android.net.ConnectivityManager.CONNECTIVITY_ACTION
@@ -61,13 +67,13 @@ class RefreshConnectivityMonitor(val context: Context) : LiveData<Boolean>(), Ko
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private fun lollipopNetworkAvailableRequest() {
         connectivityManager.registerNetworkCallback(
-            networkRequestBuilder.build(), getConnectivityLollipopManagerCallback())
+            networkRequestBuilder!!.build(), getConnectivityLollipopManagerCallback())
     }
 
     @TargetApi(Build.VERSION_CODES.M)
     private fun marshmallowNetworkAvailableRequest() {
         connectivityManager.registerNetworkCallback(
-            networkRequestBuilder.build(), getConnectivityMarshmallowManagerCallback())
+            networkRequestBuilder!!.build(), getConnectivityMarshmallowManagerCallback())
     }
 
     private fun getConnectivityLollipopManagerCallback(): ConnectivityManager.NetworkCallback {

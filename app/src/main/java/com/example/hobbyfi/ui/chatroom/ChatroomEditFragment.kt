@@ -34,7 +34,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
     private lateinit var binding: FragmentChatroomEditBinding
     private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
         TagListViewModelFactory(requireActivity().application,
-            activityViewModel.authChatroom.value?.tags ?: emptyList())
+            activityViewModel.authChatroom.value?.tags ?: arrayListOf())
     })
 
     override fun onCreateView(
@@ -64,7 +64,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                     fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                 }
 
-                if((activityViewModel.authChatroom.value?.tags ?: emptyList()) != viewModel!!.tagBundle.selectedTags) {
+                if((activityViewModel.authChatroom.value?.tags ?: arrayListOf()) != viewModel!!.tagBundle.selectedTags) {
                     fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }

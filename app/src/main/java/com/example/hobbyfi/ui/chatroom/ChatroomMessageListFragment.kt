@@ -46,11 +46,10 @@ import java.io.FileNotFoundException
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidationOnus,
+class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputValidationOnus,
         BottomSheetImagePicker.OnImagesSelectedListener,
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
         RefreshConnectionAware {
-    private val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomMessageListBinding
 
     // props like these are nullable because Activity onDestroy being called on new app start from push notification
@@ -131,7 +130,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
 
         messageListAdapter = ChatroomMessageListAdapter(
             activityViewModel.isAuthUserChatroomOwner.value == true,
-            activityViewModel.chatroomUsers.value ?: emptyList(), { _, message ->
+            activityViewModel.chatroomUsers.value ?: arrayListOf(), { _, message ->
                 // reuse fragment for distinct messages when they don't change
                 parentFragmentManager.showDistinctDialog(message.message, {
                     ChatroomMessageBottomSheetDialogFragment.newInstance(
@@ -197,7 +196,7 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
         })
     }
 
-    private fun observeMessagesState() {
+    override fun observeMessagesState() {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatest {
                 when(it) {
@@ -256,9 +255,6 @@ class ChatroomMessageListFragment : ChatroomFragment(), TextFieldInputValidation
                         Toast.makeText(requireContext(), "Successfully deleted message!", Toast.LENGTH_LONG)
                             .show()
                         viewModel.resetMessageState()
-                    }
-                    is MessageState.OnData.DeleteMessageCacheResult -> {
-                        // prolly don't do much, if anything here
                     }
                     is MessageState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(

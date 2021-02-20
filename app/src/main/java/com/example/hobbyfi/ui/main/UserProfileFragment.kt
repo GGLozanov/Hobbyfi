@@ -32,10 +32,10 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     private val viewModel: UserProfileFragmentViewModel by viewModels(factoryProducer = {
         val tags = activityViewModel.authUser.value?.tags ?:
             if(requireActivity().intent?.extras == null)
-                emptyList()
+                arrayListOf()
             else MainActivityArgs.fromBundle(
                     requireActivity().intent?.extras!!
-                ).user?.tags ?: emptyList()
+                ).user?.tags ?: arrayListOf()
 
         TagListViewModelFactory(
             requireActivity().application,
@@ -127,7 +127,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 }
 
                 if ((activityViewModel.authUser.value?.tags
-                        ?: emptyList()) != viewModel!!.tagBundle.selectedTags
+                        ?: arrayListOf()) != viewModel!!.tagBundle.selectedTags
                 ) {
                     fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)

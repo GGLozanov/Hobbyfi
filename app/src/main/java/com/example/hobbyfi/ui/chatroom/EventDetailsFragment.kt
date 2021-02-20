@@ -21,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.EventDetailsFragmentBinding
@@ -85,12 +86,12 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             }
         }
         Log.i("EventDetailsFragment", "UserGeoPoints are null => returning empty list")
-        return@lazy activityViewModel.chatroomUsers.map { emptyList() }
+        return@lazy activityViewModel.chatroomUsers.map { arrayListOf() }
     }
 
     private val userListAdapter: ChatroomUserListAdapter by lazy {
         ChatroomUserListAdapter(
-            usersSource.value ?: emptyList(),
+            usersSource.value ?: arrayListOf(),
             null
         )
     }
@@ -316,10 +317,12 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             .observe(viewLifecycleOwner, Observer {
                 if(it != null) {
                     viewModel.setEvent(it)
+                    binding.executePendingBindings()
                     it.photoUrl?.let { photoUrl ->
                         Glide.with(requireContext())
                             .load(photoUrl)
                             .placeholder(binding.eventImage.drawable)
+                            .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time))) // TODO: Change
                             .into(binding.eventImage)
                     }
                     setCalendarDateData()

@@ -30,7 +30,7 @@ class ChatroomActivityViewModel(
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
-    private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
+    private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(arrayListOf())
     val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
@@ -40,7 +40,7 @@ class ChatroomActivityViewModel(
     val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
 
     fun setAuthEvents(events: List<Event>?) {
-        _authEvents.value = events ?: emptyList()
+        _authEvents.value = events ?: arrayListOf()
     }
 
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
@@ -78,7 +78,7 @@ class ChatroomActivityViewModel(
                     is EventListIntent.AddAnEventCache -> {
                         Log.i("ChatroomActivityVM", "Add Event to List Intent caught")
                         saveEvent(it.event)
-                        setAuthEvents((_authEvents.value ?: emptyList()) + it.event)
+                        setAuthEvents((_authEvents.value ?: arrayListOf()) + it.event)
                         updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
                             .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
@@ -105,6 +105,7 @@ class ChatroomActivityViewModel(
                     is EventListIntent.FetchEvents -> {
                         fetchEvents()
                     }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -277,7 +278,7 @@ class ChatroomActivityViewModel(
         _chatroomUsers.value = users
     }
 
-    var _consumedEventDeepLink: Boolean = false
+    private var _consumedEventDeepLink: Boolean = false
     val consumedEventDeepLink get() = _consumedEventDeepLink
 
     fun setConsumedEventDeepLink(consumed: Boolean) {

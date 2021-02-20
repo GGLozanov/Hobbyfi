@@ -144,7 +144,7 @@ class ChatroomActivity : NavigationActivity(),
                         leaveChatroomWithRestart(Constants.noConnectionError)
                     }
                 }
-            } else if(linkProperties?.getString("error_message") != null) {
+            } else if(try { linkProperties?.getString("error_message") } catch(ex: Exception) { null } != null) {
                 leaveChatroomWithRestart()
             } else {
                 sendUserIntentFetchIntentOnCurrentNull()
@@ -188,7 +188,7 @@ class ChatroomActivity : NavigationActivity(),
         headerBinding.viewModel = viewModel
 
         userListAdapter = ChatroomUserListAdapter(
-            viewModel.chatroomUsers.value ?: emptyList()
+            viewModel.chatroomUsers.value ?: arrayListOf()
         ) { _: View, user: User ->
             val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
             bottomSheet.show(supportFragmentManager, bottomSheet.tag)

@@ -16,6 +16,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventEditDialogBinding
 import com.example.hobbyfi.intents.EventIntent
@@ -69,6 +70,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                 Glide.with(this@EventEditDialogFragment)
                     .load(it)
                     .placeholder(eventInfo.eventImage.drawable)
+                    .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time))) // TODO: Change
                     .into(eventInfo.eventImage)
             }
 

@@ -118,7 +118,7 @@ class ChatroomMessageListFragmentViewModel(
                         }
                     }
                     is MessageIntent.DeleteMessageCache -> {
-                        deleteMessageCache(it.messageId, true)
+                        deleteMessageCache(it.messageId)
                     }
                 }
             }
@@ -223,15 +223,16 @@ class ChatroomMessageListFragmentViewModel(
     }
 
     // code duuuuuuup because generics and blablabla go brr
-    private suspend fun deleteMessageCache(id: Long, setState: Boolean = false) {
-        val success = messageRepository.deleteMessageCache(id)
+    private suspend fun deleteMessageCache(id: Long) {
+        messageRepository.deleteMessageCache(id)
 
-        if(setState) {
-            messageStateIntent.setState(if(success) MessageState.OnData.DeleteMessageCacheResult
-                else MessageState.Error(Constants.cacheDeletionError))
-        } else if(!success) {
-            throw Exception(Constants.cacheDeletionError)
-        }
+        // DEAD CODE because this gave problems
+//        if(setState) {
+//            messageStateIntent.setState(if(success) MessageState.OnData.DeleteMessageCacheResult
+//                else MessageState.Error(Constants.cacheDeletionError))
+//        } else if(!success) {
+//            throw Exception(Constants.cacheDeletionError)
+//        }
     }
 
     // might not need this method because Room foreign keys & oncascade deletion

@@ -49,7 +49,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
 
     override val eventListAdapter: EventListAdapter by lazy {
         EventListAdapter(
-            eventsSource.value ?: emptyList(),
+            eventsSource.value ?: arrayListOf(),
             { v: View, event: Event ->
                 if(!connectivityManager.isConnected()) {
                     Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)

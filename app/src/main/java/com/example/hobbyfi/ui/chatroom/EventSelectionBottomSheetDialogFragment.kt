@@ -50,7 +50,7 @@ abstract class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDial
             false
         )
 
-        val initialEvents = eventsSource.value ?: emptyList()
+        val initialEvents = eventsSource.value ?: arrayListOf()
 
         setViewsVisibilityOnEvents(initialEvents)
 

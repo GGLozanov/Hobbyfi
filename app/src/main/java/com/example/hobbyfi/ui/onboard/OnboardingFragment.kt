@@ -6,19 +6,15 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentOnboardingBinding
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.ui.auth.AuthActivity
-import com.example.hobbyfi.ui.base.BaseFragment
 import com.facebook.login.LoginManager
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -52,8 +48,8 @@ class OnboardingFragment : Fragment(), KodeinAware {
                 extraText.isVisible = true
                 extraText.text = it
             }
-            args.getByteArray(CENTER_DRAWABLE)?.let {
-                centerIcon.setImageDrawable(BitmapDrawable(resources, BitmapFactory.decodeByteArray(it, 0, it.size)))
+            args.getParcelable<Bitmap>(CENTER_DRAWABLE)?.let {
+                centerIcon.setImageBitmap(it)
             }
 
             with(continueText) {
@@ -94,7 +90,7 @@ class OnboardingFragment : Fragment(), KodeinAware {
         @JvmStatic
         fun newInstance(
             topText: String,
-            centerDrawable: Drawable,
+            centerDrawableBm: Bitmap,
             bottomText: String,
             lastFragment: Boolean = false,
             extraText: String? = null
@@ -102,12 +98,8 @@ class OnboardingFragment : Fragment(), KodeinAware {
             OnboardingFragment().apply {
                 arguments = Bundle().apply {
                     putString(TOP_TEXT, topText)
-                    val drawableBm = centerDrawable.toBitmap()
 
-                    putByteArray(CENTER_DRAWABLE, ByteArrayOutputStream().run {
-                        drawableBm.compress(Bitmap.CompressFormat.JPEG, 100, this)
-                        toByteArray()
-                    })
+                    putParcelable(CENTER_DRAWABLE, centerDrawableBm)
 
                     putString(BOTTOM_TEXT, bottomText)
                     putBoolean(LAST_FRAGMENT, lastFragment)

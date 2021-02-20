@@ -1,6 +1,8 @@
 package com.example.hobbyfi.adapters.onboard
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -26,19 +28,31 @@ class OnboardingViewPagerAdapter(
         return when(position) {
             0 -> OnboardingFragment.newInstance(
                 context.getString(R.string.welcome_to_app),
-                ContextCompat.getDrawable(context, R.drawable.chatroom_default_pic)!!,
+                Bitmap.createScaledBitmap(
+                    BitmapFactory.decodeResource(context.resources, R.drawable.chatroom_default_pic),
+                    200, 200,
+                    true
+                ),
                 context.getString(R.string.app_description),
                 lastFragment
             )
             1 -> OnboardingFragment.newInstance(
                 context.getString(R.string.auth_explanation),
-                ContextCompat.getDrawable(context, R.drawable.ic_baseline_security_white_24)!!,
+                Bitmap.createScaledBitmap(
+                    BitmapFactory.decodeResource(context.resources, R.drawable.ic_baseline_security_white_24),
+                    200, 200,
+                    true
+                ),
                 context.getString(R.string.facebook_mention),
                 lastFragment
             )
             2 -> OnboardingFragment.newInstance(
                 context.getString(R.string.chatrooms_explanation),
-                ContextCompat.getDrawable(context, R.drawable.chatroom_default_pic)!!,
+                Bitmap.createScaledBitmap(
+                    BitmapFactory.decodeResource(context.resources, R.drawable.chatroom_default_pic),
+                    200, 200,
+                    true
+                ), // Kitkat optimizations
                 context.getString(R.string.app_description_outro),
                 lastFragment,
                 context.getString(R.string.closing_onboarding)

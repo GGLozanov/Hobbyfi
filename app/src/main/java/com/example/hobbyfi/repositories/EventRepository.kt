@@ -27,7 +27,7 @@ class EventRepository(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
     hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
 ): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
-    private val _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData(emptyList())
+    private val _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData(arrayListOf())
     private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
     fun getEvents(chatroomId: Long): Flow<List<Event>?> {

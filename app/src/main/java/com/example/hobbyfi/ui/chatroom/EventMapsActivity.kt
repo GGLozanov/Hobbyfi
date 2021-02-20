@@ -281,7 +281,7 @@ class EventMapsActivity : MapsActivity(),
                                         .show()
                                 }
                             } else {
-                                viewModel.setUserGeoPoints(emptyList())
+                                viewModel.setUserGeoPoints(arrayListOf())
                             }
                         })
                     }
