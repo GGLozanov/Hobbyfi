@@ -21,6 +21,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
+import java.net.ConnectException
 import java.util.concurrent.TimeUnit
 
 
@@ -279,25 +280,29 @@ interface HobbyfiAPI {
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {
-                if(!connectivityManager.isConnected()) {
+                try {
+                    if(!connectivityManager.isConnected()) {
+                        throw NoConnectivityException()
+                    }
+
+                    val headers = it.request().headers
+                        .newBuilder()
+                        .add("Content-Type", if(it.request().method == "POST") "application/x-www-form-urlencoded"
+                        else
+                            "application/json")
+                        .add("Accept", "*/*")
+                        .add("Connection", "keep-alive")
+                        .build()
+
+                    val request = it.request()
+                        .newBuilder()
+                        .headers(headers)
+                        .build()
+
+                    return@Interceptor it.proceed(request)
+                } catch(ex: ConnectException) {
                     throw NoConnectivityException()
                 }
-
-                val headers = it.request().headers
-                    .newBuilder()
-                    .add("Content-Type", if(it.request().method == "POST") "application/x-www-form-urlencoded"
-                        else
-                        "application/json")
-                    .add("Accept", "*/*")
-                    .add("Connection", "keep-alive")
-                    .build()
-
-                val request = it.request()
-                    .newBuilder()
-                    .headers(headers)
-                    .build()
-
-                return@Interceptor it.proceed(request)
             }
 
             val loggingInterceptor = HttpLoggingInterceptor()

@@ -107,6 +107,7 @@ class ChatroomActivity : NavigationActivity(),
                 comeFromAuthDeepLink
             ) {
                 val safeLinkProps = linkProperties ?: Branch.getInstance().latestReferringParams
+                Log.i("ChatroomActivity", "Safe link props: ${safeLinkProps}")
                 viewModel.setConsumedEventDeepLink(false)
                 if (error != null && !comeFromAuthDeepLink) {
                     Log.e("ChatroomActivity", "Deep-linking error: $error")
@@ -144,8 +145,6 @@ class ChatroomActivity : NavigationActivity(),
                         leaveChatroomWithRestart(Constants.noConnectionError)
                     }
                 }
-            } else if(try { linkProperties?.getString("error_message") } catch(ex: Exception) { null } != null) {
-                leaveChatroomWithRestart()
             } else {
                 sendUserIntentFetchIntentOnCurrentNull()
                 sendChatroomFetchIntentOnCurrentNull()
@@ -272,7 +271,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is UserState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldReauth) {
-                            handleAuthActionableError(it.error, it.shouldReauth)
+                            handleAuthActionableError(it.error, true, it.shouldReauth)
                             viewModel.resetUserState()
                         }
                     }
@@ -331,7 +330,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is ChatroomState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldExit) {
-                            handleAuthActionableError(it.error, it.shouldExit)
+                            handleAuthActionableError(it.error, true, it.shouldExit)
                             viewModel.resetChatroomState()
                         }
                     }
@@ -816,15 +815,21 @@ class ChatroomActivity : NavigationActivity(),
         return true
     }
 
-    fun handleAuthActionableError(error: String?, shouldExit: Boolean, context: Context? = null) {
+    // by default: sholdLeave => shouldExit
+    fun handleAuthActionableError(error: String?,
+                                  shouldLeave: Boolean, shouldExit: Boolean = shouldLeave,
+                                  context: Context? = null
+    ) {
         Toast.makeText(
             context ?: this@ChatroomActivity,
             "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG
         ).show()
-        if (shouldExit) {
+        if (shouldLeave) {
             finish()
-            // TODO: Add another field (shouldReauth) for REALLY bad errors
-            localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
+            if(shouldExit) {
+                // TODO: Add another field (shouldReauth) in Error states for REALLY bad errors
+                localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
+            }
         }
     }
 

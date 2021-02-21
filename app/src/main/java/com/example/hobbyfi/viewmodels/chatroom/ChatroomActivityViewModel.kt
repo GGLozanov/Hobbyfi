@@ -92,7 +92,6 @@ class ChatroomActivityViewModel(
                         }
                     }
                     is EventListIntent.DeleteOldEvents -> {
-                        // TODO: wire up this with delete_old events in repo and API
                         deleteOldEvents()
                     }
                     is EventListIntent.DeleteEventsCache -> {

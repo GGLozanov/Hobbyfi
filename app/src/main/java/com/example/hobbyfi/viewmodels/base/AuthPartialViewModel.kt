@@ -30,6 +30,6 @@ abstract class AuthPartialViewModel(
 
     @Bindable
     val email: PredicateMutableLiveData<String> = PredicateMutableLiveData { it == null ||
-        it.isEmpty()  || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
+        it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
     }
 }

@@ -11,10 +11,4 @@ abstract class AuthConfirmationViewModel(application: Application) : AuthInclusi
     open val confirmPassword: PredicateMutableLiveData<String> = PredicateMutableLiveData {
         it == null || it.isEmpty() || it != password.value
     }
-
-    @Bindable // just in case
-    override val password: PredicateMutableLiveData<String> = PredicateMutableLiveData {
-        it == null || it.isEmpty() || it.length <= 4
-                || it.length >= 15 || it != confirmPassword.value
-    }
 }

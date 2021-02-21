@@ -34,6 +34,7 @@ import com.example.hobbyfi.shared.combineWith
 import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.example.hobbyfi.models.User
+import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.shared.setParamsBasedOnScreenOrientation
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
@@ -229,6 +230,12 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                         lifecycleScope.launch innerLaunch@ {
                             if(calculateEventDayDifference()) {
                                 Toast.makeText(requireContext(), Constants.eventAlreadyConcluded, Toast.LENGTH_LONG)
+                                    .show()
+                                return@innerLaunch
+                            }
+
+                            if(!connectivityManager.isConnected()) {
+                                Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)
                                     .show()
                                 return@innerLaunch
                             }

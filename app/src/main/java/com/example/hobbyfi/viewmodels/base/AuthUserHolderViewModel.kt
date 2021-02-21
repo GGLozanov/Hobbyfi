@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.models.User
@@ -19,7 +20,10 @@ import okhttp3.internal.notify
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
+abstract class AuthUserHolderViewModel(
+    application: Application,
+    user: User?
+) : StateIntentViewModel<UserState, UserIntent>(application),
         TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
@@ -90,7 +94,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             mainStateIntent.setState(
                 UserState.Error(
                     e.message,
-                    shouldReauth = e.isCritical
+                    shouldReauth = e.isCritical || e is HobbyfiAPI.NoConnectivityException // always needs to be connected for this call
                 )
             )
         }.collect {

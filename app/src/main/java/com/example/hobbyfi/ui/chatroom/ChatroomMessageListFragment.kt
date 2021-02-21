@@ -227,7 +227,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
                             it.error,
                             it.shouldExit,
-                            requireContext()
+                            context = requireContext()
                         ) // TODO: Might make this a bit too coupled to the activity. . .
                     }
                 }
@@ -260,7 +260,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
                             it.error,
                             it.shouldExit,
-                            requireContext()
+                            context = requireContext()
                         )
                         viewModel.resetMessageState()
                     }

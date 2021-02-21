@@ -51,12 +51,6 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
         EventListAdapter(
             eventsSource.value ?: arrayListOf(),
             { v: View, event: Event ->
-                if(!connectivityManager.isConnected()) {
-                    Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)
-                        .show()
-                    return@EventListAdapter
-                }
-
                 v.isEnabled = false
 
                 navController.navigate(

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.Chatroom
@@ -93,7 +94,7 @@ abstract class AuthChatroomHolderViewModel(
             chatroomStateIntent.setState(
                 ChatroomState.Error(
                     e.message,
-                    shouldExit = e.isCritical
+                    shouldExit = e.isCritical || e is HobbyfiAPI.NoConnectivityException // always needs to be connected for these calls (due to CONTEXT)
                 )
             )
         }.collect {
