@@ -80,29 +80,6 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun editUser(userFields: Map<String?, String?>, originalUsername: String): Response? {
         Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
-            // renaming/resetting geopoint records
-            if(userFields.containsKey(Constants.USERNAME)) {
-                val username = userFields[Constants.USERNAME]
-                    ?: error("Username in editUser UserRepository call must not be null after check for contains()!")
-                firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
-                    .get().addOnSuccessListener {
-                        if(it != null && it.exists() && it.data != null
-                                && it.data!!.isNotEmpty()) {
-                            firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
-                                .set(it.data!!).addOnSuccessListener {
-                                    firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
-                                        .delete()
-                                }.addOnFailureListener {
-                                    throw FirebaseException(Constants.firestoreUpdateError)
-                                }
-                        } else {
-                            Log.w("UserRepository", "Found   but couldn't ")
-                        }
-                    }.addOnFailureListener {
-                        throw FirebaseException(Constants.firestoreDeletionError)
-                    }
-            }
-
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
                 userFields
@@ -115,13 +92,9 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun deleteUser(username: String): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return performAuthorisedRequest({
-            val response = hobbyfiAPI.deleteUser(
+            hobbyfiAPI.deleteUser(
                 prefConfig.getAuthUserToken()!!
             )
-
-            firestore.collection(Constants.LOCATIONS_COLLECTION)
-                .document(username).delete()
-            response
         }, {
             deleteUser(username)
         })

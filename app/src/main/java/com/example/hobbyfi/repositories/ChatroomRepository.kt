@@ -144,24 +144,9 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         Log.i("ChatroomRepository", "deleteChatroom -> deleting current chatroom")
 
         return performAuthorisedRequest({
-            val response = hobbyfiAPI.deleteChatroom(
+            hobbyfiAPI.deleteChatroom(
                 prefConfig.getAuthUserToken()!!,
             )
-
-            firestore.collection(Constants.LOCATIONS_COLLECTION)
-                .whereArrayContains(Constants.CHATROOM_ID, chatroomId)
-                .get().addOnSuccessListener {
-                    it.documents.forEach { doc ->
-                        if((doc[Constants.CHATROOM_ID] as List<Long>).size == 1) {
-                            doc.reference.delete()
-                        } else {
-                            doc.reference.update(Constants.CHATROOM_ID, FieldValue.arrayRemove(chatroomId))
-                        }
-                    }
-                }.addOnFailureListener {
-                    throw FirebaseException(Constants.firestoreDeletionError)
-                }
-            response
         }, { deleteChatroom(chatroomId) })
     }
 

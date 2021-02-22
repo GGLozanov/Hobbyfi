@@ -100,26 +100,10 @@ class EventRepository(
         Log.i("EventRepository", "deleteEvent -> Deleting chatroom event with id $eventId!!!")
 
         return performAuthorisedRequest({
-            val response = hobbyfiAPI.deleteEvent(
+            hobbyfiAPI.deleteEvent(
                 prefConfig.getAuthUserToken()!!,
                 eventId
             )
-
-            firestore.collection(Constants.LOCATIONS_COLLECTION)
-                .whereArrayContains(Constants.EVENT_IDS, eventId)
-                .get().addOnSuccessListener {
-                    it.documents.forEach { doc ->
-                        val eventIds = doc.get(Constants.EVENT_IDS) as List<Long>
-                        if(eventIds.isEmpty()) {
-                            doc.reference.delete()
-                        }
-
-                        doc.reference.update(Constants.EVENT_IDS, eventIds.filter { id -> id != eventId })
-                    }
-                }.addOnFailureListener {
-                    throw FirebaseException(Constants.firestoreDeletionError)
-                }
-            response
         }, { deleteEvent(eventId) })
     }
 

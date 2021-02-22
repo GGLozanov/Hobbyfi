@@ -264,6 +264,7 @@ class ChatroomActivityViewModel(
                 Pair(Constants.EVENT_IDS,
                     Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
             ))
+            setAuthEvents(_authEvents.value!!.filter { event -> !eventIds.contains(event.id) })
         }
 
         if(setState) {
