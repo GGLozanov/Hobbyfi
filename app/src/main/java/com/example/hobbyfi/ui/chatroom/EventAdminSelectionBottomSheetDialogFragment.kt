@@ -17,18 +17,12 @@ import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.Event
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.shared.showDistinctDialog
-import com.example.hobbyfi.state.EventState
-import com.example.hobbyfi.state.State
-import com.example.hobbyfi.viewmodels.chatroom.EventSelectionBottomSheetDialogFragmentViewModel
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDialogFragment() {
-    private val viewModel: EventSelectionBottomSheetDialogFragmentViewModel by viewModels()
-
     override val eventsSource: LiveData<List<Event>>
         get() = activityViewModel.authEvents
 
@@ -50,7 +44,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
                     requireContext().getString(R.string.delete_event),
                     { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {
-                            viewModel.sendIntent(
+                            activityViewModel.sendEventIntent(
                                 EventIntent.DeleteEvent(event.id)
                             )
                         }
@@ -87,36 +81,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
             )
         }
 
-        observeEventState()
-
         return view
-    }
-
-    private fun observeEventState() {
-        lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
-                when(it) {
-                    is EventState.Idle -> {
-
-                    }
-                    is EventState.Loading -> {
-                        // TODO: Progressbar
-                    }
-                    is EventState.OnData.EventDeleteResult -> {
-                        activityViewModel.sendEventsIntent(EventListIntent.DeleteAnEventCache(it.eventId))
-                        Toast.makeText(
-                            requireContext(),
-                            "Event successfuly deleted!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    is EventState.Error -> {
-                        // TODO: Handle error
-                    }
-                    else -> throw State.InvalidStateException()
-                }
-            }
-        }
     }
 
     override fun setViewsVisibilityOnEvents(events: List<Event>) {

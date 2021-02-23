@@ -12,7 +12,7 @@ import com.example.hobbyfi.responses.CreateTimeIdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
-import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.shared.RemoteKeyType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -23,14 +23,22 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
     @ExperimentalPagingApi
     fun getMessages(
         pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),
-        chatroomId: Long
+        chatroomId: Long,
+        query: String?
     ): Flow<PagingData<Message>> {
         Log.i("MessageRepository", "getMessages -> getting current messages")
-        val pagingSource = { hobbyfiDatabase.messageDao().getMessagesByChatroomId(chatroomId) }
+        val pagingSource = {
+            hobbyfiDatabase.messageDao()
+                .getMessagesByChatroomIdAndRemoteKeyType(
+                    chatroomId,
+                    if(query != null) RemoteKeyType.SEARCH_MESSAGE else RemoteKeyType.MESSAGE
+                )
+        }
+
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId)
+            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId, query)
         ).flow
     }
 

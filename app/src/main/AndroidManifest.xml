@@ -82,6 +82,9 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <provider android:name=".shared.MessageSuggestionsProvider"
+            android:authorities="com.example.hobbyfi.MessageSuggestionsProvider" />
+
         <activity
             android:name=".ui.auth.SplashScreenActivity"
             android:noHistory="true"
@@ -138,6 +141,12 @@
                     android:host="dq20i-alternate.test-app.link"
                     android:scheme="https" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable_messages"/>
         </activity>
         <activity
             android:name=".ui.chatroom.EventChooseLocationMapsActivity"

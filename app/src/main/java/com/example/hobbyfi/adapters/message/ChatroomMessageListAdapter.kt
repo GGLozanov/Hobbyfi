@@ -10,6 +10,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.BaseViewHolder
@@ -31,158 +32,101 @@ import kotlin.math.pow
 
 
 class ChatroomMessageListAdapter(
+    currentUsers: List<User>,
     private var isAuthUserChatroomOwner: Boolean,
-    private var currentUsers: List<User>,
     private inline val onMessageLongPress: (View, Message) -> Boolean,
     private inline val onImageMessagePress: (MessageCardBinding) -> Unit
-): PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
-
-    override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
-
-    private val prefConfig: PrefConfig by instance(tag = "prefConfig")
-
-    private enum class MessageType {
-        SEND, RECEIVE, TIMELINE
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Message> {
-        return when(viewType) {
-            MessageType.TIMELINE.ordinal -> {
-                ChatroomTimelineMessageViewHolder.getInstance(
-                    parent, isAuthUserChatroomOwner,
-                    onMessageLongPress
-                )
-            }
-            MessageType.RECEIVE.ordinal -> {
-                ChatroomReceiveMessageViewHolder.getInstance(
-                    parent, onMessageLongPress,
-                    currentUsers, isAuthUserChatroomOwner, prefConfig
-                )
-            }
-            MessageType.SEND.ordinal -> {
-                ChatroomSendMessageViewHolder.getInstance(
-                    parent, onMessageLongPress,
-                    currentUsers, isAuthUserChatroomOwner, prefConfig
-                )
-            }
-            else -> throw IllegalArgumentException(Constants.invalidViewTypeError)
-        }
-    }
-
-    override fun onBindViewHolder(holder: BaseViewHolder<Message>, position: Int) {
-        val message = getItem(position)
-
-        holder.bind(message, position)
-
-        when(holder) {
-            is ChatroomReceiveMessageViewHolder, is ChatroomSendMessageViewHolder -> {
-                handleImageMessageBind(
-                    message,
-                    position,
-                    holder as UserChatroomMessageViewHolder,
-                    holder.itemView.context
-                )
-            }
-        }
-    }
-
-    override fun getItemViewType(position: Int): Int {
-        val message = getItem(position)
-
-        if(message?.isTimeline == true) return MessageType.TIMELINE.ordinal
-
-        return if(message?.userSentId == prefConfig.getAuthUserIdFromToken()) MessageType.SEND.ordinal
-            else MessageType.RECEIVE.ordinal
-    }
-
-    abstract class ChatroomMessageViewHolder(
+): ChatroomMessageAdapter(currentUsers) {
+    private abstract class UserChatroomMessageViewHolder(
         rootView: View,
+        messageCardBinding: MessageCardBinding,
+        protected val onMessageLongPress: (View, Message) -> Boolean,
+        protected val onImageMessagePress: (MessageCardBinding) -> Unit,
+        users: List<User>,
         protected val isAuthUserChatroomOwner: Boolean,
-        protected val onMessageLongPress: (View, Message) -> Boolean
-    ) : BaseViewHolder<Message>(rootView)
-
-    abstract class UserChatroomMessageViewHolder(
-        rootView: View,
-        val messageCardBinding: MessageCardBinding,
-        onMessageLongPress: (View, Message) -> Boolean,
-        private val users: List<User>,
-        isAuthUserChatroomOwner: Boolean,
-        private val prefConfig: PrefConfig,
-    ) : ChatroomMessageViewHolder(rootView, isAuthUserChatroomOwner, onMessageLongPress) {
+        prefConfig: PrefConfig,
+    ) : BaseUserChatroomMessageViewHolder(rootView, messageCardBinding, users, prefConfig) {
         override fun bind(model: Message?, position: Int) {
-            Log.i("ChatroomMListAdapter", "Message: $model")
-            val userSentMessage =
+            super.bind(model, position)
+            val authUserSentMessage =
                 users.find { model?.userSentId == prefConfig.getAuthUserIdFromToken() }
 
-            if(userSentMessage != null || isAuthUserChatroomOwner) {
+            if(authUserSentMessage != null || isAuthUserChatroomOwner) {
                 messageCardBinding.messageCardLayout.setOnLongClickListener {
                     onMessageLongPress(it, model!!)
                 }
             }
+        }
 
-            // DATA BINDING GO BRRRRRR????
-            messageCardBinding.userMessage.text = model?.message
+        override fun loadMessageImage(messageUrl: String, glide: RequestManager) {
+            super.loadMessageImage(messageUrl, glide)
+            messageCardBinding.messageCardLayout.setOnClickListener {
+                onImageMessagePress(messageCardBinding)
+            }
         }
     }
 
     // TODO: Gesture detection for edit message and delete message callbacks
-    class ChatroomSendMessageViewHolder(
+    private class ChatroomSendMessageViewHolder(
         binding: MessageCardSendBinding,
         onMessageLongPress: (View, Message) -> Boolean,
+        onImageMessagePress: (MessageCardBinding) -> Unit,
         users: List<User>,
         isAuthUserChatroomOwner: Boolean,
         prefConfig: PrefConfig,
     ) : UserChatroomMessageViewHolder(
-        binding.root, binding.messageCardSend, onMessageLongPress,
+        binding.root, binding.messageCardSend, onMessageLongPress, onImageMessagePress,
         users, isAuthUserChatroomOwner, prefConfig
     ) {
         companion object {
             fun getInstance(
-                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean,
+                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean, onImageMessagePress: (MessageCardBinding) -> Unit,
                 users: List<User>, isAuthUserChatroomOwner: Boolean, prefConfig: PrefConfig
             ): ChatroomSendMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding: MessageCardSendBinding =
                     DataBindingUtil.inflate(inflater, R.layout.message_card_send, parent, false)
                 return ChatroomSendMessageViewHolder(
-                    binding, onMessageLongPress,
+                    binding, onMessageLongPress, onImageMessagePress,
                     users, isAuthUserChatroomOwner, prefConfig
                 )
             }
         }
     }
 
-    class ChatroomReceiveMessageViewHolder(
+    private class ChatroomReceiveMessageViewHolder(
         binding: MessageCardReceiveBinding,
         onMessageLongPress: (View, Message) -> Boolean,
+        onImageMessagePress: (MessageCardBinding) -> Unit,
         users: List<User>,
         isAuthUserChatroomOwner: Boolean,
         prefConfig: PrefConfig,
     ) : UserChatroomMessageViewHolder(
-        binding.root, binding.messageCardReceive, onMessageLongPress,
+        binding.root, binding.messageCardReceive, onMessageLongPress, onImageMessagePress,
         users, isAuthUserChatroomOwner, prefConfig
     ) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(
-                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean,
+                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean, onImageMessagePress: (MessageCardBinding) -> Unit,
                 users: List<User>, isAuthUserChatroomOwner: Boolean, prefConfig: PrefConfig
             ): ChatroomReceiveMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding: MessageCardReceiveBinding =
                     DataBindingUtil.inflate(inflater, R.layout.message_card_receive, parent, false)
                 return ChatroomReceiveMessageViewHolder(
-                    binding, onMessageLongPress,
+                    binding, onMessageLongPress, onImageMessagePress,
                     users, isAuthUserChatroomOwner, prefConfig
                 )
             }
         }
     }
 
-    class ChatroomTimelineMessageViewHolder(
-        private val binding: MessageCardTimelineBinding,
-        isAuthUserChatroomOwner: Boolean, onMessageLongPress: (View, Message) -> Boolean
-    ) : ChatroomMessageViewHolder(binding.root, isAuthUserChatroomOwner, onMessageLongPress) {
+    private class ChatroomTimelineMessageViewHolder(
+        binding: MessageCardTimelineBinding,
+        private val isAuthUserChatroomOwner: Boolean,
+        private val onMessageLongPress: (View, Message) -> Boolean
+    ) : BaseTimelineMessageViewHolder(binding) {
         companion object {
             //get instance of the ViewHolder
             fun getInstance(
@@ -214,55 +158,6 @@ class ChatroomMessageListAdapter(
         }
     }
 
-    private fun handleImageMessageBind(
-        message: Message?,
-        position: Int, holder: UserChatroomMessageViewHolder,
-        itemViewContext: Context
-    ) {
-        val messageBinding = holder.messageCardBinding
-        val isMessageImage = Constants.imageRegex
-            .matches(message?.message!!)
-
-        val glide = Glide.with(itemViewContext)
-        if(isMessageImage) {
-            glide
-                .load(message.message)
-                .placeholder(R.drawable.ic_baseline_image_42)
-                .into(messageBinding.userImage)
-            messageBinding.messageCardLayout.setOnClickListener {
-                onImageMessagePress(messageBinding)
-            }
-        }
-
-        messageBinding.userImage.isVisible = isMessageImage
-        messageBinding.userMessage.isVisible = !isMessageImage
-
-        val userSentMessage = currentUsers.find { message.userSentId == it.id }
-
-        messageBinding.userName.text = userSentMessage?.name ?: "[Unknown User]"
-
-        glide
-            .load(userSentMessage?.photoUrl)
-            .placeholder(R.drawable.user_default_pic)
-            .signature(
-                GlideUtils.getPagingObjectKey(
-                    prefConfig,
-                    position,
-                    R.string.pref_last_chatroom_users_fetch_time,
-                    Constants.messagesPageSize
-                )
-            )
-            .into(messageBinding.userProfileImage)
-    }
-
-
-    fun setCurrentUsers(users: List<User>) {
-        if(currentUsers != users ) {
-            currentUsers = users
-            notifyDataSetChanged()
-        }
-    }
-
     fun setAuthUserChatroomOwner(isOwner: Boolean) {
         if(isAuthUserChatroomOwner != isOwner) {
             isAuthUserChatroomOwner = isOwner
@@ -270,20 +165,14 @@ class ChatroomMessageListAdapter(
         }
     }
 
-    companion object {
-        private val DIFF_CALLBACK = object :
-            DiffUtil.ItemCallback<Message>() {
-            // Chatroom details may have changed if reloaded from the database,
-            // but ID is fixed.
-            override fun areItemsTheSame(
-                oldMessage: Message,
-                newMessage: Message
-            ) = oldMessage.id == newMessage.id
+    override fun getTimelineMessageViewHolderInstance(parent: ViewGroup): BaseTimelineMessageViewHolder =
+        ChatroomTimelineMessageViewHolder.getInstance(parent, isAuthUserChatroomOwner, onMessageLongPress)
 
-            override fun areContentsTheSame(
-                oldMessage: Message,
-                newMessage: Message
-            ) = oldMessage == newMessage
-        }
-    }
+    override fun getReceiveMessageViewHolderInstance(parent: ViewGroup): BaseUserChatroomMessageViewHolder =
+        ChatroomReceiveMessageViewHolder.getInstance(parent, onMessageLongPress, onImageMessagePress, currentUsers,
+            isAuthUserChatroomOwner, prefConfig)
+
+    override fun getSendMessageViewHolderInstance(parent: ViewGroup): BaseUserChatroomMessageViewHolder =
+        ChatroomSendMessageViewHolder.getInstance(parent, onMessageLongPress, onImageMessagePress, currentUsers,
+            isAuthUserChatroomOwner, prefConfig)
 }

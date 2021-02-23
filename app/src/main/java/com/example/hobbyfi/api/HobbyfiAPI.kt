@@ -208,7 +208,8 @@ interface HobbyfiAPI {
     suspend fun fetchMessages(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.CHATROOM_ID) chatroomId: Long,
-        @Query(Constants.PAGE) page: Int
+        @Query(Constants.PAGE) page: Int,
+        @Query(Constants.QUERY) query: String? = null
     ): CacheListResponse<Message>
 
     /**
@@ -220,6 +221,7 @@ interface HobbyfiAPI {
         @Header(Constants.AUTH_HEADER) token: String,
         @FieldMap body: Map<String?, String?> // ALWAYS takes Id
     ): Response?
+
 
     @DELETE("api/v${API_VERSION}/message/delete")
     suspend fun deleteMessage(

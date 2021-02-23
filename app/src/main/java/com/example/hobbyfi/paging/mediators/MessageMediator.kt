@@ -8,6 +8,7 @@ import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.shared.Callbacks
@@ -20,17 +21,19 @@ class MessageMediator(
     hobbyfiDatabase: HobbyfiDatabase,
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
-    private val chatroomId: Long
-) : ModelMediator<Int, Message>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.MESSAGE) {
+    private val chatroomId: Long,
+    private val query: String? = null
+) : ModelMediator<Int, Message>(
+    hobbyfiDatabase, prefConfig,
+    hobbyfiAPI, RemoteKeyType.MESSAGE
+) {
     private val messageDao = hobbyfiDatabase.messageDao()
+    private val searchMessages: Boolean = query != null
 
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, Message>
     ): MediatorResult {
-        // insert new page numbers (remote keys) after using cached page number to fetch new one
-        // if REFRESH LoadType => try to fetch new
-
         return try {
             fetchMessages(state, loadType)
         } catch(ex: Exception) {
@@ -42,7 +45,6 @@ class MessageMediator(
             }
             MediatorResult.Error(ex)
         }
-
     }
 
     private suspend fun fetchMessages(state: PagingState<Int, Message>, loadType: LoadType): MediatorResult {
@@ -63,6 +65,7 @@ class MessageMediator(
             prefConfig.getAuthUserToken()!!,
             chatroomId,
             page,
+            query
         )
 
         val mediatorResult = saveMessages(messagesResponse, page, loadType)
@@ -80,11 +83,16 @@ class MessageMediator(
 
         hobbyfiDatabase.withTransaction {
             val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_messages_fetch_time)
+
             if (loadType == LoadType.REFRESH || cacheTimedOut) {
                 Log.i("MessageMediator", "MESSAGE triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
-                remoteKeysDao.deleteRemoteKeysByTypeAndIds(mainRemoteKeyType, messageDao.getMessagesIdsByChatroomId(chatroomId))
-                messageDao.deleteMessagesByChatroomId(chatroomId)
+                clearCachedMessagesByFetchType()
             }
+
+            if(!searchMessages) {
+                remoteKeysDao.deleteRemoteKeysByTypeAndIds(RemoteKeyType.SEARCH_MESSAGE, messagesResponse.modelList.map { it.id })
+            }
+
             val keys = mapRemoteKeysFromModelList(messagesResponse.modelList, page, isEndOfList)
             Log.i("MessageMediator", "MESSAGE RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("MessageMediator", "Inserting ChatroomList and RemoteKeys")
@@ -93,5 +101,35 @@ class MessageMediator(
         }
 
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)
+    }
+
+    override suspend fun getRemoteKeysByIdAndType(modelId: Long): RemoteKeys? =
+        remoteKeysDao.getRemoteKeysByIdAndType(modelId, if(searchMessages) RemoteKeyType.SEARCH_MESSAGE else mainRemoteKeyType)
+
+    private suspend fun clearCachedMessagesByFetchType() {
+        if(searchMessages) {
+            val deletedMessagesIds = messageDao.getMessagesIdsByChatroomIdAndIds(
+                chatroomId, remoteKeysDao.getRemoteKeysIdsByType(RemoteKeyType.SEARCH_MESSAGE))
+            remoteKeysDao.deleteRemoteKeysByTypeAndIds(RemoteKeyType.SEARCH_MESSAGE, messageDao.getMessagesIdsByChatroomId(chatroomId))
+            messageDao.deleteMessagesByIds(deletedMessagesIds)
+        } else {
+            remoteKeysDao.deleteRemoteKeysByTypeAndIds(mainRemoteKeyType, messageDao.getMessagesIdsByChatroomId(chatroomId))
+            messageDao.deleteMessagesByChatroomId(chatroomId)
+        }
+    }
+
+    override fun mapRemoteKeysFromModelList(
+        modelList: List<Message>,
+        page: Int,
+        isEndOfList: Boolean
+    ): List<RemoteKeys> {
+        val prevKey = if (page == DEFAULT_PAGE_INDEX) null else page - 1
+        val nextKey = if (isEndOfList) null else page + 1
+        Log.i("MessageMediator", "RemoteKeys calculated. Previous page: ${prevKey}; Next page: ${nextKey}")
+        return modelList.map {
+            RemoteKeys(id = it.id, prevKey = prevKey, nextKey = nextKey,
+                modelType = if(searchMessages) RemoteKeyType.SEARCH_MESSAGE else mainRemoteKeyType
+            )
+        }
     }
 }

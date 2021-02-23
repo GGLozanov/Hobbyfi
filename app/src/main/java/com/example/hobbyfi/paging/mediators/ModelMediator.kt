@@ -65,24 +65,24 @@ abstract class ModelMediator<Key: Any, Value: Model>(
         }
     }
 
-    protected open suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, mainRemoteKeyType) }
+            ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    protected open suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, mainRemoteKeyType) }
+            ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    protected open suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
-                remoteKeysDao.getRemoteKeysByIdAndType(modelId, mainRemoteKeyType)
+                getRemoteKeysByIdAndType(modelId)
             }
         }
     }
@@ -97,4 +97,7 @@ abstract class ModelMediator<Key: Any, Value: Model>(
             )
         }
     }
+
+    protected open suspend fun getRemoteKeysByIdAndType(modelId: Long): RemoteKeys? =
+        remoteKeysDao.getRemoteKeysByIdAndType(modelId, mainRemoteKeyType)
 }

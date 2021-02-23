@@ -113,38 +113,6 @@ object Constants {
         )
     )
 
-    // TODO: Put in in-memory db annotated by room with @Database
-//    val emailPredicate = Predicate<String> {
-//        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
-//    }
-//
-//    fun newEmailPredicate(originalEmail: String?) = Predicate<String> {
-//        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches() ||
-//                originalEmail == it
-//    }
-//
-//    fun passwordPredicate(confirmPasswordField: EditText? = null) = Predicate<String> {
-//        return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15 ||
-//                if(confirmPasswordField == null ||
-//                    confirmPasswordField.text.toString().isEmpty()) false else it != confirmPasswordField.text.toString()
-//    }
-//
-//    fun confirmPasswordPredicate(passwordField: EditText) = Predicate<String> {
-//        return@Predicate it.isEmpty() || it != passwordField.text.toString()
-//    }
-//
-//    val namePredicate = Predicate<String> {
-//        return@Predicate it.isEmpty() || it.length >= 25
-//    }
-//
-//    val descriptionPredicate = Predicate<String> {
-//        return@Predicate it.length >= 30
-//    }
-//
-//    val messagePredicate = Predicate<String> {
-//        return@Predicate it.isEmpty() || it.length >= 200
-//    }
-
     const val chatroomPageSize: Int = 5
     const val messagesPageSize: Int = 20
 
@@ -270,6 +238,8 @@ object Constants {
 
     const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED" // TODO: Use
 
+    const val QUERY: String = "query"
+
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr
     val tagJsonConverter: Gson = GsonBuilder()
@@ -294,6 +264,9 @@ object Constants {
         Regex.escape(BuildConfig.BASE_URL) +
                 "uploads\\/[^.]+\\.jpg"
     )
+
+    const val searchMessage: String = "searchMessage"
+    const val messagesPagingData: String = "MESSAGES_PAGING_DATA"
 
     const val LOCATIONS_COLLECTION: String = "locations"
     const val LOCATION: String = "location"

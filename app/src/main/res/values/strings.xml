@@ -186,4 +186,6 @@
     <string name="closing_onboarding">In summary, that\'s it! But Hobbyfi has a lot to offer, so be sure to explore. Thank you for making it this far :)</string>
     <string name="reset_password_header">Reset Password</string>
     <string name="reset">Reset</string>
+    <string name="download">Download</string>
+    <string name="search_messages">Search messages...</string>
 </resources>

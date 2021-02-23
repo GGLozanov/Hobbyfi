@@ -1,11 +1,9 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
-import android.util.Base64.DEFAULT
 import androidx.databinding.Bindable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
@@ -18,11 +16,9 @@ import com.example.hobbyfi.models.StateIntent
 import com.example.hobbyfi.repositories.MessageRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PredicateMutableLiveData
-import com.example.hobbyfi.shared.equalsOrBiggerThan
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
@@ -30,26 +26,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.kodein.di.generic.instance
 import java.lang.Exception
-import java.lang.IllegalArgumentException
-import java.util.*
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class ChatroomMessageListFragmentViewModel(
     application: Application
-) : StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
-    private val messageRepository: MessageRepository by instance(tag = "messageRepository")
-    private var currentMessages: Flow<PagingData<Message>>? = null
-
-    val areCurrentMessagesNull get() = currentMessages == null
-
+): ChatroomMessageViewModel(application) {
     @Bindable
     val message: PredicateMutableLiveData<String> = PredicateMutableLiveData { it == null ||
         it.isEmpty() || it.length >= 200
-    }
-
-    override val mainStateIntent: StateIntent<MessageListState, MessageListIntent> = object : StateIntent<MessageListState, MessageListIntent>() {
-        override val _state: MutableStateFlow<MessageListState> = MutableStateFlow(MessageListState.Idle)
     }
 
     val messageStateIntent: StateIntent<MessageState, MessageIntent> = object : StateIntent<MessageState, MessageIntent>() {
@@ -63,20 +48,8 @@ class ChatroomMessageListFragmentViewModel(
         messageStateIntent.sendIntent(intent)
     }
 
-    fun setCurrentMessages(messages: Flow<PagingData<Message>>?) {
-        currentMessages = messages
-    }
-
     override fun handleIntent() {
-        viewModelScope.launch {
-            mainStateIntent.intentAsFlow().collectLatest {
-                when(it) {
-                    is MessageListIntent.FetchMessages -> {
-                        fetchMessages(it.chatroomId)
-                    }
-                }
-            }
-        }
+        super.handleIntent()
         viewModelScope.launch {
             messageStateIntent.intentAsFlow().collectLatest {
                 when(it) {
@@ -127,18 +100,6 @@ class ChatroomMessageListFragmentViewModel(
 
     init {
         handleIntent()
-    }
-
-    private fun fetchMessages(chatroomId: Long) {
-        mainStateIntent.setState(MessageListState.Loading)
-
-        if(currentMessages == null) {
-            currentMessages = messageRepository.getMessages(chatroomId = chatroomId)
-                .distinctUntilChanged()
-                .cachedIn(viewModelScope)
-        }
-
-        mainStateIntent.setState(MessageListState.OnData.MessagesResult(currentMessages!!))
     }
 
     private suspend fun createMessage(message: String, userSentId: Long,

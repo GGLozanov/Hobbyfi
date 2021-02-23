@@ -1,10 +1,12 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.annotation.SuppressLint
+import android.app.SearchManager
 import android.content.*
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.provider.SearchRecentSuggestions
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -66,7 +68,8 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 class ChatroomActivity : NavigationActivity(),
-        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, RefreshConnectionAware {
+        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
+        RefreshConnectionAware {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
@@ -163,8 +166,10 @@ class ChatroomActivity : NavigationActivity(),
         // if activity is in foreground (or in backstack but partially visible) launching the same
         // activity will skip onStart, handle this case with reInitSession
         Branch.sessionBuilder(this).withCallback(branchReferralInitListener).reInit()
+        handleSearchQuery()
     }
 
+    @ExperimentalPagingApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatroomBinding.inflate(layoutInflater)
@@ -178,6 +183,8 @@ class ChatroomActivity : NavigationActivity(),
         if (checkNotificationOrDeepLinkCall()) {
             return
         }
+
+        handleSearchQuery()
 
         assertGooglePlayAvailability()
 
@@ -233,6 +240,7 @@ class ChatroomActivity : NavigationActivity(),
         observeUserState()
         observeUsersState()
         observeEventsState()
+        observeEventState()
         observeEvents()
     }
 
@@ -447,11 +455,8 @@ class ChatroomActivity : NavigationActivity(),
         lifecycleScope.launchWhenStarted {
             viewModel.eventsState.collect {
                 when (it) {
-                    is EventListState.Idle -> {
+                    is EventListState.Idle, EventListState.Loading -> {
 
-                    }
-                    is EventListState.Loading -> {
-                        // TODO: Progressbar on event card
                     }
                     is EventListState.OnData.EventsResult -> {
                         checkDeepLinkStatusAndPerform {
@@ -495,6 +500,35 @@ class ChatroomActivity : NavigationActivity(),
                         handleAuthActionableError(it.error, it.shouldReauth)
                         viewModel.resetEventListState()
                     }
+                }
+            }
+        }
+    }
+    
+    private fun observeEventState() {
+        lifecycleScope.launchWhenStarted {
+            viewModel.eventState.collect {
+                when(it) {
+                    is EventState.Idle -> {
+
+                    }
+                    is EventState.Loading -> {
+                        // TODO: Progressbar? Somewhere?
+                    }
+                    is EventState.OnData.EventDeleteResult -> {
+                        Toast.makeText(
+                            this@ChatroomActivity,
+                            "Event successfully deleted!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        viewModel.resetEventState()
+                    }
+                    is EventState.Error -> {
+                        // TODO: Handle error
+                        handleAuthActionableError(it.error, it.shouldReauth)
+                        viewModel.resetEventState()
+                    }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -754,6 +788,23 @@ class ChatroomActivity : NavigationActivity(),
         return rebuildStack
     }
 
+    // checks if a search query was initiated in ChatroomMessageSearchViewFragment and calls its method if true
+    @ExperimentalPagingApi
+    private fun handleSearchQuery() {
+        if (Intent.ACTION_SEARCH == intent.action) {
+            Log.i("ChatroomActivity", "intent for search with query: ${intent.getStringExtra(SearchManager.QUERY)}")
+            intent.getStringExtra(SearchManager.QUERY)?.also { query ->
+                SearchRecentSuggestions(this, MessageSuggestionsProvider.AUTHORITY, MessageSuggestionsProvider.MODE)
+                    .saveRecentQuery(query, null) // save query
+
+                lifecycleScope.launch {
+                    (supportFragmentManager.currentNavigationFragment as ChatroomMessageSearchViewFragment?)
+                        ?.filterMessages(query)
+                }
+            }
+        }
+    }
+
     private fun assertGooglePlayAvailability() {
         val googleApiInstance = GoogleApiAvailability.getInstance()
         val availability = googleApiInstance.isGooglePlayServicesAvailable(this)
@@ -792,7 +843,7 @@ class ChatroomActivity : NavigationActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_search -> {
-                // TODO: Future chat search functionality with SearchView
+                navController.navigate(R.id.action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment)
             }
             R.id.action_info -> {
                 binding.drawerLayout.openDrawer(GravityCompat.END)

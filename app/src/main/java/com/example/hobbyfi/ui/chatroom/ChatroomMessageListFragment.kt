@@ -19,6 +19,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import androidx.paging.PagingData
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
@@ -36,12 +37,15 @@ import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
+import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import java.io.FileNotFoundException
 
 @ExperimentalCoroutinesApi
@@ -50,11 +54,34 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         BottomSheetImagePicker.OnImagesSelectedListener,
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
         RefreshConnectionAware {
+
+    @ExperimentalCoroutinesApi
+    @ExperimentalPagingApi
+    override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
+
     private lateinit var binding: FragmentChatroomMessageListBinding
 
     // props like these are nullable because Activity onDestroy being called on new app start from push notification
     // and causing crashes for unitialised properties before anything actually happens prior to activity restart
-    private var messageListAdapter: ChatroomMessageListAdapter? = null
+
+    override val messageListAdapter: ChatroomMessageListAdapter by lazy {
+        ChatroomMessageListAdapter(
+            activityViewModel.chatroomUsers.value ?: arrayListOf(),
+            activityViewModel.isAuthUserChatroomOwner.value == true,
+            { _, message ->
+                // reuse fragment for distinct messages when they don't change
+                parentFragmentManager.showDistinctDialog(message.message, {
+                    ChatroomMessageBottomSheetDialogFragment.newInstance(
+                        message
+                    )
+                })
+                return@ChatroomMessageListAdapter true
+            },
+        ) { messageB ->
+            navController.navigate(ChatroomMessageListFragmentDirections
+                .actionChatroomMessageListFragmentToImageViewFragment(messageB.userMessage.text.toString()))
+        }
+    }
 
     private val onNormalSendMessage = View.OnClickListener {
         lifecycleScope.launch {
@@ -98,12 +125,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     private var editMessageReceiver: BroadcastReceiver? = null
     private var deleteMessageReceiver: BroadcastReceiver? = null
 
-    private val loadStateAdapter: DefaultLoadStateAdapter = DefaultLoadStateAdapter(
-        { messageListAdapter!!.retry() },
-        null,
-        showOnlyProgessBar = true
-    )
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val activity = requireActivity() as ChatroomActivity
@@ -127,22 +148,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         binding = DataBindingUtil
             .inflate(inflater, R.layout.fragment_chatroom_message_list, container, false)
         binding.viewModel = viewModel
-
-        messageListAdapter = ChatroomMessageListAdapter(
-            activityViewModel.isAuthUserChatroomOwner.value == true,
-            activityViewModel.chatroomUsers.value ?: arrayListOf(), { _, message ->
-                // reuse fragment for distinct messages when they don't change
-                parentFragmentManager.showDistinctDialog(message.message, {
-                    ChatroomMessageBottomSheetDialogFragment.newInstance(
-                        message
-                    )
-                })
-                return@ChatroomMessageListAdapter true
-            }
-        ) { messageB ->
-            navController.navigate(ChatroomMessageListFragmentDirections
-                .actionChatroomMessageListFragmentToImageViewFragment(messageB.userImage.drawable.toBitmap()))
-        }
 
         with(binding) {
             lifecycleOwner = this@ChatroomMessageListFragment
@@ -179,7 +184,14 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-    private fun observeUsers() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeSearchMessage()
+    }
+
+    @ExperimentalPagingApi
+    @ExperimentalCoroutinesApi
+    override fun observeUsers() {
         activityViewModel.chatroomUsers.observe(viewLifecycleOwner, Observer {
             Log.i("ChatroomMListFragment", "Adapter users: $it")
             if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
@@ -192,47 +204,8 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             }
 
             // update chatroomlistadapter users
-            messageListAdapter!!.setCurrentUsers(it)
+            messageListAdapter.setCurrentUsers(it)
         })
-    }
-
-    override fun observeMessagesState() {
-        lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatest {
-                when(it) {
-                    is MessageListState.Idle, is MessageListState.Loading -> {
-
-                    }
-                    is MessageListState.OnData.MessagesResult -> {
-                        it.messages.catch { e ->
-                            e.printStackTrace()
-                            if(e.isCritical) {
-                                Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
-                                    .show()
-                                // TODO: Switch to `startActivityForResult` calls cuz process death
-                                localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
-                            } else if(e !is CancellationException) {
-                                Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
-                                Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                                    .show()
-                            }
-                        }.collectLatest { data ->
-                            Log.i("ChatroomMListFragment", "Collecting message paging data $data")
-                            messageListAdapter!!.submitData(data)
-                            // TODO: Add on initial fetch scroll, not on every
-                            binding.messageList.smoothScrollToPosition(0)
-                        }
-                    }
-                    is MessageListState.Error -> {
-                        (requireActivity() as ChatroomActivity).handleAuthActionableError(
-                            it.error,
-                            it.shouldExit,
-                            context = requireContext()
-                        ) // TODO: Might make this a bit too coupled to the activity. . .
-                    }
-                }
-            }
-        }
     }
 
     private fun observeMessageState() {
@@ -243,7 +216,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
                     }
                     is MessageState.Loading -> {
-                        // TODO: stop button
+                        // TODO: stop button? Or do nothing?
                     }
                     is MessageState.OnData.MessageCreateResult -> {
                         viewModel.message.setValue(null) // reset msg
@@ -269,6 +242,16 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
+    private fun observeSearchMessage() {
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Message?>(Constants.searchMessage)
+            ?.observe(viewLifecycleOwner, Observer {
+                it?.let {
+                    binding.messageList.smoothScrollToPosition(messageListAdapter.findItemPositionFromCurrentPagingData(it)!!)
+                    navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                }
+            })
+    }
+
     override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
@@ -284,13 +267,13 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun refreshDataOnConnectionRefresh() {
-        messageListAdapter!!.refresh()
+        messageListAdapter.refresh()
     }
 
-    private fun initMessageListAdapter() {
+    override fun initMessageListAdapter() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
-            messageList.adapter = messageListAdapter!!.withLoadStateFooter(loadStateAdapter)
+            messageList.adapter = messageListAdapter.withLoadStateFooter(loadStateAdapter)
         }
     }
 
@@ -312,7 +295,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             activity.binding.toolbar
                 .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
 
-            messageListAdapter!!.setAuthUserChatroomOwner(it)
+            messageListAdapter.setAuthUserChatroomOwner(it)
         })
     }
 

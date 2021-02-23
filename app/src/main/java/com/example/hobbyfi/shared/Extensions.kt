@@ -2,10 +2,8 @@ package com.example.hobbyfi.shared
 
 import android.animation.ValueAnimator
 import android.app.*
-import android.content.Context
+import android.content.*
 import android.content.Context.ACTIVITY_SERVICE
-import android.content.DialogInterface
-import android.content.Intent
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -15,6 +13,7 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.util.forEach
@@ -42,6 +41,7 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
 import java.lang.reflect.Field
+
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -77,12 +77,12 @@ fun invalidateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = Media
     }
 }
 
-fun<T : Comparable<*>> T?.equalsOrBiggerThan(comp: T?): Boolean =
+fun <T : Comparable<*>> T?.equalsOrBiggerThan(comp: T?): Boolean =
     compareValues(this, comp).run {
         this >= 0
     }
 
-fun<T : Comparable<*>> T?.equalsOrLessThan(comp: T?): Boolean =
+fun <T : Comparable<*>> T?.equalsOrLessThan(comp: T?): Boolean =
     compareValues(this, comp).run {
         this <= 0
     }
@@ -317,7 +317,8 @@ fun android.content.Intent.putDeletedModelIdExtra(data: Map<String, String>) =
 
 fun android.content.Intent.putDeletedModelUserSentIdExtra(data: Map<String, String>) =
     putExtra(
-        Constants.DELETED_MODEL_USER_SENT_ID, (data[Constants.USER_SENT_ID] ?: error("Data User sent ID must not be null!"))
+        Constants.DELETED_MODEL_USER_SENT_ID,
+        (data[Constants.USER_SENT_ID] ?: error("Data User sent ID must not be null!"))
             .toLong()
     )
 
@@ -378,6 +379,20 @@ fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate:
     return extractModelListFromCurrentPagingData().find(predicate)
 }
 
+fun <T : Model> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
+    for(i in 0..itemCount) {
+        try {
+            val model = peek(i)
+            if(model != null && model == item) {
+                return i
+            }
+        } catch (ex: IndexOutOfBoundsException) {
+            Log.i("extractListFromPData", "Skipping out of bounds")
+        }
+    }
+    return null
+}
+
 fun Bundle.toReadable(): String {
     var string = "{"
     for (key in keySet()) {
@@ -409,7 +424,8 @@ fun JSONObject.toBundle(): Bundle? {
         } else if (!num.isNaN()) bundle.putDouble(key, num) else if (str != null) bundle.putString(
             key,
             str
-        ) else Log.e("Extensions",
+        ) else Log.e(
+            "Extensions",
             "JsonObject toBundle() -> unable to transform json to bundle $key"
         )
     }

@@ -24,7 +24,10 @@ class ChatroomMediator(
     hobbyfiAPI: HobbyfiAPI,
     private val shouldFetchAuthChatrooms: Boolean,
     private val authChatroomIds: List<Long>?
-) : ModelMediator<Int, Chatroom>(hobbyfiDatabase, prefConfig, hobbyfiAPI, RemoteKeyType.CHATROOM) {
+) : ModelMediator<Int, Chatroom>(
+    hobbyfiDatabase, prefConfig,
+    hobbyfiAPI, RemoteKeyType.CHATROOM
+) {
     private val chatroomDao = hobbyfiDatabase.chatroomDao()
 
     override suspend fun load(
@@ -115,26 +118,6 @@ class ChatroomMediator(
         }
     }
 
-    override suspend fun getLastRemoteKey(state: PagingState<Int, Chatroom>): RemoteKeys? {
-        return state.pages
-            .lastOrNull { it.data.isNotEmpty() }
-            ?.data?.lastOrNull()
-            ?.let { model -> getRemoteKeysByFetchType(model.id) }
-    }
-
-    override suspend fun getFirstRemoteKey(state: PagingState<Int, Chatroom>): RemoteKeys? {
-        return state.pages
-            .firstOrNull { it.data.isNotEmpty() }
-            ?.data?.firstOrNull()
-            ?.let { model -> getRemoteKeysByFetchType(model.id) }
-    }
-
-    override suspend fun getClosestRemoteKey(state: PagingState<Int, Chatroom>): RemoteKeys? {
-        return state.anchorPosition?.let { position ->
-            state.closestItemToPosition(position)?.id?.let { modelId -> getRemoteKeysByFetchType(modelId) }
-        }
-    }
-
     override fun mapRemoteKeysFromModelList(
         modelList: List<Chatroom>,
         page: Int,
@@ -150,19 +133,17 @@ class ChatroomMediator(
         }
     }
 
-    private suspend fun getRemoteKeysByFetchType(id: Long): RemoteKeys? {
-        Log.i("ChatroomMediator", "Chatroom id: $id and auth chatroom ids: $authChatroomIds")
+    override suspend fun getRemoteKeysByIdAndType(modelId: Long): RemoteKeys? {
+        Log.i("ChatroomMediator", "Chatroom id: $modelId and auth chatroom ids: $authChatroomIds")
         return if(shouldFetchAuthChatrooms) {
             authChatroomIds?.let {
-                remoteKeysDao.getRemoteKeysTypeAndIds(id, authChatroomIds, RemoteKeyType.AUTH_CHATROOM)
+                remoteKeysDao.getRemoteKeysByTypeAndIds(modelId, authChatroomIds, RemoteKeyType.AUTH_CHATROOM)
             }
         } else {
             if(authChatroomIds != null) {
-                // LIMIT 1 OFFSET (SELECT COUNT(*) FROM remoteKeys WHERE modelType = :filterRemoteKeyType)
-                // Log.i("ChatroomMediator", "Remote keys append: ${remoteKeysDao.getLastRemoteKeysByTypeAndOffsetFilter(id, mainRemoteKeyType)}")
-                remoteKeysDao.getRemoteKeysByTypeAndNotPresentInIds(id, authChatroomIds, mainRemoteKeyType)
+                remoteKeysDao.getRemoteKeysByTypeAndNotPresentInIds(modelId, authChatroomIds, mainRemoteKeyType)
             } else {
-                remoteKeysDao.getRemoteKeysByIdAndType(id, mainRemoteKeyType)
+                remoteKeysDao.getRemoteKeysByIdAndType(modelId, mainRemoteKeyType)
             }
         }
     }

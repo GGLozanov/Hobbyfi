@@ -10,11 +10,14 @@ abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     @Query("SELECT * FROM remoteKeys WHERE id = :id")
     abstract suspend fun getRemoteKeysById(id: Long): RemoteKeys?
 
+    @Query("SELECT id FROM remoteKeys WHERE modelType = :remoteKeyType")
+    abstract suspend fun getRemoteKeysIdsByType(remoteKeyType: RemoteKeyType): List<Long>
+
     @Query("SELECT * FROM remoteKeys WHERE id = :id AND modelType = :remoteKeyType")
     abstract suspend fun getRemoteKeysByIdAndType(id: Long, remoteKeyType: RemoteKeyType): RemoteKeys?
 
     @Query("SELECT * FROM remoteKeys WHERE id = :id AND id IN (:ids) AND modelType = :remoteKeyType")
-    abstract suspend fun getRemoteKeysTypeAndIds(id: Long, ids: List<Long>, remoteKeyType: RemoteKeyType): RemoteKeys?
+    abstract suspend fun getRemoteKeysByTypeAndIds(id: Long, ids: List<Long>, remoteKeyType: RemoteKeyType): RemoteKeys?
 
     @Query("SELECT * FROM remoteKeys WHERE id = :id AND id NOT IN (:ids) AND modelType = :remoteKeyType")
     abstract suspend fun getRemoteKeysByTypeAndNotPresentInIds(id: Long, ids: List<Long>, remoteKeyType: RemoteKeyType): RemoteKeys?

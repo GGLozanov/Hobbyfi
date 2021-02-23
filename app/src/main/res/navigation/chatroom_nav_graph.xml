@@ -24,6 +24,9 @@
             android:id="@+id/action_chatroomMessageListFragment_to_imageViewFragment"
             app:destination="@id/imageViewFragment"
             app:popUpTo="@id/chatroomMessageListFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment"
+            app:destination="@id/chatroomMessageSearchViewFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -76,7 +79,12 @@
         android:label="View Image"
         tools:layout="@layout/fragment_image_view" >
         <argument
-            android:name="image"
-            app:argType="android.graphics.Bitmap" />
+            android:name="imageUrl"
+            app:argType="string" />
     </fragment>
+    <fragment
+        android:id="@+id/chatroomMessageSearchViewFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageSearchViewFragment"
+        android:label="Search Messages"
+        tools:layout="@layout/fragment_message_search_view" />
 </navigation>
