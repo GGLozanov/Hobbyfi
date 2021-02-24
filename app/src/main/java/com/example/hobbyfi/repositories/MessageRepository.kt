@@ -24,21 +24,30 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
     fun getMessages(
         pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),
         chatroomId: Long,
-        query: String?
+        query: String?,
+        messageId: Long?
     ): Flow<PagingData<Message>> {
         Log.i("MessageRepository", "getMessages -> getting current messages")
         val pagingSource = {
-            hobbyfiDatabase.messageDao()
-                .getMessagesByChatroomIdAndRemoteKeyType(
-                    chatroomId,
-                    if(query != null) RemoteKeyType.SEARCH_MESSAGE else RemoteKeyType.MESSAGE
-                )
+            if(query != null) {
+                hobbyfiDatabase.messageDao()
+                    .getMessagesByChatroomIdAndRemoteKeyTypeInner(
+                        chatroomId,
+                        RemoteKeyType.SEARCH_MESSAGE
+                    )
+            } else {
+                hobbyfiDatabase.messageDao()
+                    .getMessagesByChatroomIdAndRemoteKeyTypeLeft(
+                        chatroomId,
+                        RemoteKeyType.MESSAGE
+                    )
+            }
         }
 
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId, query)
+            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId, query, messageId)
         ).flow
     }
 
@@ -88,6 +97,13 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_messages_fetch_time)
         return withContext(Dispatchers.IO) {
             hobbyfiDatabase.messageDao().deleteMessages() > 0
+        }
+    }
+
+    suspend fun deleteSearchMessagesCache(): Boolean {
+        return withContext(Dispatchers.IO) {
+            hobbyfiDatabase.messageDao().deleteMessagesByRemoteKeyType(RemoteKeyType.SEARCH_MESSAGE) > 0 &&
+                    hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.SEARCH_MESSAGE) > 0
         }
     }
 

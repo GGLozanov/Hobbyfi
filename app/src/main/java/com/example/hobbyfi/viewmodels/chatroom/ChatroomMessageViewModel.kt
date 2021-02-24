@@ -41,13 +41,18 @@ abstract class ChatroomMessageViewModel(
         override val _state: MutableStateFlow<MessageListState> = MutableStateFlow(MessageListState.Idle)
     }
 
+    fun resetMessageListState() = mainStateIntent.setState(MessageListState.Idle)
+
     @ExperimentalPagingApi
     override fun handleIntent() {
         viewModelScope.launch {
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is MessageListIntent.FetchMessages -> {
-                        fetchMessages(it.chatroomId, it.query)
+                        fetchMessages(it.chatroomId, it.query, it.messageId)
+                    }
+                    is MessageListIntent.DeleteCachedSearchMessages -> {
+                        deleteCachedSearchMessages(it.message)
                     }
                 }
             }
@@ -55,15 +60,24 @@ abstract class ChatroomMessageViewModel(
     }
 
     @ExperimentalPagingApi
-    protected fun fetchMessages(chatroomId: Long, query: String?) {
+    protected fun fetchMessages(chatroomId: Long, query: String?, messageId: Long?) {
         mainStateIntent.setState(MessageListState.Loading)
 
-        if(_currentMessages == null) {
-            _currentMessages = messageRepository.getMessages(chatroomId = chatroomId, query = query)
+        if(_currentMessages == null || messageId != null) {
+            _currentMessages = messageRepository.getMessages(chatroomId = chatroomId, query = query, messageId = messageId)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
-        mainStateIntent.setState(MessageListState.OnData.MessagesResult(_currentMessages!!))
+        mainStateIntent.setState(MessageListState.OnData.MessagesResult(_currentMessages!!, messageId))
+    }
+
+    protected fun deleteCachedSearchMessages(message: Message?) {
+        viewModelScope.launch {
+            messageRepository.deleteSearchMessagesCache()
+            message?.let {
+                mainStateIntent.setState(MessageListState.OnData.DeleteSearchMessagesCacheResult(it))
+            }
+        }
     }
 }

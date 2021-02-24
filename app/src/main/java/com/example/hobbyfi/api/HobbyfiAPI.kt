@@ -215,6 +215,16 @@ interface HobbyfiAPI {
     /**
      *
      */
+    @GET("api/v${API_VERSION}/messages/page_find")
+    suspend fun fetchMessagesId(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long,
+        @Query(Constants.MESSAGE_ID) messageId: Long
+    ): CacheListPageResponse<Message>
+
+    /**
+     *
+     */
     @POST("api/v${API_VERSION}/message/edit")
     @FormUrlEncoded
     suspend fun editMessage(

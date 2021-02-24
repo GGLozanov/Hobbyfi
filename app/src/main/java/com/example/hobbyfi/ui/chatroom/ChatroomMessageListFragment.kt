@@ -57,7 +57,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
-    override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
+    public override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
 
     private lateinit var binding: FragmentChatroomMessageListBinding
 
@@ -131,7 +131,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
         // TODO: Move receiver registration in after chatroom messages fetch!!!
         chatroomMessageBroadcastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
-            .getInstance(viewModel, messageListAdapter!!, activityViewModel, activity)
+            .getInstance(viewModel, messageListAdapter, activityViewModel, activity)
         createMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
         editMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
         deleteMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
@@ -245,11 +245,44 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     private fun observeSearchMessage() {
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Message?>(Constants.searchMessage)
             ?.observe(viewLifecycleOwner, Observer {
+                Log.i("ChatroomMListFragment", "message received from navcontroller handle: ${it}")
                 it?.let {
-                    binding.messageList.smoothScrollToPosition(messageListAdapter.findItemPositionFromCurrentPagingData(it)!!)
-                    navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                    messageListAdapter.findItemPositionFromCurrentPagingData(it).run {
+                        Log.i("ChatroomMListFragment", "POSITION received from navcontroller handle: ${this}")
+                        if(this != null) {
+                            binding.messageList.smoothScrollToPosition(this)
+                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                        } else {
+                            lifecycleScope.launch {
+                                viewModel.sendIntent(
+                                    MessageListIntent.FetchMessages(
+                                        activityViewModel.authChatroom.value!!.id,
+                                        messageId = it.id
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
             })
+    }
+
+    override fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long?) {
+        if(qMessageId != null) {
+            navController.currentBackStackEntry?.savedStateHandle?.get<Message?>(Constants.searchMessage)?.run {
+                messageListAdapter.findItemPositionFromCurrentPagingData(
+                    this
+                ).let {
+                    if(it != null) {
+                        binding.messageList.scrollToPosition(it)
+                    } else {
+                        Toast.makeText(requireContext(), Constants.searchMessageNotFound, Toast.LENGTH_LONG)
+                            .show()
+                    }
+                    navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                }
+            }
+        }
     }
 
     override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {

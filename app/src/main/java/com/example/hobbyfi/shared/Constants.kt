@@ -78,6 +78,7 @@ object Constants {
     const val emailNotFound: String = "User with this given e-mail wasn't found!"
     const val emailSendFail: String= "Failed to send e-mail! Please, try again!"
     const val facebookUserSendAttempt: String = "User with this e-mail is a Facebook user and doesn't need an e-mail sent!"
+    const val searchMessageNotFound: String = "Message you were searching for couldn't be found!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -161,6 +162,7 @@ object Constants {
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
     const val CHATROOM_ID = "chatroom_id"
+    const val MESSAGE_ID = "message_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
     const val OWNER_ID = "owner_id"

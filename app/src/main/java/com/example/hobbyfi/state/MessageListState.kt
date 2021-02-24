@@ -11,7 +11,8 @@ sealed class MessageListState : State {
     object Loading : MessageListState()
 
     sealed class OnData : MessageListState() {
-        data class MessagesResult(val messages: Flow<PagingData<Message>>) : MessageListState()
+        data class MessagesResult(val messages: Flow<PagingData<Message>>, val queriedMessageId: Long? = null) : MessageListState()
+        data class DeleteSearchMessagesCacheResult(val message: Message) : MessageListState()
     }
 
     data class Error(val error: String?, val shouldExit: Boolean = false) : MessageListState()

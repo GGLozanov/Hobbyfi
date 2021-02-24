@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.filter
@@ -25,6 +26,7 @@ import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.previousNavigationFragment
 import com.example.hobbyfi.shared.showDistinctDialog
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageSearchViewFragmentViewModel
@@ -33,6 +35,7 @@ import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.*
 
@@ -49,8 +52,11 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
         ChatroomMessageSearchListAdapter(
             activityViewModel.chatroomUsers.value ?: arrayListOf(),
         ) { _, message ->
-            navController.popBackStack()
-            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, message)
+            lifecycleScope.launch {
+                viewModel.sendIntent(
+                    MessageListIntent.DeleteCachedSearchMessages(message)
+                )
+            }
         }
     }
 
@@ -99,13 +105,12 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
     suspend fun filterMessages(query: String) {
         if(!connectivityManager.isConnected()) {
             // if the user is not connected, work with whatever data there already exists
-            // TODO: Implement by somehow accessing the previous fragment's viewmodel
-//            val currentMessages: PagingData<Message>? =
-//                navController.previousBackStackEntry?.savedStateHandle?.get(Constants.messagesPagingData)
-//
-//            currentMessages?.filter {
-//                it.message.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)) // super simple for now
-//            }?.let { messageListAdapter.submitData(it) }
+            val currentMessages: PagingData<Message>? =
+                (parentFragmentManager.previousNavigationFragment as ChatroomMessageListFragment?)?.viewModel?.currentMessages?.first()
+
+            currentMessages?.filter {
+                it.message.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)) // super simple for now
+            }?.let { messageListAdapter.submitData(it) }
         } else {
             viewModel.setCurrentMessages(null)
             activityViewModel.authChatroom.value?.let {
@@ -139,6 +144,15 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
         super.onDestroyView()
         (requireActivity() as ChatroomActivity)
             .binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        lifecycleScope.launch {
+            viewModel.sendIntent(
+                MessageListIntent.DeleteCachedSearchMessages(null)
+            )
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {

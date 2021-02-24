@@ -67,11 +67,17 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                                     .show()
                             }
                         }.collectLatest { data ->
-                            Log.i("ChatroomMListFragment", "Collecting message paging data $data")
+                            Log.i("ChatroomMListFragment", "Collecting message paging data ${data}")
                             messageListAdapter.submitData(data)
+                            onPostMessageListCollect(data, it.queriedMessageId)
                             // TODO: Add on initial fetch scroll, not on every
                             // binding.messageList.smoothScrollToPosition(0)
                         }
+                    }
+                    is MessageListState.OnData.DeleteSearchMessagesCacheResult -> {
+                        navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, it.message)
+                        navController.popBackStack()
+                        viewModel.resetMessageListState()
                     }
                     is MessageListState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
@@ -79,9 +85,14 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                             it.shouldExit,
                             context = requireContext()
                         ) // TODO: Might make this a bit too coupled to the activity. . .
+                        viewModel.resetMessageListState()
                     }
                 }
             }
         }
+    }
+
+    protected open fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long? = null) {
+        // does nothing by default
     }
 }

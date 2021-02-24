@@ -23,8 +23,14 @@ abstract class MessageDao : BaseDao<Message>() {
     @Query("SELECT * FROM messages WHERE chatroomSentId = :chatroomSentId AND id IN (:ids) ORDER BY createTime DESC")
     abstract fun getMessagesByChatroomIdAndIds(chatroomSentId: Long, ids: List<Long>): PagingSource<Int, Message>
 
-    @Query("SELECT * FROM messages msgs INNER JOIN remoteKeys rmkeys ON rmKeys.id = msgs.id AND rmKeys.modelType = :remoteKeyType WHERE msgs.chatroomSentId = :chatroomSentId ORDER BY msgs.createTime DESC")
-    abstract fun getMessagesByChatroomIdAndRemoteKeyType(chatroomSentId: Long, remoteKeyType: RemoteKeyType): PagingSource<Int, Message>
+    @Query("SELECT msgs.id, msgs.chatroomSentId, msgs.createTime, msgs.message, msgs.userSentId FROM messages msgs INNER JOIN remoteKeys rmkeys ON rmKeys.id = msgs.id AND rmKeys.modelType = :remoteKeyType WHERE msgs.chatroomSentId = :chatroomSentId ORDER BY msgs.createTime DESC")
+    abstract fun getMessagesByChatroomIdAndRemoteKeyTypeInner(chatroomSentId: Long, remoteKeyType: RemoteKeyType): PagingSource<Int, Message>
+
+    @Query("SELECT msgs.id, msgs.chatroomSentId, msgs.createTime, msgs.message, msgs.userSentId FROM messages msgs LEFT JOIN remoteKeys rmkeys ON rmKeys.id = msgs.id AND rmKeys.modelType = :remoteKeyType WHERE msgs.chatroomSentId = :chatroomSentId ORDER BY msgs.createTime DESC")
+    abstract fun getMessagesByChatroomIdAndRemoteKeyTypeLeft(chatroomSentId: Long, remoteKeyType: RemoteKeyType): PagingSource<Int, Message>
+
+    @Query("DELETE FROM messages WHERE id IN (SELECT msgs.id FROM messages msgs INNER JOIN remoteKeys rmKeys ON msgs.id = rmKeys.id AND rmKeys.modelType = :remoteKeyType)")
+    abstract fun deleteMessagesByRemoteKeyType(remoteKeyType: RemoteKeyType): Int
 
     @Query("DELETE FROM messages")
     abstract fun deleteMessages(): Int

@@ -10,6 +10,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.MessageCardBinding
 import com.example.hobbyfi.databinding.MessageCardReceiveBinding
 import com.example.hobbyfi.databinding.MessageCardSendBinding
+import com.example.hobbyfi.databinding.MessageCardTimelineBinding
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.shared.PrefConfig
@@ -94,12 +95,51 @@ class ChatroomMessageSearchListAdapter(
 
         override fun bind(model: Message?, position: Int) {
             super.bind(model, position)
-            messageCardBinding.messageLayout.layoutDirection = View.LAYOUT_DIRECTION_LTR // forcibly set the gravity for search messages
+//            messageCardBinding.messageLayout.layoutDirection = View.LAYOUT_DIRECTION_LTR // forcibly set the gravity for search messages
+        }
+    }
+
+    private class ChatroomTimelineMessageSearchViewHolder(
+        binding: MessageCardTimelineBinding,
+        private val users: List<User>,
+        private val prefConfig: PrefConfig,
+        private val onMessagePress: (View, Message) -> Unit
+    ) : BaseTimelineMessageViewHolder(binding) {
+        companion object {
+            fun getInstance(
+                parent: ViewGroup,
+                users: List<User>,
+                prefConfig: PrefConfig,
+                onMessagePress: (View, Message) -> Unit
+            ): ChatroomTimelineMessageSearchViewHolder {
+                val inflater = LayoutInflater.from(parent.context)
+                val binding: MessageCardTimelineBinding =
+                    DataBindingUtil.inflate(
+                        inflater, R.layout.message_card_timeline,
+                        parent, false
+                    )
+                return ChatroomTimelineMessageSearchViewHolder(
+                    binding, users,
+                    prefConfig, onMessagePress
+                )
+            }
+        }
+
+        override fun bind(model: Message?, position: Int) {
+            super.bind(model, position)
+            binding.messageCardTimelineLayout.setOnClickListener {
+                onMessagePress(it, model!!)
+            }
         }
     }
 
     override fun getTimelineMessageViewHolderInstance(parent: ViewGroup): BaseTimelineMessageViewHolder =
-        BaseTimelineMessageViewHolder.getInstance(parent)
+        ChatroomTimelineMessageSearchViewHolder.getInstance(
+            parent,
+            currentUsers,
+            prefConfig,
+            onMessagePress
+        )
 
     override fun getReceiveMessageViewHolderInstance(parent: ViewGroup): BaseUserChatroomMessageViewHolder =
         ChatroomReceiveMessageSearchViewHolder.getInstance(

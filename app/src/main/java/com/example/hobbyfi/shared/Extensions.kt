@@ -139,6 +139,9 @@ fun <T> List<T>.replaceOrAdd(newValue: T, predicate: (T) -> Boolean): List<T> {
 val FragmentManager.currentNavigationFragment: Fragment?
     get() = primaryNavigationFragment?.childFragmentManager?.fragments?.first()
 
+val FragmentManager.previousNavigationFragment: Fragment?
+    get() = primaryNavigationFragment?.childFragmentManager?.fragments?.get(1)
+
 fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     menu.clear()
     inflateMenu(menuId)
@@ -380,14 +383,11 @@ fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate:
 }
 
 fun <T : Model> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
-    for(i in 0..itemCount) {
-        try {
-            val model = peek(i)
-            if(model != null && model == item) {
-                return i
-            }
-        } catch (ex: IndexOutOfBoundsException) {
-            Log.i("extractListFromPData", "Skipping out of bounds")
+    val snapshot = snapshot()
+    snapshot.items.forEachIndexed { index, t ->
+        Log.i("findIPositionFCPData", "item: ${t}")
+        if(t == item) {
+            return index
         }
     }
     return null

@@ -22,13 +22,15 @@ class MessageMediator(
     prefConfig: PrefConfig,
     hobbyfiAPI: HobbyfiAPI,
     private val chatroomId: Long,
-    private val query: String? = null
+    private val query: String? = null,
+    private val messageId: Long? = null
 ) : ModelMediator<Int, Message>(
     hobbyfiDatabase, prefConfig,
     hobbyfiAPI, RemoteKeyType.MESSAGE
 ) {
     private val messageDao = hobbyfiDatabase.messageDao()
     private val searchMessages: Boolean = query != null
+    private val searchMessageId: Boolean = messageId != null
 
     override suspend fun load(
         loadType: LoadType,
@@ -48,7 +50,7 @@ class MessageMediator(
     }
 
     private suspend fun fetchMessages(state: PagingState<Int, Message>, loadType: LoadType): MediatorResult {
-        val page = getPage(loadType, state).let {
+        var page = getPage(loadType, state).let {
             when(it) {
                 is MediatorResult.Success -> {
                     return@fetchMessages it
@@ -61,12 +63,20 @@ class MessageMediator(
 
         Log.i("MessageMediator", "Fetching next messages with page $page")
 
-        val messagesResponse = hobbyfiAPI.fetchMessages(
-            prefConfig.getAuthUserToken()!!,
-            chatroomId,
-            page,
-            query
-        )
+        val messagesResponse = if(!searchMessageId) {
+            hobbyfiAPI.fetchMessages(
+                prefConfig.getAuthUserToken()!!,
+                chatroomId,
+                page,
+                query
+            )
+        } else {
+            val messagesPageResponse = hobbyfiAPI.fetchMessagesId(
+                prefConfig.getAuthUserToken()!!, chatroomId, messageId!!
+            )
+            page = messagesPageResponse.page
+            CacheListResponse(messagesPageResponse.response, messagesPageResponse.modelList)
+        }
 
         val mediatorResult = saveMessages(messagesResponse, page, loadType)
 
@@ -125,6 +135,7 @@ class MessageMediator(
     ): List<RemoteKeys> {
         val prevKey = if (page == DEFAULT_PAGE_INDEX) null else page - 1
         val nextKey = if (isEndOfList) null else page + 1
+
         Log.i("MessageMediator", "RemoteKeys calculated. Previous page: ${prevKey}; Next page: ${nextKey}")
         return modelList.map {
             RemoteKeys(id = it.id, prevKey = prevKey, nextKey = nextKey,

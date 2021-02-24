@@ -29,7 +29,7 @@ abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     abstract suspend fun deleteRemoteKeys()
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType")
-    abstract suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType)
+    abstract suspend fun deleteRemoteKeyByType(remoteKeyType: RemoteKeyType): Int
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id IN (:ids)")
     abstract suspend fun deleteRemoteKeysByTypeAndIds(remoteKeyType: RemoteKeyType, ids: List<Long>)

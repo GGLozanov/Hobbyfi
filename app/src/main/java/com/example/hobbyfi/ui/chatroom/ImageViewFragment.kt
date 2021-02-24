@@ -30,8 +30,6 @@ class ImageViewFragment : ChatroomModelFragment() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-//        menu.removeItem(R.id.action_info)
-//        menu.removeItem(R.id.action_search)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

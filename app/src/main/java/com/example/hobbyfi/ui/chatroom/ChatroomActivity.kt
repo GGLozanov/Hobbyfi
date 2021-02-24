@@ -797,9 +797,14 @@ class ChatroomActivity : NavigationActivity(),
                 SearchRecentSuggestions(this, MessageSuggestionsProvider.AUTHORITY, MessageSuggestionsProvider.MODE)
                     .saveRecentQuery(query, null) // save query
 
+                val searchViewFragment = try {
+                    supportFragmentManager.currentNavigationFragment as ChatroomMessageSearchViewFragment?
+                } catch(classCast: ClassCastException) {
+                    return
+                }
+
                 lifecycleScope.launch {
-                    (supportFragmentManager.currentNavigationFragment as ChatroomMessageSearchViewFragment?)
-                        ?.filterMessages(query)
+                    searchViewFragment?.filterMessages(query)
                 }
             }
         }
