@@ -239,18 +239,27 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 it?.let {
                     messageListAdapter.findItemPositionFromCurrentPagingData(it).run {
                         Log.i("ChatroomMListFragment", "POSITION received from navcontroller handle: ${this}")
-                        if(this != null) {
-                            binding.messageList.smoothScrollToPosition(this)
-                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
-                        } else if(connectivityManager.isConnected()) { // assert whether there's any point to search through the messages
-                            // delete messages cached so that new generation can be propagated (like Discord)
-                            lifecycleScope.launch {
-                                viewModel.sendIntent(
-                                    MessageListIntent.DeleteCachedMessages
-                                )
+                        when {
+                            this != null -> {
+                                binding.messageList.smoothScrollToPosition(this)
+                                navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
                             }
-                        } else { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
-                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                            connectivityManager.isConnected() -> { // assert whether there's any point to search through the messages
+                                // delete messages cached so that new generation can be propagated (like Discord)
+                                lifecycleScope.launch {
+                                    viewModel.sendIntent(
+                                        MessageListIntent.FetchMessages(
+                                            activityViewModel.authChatroom.value!!.id,
+                                            messageId = navController.currentBackStackEntry
+                                                ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id
+                                                    // always set at this point
+                                        )
+                                    )
+                                }
+                            }
+                            else -> { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
+                                navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                            }
                         }
                     }
                 }

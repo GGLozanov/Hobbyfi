@@ -50,14 +50,14 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
     @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
     protected fun observeMessagesState() {
-        messageCollectJob = lifecycleScope.launchWhenCreated {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatest {
                 when(it) {
                     is MessageListState.Idle, is MessageListState.Loading -> {
 
                     }
                     is MessageListState.OnData.MessagesResult -> {
-                        lifecycleScope.launch {
+                        messageCollectJob = lifecycleScope.launch {
                             it.messages.catch { e ->
                                 e.printStackTrace()
                                 if(e.isCritical) {
@@ -82,19 +82,8 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                     is MessageListState.OnData.DeleteSearchMessagesCacheResult -> {
                         navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, it.message)
                         navController.popBackStack()
+                        messageCollectJob?.cancel()
                         viewModel.resetMessageListState()
-                    }
-                    is MessageListState.OnData.DeleteMessagesCacheResult -> {
-                        // occurs after search message intent sent
-                        lifecycleScope.launch {
-                            viewModel.sendIntent(
-                                MessageListIntent.FetchMessages(
-                                    activityViewModel.authChatroom.value!!.id,
-                                    messageId = navController.currentBackStackEntry
-                                        ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id // always set at this point
-                                )
-                            )
-                        }
                     }
                     is MessageListState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(

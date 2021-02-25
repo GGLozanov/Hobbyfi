@@ -48,12 +48,12 @@ abstract class ModelMediator<Key: Any, Value: Model>(
                 remoteKeys.nextKey
             }
             LoadType.PREPEND -> {
-                // return MediatorResult.Success(endOfPaginationReached = true) // load type for whenever data needs to be prepended to the paged list (scroll up after down)
+                // load type for whenever data needs to be prepended to the paged list (scroll up after down)
                 val remoteKeys = hobbyfiDatabase.withTransaction {
                     getFirstRemoteKey(state)
                 }
                 // end of list condition reached -> reached the top of the page where the first page is loaded initially
-                // which meanas we can set endOfPaginationReached to true
+                // which means we can set endOfPaginationReached to true
                 Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys: $remoteKeys")
                 if(remoteKeys?.prevKey == null) {
                     Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR PREPEND")
@@ -66,7 +66,6 @@ abstract class ModelMediator<Key: Any, Value: Model>(
     }
 
     private suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
-        Log.i("ModelMediator", "getLastRemoteKey -> state pages data: ${state.pages.lastOrNull()?.data}")
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
@@ -74,6 +73,8 @@ abstract class ModelMediator<Key: Any, Value: Model>(
     }
 
     private suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+        Log.i("ModelMediator", "getFirstRemoteKey -> state pages data: ${state.pages.lastOrNull()?.data}")
+
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()

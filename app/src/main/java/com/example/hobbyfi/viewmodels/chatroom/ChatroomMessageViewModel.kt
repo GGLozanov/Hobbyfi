@@ -60,9 +60,6 @@ abstract class ChatroomMessageViewModel(
                     is MessageListIntent.DeleteCachedSearchMessages -> {
                         deleteCachedSearchMessages(it.message)
                     }
-                    is MessageListIntent.DeleteCachedMessages -> {
-                        deleteCachedMessages()
-                    }
                 }
             }
         }
@@ -91,13 +88,6 @@ abstract class ChatroomMessageViewModel(
             message?.let {
                 mainStateIntent.setState(MessageListState.OnData.DeleteSearchMessagesCacheResult(it))
             }
-        }
-    }
-
-    protected fun deleteCachedMessages() {
-        viewModelScope.launch {
-            messageRepository.deleteMessagesCache()
-            mainStateIntent.setState(MessageListState.OnData.DeleteMessagesCacheResult)
         }
     }
 }

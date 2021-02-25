@@ -15,6 +15,8 @@ import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.suspendCoroutine
 
 @ExperimentalPagingApi
 class MessageMediator(
@@ -80,6 +82,10 @@ class MessageMediator(
 
         val mediatorResult = saveMessages(messagesResponse, page, loadType)
 
+        if(searchMessageId) {
+            messageId = null // reset message search and opt for normal page loading
+        }
+
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_messages_fetch_time)
 
         return mediatorResult
@@ -92,13 +98,6 @@ class MessageMediator(
         Log.i("MessageMediator", "Messages list: ${messagesResponse.modelList}")
 
         hobbyfiDatabase.withTransaction {
-            val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_messages_fetch_time)
-
-            if (loadType == LoadType.REFRESH || cacheTimedOut) {
-                Log.i("MessageMediator", "MESSAGE triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
-                clearCachedMessagesByFetchType()
-            }
-
             if(!searchMessages) {
                 remoteKeysDao.deleteRemoteKeysByTypeAndIds(RemoteKeyType.SEARCH_MESSAGE, messagesResponse.modelList.map { it.id })
             }
@@ -106,8 +105,15 @@ class MessageMediator(
             val keys = mapRemoteKeysFromModelList(messagesResponse.modelList, page, isEndOfList)
             Log.i("MessageMediator", "MESSAGE RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("MessageMediator", "Inserting ChatroomList and RemoteKeys")
-            messageDao.upsert(messagesResponse.modelList)
+            val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_messages_fetch_time)
+
+            if (loadType == LoadType.REFRESH || cacheTimedOut) {
+                Log.i("MessageMediator", "MESSAGE triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
+                clearCachedMessagesByFetchType()
+            }
+
             remoteKeysDao.upsert(keys)
+            messageDao.upsert(messagesResponse.modelList)
         }
 
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)
