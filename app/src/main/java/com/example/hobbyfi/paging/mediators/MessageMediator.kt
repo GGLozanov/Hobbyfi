@@ -23,14 +23,14 @@ class MessageMediator(
     hobbyfiAPI: HobbyfiAPI,
     private val chatroomId: Long,
     private val query: String? = null,
-    private val messageId: Long? = null
-) : ModelMediator<Int, Message>(
+    private var messageId: Long? = null
+): ModelMediator<Int, Message>(
     hobbyfiDatabase, prefConfig,
     hobbyfiAPI, RemoteKeyType.MESSAGE
 ) {
     private val messageDao = hobbyfiDatabase.messageDao()
-    private val searchMessages: Boolean = query != null
-    private val searchMessageId: Boolean = messageId != null
+    private val searchMessages: Boolean get() = query != null
+    private val searchMessageId: Boolean get() = messageId != null
 
     override suspend fun load(
         loadType: LoadType,
@@ -106,8 +106,8 @@ class MessageMediator(
             val keys = mapRemoteKeysFromModelList(messagesResponse.modelList, page, isEndOfList)
             Log.i("MessageMediator", "MESSAGE RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("MessageMediator", "Inserting ChatroomList and RemoteKeys")
-            remoteKeysDao.upsert(keys)
             messageDao.upsert(messagesResponse.modelList)
+            remoteKeysDao.upsert(keys)
         }
 
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)

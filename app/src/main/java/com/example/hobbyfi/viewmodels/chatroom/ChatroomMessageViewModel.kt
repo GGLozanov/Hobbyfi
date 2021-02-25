@@ -25,9 +25,15 @@ import org.kodein.di.generic.instance
 @ExperimentalCoroutinesApi
 abstract class ChatroomMessageViewModel(
     application: Application
-) : StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
+): StateIntentViewModel<MessageListState, MessageListIntent>(application), TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val messageRepository: MessageRepository by instance(tag = "messageRepository")
     protected var _currentMessages: Flow<PagingData<Message>>? = null
+
+    protected var _sentMessageIdFetchRequestPrior: Boolean = false
+    val sentMessageIdFetchRequestPrior get() = _sentMessageIdFetchRequestPrior
+    fun setSentMessageIdFetchRequestPrior(sent: Boolean) {
+        _sentMessageIdFetchRequestPrior = sent
+    }
 
     fun setCurrentMessages(messages: Flow<PagingData<Message>>?) {
         _currentMessages = messages
@@ -54,6 +60,9 @@ abstract class ChatroomMessageViewModel(
                     is MessageListIntent.DeleteCachedSearchMessages -> {
                         deleteCachedSearchMessages(it.message)
                     }
+                    is MessageListIntent.DeleteCachedMessages -> {
+                        deleteCachedMessages()
+                    }
                 }
             }
         }
@@ -63,7 +72,11 @@ abstract class ChatroomMessageViewModel(
     protected fun fetchMessages(chatroomId: Long, query: String?, messageId: Long?) {
         mainStateIntent.setState(MessageListState.Loading)
 
-        if(_currentMessages == null || messageId != null) {
+        if(_currentMessages == null || messageId != null || _sentMessageIdFetchRequestPrior) {
+            if(_sentMessageIdFetchRequestPrior) {
+                _sentMessageIdFetchRequestPrior = !_sentMessageIdFetchRequestPrior
+            }
+
             _currentMessages = messageRepository.getMessages(chatroomId = chatroomId, query = query, messageId = messageId)
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
@@ -78,6 +91,13 @@ abstract class ChatroomMessageViewModel(
             message?.let {
                 mainStateIntent.setState(MessageListState.OnData.DeleteSearchMessagesCacheResult(it))
             }
+        }
+    }
+
+    protected fun deleteCachedMessages() {
+        viewModelScope.launch {
+            messageRepository.deleteMessagesCache()
+            mainStateIntent.setState(MessageListState.OnData.DeleteMessagesCacheResult)
         }
     }
 }

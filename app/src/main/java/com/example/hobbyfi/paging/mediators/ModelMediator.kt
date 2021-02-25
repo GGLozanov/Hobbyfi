@@ -17,7 +17,7 @@ abstract class ModelMediator<Key: Any, Value: Model>(
     protected val prefConfig: PrefConfig,
     protected val hobbyfiAPI: HobbyfiAPI,
     protected val mainRemoteKeyType: RemoteKeyType
-) : RemoteMediator<Key, Value>() {
+): RemoteMediator<Key, Value>() {
     companion object {
         val DEFAULT_PAGE_INDEX = 1
     }
@@ -65,21 +65,22 @@ abstract class ModelMediator<Key: Any, Value: Model>(
         }
     }
 
-    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+        Log.i("ModelMediator", "getLastRemoteKey -> state pages data: ${state.pages.lastOrNull()?.data}")
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
             ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
             ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    protected suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
                 getRemoteKeysByIdAndType(modelId)

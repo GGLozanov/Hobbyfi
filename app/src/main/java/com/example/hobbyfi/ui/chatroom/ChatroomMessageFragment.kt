@@ -20,6 +20,7 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewMo
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
@@ -38,6 +39,8 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
         showOnlyProgessBar = true
     )
 
+    private var messageCollectJob: Job? = null
+
     protected abstract fun initMessageListAdapter()
 
     @ExperimentalPagingApi
@@ -47,37 +50,51 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
     @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
     protected fun observeMessagesState() {
-        lifecycleScope.launchWhenCreated {
+        messageCollectJob = lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatest {
                 when(it) {
                     is MessageListState.Idle, is MessageListState.Loading -> {
 
                     }
                     is MessageListState.OnData.MessagesResult -> {
-                        it.messages.catch { e ->
-                            e.printStackTrace()
-                            if(e.isCritical) {
-                                Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
-                                    .show()
-                                // TODO: Switch to `startActivityForResult` calls cuz process death
-                                localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
-                            } else if(e !is CancellationException) {
-                                Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
-                                Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                                    .show()
+                        lifecycleScope.launch {
+                            it.messages.catch { e ->
+                                e.printStackTrace()
+                                if(e.isCritical) {
+                                    Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
+                                        .show()
+                                    // TODO: Switch to `startActivityForResult` calls cuz process death
+                                    localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
+                                } else if(e !is CancellationException) {
+                                    Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
+                                    Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
+                                        .show()
+                                }
+                            }.collectLatest { data ->
+                                Log.i("ChatroomMessageFragment", "Collecting message paging data ${data}")
+                                messageListAdapter.submitData(data)
+                                onPostMessageListCollect(data, it.queriedMessageId)
+                                // TODO: Add on initial fetch scroll, not on every
+                                // binding.messageList.smoothScrollToPosition(0)
                             }
-                        }.collectLatest { data ->
-                            Log.i("ChatroomMListFragment", "Collecting message paging data ${data}")
-                            messageListAdapter.submitData(data)
-                            onPostMessageListCollect(data, it.queriedMessageId)
-                            // TODO: Add on initial fetch scroll, not on every
-                            // binding.messageList.smoothScrollToPosition(0)
                         }
                     }
                     is MessageListState.OnData.DeleteSearchMessagesCacheResult -> {
                         navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, it.message)
                         navController.popBackStack()
                         viewModel.resetMessageListState()
+                    }
+                    is MessageListState.OnData.DeleteMessagesCacheResult -> {
+                        // occurs after search message intent sent
+                        lifecycleScope.launch {
+                            viewModel.sendIntent(
+                                MessageListIntent.FetchMessages(
+                                    activityViewModel.authChatroom.value!!.id,
+                                    messageId = navController.currentBackStackEntry
+                                        ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id // always set at this point
+                                )
+                            )
+                        }
                     }
                     is MessageListState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
@@ -94,5 +111,10 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
 
     protected open fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long? = null) {
         // does nothing by default
+    }
+
+    override fun onStop() {
+        super.onStop()
+        messageCollectJob?.cancel() // concurrent collectors go brr for load() method RemoteMediator calls
     }
 }

@@ -29,8 +29,7 @@ import org.kodein.di.generic.instance
 
 abstract class ChatroomMessageAdapter(
     protected var currentUsers: List<User>
-): PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK),
-    KodeinAware {
+): PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
 

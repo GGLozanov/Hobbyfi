@@ -96,7 +96,8 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
     suspend fun deleteMessagesCache(): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_messages_fetch_time)
         return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().deleteMessages() > 0
+            hobbyfiDatabase.messageDao().deleteMessagesByRemoteKeyType(RemoteKeyType.MESSAGE) > 0 &&
+                    hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.MESSAGE) > 0
         }
     }
 
