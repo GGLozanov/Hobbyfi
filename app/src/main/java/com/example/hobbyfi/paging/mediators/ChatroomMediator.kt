@@ -30,6 +30,13 @@ class ChatroomMediator(
 ) {
     private val chatroomDao = hobbyfiDatabase.chatroomDao()
 
+    override val cachePrefId: Int
+        get() = R.string.pref_last_chatrooms_fetch_time
+
+    override suspend fun initialize(): InitializeAction {
+        return InitializeAction.LAUNCH_INITIAL_REFRESH // keep default impl here & manually handle cache
+    }
+
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, Chatroom>
@@ -71,7 +78,7 @@ class ChatroomMediator(
 
         val mediatorResult = saveChatrooms(chatroomsResponse, page, loadType)
 
-        prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatrooms_fetch_time)
+        prefConfig.writeLastPrefFetchTimeNow(cachePrefId)
 
         return mediatorResult
     }
@@ -83,12 +90,13 @@ class ChatroomMediator(
         Log.i("ChatroomMediator", "Chatroom list: ${chatroomsResponse.modelList}")
 
         hobbyfiDatabase.withTransaction {
+            val cacheTimeOut = Constants.cacheTimedOut(prefConfig, cachePrefId)
             // clear all rows in chatroom and remote keys table (for chatrooms)
-            val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatrooms_fetch_time)
-            if (loadType == LoadType.REFRESH || cacheTimedOut) {
-                Log.i("ChatroomMediator", "CHATROOM triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
+            if (loadType == LoadType.REFRESH || cacheTimeOut) {
+                Log.i("ChatroomMediator", "CHATROOM triggered refresh OR cache TIMEOUT. Clearing cache")
                 clearCachedChatroomsByFetchType()
             }
+
             val keys = mapRemoteKeysFromModelList(chatroomsResponse.modelList, page, isEndOfList)
             Log.i("ChatroomMediator", "CHATROOM RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("ChatroomMediator", "Inserting ChatroomList and RemoteKeys")

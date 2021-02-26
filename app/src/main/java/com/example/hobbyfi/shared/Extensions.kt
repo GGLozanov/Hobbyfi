@@ -2,9 +2,19 @@ package com.example.hobbyfi.shared
 
 import android.animation.ValueAnimator
 import android.app.*
-import android.content.*
+import android.content.Context
 import android.content.Context.ACTIVITY_SERVICE
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.res.Configuration
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -13,9 +23,11 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
-import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.forEach
 import androidx.core.util.set
 import androidx.fragment.app.DialogFragment
@@ -263,6 +275,11 @@ fun Marker.animateMarker(newLatLng: LatLng) {
 
 fun <T> MutableLiveData<T>.forceObserve() {
     this.value = this.value
+}
+
+fun Context.convertDrawableResToBitmap(@DrawableRes drawableId: Int, width: Int?, height: Int?): Bitmap {
+    val d: Drawable = ContextCompat.getDrawable(this, drawableId) ?: throw Resources.NotFoundException()
+    return d.toBitmap(width ?: d.intrinsicWidth, height ?: d.intrinsicHeight)
 }
 
 fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true

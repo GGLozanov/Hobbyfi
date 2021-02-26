@@ -8,6 +8,7 @@ import com.example.hobbyfi.models.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.models.Model
 import com.example.hobbyfi.persistence.RemoteKeysDao
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
 
@@ -22,9 +23,10 @@ abstract class ModelMediator<Key: Any, Value: Model>(
         val DEFAULT_PAGE_INDEX = 1
     }
 
+    protected abstract val cachePrefId: Int
     protected val remoteKeysDao: RemoteKeysDao = hobbyfiDatabase.remoteKeysDao()
 
-    protected suspend fun getPage(loadType: LoadType, state: PagingState<Key, Value>): Any {
+    protected open suspend fun getPage(loadType: LoadType, state: PagingState<Key, Value>): Any {
         return when (loadType) {
             LoadType.REFRESH -> {
                 val remoteKeys = hobbyfiDatabase.withTransaction {
@@ -72,7 +74,7 @@ abstract class ModelMediator<Key: Any, Value: Model>(
             ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    private suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         Log.i("ModelMediator", "getFirstRemoteKey -> state pages data: ${state.pages.lastOrNull()?.data}")
 
         return state.pages

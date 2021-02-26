@@ -174,6 +174,8 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeSearchMessage()
@@ -334,7 +336,9 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         })
         activityViewModel.isAuthUserChatroomOwner.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
             activity.binding.toolbar
-                .navigationIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
+                .navigationIcon = if(it)
+                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
+                        else null
 
             messageListAdapter.setAuthUserChatroomOwner(it)
         })

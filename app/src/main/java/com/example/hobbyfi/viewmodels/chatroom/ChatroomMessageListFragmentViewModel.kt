@@ -197,12 +197,13 @@ class ChatroomMessageListFragmentViewModel(
     }
 
     // might not need this method because Room foreign keys & oncascade deletion
-    private suspend fun deleteMessagesCache() {
+    // TODO: Use for cache cleanup
+    private suspend fun deleteMessagesCache(chatroomId: Long) {
         var state: MessageListState = MessageListState.Error(Constants.cacheDeletionError)
 
         // deletes other cached chatrooms (not auth'd) for user
         if(viewModelScope.async {
-                messageRepository.deleteMessagesCache()
+                messageRepository.deleteMessagesCache(chatroomId)
             }.await()) {
             // state = MessageListState.OnData.DeleteMessagesCacheResult
         }

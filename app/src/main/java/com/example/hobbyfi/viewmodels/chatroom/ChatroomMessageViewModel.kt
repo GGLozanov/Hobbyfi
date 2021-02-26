@@ -1,10 +1,12 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import com.example.hobbyfi.intents.MessageListIntent
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.models.StateIntent
@@ -14,10 +16,8 @@ import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
 import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
 
@@ -58,7 +58,7 @@ abstract class ChatroomMessageViewModel(
                         fetchMessages(it.chatroomId, it.query, it.messageId)
                     }
                     is MessageListIntent.DeleteCachedSearchMessages -> {
-                        deleteCachedSearchMessages(it.message)
+                        deleteCachedSearchMessages(it.message, it.chatroomId)
                     }
                 }
             }
@@ -82,12 +82,12 @@ abstract class ChatroomMessageViewModel(
         mainStateIntent.setState(MessageListState.OnData.MessagesResult(_currentMessages!!, messageId))
     }
 
-    protected fun deleteCachedSearchMessages(message: Message?) {
-        viewModelScope.launch {
-            messageRepository.deleteSearchMessagesCache()
-            message?.let {
-                mainStateIntent.setState(MessageListState.OnData.DeleteSearchMessagesCacheResult(it))
-            }
+    protected suspend fun deleteCachedSearchMessages(message: Message?, chatroomId: Long) {
+        viewModelScope.async {
+                messageRepository.deleteSearchMessagesCache(chatroomId)
+            }.await()
+        message?.let {
+            mainStateIntent.setState(MessageListState.OnData.DeleteSearchMessagesCacheResult(it))
         }
     }
 }

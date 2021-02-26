@@ -15,8 +15,6 @@ import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.suspendCoroutine
 
 @ExperimentalPagingApi
 class MessageMediator(
@@ -33,6 +31,10 @@ class MessageMediator(
     private val messageDao = hobbyfiDatabase.messageDao()
     private val searchMessages: Boolean get() = query != null
     private val searchMessageId: Boolean get() = messageId != null
+    private var wasCalledWithSearchMessageIdPrior = false
+
+    override val cachePrefId: Int
+        get() = R.string.pref_last_chatroom_messages_fetch_time
 
     override suspend fun load(
         loadType: LoadType,
@@ -83,10 +85,11 @@ class MessageMediator(
         val mediatorResult = saveMessages(messagesResponse, page, loadType)
 
         if(searchMessageId) {
+            wasCalledWithSearchMessageIdPrior = true
             messageId = null // reset message search and opt for normal page loading
         }
 
-        prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_messages_fetch_time)
+        prefConfig.writeLastPrefFetchTimeNow(cachePrefId)
 
         return mediatorResult
     }
@@ -105,10 +108,11 @@ class MessageMediator(
             val keys = mapRemoteKeysFromModelList(messagesResponse.modelList, page, isEndOfList)
             Log.i("MessageMediator", "MESSAGE RemoteKeys created. RemoteKeys: ${keys}")
             Log.i("MessageMediator", "Inserting ChatroomList and RemoteKeys")
-            val cacheTimedOut = Constants.cacheTimedOut(prefConfig, R.string.pref_last_chatroom_messages_fetch_time)
 
-            if (loadType == LoadType.REFRESH || cacheTimedOut) {
-                Log.i("MessageMediator", "MESSAGE triggered refresh or timeout cache. Clearing cache. WasCacheTimedOut: ${cacheTimedOut}")
+            val cacheTimeOut = Constants.cacheTimedOut(prefConfig, cachePrefId)
+            // clear all rows in chatroom and remote keys table (for chatrooms)
+            if (loadType == LoadType.REFRESH || cacheTimeOut) {
+                Log.i("ChatroomMediator", "CHATROOM triggered refresh OR cache TIMEOUT. Clearing cache")
                 clearCachedMessagesByFetchType()
             }
 
@@ -126,10 +130,12 @@ class MessageMediator(
         if(searchMessages) {
             val deletedMessagesIds = messageDao.getMessagesIdsByChatroomIdAndIds(
                 chatroomId, remoteKeysDao.getRemoteKeysIdsByType(RemoteKeyType.SEARCH_MESSAGE))
-            remoteKeysDao.deleteRemoteKeysByTypeAndIds(RemoteKeyType.SEARCH_MESSAGE, messageDao.getMessagesIdsByChatroomId(chatroomId))
+            remoteKeysDao.deleteRemoteKeysByIds(
+                messageDao.getMessagesIdsByChatroomIdAndRemoteKeyTypeInner(chatroomId, RemoteKeyType.SEARCH_MESSAGE)
+            )
             messageDao.deleteMessagesByIds(deletedMessagesIds)
         } else {
-            remoteKeysDao.deleteRemoteKeysByTypeAndIds(mainRemoteKeyType, messageDao.getMessagesIdsByChatroomId(chatroomId))
+            remoteKeysDao.deleteRemoteKeysByTypeAndChatroomId(mainRemoteKeyType, chatroomId)
             messageDao.deleteMessagesByChatroomId(chatroomId)
         }
     }
@@ -147,6 +153,33 @@ class MessageMediator(
             RemoteKeys(id = it.id, prevKey = prevKey, nextKey = nextKey,
                 modelType = if(searchMessages) RemoteKeyType.SEARCH_MESSAGE else mainRemoteKeyType
             )
+        }
+    }
+
+    override suspend fun getPage(loadType: LoadType, state: PagingState<Int, Message>): Any {
+        return when(loadType) {
+            LoadType.PREPEND -> {
+                // load type for whenever data needs to be prepended to the paged list (scroll up after down)
+                val remoteKeys = hobbyfiDatabase.withTransaction {
+                    getFirstRemoteKey(state)
+                }
+                // end of list condition reached -> reached the top of the page where the first page is loaded initially
+                // which means we can set endOfPaginationReached to true
+                Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys: $remoteKeys")
+                if(remoteKeys?.prevKey == null) {
+                    Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR PREPEND")
+
+                    return if(wasCalledWithSearchMessageIdPrior) {
+                        wasCalledWithSearchMessageIdPrior = false
+                        val remoteKeysNew = remoteKeysDao.getMaxRemoteKeyByType(RemoteKeyType.MESSAGE)
+                        Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys ON MAX CONDITION: $remoteKeysNew")
+                        remoteKeysNew!!.prevKey!!
+                    } else MediatorResult.Success(endOfPaginationReached = true)
+                }
+
+                remoteKeys.prevKey
+            }
+            else -> super.getPage(loadType, state)
         }
     }
 }

@@ -93,17 +93,17 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
         }
     }
 
-    suspend fun deleteMessagesCache(): Boolean {
+    suspend fun deleteMessagesCache(chatroomId: Long): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_messages_fetch_time)
         return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().deleteMessagesByRemoteKeyType(RemoteKeyType.MESSAGE) > 0 &&
+            hobbyfiDatabase.messageDao().deleteMessagesByChatroomAndRemoteKeyTypeWithExcl(chatroomId, RemoteKeyType.MESSAGE) > 0 &&
                     hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.MESSAGE) > 0
         }
     }
 
-    suspend fun deleteSearchMessagesCache(): Boolean {
+    suspend fun deleteSearchMessagesCache(chatroomId: Long): Boolean {
         return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().deleteMessagesByRemoteKeyType(RemoteKeyType.SEARCH_MESSAGE) > 0 &&
+            hobbyfiDatabase.messageDao().deleteMessagesByChatroomAndRemoteKeyType(chatroomId, RemoteKeyType.SEARCH_MESSAGE) > 0 &&
                     hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.SEARCH_MESSAGE) > 0
         }
     }

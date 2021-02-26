@@ -39,8 +39,6 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
         showOnlyProgessBar = true
     )
 
-    private var messageCollectJob: Job? = null
-
     protected abstract fun initMessageListAdapter()
 
     @ExperimentalPagingApi
@@ -57,7 +55,7 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
 
                     }
                     is MessageListState.OnData.MessagesResult -> {
-                        messageCollectJob = lifecycleScope.launch {
+                        lifecycleScope.launch {
                             it.messages.catch { e ->
                                 e.printStackTrace()
                                 if(e.isCritical) {
@@ -82,7 +80,6 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                     is MessageListState.OnData.DeleteSearchMessagesCacheResult -> {
                         navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, it.message)
                         navController.popBackStack()
-                        messageCollectJob?.cancel()
                         viewModel.resetMessageListState()
                     }
                     is MessageListState.Error -> {
@@ -100,10 +97,5 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
 
     protected open fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long? = null) {
         // does nothing by default
-    }
-
-    override fun onStop() {
-        super.onStop()
-        messageCollectJob?.cancel() // concurrent collectors go brr for load() method RemoteMediator calls
     }
 }

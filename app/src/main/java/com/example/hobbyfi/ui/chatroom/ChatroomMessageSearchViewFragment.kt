@@ -44,7 +44,7 @@ import java.util.*
 class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
     @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
-    override val viewModel: ChatroomMessageSearchViewFragmentViewModel by viewModels()
+    override val viewModel: ChatroomMessageSearchViewFragmentViewModel by viewModels(ownerProducer = { requireParentFragment() })
 
     private lateinit var binding: FragmentMessageSearchViewBinding
 
@@ -54,7 +54,10 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
         ) { _, message ->
             lifecycleScope.launch {
                 viewModel.sendIntent(
-                    MessageListIntent.DeleteCachedSearchMessages(message)
+                    MessageListIntent.DeleteCachedSearchMessages(
+                        message,
+                        activityViewModel.authChatroom.value!!.id
+                    )
                 )
             }
         }
@@ -105,12 +108,12 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
     suspend fun filterMessages(query: String) {
         if(!connectivityManager.isConnected()) {
             // if the user is not connected, work with whatever data there already exists
-            val currentMessages: PagingData<Message>? =
-                (parentFragmentManager.previousNavigationFragment as ChatroomMessageListFragment?)?.viewModel?.currentMessages?.first()
-
-            currentMessages?.filter {
-                it.message.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)) // super simple for now
-            }?.let { messageListAdapter.submitData(it) }
+//            val currentMessages: PagingData<Message>? =
+//                (parentFragmentManager.previousNavigationFragment as ChatroomMessageListFragment?)?.viewModel?.currentMessages?.first()
+//
+//            currentMessages?.filter {
+//                it.message.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)) // super simple for now
+//            }?.let { messageListAdapter.submitData(it) }
         } else {
             viewModel.setCurrentMessages(null)
             activityViewModel.authChatroom.value?.let {
@@ -150,7 +153,10 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
         super.onStop()
         lifecycleScope.launch {
             viewModel.sendIntent(
-                MessageListIntent.DeleteCachedSearchMessages(null)
+                MessageListIntent.DeleteCachedSearchMessages(
+                    null,
+                    activityViewModel.authChatroom.value!!.id
+                )
             )
         }
     }
