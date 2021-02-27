@@ -19,5 +19,5 @@ data class Tag(
   @PrimaryKey(autoGenerate = true)
   override val id: Long = 0
 ) : Model {
-  override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Tag = this
+  override fun updateFromFieldMap(fieldMap: Map<String, String?>): Tag = this
 }

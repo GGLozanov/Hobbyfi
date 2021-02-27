@@ -52,14 +52,8 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
         ChatroomMessageSearchListAdapter(
             activityViewModel.chatroomUsers.value ?: arrayListOf(),
         ) { _, message ->
-            lifecycleScope.launch {
-                viewModel.sendIntent(
-                    MessageListIntent.DeleteCachedSearchMessages(
-                        message,
-                        activityViewModel.authChatroom.value!!.id
-                    )
-                )
-            }
+            navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, message)
+            navController.popBackStack()
         }
     }
 
@@ -147,18 +141,6 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
         super.onDestroyView()
         (requireActivity() as ChatroomActivity)
             .binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        lifecycleScope.launch {
-            viewModel.sendIntent(
-                MessageListIntent.DeleteCachedSearchMessages(
-                    null,
-                    activityViewModel.authChatroom.value!!.id
-                )
-            )
-        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {

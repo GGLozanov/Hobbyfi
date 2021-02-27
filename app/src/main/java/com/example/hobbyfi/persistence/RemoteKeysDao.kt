@@ -25,8 +25,11 @@ abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     @Query("SELECT * FROM remoteKeys WHERE id >= :id AND modelType = :remoteKeyType ORDER BY id ASC")
     abstract suspend fun getLastRemoteKeysByTypeAndOffsetFilter(id: Long, remoteKeyType: RemoteKeyType): List<RemoteKeys>?
 
-    @Query("SELECT * FROM remoteKeys WHERE id = (SELECT MAX(id) FROM remoteKeys WHERE modelType = :remoteKeyType) ORDER BY id DESC LIMIT 1")
+    @Query("SELECT * FROM remoteKeys WHERE id = (SELECT MAX(id) FROM remoteKeys WHERE modelType = :remoteKeyType) AND modelType = :remoteKeyType ORDER BY id DESC LIMIT 1")
     abstract suspend fun getMaxRemoteKeyByType(remoteKeyType: RemoteKeyType): RemoteKeys?
+
+    @Query("SELECT * FROM remoteKeys WHERE id = (SELECT MIN(id) FROM remoteKeys WHERE modelType = :remoteKeyType) AND modelType = :remoteKeyType ORDER BY id ASC LIMIT 1")
+    abstract suspend fun getMinRemoteKeyByType(remoteKeyType: RemoteKeyType): RemoteKeys?
 
     @Query("DELETE FROM remoteKeys")
     abstract suspend fun deleteRemoteKeys()
@@ -37,8 +40,8 @@ abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id IN (:ids)")
     abstract suspend fun deleteRemoteKeysByTypeAndIds(remoteKeyType: RemoteKeyType, ids: List<Long>): Int
 
-    @Query("DELETE FROM remoteKeys WHERE id IN (SELECT rmKeys.id FROM remoteKeys rmKeys LEFT JOIN messages msgs ON msgs.id = rmKeys.id AND rmKeys.modelType = :remoteKeyType AND msgs.chatroomSentId = :chatroomId)")
-    abstract suspend fun deleteRemoteKeysByTypeAndChatroomId(remoteKeyType: RemoteKeyType, chatroomId: Long)
+    @Query("DELETE FROM remoteKeys WHERE id IN (SELECT rmKeys.id FROM remoteKeys rmKeys INNER JOIN messages msgs ON msgs.id = rmKeys.id AND msgs.chatroomSentId = :chatroomId)")
+    abstract suspend fun deleteMessagesRemoteKeysByChatroomId(chatroomId: Long)
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id NOT IN (:ids)")
     abstract suspend fun deleteRemoteKeysByTypeAndNotPresentInIds(remoteKeyType: RemoteKeyType, ids: List<Long>)

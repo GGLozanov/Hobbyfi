@@ -38,7 +38,7 @@ data class Message(
         (data[Constants.CHATROOM_SENT_ID] ?: error("Message chatroom sent ID must not be null!")).toLong(),
     )
 
-    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Message {
+    override fun updateFromFieldMap(fieldMap: Map<String, String?>): Message {
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.MESSAGE -> {

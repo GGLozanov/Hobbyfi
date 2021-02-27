@@ -135,7 +135,7 @@ class ChatroomMessageListFragmentViewModel(
         )
     }
 
-    private suspend fun updateMessage(messageUpdateFields: Map<String?, String?>) {
+    private suspend fun updateMessage(messageUpdateFields: Map<String, String?>) {
         messageStateIntent.setState(MessageState.Loading)
 
         messageStateIntent.setState(try {
@@ -154,7 +154,7 @@ class ChatroomMessageListFragmentViewModel(
         })
     }
 
-    private suspend fun updateAndSaveMessage(messageUpdateFields: Map<String?, String?>) {
+    private suspend fun updateAndSaveMessage(messageUpdateFields: Map<String, String?>) {
         messageRepository.updateMessageCache((messageUpdateFields[Constants.ID] ?: error("Message ID must not be null in updateAndSaveMessage call!"))
             .toLong(), messageUpdateFields[Constants.MESSAGE] ?: error("Message message must not be null in updateAndSaveMessage call!")
         )

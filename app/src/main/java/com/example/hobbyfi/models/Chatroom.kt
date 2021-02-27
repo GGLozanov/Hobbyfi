@@ -39,7 +39,7 @@ data class Chatroom(
                 Constants.tagJsonConverter.fromJson(data[Constants.EVENT_IDS])
             )
 
-    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Chatroom {
+    override fun updateFromFieldMap(fieldMap: Map<String, String?>): Chatroom {
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.NAME -> {

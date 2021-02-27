@@ -28,7 +28,7 @@ class MainActivityViewModel(
     val joinedChatroom: LiveData<Boolean> get() = _joinedChatroom
     private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val leftChatroom: LiveData<Boolean> get() = _leftChatroom
-    private var latestUserUpdateFields: Map<String?, String?>? = null
+    private var latestUserUpdateFields: Map<String, String?>? = null
     
     private val _isUserProfileUpdateButtonEnabled: MutableLiveData<Boolean> = MutableLiveData(true)
     val isUserProfileUpdateButtonEnabled: LiveData<Boolean> get() = _isUserProfileUpdateButtonEnabled
@@ -62,7 +62,7 @@ class MainActivityViewModel(
         _leftChatroom.value = leftChatroom
     }
 
-    fun setLatestUserUpdateFields(updateFields: Map<String?, String?>?) {
+    fun setLatestUserUpdateFields(updateFields: Map<String, String?>?) {
         latestUserUpdateFields = updateFields
     }
 

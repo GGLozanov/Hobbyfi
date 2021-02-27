@@ -41,9 +41,14 @@ abstract class ModelMediator<Key: Any, Value: Model>(
                 val remoteKeys = hobbyfiDatabase.withTransaction {
                     getLastRemoteKey(state)
                 }
+                Log.i("ModelRemoteM", "getKeyPageData => APPEND Paging STATE: ${state.pages.map { it.data}}")
+
                 Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys: $remoteKeys")
                 if (remoteKeys?.nextKey == null) {
-                    Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND")
+                    Log.i(
+                        "ModelRemoteM",
+                        "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND"
+                    )
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
 
@@ -67,7 +72,7 @@ abstract class ModelMediator<Key: Any, Value: Model>(
         }
     }
 
-    private suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()

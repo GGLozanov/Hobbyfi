@@ -77,7 +77,7 @@ class UserRepository @ExperimentalPagingApi constructor(
         }.asFlow()
     }
 
-    suspend fun editUser(userFields: Map<String?, String?>, originalUsername: String): Response? {
+    suspend fun editUser(userFields: Map<String, String?>, originalUsername: String): Response? {
         Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
             hobbyfiAPI.editUser(

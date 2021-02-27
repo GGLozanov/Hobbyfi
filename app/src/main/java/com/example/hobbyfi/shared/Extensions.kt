@@ -359,7 +359,7 @@ fun android.content.Intent.putParcelableEventExtra(data: Map<String, String>) {
     putExtra(Constants.PARCELABLE_MODEL, Event(data))
 }
 
-fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
+fun android.content.Intent.getDestructedMapExtra(): Map<String, String?> {
     val keys = extras?.get(Constants.DATA_KEYS) as Array<String>
     val values = extras?.get(Constants.DATA_VALUES) as Array<String>
     return keys.zip(values)
@@ -395,9 +395,8 @@ fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData():
     return list
 }
 
-fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
-    return extractModelListFromCurrentPagingData().find(predicate)
-}
+fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
+    snapshot().find(predicate)
 
 fun <T : Model> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
     val snapshot = snapshot()

@@ -7,6 +7,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.Message
 import com.example.hobbyfi.paging.mediators.MessageMediator
+import com.example.hobbyfi.paging.sources.MessageSearchSource
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CreateTimeIdResponse
 import com.example.hobbyfi.responses.Response
@@ -24,30 +25,36 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
     fun getMessages(
         pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),
         chatroomId: Long,
-        query: String?,
         messageId: Long?
     ): Flow<PagingData<Message>> {
         Log.i("MessageRepository", "getMessages -> getting current messages")
         val pagingSource = {
-            if(query != null) {
-                hobbyfiDatabase.messageDao()
-                    .getMessagesByChatroomIdAndRemoteKeyTypeInner(
-                        chatroomId,
-                        RemoteKeyType.SEARCH_MESSAGE
-                    )
-            } else {
-                hobbyfiDatabase.messageDao()
-                    .getMessagesByChatroomIdAndRemoteKeyTypeLeft(
-                        chatroomId,
-                        RemoteKeyType.MESSAGE
-                    )
-            }
+            hobbyfiDatabase.messageDao()
+                .getMessagesByChatroomId(
+                    chatroomId,
+                )
         }
 
         return Pager(
             config = pagingConfig,
             pagingSourceFactory = pagingSource,
-            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId, query, messageId)
+            remoteMediator = MessageMediator(hobbyfiDatabase, prefConfig, hobbyfiAPI, chatroomId, messageId)
+        ).flow
+    }
+
+    @ExperimentalPagingApi
+    fun getSearchMessages(
+        pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),
+        chatroomId: Long,
+        query: String,
+    ): Flow<PagingData<Message>> {
+        val pagingSource = {
+            MessageSearchSource(prefConfig, hobbyfiAPI, chatroomId, query)
+        }
+
+        return Pager(
+            config = pagingConfig,
+            pagingSourceFactory = pagingSource
         ).flow
     }
 
@@ -96,19 +103,12 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
     suspend fun deleteMessagesCache(chatroomId: Long): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_messages_fetch_time)
         return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().deleteMessagesByChatroomAndRemoteKeyTypeWithExcl(chatroomId, RemoteKeyType.MESSAGE) > 0 &&
+            hobbyfiDatabase.messageDao().deleteMessagesByChatroomAndRemoteKeyType(chatroomId, RemoteKeyType.MESSAGE) > 0 &&
                     hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.MESSAGE) > 0
         }
     }
 
-    suspend fun deleteSearchMessagesCache(chatroomId: Long): Boolean {
-        return withContext(Dispatchers.IO) {
-            hobbyfiDatabase.messageDao().deleteMessagesByChatroomAndRemoteKeyType(chatroomId, RemoteKeyType.SEARCH_MESSAGE) > 0 &&
-                    hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.SEARCH_MESSAGE) > 0
-        }
-    }
-
-    suspend fun editMessage(messageFields: Map<String?, String?>): Response? {
+    suspend fun editMessage(messageFields: Map<String, String?>): Response? {
         Log.i("MessageRepository", "editMessage -> Editing auth user message with " +
                 "id ${messageFields[Constants.ID] ?: error("Message edit ID must not be null")} " +
                 "and mesage fields: $messageFields")

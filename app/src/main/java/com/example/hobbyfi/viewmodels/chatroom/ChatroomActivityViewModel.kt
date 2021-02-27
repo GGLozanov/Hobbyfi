@@ -238,7 +238,7 @@ class ChatroomActivityViewModel(
         }
     }
 
-    private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
+    private suspend fun updateAndSaveEvent(eventFields: Map<String, String?>) {
         val updatedEvent = _authEvents.value!!.find { it.id == (eventFields[Constants.ID]
                 ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
             .updateFromFieldMap(eventFields)

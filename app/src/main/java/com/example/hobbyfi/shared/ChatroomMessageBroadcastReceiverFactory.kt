@@ -48,12 +48,16 @@ class ChatroomMessageBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenCreated {
-                            viewModel.messageStateIntent.sendIntent(
-                                MessageIntent.UpdateMessageCache(
-                                    it.getDestructedMapExtra()
+                        if(messagesAdapter.findItemFromCurrentPagingData { msg -> msg?.id ==
+                                    it.getDestructedMapExtra()[Constants.ID]?.toLong() } != null) {
+                            // only update if item is currently visible in pages
+                            lifecycleOwner.lifecycleScope.launchWhenCreated {
+                                viewModel.messageStateIntent.sendIntent(
+                                    MessageIntent.UpdateMessageCache(
+                                        it.getDestructedMapExtra()
+                                    )
                                 )
-                            )
+                            }
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for UPDATE MESSAGE",
@@ -66,12 +70,15 @@ class ChatroomMessageBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenCreated {
-                            viewModel.messageStateIntent.sendIntent(
-                                MessageIntent.DeleteMessageCache(
-                                    it.getDeletedModelIdExtra()
+                        if(messagesAdapter.findItemFromCurrentPagingData { msg -> msg?.id == it.getDeletedModelIdExtra() } != null) {
+                            // only delete if message currently visible
+                            lifecycleOwner.lifecycleScope.launchWhenCreated {
+                                viewModel.messageStateIntent.sendIntent(
+                                    MessageIntent.DeleteMessageCache(
+                                        it.getDeletedModelIdExtra()
+                                    )
                                 )
-                            )
+                            }
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for DELETE MESSAGE",

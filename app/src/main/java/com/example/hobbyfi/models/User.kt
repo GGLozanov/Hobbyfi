@@ -41,7 +41,7 @@ data class User(
         Constants.tagJsonConverter.fromJson(data[Constants.CHATROOM_IDS])
     )
 
-    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): User {
+    override fun updateFromFieldMap(fieldMap: Map<String, String?>): User {
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.EMAIL -> {

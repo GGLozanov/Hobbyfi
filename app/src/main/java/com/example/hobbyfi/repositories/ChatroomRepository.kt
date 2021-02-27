@@ -129,7 +129,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }, { createChatroom(name, description, base64Image, tags) })
     }
 
-    suspend fun editChatroom(chatroomFields: Map<String?, String?>): Response? {
+    suspend fun editChatroom(chatroomFields: Map<String, String?>): Response? {
         Log.i("TokenRepository", "editChatroom -> editing current chatroom")
 
         return performAuthorisedRequest({

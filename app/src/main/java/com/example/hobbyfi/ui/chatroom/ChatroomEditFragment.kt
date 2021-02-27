@@ -54,7 +54,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 Callbacks.requestImage(this@ChatroomEditFragment)
             }
             chatroomInfo.buttonBar.rightButton.setOnClickListener {
-                val fieldMap: MutableMap<String?, String?> = mutableMapOf()
+                val fieldMap: MutableMap<String, String?> = mutableMapOf()
 
                 if(activityViewModel.authChatroom.value?.name != viewModel!!.name.value) {
                     fieldMap[Constants.NAME] = viewModel!!.name.value

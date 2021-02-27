@@ -87,7 +87,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     private val onEditSendMessage = { editedMessage: Message ->
         View.OnClickListener {
-            val messageMap = mutableMapOf<String?, String?>()
+            val messageMap = mutableMapOf<String, String?>()
 
             if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
@@ -241,27 +241,23 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 it?.let {
                     messageListAdapter.findItemPositionFromCurrentPagingData(it).run {
                         Log.i("ChatroomMListFragment", "POSITION received from navcontroller handle: ${this}")
-                        when {
-                            this != null -> {
-                                binding.messageList.smoothScrollToPosition(this)
-                                navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
-                            }
-                            connectivityManager.isConnected() -> { // assert whether there's any point to search through the messages
-                                // delete messages cached so that new generation can be propagated (like Discord)
-                                lifecycleScope.launch {
-                                    viewModel.sendIntent(
-                                        MessageListIntent.FetchMessages(
-                                            activityViewModel.authChatroom.value!!.id,
-                                            messageId = navController.currentBackStackEntry
-                                                ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id
-                                                    // always set at this point
-                                        )
+                        if(this != null) {
+                            binding.messageList.smoothScrollToPosition(this)
+                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                        } else if(connectivityManager.isConnected()) { // assert whether there's any point to search through the messages
+                            // delete messages cached so that new generation can be propagated (like Discord)
+                            lifecycleScope.launch {
+                                viewModel.sendIntent(
+                                    MessageListIntent.FetchMessages(
+                                        activityViewModel.authChatroom.value!!.id,
+                                        messageId = navController.currentBackStackEntry
+                                            ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id
+                                                // always set at this point
                                     )
-                                }
+                                )
                             }
-                            else -> { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
-                                navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
-                            }
+                        } else { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
+                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
                         }
                     }
                 }
@@ -271,21 +267,14 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     override fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long?) {
         if(qMessageId != null) {
             navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
-//
-//            navController.currentBackStackEntry?.savedStateHandle?.get<Message?>(Constants.searchMessage)?.run {
-//                messageListAdapter.findItemPositionFromCurrentPagingData(
-//                    this
-//                ).let {
-//                    // renderBottomGenerationsAfterSearchFetch()
-//                }
-//            }
+            // renderBottomGenerationsAfterSearchFetch()
         }
     }
 
     override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
-            // connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
+            //  connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
             //  enter without internet (currently refetches old chatrooms in itiial joins)
             if(connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
@@ -302,7 +291,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             lifecycleScope.launch {
                 viewModel.sendIntent(
                     MessageListIntent.FetchMessages(
-                        activityViewModel.authChatroom.value!!.id,
+                        activityViewModel.authChatroom.value!!.id
                     )
                 )
             }

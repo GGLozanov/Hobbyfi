@@ -11,7 +11,7 @@ sealed class UserState : State {
 
     sealed class OnData : UserState() {
         data class UserResult(val user: User) : OnData()
-        data class UserUpdateResult(val response: Response?, val userFields: Map<String?, String?>) : OnData()
+        data class UserUpdateResult(val response: Response?, val userFields: Map<String, String?>) : OnData()
         data class UserDeleteResult(val response: Response?) : OnData()
     }
 

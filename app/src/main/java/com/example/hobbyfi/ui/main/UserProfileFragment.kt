@@ -116,7 +116,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             confirmButton.setOnClickListener {
-                val fieldMap: MutableMap<String?, String?> = mutableMapOf()
+                val fieldMap: MutableMap<String, String?> = mutableMapOf()
 
                 if (activityViewModel.authUser.value?.name != viewModel!!.name.value) {
                     fieldMap[Constants.USERNAME] = viewModel!!.name.value

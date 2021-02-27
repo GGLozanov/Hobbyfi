@@ -69,7 +69,7 @@ abstract class AuthUserHolderViewModel(
         _authUser.value = user
     }
 
-    protected fun updateAndSaveUser(userFields: Map<String?, String?>) {
+    protected fun updateAndSaveUser(userFields: Map<String, String?>) {
         viewModelScope.launch {
             val updatedUser = _authUser.value!!.updateFromFieldMap(userFields)
             saveUser(updatedUser)
@@ -105,7 +105,7 @@ abstract class AuthUserHolderViewModel(
         }
     }
 
-    private suspend fun updateUser(userFields: Map<String?, String?>) {
+    private suspend fun updateUser(userFields: Map<String, String?>) {
         val userIsUpdatingTags = userFields.containsKey(Constants.TAGS + "[]")
         mainStateIntent.setState(UserState.Loading)
 

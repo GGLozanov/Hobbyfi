@@ -16,5 +16,5 @@ data class RemoteKeys(
     val prevKey: Int?,
     val modelType: RemoteKeyType // user, tag, or message -> used for filtering; MUST be between these three
 ) : Model {
-    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): RemoteKeys = this
+    override fun updateFromFieldMap(fieldMap: Map<String, String?>): RemoteKeys = this
 }

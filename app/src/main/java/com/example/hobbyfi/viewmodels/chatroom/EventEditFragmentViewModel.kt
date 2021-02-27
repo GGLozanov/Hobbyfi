@@ -41,7 +41,7 @@ class EventEditFragmentViewModel(
 
     fun resetState() = mainStateIntent.setState(EventState.Idle)
 
-    private suspend fun updateEvent(updateFields: Map<String?, String?>) {
+    private suspend fun updateEvent(updateFields: Map<String, String?>) {
         mainStateIntent.setState(EventState.Loading)
 
         mainStateIntent.setState(try {

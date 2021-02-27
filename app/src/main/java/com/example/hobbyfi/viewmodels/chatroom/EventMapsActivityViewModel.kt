@@ -110,7 +110,7 @@ class EventMapsActivityViewModel(
         else EventListState.Error(Constants.cacheDeletionError, true))
     }
 
-    private suspend fun updateAndSaveCurrentEvent(updateFields: Map<String?, String?>) {
+    private suspend fun updateAndSaveCurrentEvent(updateFields: Map<String, String?>) {
         val updatedEvent = _event.value!!.updateFromFieldMap(updateFields)
         eventRepository.saveEvent(updatedEvent)
         _event.value = updatedEvent

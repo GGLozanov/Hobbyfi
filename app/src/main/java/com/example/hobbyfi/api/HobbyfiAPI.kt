@@ -117,7 +117,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun editUser(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?> // variable body parameters (which is why a map is used)
+        @FieldMap body: Map<String, String?> // variable body parameters (which is why a map is used)
     ): Response?
 
     /**
@@ -149,7 +149,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun editChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?>
+        @FieldMap body: Map<String, String?>
     ): Response?
 
     /**
@@ -229,7 +229,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun editMessage(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?> // ALWAYS takes Id
+        @FieldMap body: Map<String, String?> // ALWAYS takes Id
     ): Response?
 
 
@@ -269,7 +269,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun editEvent(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?>
+        @FieldMap body: Map<String, String?>
     ): Response?
 
     /**

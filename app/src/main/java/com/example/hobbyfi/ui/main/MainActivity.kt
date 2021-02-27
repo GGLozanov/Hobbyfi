@@ -164,7 +164,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                         val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
                         if (hasJoinedChatroom || hasLeftChatroom) {
                             // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
-                            lateinit var userChatroomFields: Map<String?, String?>
+                            lateinit var userChatroomFields: Map<String, String?>
                             if (hasJoinedChatroom) {
                                 userChatroomFields = mapOf(
                                     Pair(

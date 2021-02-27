@@ -9,7 +9,7 @@ sealed class EventState : State {
     object Loading : EventState()
 
     sealed class OnData : EventState() {
-        data class EventEditResult(val response: Response?, val updateFields: Map<String?, String?>) : OnData()
+        data class EventEditResult(val response: Response?, val updateFields: Map<String, String?>) : OnData()
         data class EventDeleteResult(val response: Response?, val eventId: Long) : OnData()
         data class EventCreateResult(val event: Event) : OnData()
 

@@ -55,7 +55,7 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
 
                     }
                     is MessageListState.OnData.MessagesResult -> {
-                        lifecycleScope.launch {
+                        lifecycleScope.launchWhenCreated {
                             it.messages.catch { e ->
                                 e.printStackTrace()
                                 if(e.isCritical) {
@@ -76,11 +76,6 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                                 // binding.messageList.smoothScrollToPosition(0)
                             }
                         }
-                    }
-                    is MessageListState.OnData.DeleteSearchMessagesCacheResult -> {
-                        navController.previousBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, it.message)
-                        navController.popBackStack()
-                        viewModel.resetMessageListState()
                     }
                     is MessageListState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(

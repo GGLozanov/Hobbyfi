@@ -91,7 +91,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
             }
 
             eventEditDialogButtonBar.rightButton.setOnClickListener {
-                val eventUpdateFields: MutableMap<String?, String?> = mutableMapOf()
+                val eventUpdateFields: MutableMap<String, String?> = mutableMapOf()
 
                 if(viewModel!!.name.value != viewModel!!.event.name) {
                     eventUpdateFields[Constants.NAME] = viewModel!!.name.value

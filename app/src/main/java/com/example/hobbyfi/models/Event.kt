@@ -46,7 +46,7 @@ data class Event(
         data[Constants.CHATROOM_ID]?.toLong() ?: error("Event chatroom ID must not be null!")
     )
 
-    override fun updateFromFieldMap(fieldMap: Map<String?, String?>): Event {
+    override fun updateFromFieldMap(fieldMap: Map<String, String?>): Event {
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.NAME -> {

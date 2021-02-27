@@ -141,7 +141,7 @@ abstract class AuthChatroomHolderViewModel(
         }
     }
 
-    private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
+    private suspend fun updateChatroom(updateFields: Map<String, String?>) {
         chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomStateIntent.setState(try {
@@ -161,7 +161,7 @@ abstract class AuthChatroomHolderViewModel(
         })
     }
 
-    protected suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
+    protected suspend fun updateAndSaveChatroom(chatroomFields: Map<String, String?>) {
         val updatedChatroom = _authChatroom.value?.updateFromFieldMap(chatroomFields)
 
         saveChatroom(updatedChatroom!!)

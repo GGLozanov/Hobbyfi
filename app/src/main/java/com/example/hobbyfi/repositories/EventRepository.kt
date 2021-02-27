@@ -117,7 +117,7 @@ class EventRepository(
         }, { deleteOldEvents() })
     }
 
-    suspend fun editEvent(eventUpdateFields: Map<String?, String?>): Response? {
+    suspend fun editEvent(eventUpdateFields: Map<String, String?>): Response? {
         Log.i("EventRepository", "editEvent -> Editing current chatroom event with fields: $eventUpdateFields")
 
         return performAuthorisedRequest({

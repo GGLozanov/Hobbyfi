@@ -57,9 +57,6 @@ abstract class ChatroomMessageViewModel(
                     is MessageListIntent.FetchMessages -> {
                         fetchMessages(it.chatroomId, it.query, it.messageId)
                     }
-                    is MessageListIntent.DeleteCachedSearchMessages -> {
-                        deleteCachedSearchMessages(it.message, it.chatroomId)
-                    }
                 }
             }
         }
@@ -74,20 +71,13 @@ abstract class ChatroomMessageViewModel(
                 _sentMessageIdFetchRequestPrior = !_sentMessageIdFetchRequestPrior
             }
 
-            _currentMessages = messageRepository.getMessages(chatroomId = chatroomId, query = query, messageId = messageId)
+            _currentMessages = (if(query == null)
+                        messageRepository.getMessages(chatroomId = chatroomId, messageId = messageId)
+                                else messageRepository.getSearchMessages(chatroomId = chatroomId, query = query))
                 .distinctUntilChanged()
                 .cachedIn(viewModelScope)
         }
 
         mainStateIntent.setState(MessageListState.OnData.MessagesResult(_currentMessages!!, messageId))
-    }
-
-    protected suspend fun deleteCachedSearchMessages(message: Message?, chatroomId: Long) {
-        viewModelScope.async {
-                messageRepository.deleteSearchMessagesCache(chatroomId)
-            }.await()
-        message?.let {
-            mainStateIntent.setState(MessageListState.OnData.DeleteSearchMessagesCacheResult(it))
-        }
     }
 }
