@@ -29,6 +29,7 @@ class MessageMediator(
     private val messageDao = hobbyfiDatabase.messageDao()
     private val searchMessageId: Boolean get() = messageId != null
     private var wasCalledWithSearchMessageIdPrior = false
+    private var hasCalledAppendWithMinCon = false
 
     override val cachePrefId: Int
         get() = R.string.pref_last_chatroom_messages_fetch_time
@@ -106,7 +107,7 @@ class MessageMediator(
             // clear all rows in chatroom and remote keys table (for chatrooms)
             if (loadType == LoadType.REFRESH || cacheTimeOut) {
                 Log.i("MessageMediator", "MESSAGE triggered refresh OR cache TIMEOUT. Clearing cache")
-                clearCachedMessagesByFetchType()
+                clearCachedMessagesByFetchType(keys.map { it.id })
             }
         }
 
@@ -118,8 +119,8 @@ class MessageMediator(
         return MediatorResult.Success(endOfPaginationReached = isEndOfList)
     }
 
-    private suspend fun clearCachedMessagesByFetchType() {
-        remoteKeysDao.deleteMessagesRemoteKeysByChatroomId(chatroomId)
+    private suspend fun clearCachedMessagesByFetchType(newMessagesIds: List<Long>) {
+        remoteKeysDao.deleteMessagesRemoteKeysByTypeAndExclIds(newMessagesIds, mainRemoteKeyType)
         messageDao.deleteMessagesByChatroomId(chatroomId)
     }
 
@@ -141,29 +142,32 @@ class MessageMediator(
 
                 return remoteKeys.prevKey
             }
-//            LoadType.APPEND -> {
-//                val remoteKeys = hobbyfiDatabase.withTransaction {
-//                    getLastRemoteKey(state)
-//                }
-//
-//                if (remoteKeys?.nextKey == null) {
-//                    Log.i(
-//                        "ModelRemoteM",
-//                        "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND"
-//                    )
-//
-//                    val minKeys = remoteKeysDao.getMinRemoteKeyByType(
-//                        mainRemoteKeyType
-//                    )
-//                    Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys ON MIN CONDITION: $minKeys")
-//
-//                    return if(minKeys != null) {
-//                        minKeys.nextKey ?: 2
-//                    } else MediatorResult.Success(endOfPaginationReached = true)
-//                }
-//
-//                remoteKeys.nextKey
-//            }
+            LoadType.APPEND -> {
+                val remoteKeys = hobbyfiDatabase.withTransaction {
+                    getLastRemoteKey(state)
+                }
+
+                if (remoteKeys?.nextKey == null) {
+                    Log.i(
+                        "ModelRemoteM",
+                        "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND"
+                    )
+
+                    return if(!hasCalledAppendWithMinCon) {
+                        hasCalledAppendWithMinCon = true
+                        val minKeys = remoteKeysDao.getMinRemoteKeyByType(
+                            mainRemoteKeyType
+                        )
+                        Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys ON MIN CONDITION: $minKeys")
+
+                        if(minKeys != null) {
+                            minKeys.nextKey ?: 2
+                        } else MediatorResult.Success(endOfPaginationReached = true)
+                    } else MediatorResult.Success(endOfPaginationReached = true)
+                }
+
+                remoteKeys.nextKey
+            }
             else -> super.getPage(loadType, state)
         }
     }

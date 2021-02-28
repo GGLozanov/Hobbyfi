@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -68,8 +70,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 return@ChatroomMessageListAdapter true
             },
         ) { messageB ->
-            navController.navigate(ChatroomMessageListFragmentDirections
-                .actionChatroomMessageListFragmentToImageViewFragment(messageB.userMessage.text.toString()))
+            navController.navigate(
+                ChatroomMessageListFragmentDirections
+                    .actionChatroomMessageListFragmentToImageViewFragment(messageB.userMessage.text.toString())
+            )
         }
     }
 
@@ -92,7 +96,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
             } else {
-                Toast.makeText(requireContext(), "You can't edit a message with the same message!", Toast.LENGTH_LONG)
+                Toast.makeText(
+                    requireContext(),
+                    "You can't edit a message with the same message!",
+                    Toast.LENGTH_LONG
+                )
                     .show()
                 return@OnClickListener
             }
@@ -122,13 +130,28 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         // TODO: Move receiver registration in after chatroom messages fetch!!!
         chatroomMessageBroadcastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
             .getInstance(viewModel, messageListAdapter, activityViewModel, activity)
-        createMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.CREATE_MESSAGE_TYPE)
-        editMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.EDIT_MESSAGE_TYPE)
-        deleteMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(Constants.DELETE_MESSAGE_TYPE)
+        createMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
+            Constants.CREATE_MESSAGE_TYPE
+        )
+        editMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
+            Constants.EDIT_MESSAGE_TYPE
+        )
+        deleteMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
+            Constants.DELETE_MESSAGE_TYPE
+        )
 
-        localBroadcastManager.registerReceiver(createMessageReceiver!!, IntentFilter(Constants.CREATE_MESSAGE_TYPE))
-        localBroadcastManager.registerReceiver(editMessageReceiver!!, IntentFilter(Constants.EDIT_MESSAGE_TYPE))
-        localBroadcastManager.registerReceiver(deleteMessageReceiver!!, IntentFilter(Constants.DELETE_MESSAGE_TYPE))
+        localBroadcastManager.registerReceiver(
+            createMessageReceiver!!,
+            IntentFilter(Constants.CREATE_MESSAGE_TYPE)
+        )
+        localBroadcastManager.registerReceiver(
+            editMessageReceiver!!,
+            IntentFilter(Constants.EDIT_MESSAGE_TYPE)
+        )
+        localBroadcastManager.registerReceiver(
+            deleteMessageReceiver!!,
+            IntentFilter(Constants.DELETE_MESSAGE_TYPE)
+        )
     }
 
     override fun onCreateView(
@@ -157,7 +180,9 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             }
 
             sendMessageButton.setOnClickListener(onNormalSendMessage)
-            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(onNormalSendMessage)
+            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(
+                onNormalSendMessage
+            )
                 viewModel!!.message.setValue(null)
                 editMessageOptionsLayout.isVisible = false
             }
@@ -166,8 +191,9 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             observeUsers()
             observeMessageState()
             observeMessagesState()
-            observeConnectionRefresh(savedInstanceState, (requireActivity() as BaseActivity)
-                .refreshConnectivityMonitor
+            observeConnectionRefresh(
+                savedInstanceState, (requireActivity() as BaseActivity)
+                    .refreshConnectivityMonitor
             )
 
             return@onCreateView root
@@ -186,7 +212,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     override fun observeUsers() {
         activityViewModel.chatroomUsers.observe(viewLifecycleOwner, Observer {
             Log.i("ChatroomMListFragment", "Adapter users: $it")
-            if(viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
+            if (viewModel.areCurrentMessagesNull && it.isNotEmpty()) {
                 // send message fetch intent
                 activityViewModel.authChatroom.value?.let {
                     lifecycleScope.launch {
@@ -217,7 +243,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         binding.cancelHeader.callOnClick()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
-                        Toast.makeText(requireContext(), "Successfully deleted message!", Toast.LENGTH_LONG)
+                        Toast.makeText(
+                            requireContext(),
+                            "Successfully deleted message!",
+                            Toast.LENGTH_LONG
+                        )
                             .show()
                         viewModel.resetMessageState()
                     }
@@ -240,24 +270,40 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 Log.i("ChatroomMListFragment", "message received from navcontroller handle: ${it}")
                 it?.let {
                     messageListAdapter.findItemPositionFromCurrentPagingData(it).run {
-                        Log.i("ChatroomMListFragment", "POSITION received from navcontroller handle: ${this}")
+                        Log.i(
+                            "ChatroomMListFragment",
+                            "POSITION received from navcontroller handle: ${this}"
+                        )
                         if(this != null) {
-                            binding.messageList.smoothScrollToPosition(this)
-                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
-                        } else if(connectivityManager.isConnected()) { // assert whether there's any point to search through the messages
+                            binding.messageList.scrollToPosition(this)
+                            Handler(Looper.myLooper() ?: binding.messageList.handler.looper).postDelayed({
+                                binding.messageList.smoothScrollToPosition(
+                                    this
+                                )
+                            }, 50)
+
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                Constants.searchMessage,
+                                null
+                            )
+                        } else if (connectivityManager.isConnected()) { // assert whether there's any point to search through the messages
                             // delete messages cached so that new generation can be propagated (like Discord)
+                            viewModel.setSentMessageIdFetchRequestPrior(true)
                             lifecycleScope.launch {
                                 viewModel.sendIntent(
                                     MessageListIntent.FetchMessages(
                                         activityViewModel.authChatroom.value!!.id,
                                         messageId = navController.currentBackStackEntry
                                             ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id
-                                                // always set at this point
+                                        // always set at this point
                                     )
                                 )
                             }
                         } else { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
-                            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                Constants.searchMessage,
+                                null
+                            )
                         }
                     }
                 }
@@ -266,17 +312,25 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     override fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long?) {
         if(qMessageId != null) {
-            navController.currentBackStackEntry?.savedStateHandle?.set(Constants.searchMessage, null)
-            // renderBottomGenerationsAfterSearchFetch()
+            if(viewModel.sentMessageIdFetchRequestPrior) {
+                viewModel.setSentMessageIdFetchRequestPrior(false)
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    Constants.searchMessage,
+                    null
+                )
+            }
         }
     }
 
-    override fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
+    override fun observeConnectionRefresh(
+        savedState: Bundle?,
+        refreshConnectivityMonitor: RefreshConnectivityMonitor
+    ) {
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(viewLifecycleOwner, Observer { connectionRefreshed ->
             //  connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
             //  enter without internet (currently refetches old chatrooms in itiial joins)
-            if(connectionRefreshed) {
+            if (connectionRefreshed) {
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment CONNECTED")
                 refreshDataOnConnectionRefresh()
             } else {
@@ -323,14 +377,19 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         activityViewModel.authChatroom.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
             setToolbarProperties(it, activity)
         })
-        activityViewModel.isAuthUserChatroomOwner.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
-            activity.binding.toolbar
-                .navigationIcon = if(it)
-                    ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_admin_panel_settings_24)
-                        else null
+        activityViewModel.isAuthUserChatroomOwner.observe(
+            viewLifecycleOwner,
+            androidx.lifecycle.Observer {
+                activity.binding.toolbar
+                    .navigationIcon = if (it)
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_baseline_admin_panel_settings_24
+                    )
+                else null
 
-            messageListAdapter.setAuthUserChatroomOwner(it)
-        })
+                messageListAdapter.setAuthUserChatroomOwner(it)
+            })
     }
 
     private fun setToolbarProperties(chatroom: Chatroom?, activity: ChatroomActivity) {
@@ -346,9 +405,12 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         uris.map {
                             try {
                                 ImageUtils.getEncodedImageFromUri(requireActivity(), it)
-                            } catch(ex: FileNotFoundException) {
-                                Toast.makeText(requireContext(),
-                                    "File for sending not found! Please verify it exists!", Toast.LENGTH_LONG)
+                            } catch (ex: FileNotFoundException) {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "File for sending not found! Please verify it exists!",
+                                    Toast.LENGTH_LONG
+                                )
                                     .show()
                                 null
                             }
@@ -364,13 +426,17 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     override fun observePredicateValidators() {
         viewModel.message.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.messageInputField, Constants.messageInputError)
+            TextInputLayoutFocusValidatorObserver(
+                binding.messageInputField,
+                Constants.messageInputError
+            )
         )
     }
 
     override fun observeCombinedObserversInvalidity() {
         viewModel.combinedObserversInvalidity.observe(
-            viewLifecycleOwner, ViewReverseEnablerObserver(binding.sendMessageButton))
+            viewLifecycleOwner, ViewReverseEnablerObserver(binding.sendMessageButton)
+        )
     }
 
     override fun onDestroy() {
@@ -391,7 +457,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onEditMessageSelect(view: View, message: Message) {
-        Log.i("ChatroomMListFragment", "onEditMessageSelect triggered in message list fragment for $message!")
+        Log.i(
+            "ChatroomMListFragment",
+            "onEditMessageSelect triggered in message list fragment for $message!"
+        )
 
         viewModel.message.setValue(message.message) // set to edit current message from bottom sheet
         with(binding) {
@@ -402,7 +471,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onDeleteMessageSelect(view: View, message: Message) {
-        Log.i("ChatroomMListFragment", "onDeleteMessageSelect triggered in message list fragment for $message!")
+        Log.i(
+            "ChatroomMListFragment",
+            "onDeleteMessageSelect triggered in message list fragment for $message!"
+        )
         lifecycleScope.launch {
             viewModel.sendMessageIntent(MessageIntent.DeleteMessage(message.id))
         }

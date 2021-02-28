@@ -40,8 +40,11 @@ abstract class RemoteKeysDao : BaseDao<RemoteKeys>() {
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id IN (:ids)")
     abstract suspend fun deleteRemoteKeysByTypeAndIds(remoteKeyType: RemoteKeyType, ids: List<Long>): Int
 
-    @Query("DELETE FROM remoteKeys WHERE id IN (SELECT rmKeys.id FROM remoteKeys rmKeys INNER JOIN messages msgs ON msgs.id = rmKeys.id AND msgs.chatroomSentId = :chatroomId)")
-    abstract suspend fun deleteMessagesRemoteKeysByChatroomId(chatroomId: Long)
+    @Query("DELETE FROM remoteKeys WHERE id IN (SELECT rmKeys.id FROM remoteKeys rmKeys INNER JOIN messages msgs ON msgs.chatroomSentId = :chatroomId) AND modelType = :remoteKeyType")
+    abstract suspend fun deleteRemoteKeysByChatroomId(chatroomId: Long, remoteKeyType: RemoteKeyType)
+
+    @Query("DELETE FROM remoteKeys WHERE id NOT IN (:ids) AND modelType = :remoteKeyType")
+    abstract suspend fun deleteMessagesRemoteKeysByTypeAndExclIds(ids: List<Long>, remoteKeyType: RemoteKeyType)
 
     @Query("DELETE FROM remoteKeys WHERE modelType = :remoteKeyType AND id NOT IN (:ids)")
     abstract suspend fun deleteRemoteKeysByTypeAndNotPresentInIds(remoteKeyType: RemoteKeyType, ids: List<Long>)
