@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -247,8 +248,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             requireContext(),
                             "Successfully deleted message!",
                             Toast.LENGTH_LONG
-                        )
-                            .show()
+                        ).show()
                         viewModel.resetMessageState()
                     }
                     is MessageState.Error -> {
@@ -320,6 +320,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 )
             }
         }
+
+        // FIXME: Remove for better option because of Bundle size limits
+        navController.currentBackStackEntry?.savedStateHandle?.set<List<Message>?>(
+            Constants.currentMessages, messageListAdapter.extractModelListFromCurrentPagingData()
+        )
     }
 
     override fun observeConnectionRefresh(
@@ -337,19 +342,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 Log.i("ChatroomMListFragment", "ChatroomMessageListFragment DIS-CONNECTED")
             }
         })
-    }
-
-    private fun renderBottomGenerationsAfterSearchFetch() {
-        if(!viewModel.sentMessageIdFetchRequestPrior) {
-            viewModel.setSentMessageIdFetchRequestPrior(true)
-            lifecycleScope.launch {
-                viewModel.sendIntent(
-                    MessageListIntent.FetchMessages(
-                        activityViewModel.authChatroom.value!!.id
-                    )
-                )
-            }
-        }
     }
 
     override fun refreshDataOnConnectionRefresh() {
@@ -410,8 +402,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                                     requireContext(),
                                     "File for sending not found! Please verify it exists!",
                                     Toast.LENGTH_LONG
-                                )
-                                    .show()
+                                ).show()
                                 null
                             }
                         }

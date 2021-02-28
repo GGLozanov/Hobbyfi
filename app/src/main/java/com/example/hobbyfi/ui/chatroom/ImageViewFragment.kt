@@ -24,6 +24,7 @@ class ImageViewFragment : ChatroomModelFragment() {
         binding = FragmentImageViewBinding.inflate(layoutInflater, container, false)
         Glide.with(this)
             .load(args.imageUrl)
+            .placeholder(R.drawable.ic_baseline_image_42)
             .into(binding.image)
 
         return binding.root

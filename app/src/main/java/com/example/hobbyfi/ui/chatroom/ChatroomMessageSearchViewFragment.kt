@@ -102,12 +102,12 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
     suspend fun filterMessages(query: String) {
         if(!connectivityManager.isConnected()) {
             // if the user is not connected, work with whatever data there already exists
-            val currentMessages: PagingData<Message>? =
-                (parentFragmentManager.previousNavigationFragment as ChatroomMessageListFragment?)?.viewModel?.currentMessages?.first()
+            val currentMessages: List<Message>? =
+                navController.previousBackStackEntry?.savedStateHandle?.get(Constants.currentMessages)
 
             currentMessages?.filter {
                 it.message.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)) // super simple for now
-            }?.let { messageListAdapter.submitData(it) }
+            }?.let { messageListAdapter.submitData(PagingData.from(it)) }
         } else {
             viewModel.setCurrentMessages(null)
             activityViewModel.authChatroom.value?.let {

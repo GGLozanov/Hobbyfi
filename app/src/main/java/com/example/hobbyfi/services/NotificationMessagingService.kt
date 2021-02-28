@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -41,7 +42,8 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver, KodeinAware {
+class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver, KodeinAware,
+        SharedPreferences.OnSharedPreferenceChangeListener {
     private var isAppInForeground: Boolean = false
     private var isAppInFocus: Boolean = true
 
@@ -58,11 +60,13 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     override fun onCreate() {
         super.onCreate()
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        prefConfig.registerPrefsListener(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
+        prefConfig.unregisterPrefsListener(this)
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
@@ -80,9 +84,19 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         }
 
         deferredBroadcastsQueue.forEach {
+            if(it.action == Constants.CREATE_MESSAGE_TYPE && !prefConfig.readReachedBottomMessagesAfterSearch()) {
+                // await for change in status before launching
+                return
+            }
+
             localBroadcastManager.sendBroadcast(it)
         }
-        deferredBroadcastsQueue.clear()
+
+        if(!prefConfig.readReachedBottomMessagesAfterSearch()) {
+            deferredBroadcastsQueue.clear()
+        } else {
+            deferredBroadcastsQueue.removeIf { it.action != Constants.CREATE_MESSAGE_TYPE }
+        }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
@@ -94,6 +108,19 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     fun onForegroundStop() {
         isAppInForeground = false
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    fun onForegroundDestroy() {
+        prefConfig.writeReachedBottomMessagesAfterSearch(true) // reset on, well, onDestroy
+    }
+
+    override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
+        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(key, true)) {
+            deferredBroadcastsQueue.filter { it.action == Constants.CREATE_MESSAGE_TYPE }.forEach {
+                localBroadcastManager.sendBroadcast(it)
+            }
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -164,18 +191,17 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             windowManager.defaultDisplay
         }
 
-        val screenOff = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT_WATCH) {
+        val screenOff =
             display?.state != Display.STATE_ON && !powerManager.isInteractive
-        } else {
-            @Suppress("DEPRECATION")
-            !powerManager.isScreenOn
-        }
 
+        val searchMessageCreateMessageBroadcast =
+            notificationType == Constants.CREATE_MESSAGE_TYPE && !prefConfig.readReachedBottomMessagesAfterSearch()
 
-        if(((!isAppInFocus && screenOff) || (!screenOff && !isAppInForeground))) {
-            Log.i("NotificationMService", "App is in DOZE/onPause state, NOT onStop(). Adding ")
+        if(((!isAppInFocus && screenOff) || (!screenOff && !isAppInForeground)) ||
+                searchMessageCreateMessageBroadcast) {
+            Log.i("NotificationMService", "App is in DOZE/onPause state, NOT onStop(). Adding to deferred broadcasts queue")
             deferredBroadcastsQueue.add(intent)
-            if((title == null || body == null) && !isImageMessage) {
+            if(((title == null || body == null) && !isImageMessage) || searchMessageCreateMessageBroadcast) {
                 return
             }
         }

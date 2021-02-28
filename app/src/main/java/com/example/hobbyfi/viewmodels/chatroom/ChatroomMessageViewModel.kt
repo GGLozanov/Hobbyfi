@@ -67,10 +67,6 @@ abstract class ChatroomMessageViewModel(
         mainStateIntent.setState(MessageListState.Loading)
 
         if(_currentMessages == null || messageId != null || _sentMessageIdFetchRequestPrior) {
-            if(_sentMessageIdFetchRequestPrior) {
-                _sentMessageIdFetchRequestPrior = !_sentMessageIdFetchRequestPrior
-            }
-
             _currentMessages = (if(query == null)
                         messageRepository.getMessages(chatroomId = chatroomId, messageId = messageId)
                                 else messageRepository.getSearchMessages(chatroomId = chatroomId, query = query))

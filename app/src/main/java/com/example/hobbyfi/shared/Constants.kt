@@ -268,6 +268,7 @@ object Constants {
     )
 
     const val searchMessage: String = "searchMessage"
+    const val currentMessages: String = "currentMessages"
     const val messagesPagingData: String = "MESSAGES_PAGING_DATA"
 
     const val LOCATIONS_COLLECTION: String = "locations"
@@ -294,7 +295,6 @@ object Constants {
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
     const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
-    const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
     const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"

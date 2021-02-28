@@ -61,8 +61,12 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                                 if(e.isCritical) {
                                     Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
                                         .show()
-                                    // TODO: Switch to `startActivityForResult` calls cuz process death
-                                    localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
+                                    (requireActivity() as ChatroomActivity).handleAuthActionableError(
+                                        e.message,
+                                        false,
+                                        shouldExit = true,
+                                        context = requireContext()
+                                    )
                                 } else if(e !is CancellationException) {
                                     Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
                                     Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
@@ -80,7 +84,8 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                     is MessageListState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
                             it.error,
-                            it.shouldExit,
+                            false,
+                            shouldExit = it.shouldExit,
                             context = requireContext()
                         ) // TODO: Might make this a bit too coupled to the activity. . .
                         viewModel.resetMessageListState()

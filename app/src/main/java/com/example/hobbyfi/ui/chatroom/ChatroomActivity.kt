@@ -755,6 +755,7 @@ class ChatroomActivity : NavigationActivity(),
     override fun onDestroy() {
         super.onDestroy()
         prefConfig.writeRestartedFromChatroomTaskRoot(false)
+        prefConfig.writeReachedBottomMessagesAfterSearch(true) // reset on, well, onDestroy
     }
 
     // checks if called from push notification while app is killed and restarts entire backstack in that case
@@ -880,12 +881,12 @@ class ChatroomActivity : NavigationActivity(),
             context ?: this@ChatroomActivity,
             "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG
         ).show()
+
         if (shouldLeave) {
             finish()
-            if(shouldExit) {
-                // TODO: Add another field (shouldReauth) in Error states for REALLY bad errors
-                localBroadcastManager.sendBroadcast(Intent(Constants.LOGOUT))
-            }
+        } else if(shouldExit) {
+            // TODO: Add another field (shouldReauth) in Error states for REALLY bad errors
+            leaveChatroomWithRestart()
         }
     }
 

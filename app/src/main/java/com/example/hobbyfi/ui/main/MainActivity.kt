@@ -44,19 +44,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     private var poppedFromLogoutButton: Boolean = false
 
-    private val authStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == Constants.LOGOUT) {
-                logout()
-            } else {
-                Log.wtf(
-                    "MainActivity",
-                    "MainActivity authStateReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!"
-                )
-            }
-        }
-    }
-
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.CHATROOM_DELETED) {
@@ -85,7 +72,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
 
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
-        localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
 
         with(binding) {
             val view = root
@@ -263,7 +249,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     override fun onDestroy() {
         super.onDestroy()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
-        localBroadcastManager.unregisterReceiver(authStateReceiver)
     }
 
     override fun onSupportNavigateUp(): Boolean {

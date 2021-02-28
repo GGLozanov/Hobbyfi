@@ -80,7 +80,7 @@ abstract class ModelMediator<Key: Any, Value: Model>(
     }
 
     protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
-        Log.i("ModelMediator", "getFirstRemoteKey -> state pages data: ${state.pages.lastOrNull()?.data}")
+        Log.i("ModelMediator", "getFirstRemoteKey -> state pages data: ${state.pages.firstOrNull()?.data}")
 
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }

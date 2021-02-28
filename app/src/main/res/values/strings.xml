@@ -22,7 +22,9 @@
     <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
     <string name="pref_requesting_location_updates">com.example.preference_requesting_location_updates</string>
     <string name="pref_restarted_from_chatroom_task_root">com.example.preference_restarted_from_chatroom_task_root</string>
-    <string name="pref_first_app_boot">com.example.first_app_boot</string> <!-- TODO: Used for future onboarding -->
+    <string name="pref_request_location_service_running">com.example.preference_request_location_service_running</string>
+    <string name="pref_first_app_boot">com.example.first_app_boot</string>
+    <string name="pref_reached_bottom_messages_after_search">com.example.preference_reached_bottom_messages_after_search</string>
 
     <string name="default_notification_channel_id">HOBBYFI_NOTIFICATION_CHANNEL</string>
 
