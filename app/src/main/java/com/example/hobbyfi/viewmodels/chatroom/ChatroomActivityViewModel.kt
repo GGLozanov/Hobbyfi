@@ -147,6 +147,9 @@ class ChatroomActivityViewModel(
                     is UserListIntent.FetchUsers -> {
                         fetchUsers()
                     }
+                    is UserListIntent.KickUser -> {
+                        kickUser(it.userId)
+                    }
                 }
             }
         }
@@ -326,6 +329,21 @@ class ChatroomActivityViewModel(
         return true
     }
 
+    private suspend fun kickUser(userId: Long) {
+        // no loading here (no fetch)
+        viewModelScope.launch {
+            usersStateIntent.setState(try {
+                chatroomRepository.kickUser(userId)
+                UserListState.OnUserKick
+            } catch(e: Exception) {
+                UserListState.Error(
+                    Constants.userKickFail,
+                    shouldReauth = e.isCritical
+                )
+            })
+        }
+    }
+
     private fun setCurrentUsers(users: List<User>) {
         _chatroomUsers.value = users
     }
@@ -344,6 +362,6 @@ class ChatroomActivityViewModel(
     }
 
     fun forceIsAuthUserOwnerObservation() {
-        isAuthUserChatroomOwner.forceObserve()
+        _isAuthUserChatroomOwner.forceObserve()
     }
 }

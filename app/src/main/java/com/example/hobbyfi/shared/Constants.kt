@@ -79,6 +79,10 @@ object Constants {
     const val emailSendFail: String= "Failed to send e-mail! Please, try again!"
     const val facebookUserSendAttempt: String = "User with this e-mail is a Facebook user and doesn't need an e-mail sent!"
     const val searchMessageNotFound: String = "Message you were searching for couldn't be found!"
+    const val userKickFail: String = "Couldn't manage to kick user!"
+    const val userKickSuccess: String = "User successfully kicked!"
+    const val chatroomDeletedMessage: String = "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!"
+    const val chatroomKickedMessage: String = "Oh no, it looks like you've been kicked from the chatroom by the owner!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -177,6 +181,7 @@ object Constants {
     const val CHATROOM_SENT_ID = "chatroom_sent_id"
     const val START_DATE = "start_date"
     const val DATE = "date"
+    const val USER_ID = "user_id"
     const val LATITUDE = "latitude"
     const val LONGITUDE = "longitude"
 

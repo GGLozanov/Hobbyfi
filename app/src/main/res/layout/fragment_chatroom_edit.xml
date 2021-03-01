@@ -17,7 +17,7 @@
         android:fadeScrollbars="false"
         android:fillViewport="false">
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -29,7 +29,7 @@
                 layout="@layout/chatroom_info_layout"
                 app:chatroomHeaderText="@{@string/edit_chatroom}"
                 app:viewModel="@{viewModel}" />
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </ScrollView>
 </layout>

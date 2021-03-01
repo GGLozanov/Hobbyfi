@@ -101,8 +101,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     requireContext(),
                     "You can't edit a message with the same message!",
                     Toast.LENGTH_LONG
-                )
-                    .show()
+                ).show()
                 return@OnClickListener
             }
 

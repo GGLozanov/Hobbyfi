@@ -15,7 +15,7 @@ sealed class ChatroomState : State {
         data class ChatroomUpdateResult(val response: Response?, val fieldMap: Map<String, String?>) : OnData()
         data class ChatroomResult(val chatroom: Chatroom) : OnData()
 
-        object DeleteChatroomCacheResult : OnData()
+        data class DeleteChatroomCacheResult(val kicked: Boolean = false) : OnData()
         // no need for UpdateChatroomCacheResult state because it always succeeds
     }
 

@@ -18,7 +18,7 @@
             type="android.graphics.drawable.Drawable" />
     </data>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/button_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,5 +46,5 @@
             android:drawableStart="@{rightButtonStartDrawable}">
 
         </com.google.android.material.button.MaterialButton>
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

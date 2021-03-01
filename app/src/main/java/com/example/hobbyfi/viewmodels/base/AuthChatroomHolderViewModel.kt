@@ -40,9 +40,9 @@ abstract class AuthChatroomHolderViewModel(
 
     val chatroomState get() = chatroomStateIntent.state
 
-    private var _isAuthUserChatroomOwner = MutableLiveData((authUser.value?.id ?: false) ==
+    protected var _isAuthUserChatroomOwner = MutableLiveData((authUser.value?.id ?: false) ==
             authChatroom.value?.ownerId) // initial check; updated every time auth user or auth chatroom changes
-    val isAuthUserChatroomOwner get() = _isAuthUserChatroomOwner
+    val isAuthUserChatroomOwner: LiveData<Boolean> get() = _isAuthUserChatroomOwner
 
     fun setChatroom(chatroom: Chatroom?) {
         _authChatroom.value = chatroom
@@ -76,7 +76,7 @@ abstract class AuthChatroomHolderViewModel(
                     }
                     is ChatroomIntent.DeleteChatroomCache -> {
                         Log.i("AuthChatromHVM", "Deleting chatroom auth chatroom cache intent sent!")
-                        deleteChatroomCache(true)
+                        deleteChatroomCache(true, it.kicked)
                     }
                     is ChatroomIntent.UpdateChatroomCache -> {
                         updateAndSaveChatroom(it.chatroomUpdateFields)
@@ -113,7 +113,7 @@ abstract class AuthChatroomHolderViewModel(
                 chatroomRepository.deleteChatroom(_authChatroom.value!!.id)
             )
 
-            deleteChatroomCache()
+            deleteChatroomCache(kicked = false)
 
             response
         } catch(ex: Exception) {
@@ -124,7 +124,7 @@ abstract class AuthChatroomHolderViewModel(
         })
     }
 
-    private suspend fun deleteChatroomCache(setState: Boolean = false) {
+    private suspend fun deleteChatroomCache(setState: Boolean = false, kicked: Boolean) {
         val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
                 userRepository.deleteUsersCache(_authUser.value!!.id)
 
@@ -134,7 +134,7 @@ abstract class AuthChatroomHolderViewModel(
         )) // nullify chatroom for cache user after deletion
 
         if(setState) {
-            chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult
+            chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult(kicked)
                 else ChatroomState.Error(Constants.cacheDeletionError))
         } else if(!success) {
             throw Exception(Constants.cacheDeletionError)

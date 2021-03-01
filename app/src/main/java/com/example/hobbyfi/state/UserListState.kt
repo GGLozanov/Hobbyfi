@@ -11,6 +11,8 @@ sealed class UserListState : State {
         data class UsersResult(val users: List<User>) : OnData()
     }
 
+    object OnUserKick : UserListState()
+
     // TODO: Find a way to Swift-ify this and pass the eventId only in OnNotification and have the inner classes access it
     data class Error(val error: String?, val shouldReauth: Boolean = false) : UserListState()
 }

@@ -77,7 +77,7 @@ open class ChatroomBroadcastReceiverFactory(
                     onReceiveLog = "Got me a broadcast receievrino for LEAVE USEEEEEEER",
                     onNoNotifyLog = "Current broadcastreceiver for leaveuser should be visible to EVEN the owner. " +
                             "Something is wrong and onReceive proper action was NOT performed",
-                    isNotChatroomOwnerOrShouldSee = authUserIdDeleteChecker
+                    isNotChatroomOwnerOrShouldSee = authUserIdChecker { -1L } // always true (visible to everyone)
                 )
             }
             Constants.EDIT_USER_TYPE -> {
@@ -122,7 +122,7 @@ open class ChatroomBroadcastReceiverFactory(
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenStarted {
                             chatroomActivityViewModel!!.sendChatroomIntent(
-                                ChatroomIntent.DeleteChatroomCache
+                                ChatroomIntent.DeleteChatroomCache()
                             )
                         }
                     },

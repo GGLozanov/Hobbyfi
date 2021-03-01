@@ -151,7 +151,7 @@ abstract class AuthUserHolderViewModel(
     private fun updateAndNotifyTagUpdateFail(userUpdatingTags: Boolean, failed: Boolean) {
         if(userUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
             _latestTagUpdateFail.apply {
-                value = false
+                value = failed
             }
         }
     }

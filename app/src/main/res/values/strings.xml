@@ -190,4 +190,7 @@
     <string name="reset">Reset</string>
     <string name="download">Download</string>
     <string name="search_messages">Search messages...</string>
+    <string name="kick">Kick</string>
+    <string name="kick_user_confirm">Are you certain you want to kick this user?</string>
+    <string name="user_chatroom_owner">Chatroom Admin</string>
 </resources>

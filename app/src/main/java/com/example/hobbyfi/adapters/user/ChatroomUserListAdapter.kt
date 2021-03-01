@@ -21,8 +21,6 @@ import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
 
-// Discord doesn't do pagination for their guild users...
-// ...so neither will I!
 class ChatroomUserListAdapter(
     private var users: List<User>,
     private val onUserCardPress: ((View, User) -> Unit)? = null

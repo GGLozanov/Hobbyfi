@@ -428,7 +428,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CHATROOM_DELETE! CHECK BACKSTACK!")
                     lifecycleScope.launchWhenResumed {
                         activityViewModel.sendChatroomIntent(
-                            ChatroomIntent.DeleteChatroomCache
+                            ChatroomIntent.DeleteChatroomCache()
                         )
                     }
                 }

@@ -323,7 +323,8 @@ class ChatroomActivity : NavigationActivity(),
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(
                             this@ChatroomActivity,
-                            "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!",
+                            if(it.kicked) Constants.chatroomKickedMessage
+                                else Constants.chatroomDeletedMessage,
                             Toast.LENGTH_LONG
                         ).show()
                         leaveDeletedChatroom()
@@ -406,6 +407,12 @@ class ChatroomActivity : NavigationActivity(),
         }
     }
 
+    private fun leaveChatroomWithDelete() {
+        lifecycleScope.launch {
+            viewModel.sendChatroomIntent(ChatroomIntent.DeleteChatroomCache(true))
+        }
+    }
+
     // for deeplink errors
     private fun leaveChatroomWithRestart(
         exitMsg: String = Constants.invalidAccessError,
@@ -426,6 +433,11 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUsers() {
         viewModel.chatroomUsers.observe(this, Observer {
+            if(it.isNotEmpty() && !it.contains(viewModel.authUser.value)) {
+                leaveChatroomWithDelete()
+                return@Observer
+            }
+
             userListAdapter!!.setUsers(it)
         })
     }
@@ -445,6 +457,13 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is UserListState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
+                        viewModel.resetUserListState()
+                    }
+                    is UserListState.OnUserKick -> {
+                        Toast.makeText(this@ChatroomActivity, Constants.userKickSuccess,
+                            Toast.LENGTH_LONG
+                        ).show()
+                        viewModel.resetUserListState()
                     }
                 }
             }
@@ -824,10 +843,8 @@ class ChatroomActivity : NavigationActivity(),
 
     @ExperimentalPagingApi
     private fun setToolbarAdminIconOnOwnershipAndCurrentFragment(owner: Boolean) {
-        with(binding.toolbar) {
-            if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
-                setToolbarAdminIconOnOwnership(owner)
-            }
+        if(supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
+            setToolbarAdminIconOnOwnership(owner)
         }
     }
 
@@ -885,7 +902,6 @@ class ChatroomActivity : NavigationActivity(),
         if (shouldLeave) {
             finish()
         } else if(shouldExit) {
-            // TODO: Add another field (shouldReauth) in Error states for REALLY bad errors
             leaveChatroomWithRestart()
         }
     }

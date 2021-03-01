@@ -132,7 +132,7 @@
 
                 </com.google.android.material.button.MaterialButton>
 
-                <LinearLayout
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:id="@+id/reset_pass_switch_page_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -160,7 +160,7 @@
                         android:text="@string/reset_password_hint"
                         android:textSize="18sp"
                         android:textStyle="bold" />
-                </LinearLayout>
+                </androidx.appcompat.widget.LinearLayoutCompat>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <View

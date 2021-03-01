@@ -17,7 +17,7 @@
         android:overScrollMode="always"
         android:background="@drawable/background_secondary_gradient">
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -50,6 +50,6 @@
                 app:layout_constraintTop_toBottomOf="@id/event_info_button_bar">
 
             </com.google.android.material.button.MaterialButton>
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </ScrollView>
 </layout>

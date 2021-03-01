@@ -189,6 +189,13 @@ interface HobbyfiAPI {
         @Query(Constants.PAGE) page: Int
     ): CacheListResponse<Chatroom>
 
+    @POST("api/v${API_VERSION}/chatroom/kick")
+    @FormUrlEncoded
+    suspend fun kickUser(
+        @Header(Constants.AUTH_HEADER) token: String?,
+        @Field(Constants.USER_ID) userId: Long
+    ): Response?
+
     /**
      *
      */

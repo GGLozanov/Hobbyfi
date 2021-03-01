@@ -172,6 +172,15 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }
     }
 
+    suspend fun kickUser(userId: Long): Response? {
+        Log.i("ChatroomRepository", "kickUser -> kicking user with id: ${userId}")
+        return performAuthorisedRequest({
+            hobbyfiAPI.kickUser(
+                prefConfig.getAuthUserToken()!!,
+                userId
+            )
+        }, { kickUser(userId) })
+    }
 
     private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =
         withContext(Dispatchers.IO) {
