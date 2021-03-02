@@ -151,7 +151,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             Constants.CREATE_EVENT_TYPE -> {
                 intent.putParcelableEventExtra(data)
                 title = resources.getString(R.string.create_event_notification_title)
-                body = "Take a look at '${data[Constants.NAME]}' and try to join in!"
+                body = "Take a look at the '${data[Constants.NAME]}' event and try to join in!"
             }
             Constants.EDIT_CHATROOM_TYPE, Constants.EDIT_USER_TYPE,
             Constants.EDIT_MESSAGE_TYPE, Constants.EDIT_EVENT_TYPE -> {
@@ -175,12 +175,12 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             Constants.JOIN_USER_TYPE -> {
                 intent.putParcelableUserExtra(data)
                 title = resources.getString(R.string.join_user_notification_title)
-                body = "${data[Constants.USERNAME]} just joined the chatroom!"
+                body = "${data[Constants.USERNAME]} just joined one of your chatrooms!"
             }
             Constants.LEAVE_USER_TYPE -> {
                 intent.putDeletedModelIdExtra(data)
                 title = resources.getString(R.string.leave_user_notification_title)
-                body = "${data[Constants.USERNAME]} just left the chatroom!"
+                body = "${data[Constants.USERNAME]} just left one of your chatrooms!"
             }
         }
 

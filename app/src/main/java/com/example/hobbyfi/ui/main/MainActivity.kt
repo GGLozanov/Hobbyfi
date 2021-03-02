@@ -44,6 +44,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     private var poppedFromLogoutButton: Boolean = false
 
+
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.CHATROOM_DELETED) {

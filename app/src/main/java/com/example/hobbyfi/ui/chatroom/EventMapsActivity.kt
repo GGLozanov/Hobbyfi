@@ -54,7 +54,6 @@ class EventMapsActivity : MapsActivity(),
 
     private lateinit var binding: ActivityEventMapsBinding
 
-    // TODO: Handle DELETE_CHATROOM and check if this triggers other notifications of same type (bad)
     // sync here
     private var deleteEventReceiver: BroadcastReceiver? = null
     private var editEventReceiver: BroadcastReceiver? = null
@@ -70,6 +69,35 @@ class EventMapsActivity : MapsActivity(),
                 Log.e(
                     "EventMapsActivity",
                     "chatroomDeleteReceiver called with wrong intent action!"
+                )
+            }
+        }
+    }
+
+    private val leaveUserReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, intent: Intent) {
+            val userId = try {
+                prefConfig.getAuthUserIdFromToken()
+            } catch(e: Exception) {
+                Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
+                    .show()
+                emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
+                return
+            }
+
+            if(intent.action == Constants.LEAVE_USER_TYPE) {
+                if(intent.getDeletedModelIdExtra() == userId) {
+                    emergencyActivityExit(Constants.RESULT_KICKED, intent)
+                } else {
+                    Log.w(
+                        "EventMapsActivity",
+                        "leaveUserReceiver called with ID different from auth user..."
+                    )
+                }
+            } else {
+                Log.e(
+                    "EventMapsActivity",
+                    "leaveUserReceiver called with wrong intent action!"
                 )
             }
         }
@@ -144,6 +172,7 @@ class EventMapsActivity : MapsActivity(),
                     )
                 }
             }
+
             if(viewModel.initialStart) {
                 buildLocationTrackingDialog()
                 // initialStart is useless now but due to feedback from friend, location updates are NOT initially enabled
@@ -439,6 +468,7 @@ class EventMapsActivity : MapsActivity(),
         with(localBroadcastManager) {
             registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
             registerReceiver(chatroomDeleteReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
+            registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
             registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
             registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
             registerReceiver(deleteEventBatchReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
@@ -453,6 +483,7 @@ class EventMapsActivity : MapsActivity(),
         with(localBroadcastManager) {
             unregisterReceiver(locationUpdateReceiver)
             unregisterReceiver(chatroomDeleteReceiver)
+            unregisterReceiver(leaveUserReceiver)
             unregisterReceiver(deleteEventReceiver!!)
             unregisterReceiver(editEventReceiver!!)
             unregisterReceiver(deleteEventBatchReceiver!!)

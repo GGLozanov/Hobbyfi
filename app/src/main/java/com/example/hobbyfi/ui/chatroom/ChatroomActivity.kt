@@ -17,7 +17,9 @@ import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.lifecycleScope
@@ -196,8 +198,12 @@ class ChatroomActivity : NavigationActivity(),
         userListAdapter = ChatroomUserListAdapter(
             viewModel.chatroomUsers.value ?: arrayListOf()
         ) { _: View, user: User ->
-            val bottomSheet = ChatroomUserBottomSheetDialogFragment.newInstance(user)
-            bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+            supportFragmentManager.showDistinctDialog(
+                "UserSheet" + user.id.toString(),
+                {
+                    ChatroomUserBottomSheetDialogFragment.newInstance(user)
+                }
+            )
         }
 
         with(binding) {
@@ -433,7 +439,8 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUsers() {
         viewModel.chatroomUsers.observe(this, Observer {
-            if(it.isNotEmpty() && !it.contains(viewModel.authUser.value)) {
+            if(viewModel.authUser.value?.chatroomIds?.contains(viewModel.authChatroom.value?.id)
+                    == false) {
                 leaveChatroomWithDelete()
                 return@Observer
             }
@@ -460,6 +467,10 @@ class ChatroomActivity : NavigationActivity(),
                         viewModel.resetUserListState()
                     }
                     is UserListState.OnUserKick -> {
+                        supportFragmentManager.findFragmentByTag("UserSheet" + it.userKickedId)?.let { frag ->
+                            (frag as DialogFragment).dismiss()
+                        }
+
                         Toast.makeText(this@ChatroomActivity, Constants.userKickSuccess,
                             Toast.LENGTH_LONG
                         ).show()
@@ -654,16 +665,16 @@ class ChatroomActivity : NavigationActivity(),
                 // FIXME: Small coderino duperino with ChatroomTagAdapter
                 chatroom.tags?.let {
                     if (binding.tagsGridView.adapter == null) {
-                        val adapter = TagListAdapter(
+                        binding.tagsGridView.adapter = TagListAdapter(
                             it,
                             this@ChatroomActivity,
                             R.layout.chatroom_tag_card
                         )
-                        binding.tagsGridView.adapter = adapter
                     } else {
                         (binding.tagsGridView.adapter as TagListAdapter).setTags(it)
                     }
 
+                    binding.tagsGridView.isVisible = it.isNotEmpty()
                     binding.tagsGridView.setHeightBasedOnChildren(it.size)
                 }
 

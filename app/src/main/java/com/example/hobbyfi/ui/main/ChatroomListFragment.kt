@@ -97,9 +97,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
                 Log.i("ChatroomListFragment", "user chatroom ids: ${user.chatroomIds}")
-
-                // TODO: Modify for support for one-to-many connection AND modify DeleteChatroomsCache
-                // TODO: To delete chatrooms with IDs IN user chatroom IDs array
+                
                 val userHasChatroom = user.chatroomIds != null
 
                 loadStateAdapter?.setUserChatroomOwnership(userHasChatroom)

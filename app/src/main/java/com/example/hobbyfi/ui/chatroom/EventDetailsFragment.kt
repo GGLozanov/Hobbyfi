@@ -424,11 +424,11 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == Constants.eventMapsRequestCode) {
             when(resultCode) {
-                Constants.RESULT_CHATROOM_DELETE -> {
-                    Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CHATROOM_DELETE! CHECK BACKSTACK!")
+                Constants.RESULT_CHATROOM_DELETE, Constants.RESULT_KICKED -> {
+                    Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CHATROOM_DELETE OR RESULT_KICKED! CHECK BACKSTACK!")
                     lifecycleScope.launchWhenResumed {
                         activityViewModel.sendChatroomIntent(
-                            ChatroomIntent.DeleteChatroomCache()
+                            ChatroomIntent.DeleteChatroomCache(resultCode == Constants.RESULT_KICKED)
                         )
                     }
                 }

@@ -125,13 +125,18 @@ abstract class AuthChatroomHolderViewModel(
     }
 
     private suspend fun deleteChatroomCache(setState: Boolean = false, kicked: Boolean) {
-        val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
-                userRepository.deleteUsersCache(_authUser.value!!.id)
+        val success = if(!kicked) {
+            chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
+                    userRepository.deleteUsersCache(_authUser.value!!.id)
+        } else userRepository.deleteUsersCache(_authUser.value!!.id)
+        // just delete users if kick (hacky solution and fucks up semantics but w/e)
 
-        updateAndSaveUser(mapOf(
-            Pair(Constants.CHATROOM_IDS,
-                Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
-        )) // nullify chatroom for cache user after deletion
+        if(!kicked) {
+            updateAndSaveUser(mapOf(
+                Pair(Constants.CHATROOM_IDS,
+                    Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
+            )) // nullify chatroom for cache user after deletion
+        }
 
         if(setState) {
             chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult(kicked)

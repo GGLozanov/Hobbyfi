@@ -47,7 +47,8 @@ class EventRepository(
                 Log.i("EventRepository", "Fetching event from network for chatroom id $chatroomId!")
                 return performAuthorisedRequest({
                     hobbyfiAPI.fetchEvents(
-                        prefConfig.getAuthUserToken()!!
+                        prefConfig.getAuthUserToken()!!,
+                        chatroomId
                     )
                 }, { fetchFromNetwork() })
             }

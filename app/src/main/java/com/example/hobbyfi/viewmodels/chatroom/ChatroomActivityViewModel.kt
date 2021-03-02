@@ -334,7 +334,7 @@ class ChatroomActivityViewModel(
         viewModelScope.launch {
             usersStateIntent.setState(try {
                 chatroomRepository.kickUser(userId)
-                UserListState.OnUserKick
+                UserListState.OnUserKick(userId)
             } catch(e: Exception) {
                 UserListState.Error(
                     Constants.userKickFail,

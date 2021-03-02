@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventListIntent
+import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.User
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
@@ -22,7 +23,7 @@ open class ChatroomBroadcastReceiverFactory(
 ) : LifecycleAwareBroadcastReceiverFactory(lifecycleOwner) {
     protected val authUserIdChecker = { idGenerator: (Intent) -> Long? -> { intent: Intent ->
         idGenerator(intent) !=
-                (chatroomActivityViewModel!!.authUser.value ?:
+                (chatroomActivityViewModel?.authUser?.value ?:
                 error("Auth user in ViewModel ID must not be null in call to Create Message from BroadcastReceiver!"))
                     .id
         }
@@ -67,11 +68,29 @@ open class ChatroomBroadcastReceiverFactory(
                     action,
                     onCorrectAction = {
                         lifecycleOwner.lifecycleScope.launchWhenStarted {
-                            chatroomActivityViewModel!!.sendUsersIntent(
-                                UserListIntent.DeleteAUserCache(
-                                    it.getDeletedModelIdExtra()
+                            if(chatroomActivityViewModel!!.authUser.value?.id != it.getDeletedModelIdExtra()) {
+                                // account for auth user here because they have to receive broadcast but NOT
+                                // have their account deleted from cache
+                                chatroomActivityViewModel.sendUsersIntent(
+                                    UserListIntent.DeleteAUserCache(
+                                        it.getDeletedModelIdExtra()
+                                    )
                                 )
-                            )
+                            } else {
+                                chatroomActivityViewModel.sendIntent(
+                                    UserIntent.UpdateUserCache(
+                                        mapOf(
+                                            Pair(
+                                                Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                                    chatroomActivityViewModel.authUser.value!!.chatroomIds?.filter { id -> (chatroomActivityViewModel.authChatroom.value?.id
+                                                        ?: error("Leave chatroom Id must not be null in leave user broadcast action for AUTH user!"))
+                                                        .toLong() != id }
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            }
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for LEAVE USEEEEEEER",

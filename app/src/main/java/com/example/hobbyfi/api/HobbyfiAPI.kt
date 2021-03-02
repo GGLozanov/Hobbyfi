@@ -254,7 +254,8 @@ interface HobbyfiAPI {
 
     @GET("api/v${API_VERSION}/events/read")
     suspend fun fetchEvents(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long
     ): CacheListResponse<Event>
 
     /**

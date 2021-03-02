@@ -30,12 +30,16 @@ class ChatroomMessageBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        lifecycleOwner.lifecycleScope.launchWhenCreated {
-                            viewModel.messageStateIntent.sendIntent(
-                                MessageIntent.CreateMessageCache(
-                                    it.getParcelableExtra(Constants.PARCELABLE_MODEL)!!
+                        val message = it.getParcelableExtra(Constants.PARCELABLE_MODEL) as Message?
+                        if(chatroomActivityViewModel?.authUser?.value?.chatroomIds?.contains(message?.chatroomSentId) == true) {
+                            // assert user still in chatroom (kick race condition)
+                            lifecycleOwner.lifecycleScope.launchWhenCreated {
+                                viewModel.messageStateIntent.sendIntent(
+                                    MessageIntent.CreateMessageCache(
+                                        message!!
+                                    )
                                 )
-                            )
+                            }
                         }
                     },
                     onReceiveLog = "Got me a broadcast receievrino for CREATE MESSAGE",
@@ -49,7 +53,9 @@ class ChatroomMessageBroadcastReceiverFactory(
                     action,
                     onCorrectAction = {
                         if(messagesAdapter.findItemFromCurrentPagingData { msg -> msg?.id ==
-                                    it.getDestructedMapExtra()[Constants.ID]?.toLong() } != null) {
+                                    it.getDestructedMapExtra()[Constants.ID]?.toLong() } != null &&
+                                chatroomActivityViewModel?.authUser?.value?.chatroomIds?.contains(
+                                    it.getDestructedMapExtra()[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
                             // only update if item is currently visible in pages
                             lifecycleOwner.lifecycleScope.launchWhenCreated {
                                 viewModel.messageStateIntent.sendIntent(
@@ -70,7 +76,11 @@ class ChatroomMessageBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        if(messagesAdapter.findItemFromCurrentPagingData { msg -> msg?.id == it.getDeletedModelIdExtra() } != null) {
+                        if(messagesAdapter.findItemFromCurrentPagingData {
+                                    msg -> msg?.id == it.getDeletedModelIdExtra() } != null &&
+                            chatroomActivityViewModel?.authUser?.value?.chatroomIds?.contains(
+                                chatroomActivityViewModel.authChatroom.value?.id
+                            ) == true) {
                             // only delete if message currently visible
                             lifecycleOwner.lifecycleScope.launchWhenCreated {
                                 viewModel.messageStateIntent.sendIntent(
