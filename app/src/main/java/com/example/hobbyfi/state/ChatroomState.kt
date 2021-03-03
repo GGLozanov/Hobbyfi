@@ -1,7 +1,6 @@
 package com.example.hobbyfi.state
 
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.responses.IdResponse
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.responses.Response
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState

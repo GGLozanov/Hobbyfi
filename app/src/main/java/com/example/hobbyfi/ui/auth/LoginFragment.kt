@@ -9,7 +9,6 @@ import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -19,8 +18,8 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State

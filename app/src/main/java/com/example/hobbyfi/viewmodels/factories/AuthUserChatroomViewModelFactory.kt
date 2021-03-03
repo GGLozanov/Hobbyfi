@@ -3,10 +3,9 @@ package com.example.hobbyfi.viewmodels.factories
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
-import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class AuthUserChatroomViewModelFactory(val application: Application, val user: User?, val chatroom: Chatroom?) : ViewModelProvider.Factory {

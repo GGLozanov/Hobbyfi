@@ -1,16 +1,9 @@
 package com.example.hobbyfi.ui.auth
 
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavDirections
-import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus

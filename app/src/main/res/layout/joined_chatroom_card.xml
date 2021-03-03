@@ -8,7 +8,7 @@
 
         <variable
             name="chatroom"
-            type="com.example.hobbyfi.models.Chatroom" />
+            type="com.example.hobbyfi.models.data.Chatroom" />
     </data>
 
     <com.google.android.material.card.MaterialCardView

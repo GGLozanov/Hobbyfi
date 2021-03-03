@@ -1,4 +1,4 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.addAllDistinct

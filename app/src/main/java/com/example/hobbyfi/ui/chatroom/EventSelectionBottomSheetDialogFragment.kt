@@ -9,7 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.databinding.FragmentEventSelectionBottomSheetDialogBinding
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.ExperimentalCoroutinesApi

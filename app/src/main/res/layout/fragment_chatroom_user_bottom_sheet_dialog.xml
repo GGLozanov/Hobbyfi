@@ -8,7 +8,7 @@
         
         <variable
             name="user"
-            type="com.example.hobbyfi.models.User" />
+            type="com.example.hobbyfi.models.data.User" />
         <variable
             name="canChatroomAdminUseActions"
             type="boolean" />

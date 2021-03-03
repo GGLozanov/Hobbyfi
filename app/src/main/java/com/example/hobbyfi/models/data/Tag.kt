@@ -1,6 +1,5 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
-import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey

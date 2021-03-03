@@ -11,7 +11,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.JoinedChatroomCardBinding
-import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.addAllDistinct
 import com.google.android.material.button.MaterialButton

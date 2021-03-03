@@ -14,7 +14,7 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.databinding.UserCardBinding
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.PrefConfig
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware

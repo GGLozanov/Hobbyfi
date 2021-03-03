@@ -1,16 +1,10 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
-import android.os.Parcel
-import android.os.Parcelable
-import android.util.Log
 import androidx.annotation.Keep
 import androidx.room.*
 import com.example.hobbyfi.BuildConfig
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 

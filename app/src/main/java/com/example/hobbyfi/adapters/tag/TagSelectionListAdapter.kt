@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.databinding.TagCardBinding
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 
 class TagSelectionListAdapter(
     private var tags: MutableList<Tag>,

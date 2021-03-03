@@ -38,10 +38,10 @@
             app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
             <argument
                 android:name="tags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
     </fragment>
     <navigation android:id="@+id/event_create_navigation"
@@ -60,7 +60,7 @@
         tools:layout="@layout/activity_event_maps" >
         <argument
             android:name="event"
-            app:argType="com.example.hobbyfi.models.Event" />
+            app:argType="com.example.hobbyfi.models.data.Event" />
     </activity>
     <fragment
         android:id="@+id/eventDetailsFragment"
@@ -71,7 +71,7 @@
             app:destination="@id/eventMapsActivity" />
         <argument
             android:name="event"
-            app:argType="com.example.hobbyfi.models.Event" />
+            app:argType="com.example.hobbyfi.models.data.Event" />
     </fragment>
     <fragment
         android:id="@+id/imageViewFragment"

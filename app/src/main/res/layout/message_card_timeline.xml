@@ -4,7 +4,7 @@
     <data>
         <variable
             name="message"
-            type="com.example.hobbyfi.models.Message" />
+            type="com.example.hobbyfi.models.data.Message" />
     </data>
 
     <androidx.appcompat.widget.LinearLayoutCompat

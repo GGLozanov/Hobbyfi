@@ -3,10 +3,8 @@ package com.example.hobbyfi.viewmodels.factories
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.ui.shared.TagSelectionDialogFragment
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
-import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
 import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi

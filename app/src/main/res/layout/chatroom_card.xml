@@ -9,7 +9,7 @@
 
         <variable
             name="chatroom"
-            type="com.example.hobbyfi.models.Chatroom" />
+            type="com.example.hobbyfi.models.data.Chatroom" />
     </data>
 
     <androidx.appcompat.widget.LinearLayoutCompat

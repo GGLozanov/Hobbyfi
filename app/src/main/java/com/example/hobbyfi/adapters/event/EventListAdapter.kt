@@ -1,7 +1,6 @@
 package com.example.hobbyfi.adapters.event
 
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,9 +14,8 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.databinding.EventCardBinding
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.PrefConfig
-import com.facebook.share.model.ShareLinkContent
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein

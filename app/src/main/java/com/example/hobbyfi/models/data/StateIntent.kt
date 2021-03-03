@@ -1,4 +1,4 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.state.State

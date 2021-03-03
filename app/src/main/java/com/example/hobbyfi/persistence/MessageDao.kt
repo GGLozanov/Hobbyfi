@@ -3,7 +3,7 @@ package com.example.hobbyfi.persistence
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.shared.RemoteKeyType
 
 @Dao

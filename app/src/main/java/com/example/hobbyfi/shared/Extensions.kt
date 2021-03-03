@@ -9,12 +9,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -39,10 +34,9 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.paging.PagingData
 import androidx.paging.PagingDataAdapter
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.*
+import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.TokenUtils
 import com.google.android.gms.maps.model.LatLng
@@ -381,7 +375,7 @@ val Throwable.isCritical get() = this is Repository.ReauthenticationException ||
         this is io.jsonwebtoken.lang.InstantiationException || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException || this is TokenUtils.InvalidStoredTokenException
 
-fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {
+fun <T: Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
         try {
@@ -396,10 +390,10 @@ fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData():
     return list
 }
 
-fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
+fun <T: Any> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
     snapshot().find(predicate)
 
-fun <T : Model> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
+fun <T: Any> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
     val snapshot = snapshot()
     snapshot.items.forEachIndexed { index, t ->
         Log.i("findIPositionFCPData", "item: ${t}")

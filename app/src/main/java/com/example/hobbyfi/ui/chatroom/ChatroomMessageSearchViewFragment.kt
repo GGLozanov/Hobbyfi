@@ -4,39 +4,25 @@ import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
-import androidx.paging.filter
-import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.message.ChatroomMessageAdapter
-import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageSearchListAdapter
-import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
 import com.example.hobbyfi.databinding.FragmentMessageSearchViewBinding
 import com.example.hobbyfi.intents.MessageListIntent
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
-import com.example.hobbyfi.shared.previousNavigationFragment
-import com.example.hobbyfi.shared.showDistinctDialog
-import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageSearchViewFragmentViewModel
-import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.*
 
 @ExperimentalPagingApi
@@ -107,7 +93,7 @@ class ChatroomMessageSearchViewFragment : ChatroomMessageFragment() {
 
             currentMessages?.filter {
                 it.message.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)) // super simple for now
-            }?.let { messageListAdapter.submitData(PagingData.from(it)) }
+            }?.let { messageListAdapter.submitData(PagingData.from(it.map { message -> UIMessage.MessageItem(message) })) }
         } else {
             viewModel.setCurrentMessages(null)
             activityViewModel.authChatroom.value?.let {

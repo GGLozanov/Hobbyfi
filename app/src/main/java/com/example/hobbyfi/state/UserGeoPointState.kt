@@ -1,7 +1,7 @@
 package com.example.hobbyfi.state
 
 import androidx.lifecycle.LiveData
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.UserGeoPoint
 import kotlinx.coroutines.flow.StateFlow
 
 sealed class UserGeoPointState : State {

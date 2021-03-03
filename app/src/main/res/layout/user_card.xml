@@ -4,7 +4,7 @@
     <data>
         <variable
             name="user"
-            type="com.example.hobbyfi.models.User" />
+            type="com.example.hobbyfi.models.data.User" />
     </data>
 
     <com.google.android.material.card.MaterialCardView

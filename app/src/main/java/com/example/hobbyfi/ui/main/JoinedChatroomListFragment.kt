@@ -1,10 +1,7 @@
 package com.example.hobbyfi.ui.main
 
-import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
@@ -12,13 +9,11 @@ import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.extractModelListFromCurrentPagingData
-import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.extractListFromCurrentPagingData
 import com.example.hobbyfi.state.ChatroomListState
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -43,7 +38,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         // TODO: This might cause performance issues later on but solves bugs related to button visibility
         // TODO: Optimise the method
         val userOwnedChatroomIds =
-            chatroomListAdapter.extractModelListFromCurrentPagingData().filter {
+            chatroomListAdapter.extractListFromCurrentPagingData().filter {
                 activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
             }.mapNotNull { if (it.ownerId == activityViewModel.authUser.value!!.id) it.id else null }
         chatroomListAdapter.addDistinctUserOwnedChatroomIds(userOwnedChatroomIds)

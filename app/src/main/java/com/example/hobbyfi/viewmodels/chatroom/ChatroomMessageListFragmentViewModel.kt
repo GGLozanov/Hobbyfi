@@ -3,28 +3,19 @@ package com.example.hobbyfi.viewmodels.chatroom
 import android.app.Application
 import androidx.databinding.Bindable
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.MessageIntent
-import com.example.hobbyfi.intents.MessageListIntent
-import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.repositories.MessageRepository
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PredicateMutableLiveData
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.state.MessageState
-import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
-import com.example.hobbyfi.viewmodels.base.TwoWayDataBindable
-import com.example.hobbyfi.viewmodels.base.TwoWayDataBindableViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import org.kodein.di.generic.instance
 import java.lang.Exception
 
 @ExperimentalCoroutinesApi

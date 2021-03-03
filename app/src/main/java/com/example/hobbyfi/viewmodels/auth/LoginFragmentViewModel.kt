@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.TagBundle
+import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.models.data.TagBundle
 import com.example.hobbyfi.shared.invalidateBy
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState

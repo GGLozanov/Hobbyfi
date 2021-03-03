@@ -21,12 +21,11 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventEditDialogBinding
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory

@@ -1,6 +1,6 @@
 package com.example.hobbyfi.intents
 
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 
 sealed class EventListIntent : Intent {
     object FetchEvents : EventListIntent()

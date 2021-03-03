@@ -7,8 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
@@ -213,7 +213,8 @@ class EventRepository(
                     val eventIds = doc?.get(Constants.EVENT_IDS) as List<Long>?
 
                     geoPoints.add(if(userChatroomIds == null || geoPoint == null || eventIds == null || eventIds.isEmpty()) null else
-                        UserGeoPoint(doc.id, userChatroomIds, eventIds, geoPoint))
+                        UserGeoPoint(doc.id, userChatroomIds, eventIds, geoPoint)
+                    )
                 }
                 Log.i("EventRepository", "UserGeoPoints list: ${geoPoints}")
                 _userGeoPoints.value = geoPoints.filterNotNull()

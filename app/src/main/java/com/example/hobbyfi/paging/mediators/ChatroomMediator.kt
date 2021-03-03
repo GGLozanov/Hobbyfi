@@ -7,8 +7,8 @@ import androidx.paging.PagingState
 import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.RemoteKeys
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.shared.Callbacks

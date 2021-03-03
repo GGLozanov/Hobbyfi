@@ -19,7 +19,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.services.EventLocationUpdatesService
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventListState

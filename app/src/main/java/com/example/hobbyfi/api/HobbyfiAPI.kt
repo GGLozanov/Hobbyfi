@@ -7,7 +7,8 @@ import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.adapters.user.UserResponseDeserializer
 import com.example.hobbyfi.models.*
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.*
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected

@@ -9,7 +9,7 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ChatroomCardBinding
-import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.PrefConfig
 import com.google.android.material.button.MaterialButton
 

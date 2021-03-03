@@ -1,34 +1,19 @@
 package com.example.hobbyfi.adapters.message
 
-import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.databinding.MessageCardBinding
 import com.example.hobbyfi.databinding.MessageCardReceiveBinding
 import com.example.hobbyfi.databinding.MessageCardSendBinding
 import com.example.hobbyfi.databinding.MessageCardTimelineBinding
-import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.PrefConfig
-import com.example.hobbyfi.utils.GlideUtils
-import org.kodein.di.Kodein
-import org.kodein.di.KodeinAware
-import org.kodein.di.android.kodein
-import org.kodein.di.generic.instance
-import kotlin.math.min
-import kotlin.math.pow
 
 
 class ChatroomMessageListAdapter(
@@ -46,14 +31,15 @@ class ChatroomMessageListAdapter(
         protected val isAuthUserChatroomOwner: Boolean,
         prefConfig: PrefConfig,
     ) : BaseUserChatroomMessageViewHolder(rootView, messageCardBinding, users, prefConfig) {
-        override fun bind(model: Message?, position: Int) {
+        override fun bind(model: UIMessage?, position: Int) {
             super.bind(model, position)
+            val message = (model as UIMessage.MessageItem?)?.message
             val authUserSentMessage =
-                users.find { model?.userSentId == prefConfig.getAuthUserIdFromToken() }
+                users.find { message?.userSentId == prefConfig.getAuthUserIdFromToken() }
 
             if(authUserSentMessage != null || isAuthUserChatroomOwner) {
                 messageCardBinding.messageCardLayout.setOnLongClickListener {
-                    onMessageLongPress(it, model!!)
+                    onMessageLongPress(it, message!!)
                 }
             }
         }
@@ -147,12 +133,13 @@ class ChatroomMessageListAdapter(
             }
         }
 
-        override fun bind(model: Message?, position: Int) {
-            binding.message = model
+        override fun bind(model: UIMessage?, position: Int) {
+            val message = (model as UIMessage.MessageItem?)?.message
+            binding.message = message
 
             if(isAuthUserChatroomOwner) {
                 binding.messageCardTimelineLayout.setOnLongClickListener {
-                    onMessageLongPress(it, model!!)
+                    onMessageLongPress(it, message!!)
                 }
             }
         }

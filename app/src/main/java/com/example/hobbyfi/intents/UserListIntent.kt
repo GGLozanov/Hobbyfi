@@ -1,6 +1,6 @@
 package com.example.hobbyfi.intents
 
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 
 sealed class UserListIntent : Intent {
     object FetchUsers : UserListIntent()

@@ -6,9 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.forceObserve
 import com.example.hobbyfi.state.UserGeoPointState

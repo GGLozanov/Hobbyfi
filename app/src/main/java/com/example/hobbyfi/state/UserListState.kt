@@ -1,7 +1,6 @@
 package com.example.hobbyfi.state
 
-import androidx.paging.PagingData
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 
 sealed class UserListState : State {
     object Idle : UserListState()

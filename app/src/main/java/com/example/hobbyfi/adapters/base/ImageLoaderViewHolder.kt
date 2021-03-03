@@ -5,7 +5,7 @@ import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
-import com.example.hobbyfi.models.ExpandedModel
+import com.example.hobbyfi.models.data.ExpandedModel
 import com.example.hobbyfi.shared.PrefConfig
 
 abstract class ImageLoaderViewHolder<in T: ExpandedModel>(

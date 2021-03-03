@@ -1,11 +1,7 @@
 package com.example.hobbyfi.shared
 
 import androidx.room.TypeConverter
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
-import com.example.hobbyfi.models.Tag
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
+import com.example.hobbyfi.models.data.Tag
 
 class RoomConverters {
 

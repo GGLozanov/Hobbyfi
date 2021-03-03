@@ -15,12 +15,11 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import com.google.android.gms.tasks.OnFailureListener

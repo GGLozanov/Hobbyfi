@@ -1,10 +1,8 @@
 package com.example.hobbyfi.repositories
 
 import android.util.Log
-import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Callbacks
@@ -13,13 +11,9 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.ColourUtils
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
-import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONException
-import retrofit2.HttpException
-import java.io.BufferedWriter
-import java.io.StringWriter
 
 class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Repository(prefConfig, hobbyfiAPI) {
     suspend fun getRegisterToken(
@@ -101,7 +95,8 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                                 .getString("name"),
                             ColourUtils.getRandomHex(),
                             true
-                        ))
+                        )
+                        )
                     }
                 }
 

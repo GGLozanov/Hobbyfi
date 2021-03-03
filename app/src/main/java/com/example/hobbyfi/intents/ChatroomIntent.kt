@@ -1,7 +1,5 @@
 package com.example.hobbyfi.intents
 
-import com.example.hobbyfi.models.Chatroom
-
 sealed class ChatroomIntent : Intent {
     object FetchChatroom : ChatroomIntent()
     data class CreateChatroom(val ownerId: Long) : ChatroomIntent()

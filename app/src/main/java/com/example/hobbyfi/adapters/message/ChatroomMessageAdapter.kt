@@ -14,11 +14,11 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.BaseViewHolder
 import com.example.hobbyfi.databinding.MessageCardBinding
-import com.example.hobbyfi.databinding.MessageCardReceiveBinding
-import com.example.hobbyfi.databinding.MessageCardSendBinding
 import com.example.hobbyfi.databinding.MessageCardTimelineBinding
-import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.databinding.MessageSeparatorBinding
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.GlideUtils
@@ -29,59 +29,93 @@ import org.kodein.di.generic.instance
 
 abstract class ChatroomMessageAdapter(
     protected var currentUsers: List<User>
-): PagingDataAdapter<Message, BaseViewHolder<Message>>(DIFF_CALLBACK), KodeinAware {
+): PagingDataAdapter<UIMessage, BaseViewHolder<UIMessage>>(DIFF_CALLBACK), KodeinAware {
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext) // FIXME: Kodein w/ appcontext bad???
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
     protected enum class MessageType {
-        SEND, RECEIVE, TIMELINE
+        SEND, RECEIVE, TIMELINE, SEPARATOR
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Message> {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<UIMessage> {
         return when(viewType) {
             MessageType.TIMELINE.ordinal -> getTimelineMessageViewHolderInstance(parent)
             MessageType.RECEIVE.ordinal -> getReceiveMessageViewHolderInstance(parent)
             MessageType.SEND.ordinal -> getSendMessageViewHolderInstance(parent)
+            MessageType.SEPARATOR.ordinal -> getSeparatorMessageViewHolderInstance(parent)
             else -> throw IllegalArgumentException(Constants.invalidViewTypeError)
         }
     }
 
-    override fun onBindViewHolder(holder: BaseViewHolder<Message>, position: Int) {
+    override fun onBindViewHolder(holder: BaseViewHolder<UIMessage>, position: Int) {
         val message = getItem(position)
 
         holder.bind(message, position)
     }
 
     override fun getItemViewType(position: Int): Int {
-        val message = getItem(position)
+        when (val message = getItem(position)) {
+            is UIMessage.MessageSeparatorItem -> {
+                return MessageType.SEPARATOR.ordinal
+            }
+            is UIMessage.MessageItem -> {
+                if(message.message.isTimeline) return MessageType.TIMELINE.ordinal
 
-        if(message?.isTimeline == true) return MessageType.TIMELINE.ordinal
-
-        return if(message?.userSentId == prefConfig.getAuthUserIdFromToken()) MessageType.SEND.ordinal
-        else MessageType.RECEIVE.ordinal
+                return if(message.message.userSentId == prefConfig.getAuthUserIdFromToken()) MessageType.SEND.ordinal
+                else MessageType.RECEIVE.ordinal
+            }
+            else -> {
+                throw UnsupportedOperationException("Unknown view type for ChatroomMessageAdapter")
+            }
+        }
     }
 
     protected abstract fun getTimelineMessageViewHolderInstance(parent: ViewGroup): BaseTimelineMessageViewHolder
     protected abstract fun getReceiveMessageViewHolderInstance(parent: ViewGroup): BaseUserChatroomMessageViewHolder
     protected abstract fun getSendMessageViewHolderInstance(parent: ViewGroup): BaseUserChatroomMessageViewHolder
 
+    private fun getSeparatorMessageViewHolderInstance(parent: ViewGroup): BaseSeparatorMessageViewHolder =
+        BaseSeparatorMessageViewHolder.getInstance(parent)
+
+    protected open class BaseSeparatorMessageViewHolder(
+        rootView: View,
+        val messageSeparatorBinding: MessageSeparatorBinding
+    ): BaseViewHolder<UIMessage>(rootView) {
+        companion object {
+            fun getInstance(parent: ViewGroup): BaseSeparatorMessageViewHolder {
+                val inflater = LayoutInflater.from(parent.context)
+                val binding: MessageSeparatorBinding =
+                    MessageSeparatorBinding.inflate(
+                        inflater,
+                        parent, false
+                    )
+                return BaseSeparatorMessageViewHolder(binding.root, binding) // empty (does nothing special)
+            }
+        }
+
+        override fun bind(model: UIMessage?, position: Int) {
+            messageSeparatorBinding.separatorDate.text = (model as UIMessage.MessageSeparatorItem?)?.dateText
+        }
+    }
+
     protected abstract class BaseUserChatroomMessageViewHolder(
         rootView: View,
         val messageCardBinding: MessageCardBinding,
         protected val users: List<User>,
         protected val prefConfig: PrefConfig
-    ) : BaseViewHolder<Message>(rootView) {
-        override fun bind(model: Message?, position: Int) {
+    ) : BaseViewHolder<UIMessage>(rootView) {
+        override fun bind(model: UIMessage?, position: Int) {
             Log.i("ChatroomMListAdapter", "Message: $model")
+            val message = (model as UIMessage.MessageItem?)?.message
             val userSentMessage =
-                users.find { model?.userSentId == it.id }
+                users.find { message?.userSentId == it.id }
 
             // DATA BINDING GO BRRRRRR????
             messageCardBinding.userName.text = userSentMessage?.name ?: "[Unknown User]"
-            messageCardBinding.userMessage.text = model?.message
-            handleImageMessageBind(model, userSentMessage, position)
+            messageCardBinding.userMessage.text = message?.message
+            handleImageMessageBind(message, userSentMessage, position)
         }
 
         private fun handleImageMessageBind(
@@ -131,7 +165,7 @@ abstract class ChatroomMessageAdapter(
 
     protected open class BaseTimelineMessageViewHolder(
         val binding: MessageCardTimelineBinding,
-    ) : BaseViewHolder<Message>(binding.root) {
+    ) : BaseViewHolder<UIMessage>(binding.root) {
         companion object {
             fun getInstance(parent: ViewGroup): BaseTimelineMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
@@ -144,8 +178,8 @@ abstract class ChatroomMessageAdapter(
             }
         }
 
-        override fun bind(model: Message?, position: Int) {
-            binding.message = model
+        override fun bind(model: UIMessage?, position: Int) {
+            binding.message = (model as UIMessage.MessageItem?)?.message
         }
     }
 
@@ -159,17 +193,21 @@ abstract class ChatroomMessageAdapter(
 
     companion object {
         private val DIFF_CALLBACK = object :
-            DiffUtil.ItemCallback<Message>() {
+            DiffUtil.ItemCallback<UIMessage>() {
             // Chatroom details may have changed if reloaded from the database,
             // but ID is fixed.
             override fun areItemsTheSame(
-                oldMessage: Message,
-                newMessage: Message
-            ) = oldMessage.id == newMessage.id
+                oldMessage: UIMessage,
+                newMessage: UIMessage
+            ) = (oldMessage is UIMessage.MessageItem && newMessage is UIMessage.MessageItem &&
+                        oldMessage.message.id == newMessage.message.id) ||
+                        (oldMessage is UIMessage.MessageSeparatorItem && newMessage is UIMessage.MessageSeparatorItem &&
+                                oldMessage.dateText == newMessage.dateText)
+
 
             override fun areContentsTheSame(
-                oldMessage: Message,
-                newMessage: Message
+                oldMessage: UIMessage,
+                newMessage: UIMessage
             ) = oldMessage == newMessage
         }
     }

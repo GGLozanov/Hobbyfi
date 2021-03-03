@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.paging.*
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.paging.sources.MessageSearchSource
 import com.example.hobbyfi.persistence.HobbyfiDatabase

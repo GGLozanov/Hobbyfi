@@ -1,7 +1,6 @@
 package com.example.hobbyfi.intents
 
-import android.net.Uri
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
 
 // CRUD intents
 sealed class MessageIntent : Intent {

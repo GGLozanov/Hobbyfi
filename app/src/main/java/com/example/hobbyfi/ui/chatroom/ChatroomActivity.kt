@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.content.*
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.SearchRecentSuggestions
 import android.util.Log
@@ -37,9 +36,9 @@ import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
 import com.example.hobbyfi.intents.*
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import com.example.hobbyfi.state.State

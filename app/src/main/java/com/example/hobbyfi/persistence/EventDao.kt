@@ -2,7 +2,7 @@ package com.example.hobbyfi.persistence
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -27,13 +27,13 @@ import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.EventDetailsFragmentBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.combineWith
 import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.isConnected
 import com.example.hobbyfi.shared.setParamsBasedOnScreenOrientation
 import com.example.hobbyfi.state.State

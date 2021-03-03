@@ -15,7 +15,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
 import com.facebook.CallbackManager
@@ -25,12 +25,10 @@ import com.facebook.share.Sharer
 import com.facebook.share.model.ShareLinkContent
 import com.facebook.share.widget.ShareDialog
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textview.MaterialTextView
 import com.prolificinteractive.materialcalendarview.CalendarDay
 import io.branch.indexing.BranchUniversalObject
 import io.branch.referral.BranchError
-import io.branch.referral.util.ContentMetadata
 import io.branch.referral.util.LinkProperties
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.generic.instance

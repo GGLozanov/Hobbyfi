@@ -6,7 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.TagBundle
+import com.example.hobbyfi.models.data.TagBundle
 import com.example.hobbyfi.shared.invalidateBy
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.*

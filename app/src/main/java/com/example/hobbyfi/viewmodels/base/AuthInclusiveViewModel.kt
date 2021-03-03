@@ -2,19 +2,9 @@ package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
 import androidx.databinding.Bindable
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.shared.PredicateMutableLiveData
-import com.example.hobbyfi.shared.equalsOrBiggerThan
-import com.example.hobbyfi.shared.equalsOrLessThan
 import com.example.hobbyfi.state.TokenState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 abstract class AuthInclusiveViewModel(

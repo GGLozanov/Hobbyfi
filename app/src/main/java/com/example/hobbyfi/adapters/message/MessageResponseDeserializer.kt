@@ -1,7 +1,7 @@
 package com.example.hobbyfi.adapters.message
 
 import com.example.hobbyfi.adapters.BaseJsonDeserializer
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.JsonDeserializationContext

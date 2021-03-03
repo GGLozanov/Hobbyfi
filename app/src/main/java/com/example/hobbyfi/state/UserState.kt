@@ -1,7 +1,6 @@
 package com.example.hobbyfi.state
 
-import androidx.paging.PagingData
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.responses.Response
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState

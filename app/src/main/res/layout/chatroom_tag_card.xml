@@ -6,7 +6,7 @@
         <import type="android.graphics.Color"/>
         <variable
             name="tag"
-            type="com.example.hobbyfi.models.Tag" />
+            type="com.example.hobbyfi.models.data.Tag" />
     </data>
 
     <com.google.android.material.textview.MaterialTextView

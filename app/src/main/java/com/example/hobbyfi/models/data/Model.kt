@@ -1,8 +1,6 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 
 // FIXME: This is not a very good abstraction...
 interface Model : Parcelable {

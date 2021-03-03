@@ -2,7 +2,7 @@ package com.example.hobbyfi.persistence
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.example.hobbyfi.models.RemoteKeys
+import com.example.hobbyfi.models.data.RemoteKeys
 import com.example.hobbyfi.shared.RemoteKeyType
 
 @Dao

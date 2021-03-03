@@ -3,16 +3,15 @@ package com.example.hobbyfi.adapters.message
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Filter
-import android.widget.Filterable
 import androidx.databinding.DataBindingUtil
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.MessageCardBinding
 import com.example.hobbyfi.databinding.MessageCardReceiveBinding
 import com.example.hobbyfi.databinding.MessageCardSendBinding
 import com.example.hobbyfi.databinding.MessageCardTimelineBinding
-import com.example.hobbyfi.models.Message
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.PrefConfig
 
 class ChatroomMessageSearchListAdapter(
@@ -26,10 +25,10 @@ class ChatroomMessageSearchListAdapter(
         prefConfig: PrefConfig,
         protected val onMessagePress: (View, Message) -> Unit
     ): BaseUserChatroomMessageViewHolder(rootView, binding, users, prefConfig) {
-        override fun bind(model: Message?, position: Int) {
+        override fun bind(model: UIMessage?, position: Int) {
             super.bind(model, position)
             messageCardBinding.messageCardLayout.setOnClickListener {
-                onMessagePress(it, model!!)
+                onMessagePress(it, (model as UIMessage.MessageItem).message)
             }
         }
     }
@@ -93,7 +92,7 @@ class ChatroomMessageSearchListAdapter(
             }
         }
 
-        override fun bind(model: Message?, position: Int) {
+        override fun bind(model: UIMessage?, position: Int) {
             super.bind(model, position)
 //            messageCardBinding.messageLayout.layoutDirection = View.LAYOUT_DIRECTION_LTR // forcibly set the gravity for search messages
         }
@@ -101,8 +100,6 @@ class ChatroomMessageSearchListAdapter(
 
     private class ChatroomTimelineMessageSearchViewHolder(
         binding: MessageCardTimelineBinding,
-        private val users: List<User>,
-        private val prefConfig: PrefConfig,
         private val onMessagePress: (View, Message) -> Unit
     ) : BaseTimelineMessageViewHolder(binding) {
         companion object {
@@ -119,16 +116,15 @@ class ChatroomMessageSearchListAdapter(
                         parent, false
                     )
                 return ChatroomTimelineMessageSearchViewHolder(
-                    binding, users,
-                    prefConfig, onMessagePress
+                    binding, onMessagePress
                 )
             }
         }
 
-        override fun bind(model: Message?, position: Int) {
+        override fun bind(model: UIMessage?, position: Int) {
             super.bind(model, position)
             binding.messageCardTimelineLayout.setOnClickListener {
-                onMessagePress(it, model!!)
+                onMessagePress(it, (model as UIMessage.MessageItem).message)
             }
         }
     }

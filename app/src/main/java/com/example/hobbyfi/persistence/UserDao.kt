@@ -1,9 +1,8 @@
 package com.example.hobbyfi.persistence
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import kotlinx.coroutines.flow.Flow
 
 @Dao

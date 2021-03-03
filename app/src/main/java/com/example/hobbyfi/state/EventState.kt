@@ -1,8 +1,7 @@
 package com.example.hobbyfi.state
 
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.responses.Response
-import com.example.hobbyfi.responses.StartDateIdResponse
 
 sealed class EventState : State {
     object Idle : EventState()

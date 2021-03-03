@@ -1,4 +1,4 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 interface ExpandedModel : Model {
     var name: String

@@ -2,11 +2,9 @@ package com.example.hobbyfi.viewmodels.base
 
 import android.app.Application
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.state.State
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @ExperimentalCoroutinesApi

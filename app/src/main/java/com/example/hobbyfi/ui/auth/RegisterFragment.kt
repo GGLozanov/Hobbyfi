@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -12,8 +11,8 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
@@ -94,7 +93,8 @@ class RegisterFragment : AuthFragment() {
                         Callbacks.hideKeyboardFrom(requireContext(), requireView())
 
                         login(
-                            RegisterFragmentDirections.actionRegisterFragmentToMainActivity(User(
+                            RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
+                                User(
                                 id,
                                 viewModel.email.value!!,
                                 viewModel.name.value!!,
@@ -103,7 +103,8 @@ class RegisterFragment : AuthFragment() {
                                         + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
                                 viewModel.tagBundle.selectedTags,
                                 null
-                            )),
+                            )
+                            ),
                             it.token?.jwt,
                             it.token?.refreshJwt
                         )

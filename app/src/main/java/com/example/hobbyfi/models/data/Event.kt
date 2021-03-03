@@ -1,16 +1,12 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
-import android.os.Parcelable
 import androidx.annotation.Keep
-import androidx.core.view.isVisible
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
 import com.prolificinteractive.materialcalendarview.CalendarDay
-import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import java.time.Duration
 import java.time.LocalDateTime

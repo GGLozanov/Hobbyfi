@@ -1,7 +1,6 @@
 package com.example.hobbyfi.adapters.tag
 
-import android.util.Log
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
 import com.google.gson.stream.JsonReader

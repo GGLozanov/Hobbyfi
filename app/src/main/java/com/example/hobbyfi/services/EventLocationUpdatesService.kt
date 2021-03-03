@@ -1,8 +1,6 @@
 package com.example.hobbyfi.services
 
 import android.app.*
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.location.Location
@@ -13,8 +11,8 @@ import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.createNotificationChannel

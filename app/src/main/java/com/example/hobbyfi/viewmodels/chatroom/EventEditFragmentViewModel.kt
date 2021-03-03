@@ -4,14 +4,11 @@ import android.app.Application
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.Base64ImageHolder
 import com.example.hobbyfi.viewmodels.base.Base64ImageHolderViewModel
-import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable
-import com.example.hobbyfi.viewmodels.base.NameDescriptionBindableViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

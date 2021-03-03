@@ -4,7 +4,7 @@ import com.example.hobbyfi.adapters.BaseJsonDeserializer
 import com.example.hobbyfi.shared.Constants
 import com.google.gson.*
 import java.lang.reflect.Type
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.fromJson
 

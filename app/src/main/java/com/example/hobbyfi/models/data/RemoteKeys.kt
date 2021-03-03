@@ -1,9 +1,7 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 import androidx.annotation.Keep
-import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.example.hobbyfi.shared.RemoteKeyType
 import kotlinx.parcelize.Parcelize
 

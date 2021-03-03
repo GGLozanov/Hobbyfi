@@ -4,11 +4,10 @@ import android.util.Log
 import androidx.paging.*
 import androidx.room.withTransaction
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.RemoteKeys
+import com.example.hobbyfi.models.data.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
-import com.example.hobbyfi.models.Model
+import com.example.hobbyfi.models.data.Model
 import com.example.hobbyfi.persistence.RemoteKeysDao
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
 

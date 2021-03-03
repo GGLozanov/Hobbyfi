@@ -3,7 +3,7 @@ package com.example.hobbyfi.paging.sources
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.shared.PrefConfig
 
 class MessageSearchSource(

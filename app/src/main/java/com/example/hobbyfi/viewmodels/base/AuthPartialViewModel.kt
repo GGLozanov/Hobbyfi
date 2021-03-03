@@ -3,9 +3,8 @@ package com.example.hobbyfi.viewmodels.base
 import android.app.Application
 import android.util.Patterns
 import androidx.databinding.Bindable
-import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.repositories.TokenRepository
 import com.example.hobbyfi.shared.PredicateMutableLiveData
 import com.example.hobbyfi.state.TokenState

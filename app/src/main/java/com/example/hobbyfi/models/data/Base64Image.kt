@@ -1,4 +1,4 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 class Base64Image {
     private var _base64: String? = null

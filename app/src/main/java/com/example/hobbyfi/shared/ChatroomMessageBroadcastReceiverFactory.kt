@@ -6,7 +6,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.intents.MessageIntent
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,7 +53,7 @@ class ChatroomMessageBroadcastReceiverFactory(
                 createReceiver(
                     action,
                     onCorrectAction = {
-                        if(messagesAdapter.findItemFromCurrentPagingData { msg -> msg?.id ==
+                        if(messagesAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id ==
                                     it.getDestructedMapExtra()[Constants.ID]?.toLong() } != null &&
                                 chatroomActivityViewModel?.authUser?.value?.chatroomIds?.contains(
                                     it.getDestructedMapExtra()[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
@@ -77,7 +78,7 @@ class ChatroomMessageBroadcastReceiverFactory(
                     action,
                     onCorrectAction = {
                         if(messagesAdapter.findItemFromCurrentPagingData {
-                                    msg -> msg?.id == it.getDeletedModelIdExtra() } != null &&
+                                    msg -> msg is UIMessage.MessageItem && msg.message.id == it.getDeletedModelIdExtra() } != null &&
                             chatroomActivityViewModel?.authUser?.value?.chatroomIds?.contains(
                                 chatroomActivityViewModel.authChatroom.value?.id
                             ) == true) {

@@ -1,30 +1,24 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.content.Intent
 import android.util.Log
 import android.widget.Toast
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
+import androidx.paging.map
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageAdapter
-import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
-import com.example.hobbyfi.intents.MessageListIntent
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
-import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 
 abstract class ChatroomMessageFragment : ChatroomFragment() {
     @ExperimentalCoroutinesApi
@@ -95,7 +89,7 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
         }
     }
 
-    protected open fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long? = null) {
+    protected open fun onPostMessageListCollect(currentMessages: PagingData<UIMessage>, qMessageId: Long? = null) {
         // does nothing by default
     }
 }

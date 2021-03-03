@@ -11,10 +11,10 @@
         tools:layout="@layout/fragment_tag_selection_dialog">
         <argument
             android:name="selectedTags"
-            app:argType="com.example.hobbyfi.models.Tag[]" />
+            app:argType="com.example.hobbyfi.models.data.Tag[]" />
         <argument
             android:name="tags"
-            app:argType="com.example.hobbyfi.models.Tag[]" />
+            app:argType="com.example.hobbyfi.models.data.Tag[]" />
 
         <action
             android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment"

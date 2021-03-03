@@ -1,4 +1,4 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
 import android.os.Parcel
 import android.os.Parcelable

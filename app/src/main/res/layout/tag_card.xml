@@ -7,7 +7,7 @@
 
         <variable
             name="tag"
-            type="com.example.hobbyfi.models.Tag" />
+            type="com.example.hobbyfi.models.data.Tag" />
     </data>
 
     <androidx.cardview.widget.CardView

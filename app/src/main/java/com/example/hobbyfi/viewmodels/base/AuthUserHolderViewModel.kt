@@ -7,8 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
@@ -16,7 +16,6 @@ import com.example.hobbyfi.state.UserState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi

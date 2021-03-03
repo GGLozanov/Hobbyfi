@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -25,8 +24,9 @@ import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.intents.MessageListIntent
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.Message
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.ui.base.BaseActivity
@@ -268,7 +268,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             ?.observe(viewLifecycleOwner, Observer {
                 Log.i("ChatroomMListFragment", "message received from navcontroller handle: ${it}")
                 it?.let {
-                    messageListAdapter.findItemPositionFromCurrentPagingData(it).run {
+                    messageListAdapter.findItemPositionFromCurrentPagingData(UIMessage.MessageItem(it)).run {
                         Log.i(
                             "ChatroomMListFragment",
                             "POSITION received from navcontroller handle: ${this}"
@@ -309,7 +309,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             })
     }
 
-    override fun onPostMessageListCollect(currentMessages: PagingData<Message>, qMessageId: Long?) {
+    override fun onPostMessageListCollect(currentMessages: PagingData<UIMessage>, qMessageId: Long?) {
         if(qMessageId != null) {
             if(viewModel.sentMessageIdFetchRequestPrior) {
                 viewModel.setSentMessageIdFetchRequestPrior(false)
@@ -322,7 +322,9 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
         // FIXME: Remove for better option because of Bundle size limits
         navController.currentBackStackEntry?.savedStateHandle?.set<List<Message>?>(
-            Constants.currentMessages, messageListAdapter.extractModelListFromCurrentPagingData()
+            Constants.currentMessages, messageListAdapter.extractListFromCurrentPagingData()
+                .filterIsInstance<UIMessage.MessageItem>()
+                .map { it.message }
         )
     }
 

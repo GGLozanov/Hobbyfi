@@ -24,10 +24,10 @@
             app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
             <argument
                 android:name="tags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
         <action
             android:id="@+id/action_loginFragment_to_resetPasswordFragment"
@@ -53,10 +53,10 @@
             app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
             <argument
                 android:name="tags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
     </fragment>
 
@@ -68,7 +68,7 @@
 
         <argument
             android:name="user"
-            app:argType="com.example.hobbyfi.models.User"
+            app:argType="com.example.hobbyfi.models.data.User"
             app:nullable="true"
             android:defaultValue="@null" />
     </activity>

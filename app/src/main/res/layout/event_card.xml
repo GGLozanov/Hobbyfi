@@ -8,7 +8,7 @@
 
         <variable
             name="event"
-            type="com.example.hobbyfi.models.Event" />
+            type="com.example.hobbyfi.models.data.Event" />
         <variable
             name="ownerDisplay"
             type="boolean" />

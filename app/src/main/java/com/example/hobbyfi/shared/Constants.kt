@@ -1,35 +1,19 @@
 package com.example.hobbyfi.shared
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import androidx.fragment.app.Fragment
-import android.content.Context
-import android.content.DialogInterface
 import android.util.Log
-import android.util.Patterns
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
-import androidx.core.util.Predicate
-import androidx.databinding.BindingAdapter
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.commit
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.BuildConfig
-import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
-import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
 
 
 object Constants {
@@ -306,7 +290,7 @@ object Constants {
     const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
     @SuppressLint("SimpleDateFormat")
-    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER

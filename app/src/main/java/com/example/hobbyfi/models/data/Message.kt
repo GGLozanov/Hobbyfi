@@ -1,13 +1,11 @@
-package com.example.hobbyfi.models
+package com.example.hobbyfi.models.data
 
-import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
