@@ -298,6 +298,16 @@ interface HobbyfiAPI {
         @Header(Constants.AUTH_HEADER) token: String
     ): CacheListResponse<Long>?
 
+    /**
+     *
+     */
+    @POST("api/v${API_VERSION}/token/fcm")
+    @FormUrlEncoded
+    suspend fun sendDeviceToken(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.TOKEN) deviceToken: String
+    ): Response?
+
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {

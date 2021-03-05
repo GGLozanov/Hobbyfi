@@ -132,15 +132,9 @@ object Constants {
         .toLong()
 
     const val SUCCESS_RESPONSE = "Ok"
-    const val FAILED_RESPONSE = "failed"
-    const val IMAGE_UPLOAD_SUCCESS_RESPONSE = "Image Uploaded"
-    const val IMAGE_UPLOAD_FAILED_RESPONSE = "Image Upload Failed"
     const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Couldn't fetch Facebook email!"
     const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
-    const val EXISTS_RESPONSE = "exists"
     const val INVALID_TOKEN = "invalid"
-    const val REAUTH_FLAG = "Reauth"
-    const val FAILED_FLAG = "Failed: "
 
     // enum would've been more concise here but annotations can't have enums call toString()
     const val ID = "id"
@@ -226,7 +220,6 @@ object Constants {
     const val DELETED_MODEL_USER_SENT_ID: String = "DELETED_MODEL_USER_SENT_ID"
 
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
-    const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
 
     const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED" // TODO: Use
 
@@ -247,6 +240,9 @@ object Constants {
     const val DATA_VALUES: String = "data_values"
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
+
+    const val TOKEN: String = "TOKEN"
+    const val API: String = "API"
 
     const val USER = "USER"
 

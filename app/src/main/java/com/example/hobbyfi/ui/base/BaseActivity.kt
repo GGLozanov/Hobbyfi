@@ -8,9 +8,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.RefreshConnectivityMonitor
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
@@ -26,6 +31,20 @@ abstract class BaseActivity : AppCompatActivity(), KodeinAware {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleDeviceTokenUpload()
         refreshConnectivityMonitor = RefreshConnectivityMonitor(this)
+    }
+
+    private fun handleDeviceTokenUpload() {
+        if(!prefConfig.readCurrentDeviceTokenUploaded()) {
+            Log.i("BaseActivity", "BaseActivity triggers prefConfig send upload to server!!")
+            val workData = workDataOf(Constants.TOKEN to prefConfig.readDeviceToken())
+
+            // send to server (auth'd)
+            val deviceTokenUploadWork = OneTimeWorkRequestBuilder<DeviceTokenUploadWorker>()
+                .setInputData(workData)
+                .build()
+            WorkManager.getInstance(this@BaseActivity).enqueue(deviceTokenUploadWork)
+        }
     }
 }

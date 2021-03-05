@@ -214,6 +214,21 @@ class PrefConfig(private val context: Context) {
         ).apply()
     }
 
+    fun readCurrentDeviceTokenUploaded(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_current_token_uploaded),
+            false
+        )
+    }
+
+    fun writeCurrentDeviceTokenUploaded(uploaded: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_current_token_uploaded),
+            uploaded
+        ).apply()
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())

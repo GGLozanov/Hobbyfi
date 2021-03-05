@@ -25,6 +25,7 @@
     <string name="pref_request_location_service_running">com.example.preference_request_location_service_running</string>
     <string name="pref_first_app_boot">com.example.first_app_boot</string>
     <string name="pref_reached_bottom_messages_after_search">com.example.preference_reached_bottom_messages_after_search</string>
+    <string name="pref_current_token_uploaded">com.example.preference_current_token_uploaded</string>
 
     <string name="default_notification_channel_id">HOBBYFI_NOTIFICATION_CHANNEL</string>
 
