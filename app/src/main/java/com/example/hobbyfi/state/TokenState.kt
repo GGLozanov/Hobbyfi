@@ -1,5 +1,6 @@
 package com.example.hobbyfi.state
 
+import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
 
 
@@ -10,6 +11,7 @@ sealed class TokenState : State {
 
     data class TokenReceived(val token: TokenResponse?) : TokenState()
     object FacebookRegisterTokenSuccess : TokenState()
+    data class ResetPasswordSuccess(val response: Response?) : TokenState() // not needed for now but eh
 
     data class Error(val error: String?) : TokenState()
 }

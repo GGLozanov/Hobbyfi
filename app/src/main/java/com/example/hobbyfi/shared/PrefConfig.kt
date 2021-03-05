@@ -20,7 +20,8 @@ class PrefConfig(private val context: Context) {
         )
 
     // methods below can be treated as code dup but I feel it better to have these methods
-    // defined separately in terms of semantics
+    // defined separately in terms of semantics and clarity
+
     fun writeToken(token: String) {
         val editor = sharedPreferences.edit()
         editor.putString(context.getString(R.string.pref_token), token).apply()
@@ -148,16 +149,31 @@ class PrefConfig(private val context: Context) {
     fun writeRequestLocationServiceRunning(running: Boolean) {
         val editor = sharedPreferences.edit()
         editor.putBoolean(
-            Constants.REQUEST_LOCATION_SERVICE_RUNNING,
+            context.getString(R.string.pref_request_location_service_running),
             running
         ).apply()
     }
 
     fun readRequestLocationServiceRunning(): Boolean {
         return sharedPreferences.getBoolean(
-            Constants.REQUEST_LOCATION_SERVICE_RUNNING,
+            context.getString(R.string.pref_request_location_service_running),
             true
         )
+    }
+
+    fun readRestartedFromChatroomTaskRoot(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_restarted_from_chatroom_task_root),
+            false
+        )
+    }
+
+    fun writeRestartedFromChatroomTaskRoot(res: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_restarted_from_chatroom_task_root),
+            res
+        ).apply()
     }
 
     fun registerPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
@@ -166,6 +182,36 @@ class PrefConfig(private val context: Context) {
 
     fun unregisterPrefsListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun readOnboardingValid(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_first_app_boot),
+            true
+        )
+    }
+
+    fun writeOnboardingValid(valid: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_first_app_boot),
+            valid
+        ).apply()
+    }
+
+    fun readReachedBottomMessagesAfterSearch(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_reached_bottom_messages_after_search),
+            true
+        )
+    }
+
+    fun writeReachedBottomMessagesAfterSearch(reached: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_reached_bottom_messages_after_search),
+            reached
+        ).apply()
     }
 
     fun getAuthUserIdFromToken(): Long =

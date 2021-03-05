@@ -1,9 +1,6 @@
 package com.example.hobbyfi.state
 
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.responses.CacheListResponse
-import com.example.hobbyfi.responses.Response
-import com.example.hobbyfi.responses.StartDateIdResponse
+import com.example.hobbyfi.models.data.Event
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
 sealed class EventListState : State {

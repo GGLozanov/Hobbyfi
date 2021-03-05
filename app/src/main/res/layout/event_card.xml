@@ -8,13 +8,13 @@
 
         <variable
             name="event"
-            type="com.example.hobbyfi.models.Event" />
+            type="com.example.hobbyfi.models.data.Event" />
         <variable
             name="ownerDisplay"
             type="boolean" />
     </data>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -78,6 +78,7 @@
                     app:layout_constraintTop_toTopOf="parent">
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/delete_button"
+                        android:text="@string/delete"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -85,14 +86,16 @@
 
                     </com.google.android.material.button.MaterialButton>
 
+                    <!--TODO: Replace with actual FB button-->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/facebook_share_button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
+                        android:text="@string/share_to_facebook"
                         android:visibility="@{ownerDisplay ? View.GONE : View.VISIBLE}" />
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

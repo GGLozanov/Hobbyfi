@@ -44,18 +44,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     private var poppedFromLogoutButton: Boolean = false
 
-    private val authStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == Constants.LOGOUT) {
-                logout()
-            } else {
-                Log.wtf(
-                    "MainActivity",
-                    "MainActivity authStateReceiver called with incorrect intent action. THIS SHOULD NEVER HAPPEN!!!!"
-                )
-            }
-        }
-    }
 
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -84,14 +72,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
 
-        viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
-            && viewModel.deepLinkExtras == null) intent.extras else null
-        )
-        Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
-
-
         localBroadcastManager.registerReceiver(chatroomDeletedReceiver, IntentFilter(Constants.CHATROOM_DELETED))
-        localBroadcastManager.registerReceiver(authStateReceiver, IntentFilter(Constants.LOGOUT))
 
         with(binding) {
             val view = root
@@ -109,6 +90,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     override fun onStart() {
         super.onStart()
+        viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
+            && viewModel.deepLinkExtras == null) intent.extras else null
+        )
+        Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
         observeUserState()
     }
 
@@ -145,14 +130,11 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collect {
                 when(it) {
-                    is UserState.Idle -> {
+                    is UserState.Idle, is UserState.OnData.UserResult -> {
 
                     }
                     is UserState.Loading -> {
                         // TODO: Progressbar
-                    }
-                    is UserState.OnData.UserResult -> {
-                        // TODO: Something
                     }
                     is UserState.OnData.UserDeleteResult -> {
                         Toast.makeText(
@@ -169,7 +151,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
                         val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
                         if (hasJoinedChatroom || hasLeftChatroom) {
                             // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
-                            lateinit var userChatroomFields: Map<String?, String?>
+                            lateinit var userChatroomFields: Map<String, String?>
                             if (hasJoinedChatroom) {
                                 userChatroomFields = mapOf(
                                     Pair(
@@ -268,7 +250,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     override fun onDestroy() {
         super.onDestroy()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
-        localBroadcastManager.unregisterReceiver(authStateReceiver)
     }
 
     override fun onSupportNavigateUp(): Boolean {

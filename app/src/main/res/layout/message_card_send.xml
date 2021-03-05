@@ -6,7 +6,7 @@
         <import type="android.view.Gravity" />
     </data>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -14,5 +14,5 @@
             android:id="@+id/message_card_send"
             layout="@layout/message_card"
             app:gravity="@{Gravity.RIGHT}" />
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

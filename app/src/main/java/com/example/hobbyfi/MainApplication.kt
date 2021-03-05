@@ -5,6 +5,7 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.load.resource.bitmap.Downsampler
@@ -99,6 +100,11 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         // Branch object initialization
         Branch.setPlayStoreReferrerCheckTimeout(0)
         Branch.getAutoInstance(this).enableFacebookAppLinkCheck()
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        MultiDex.install(this)
     }
 
     companion object {

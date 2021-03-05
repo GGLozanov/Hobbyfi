@@ -7,10 +7,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
-import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -20,23 +18,17 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
 import com.example.hobbyfi.intents.FacebookIntent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
+import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.BaseActivity
-import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.squareup.okhttp.Dispatcher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -63,16 +55,14 @@ class LoginFragment : AuthFragment() {
             DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false)
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
+
         with(binding) {
             lifecycleOwner = this@LoginFragment
 
             val root: View = root
 
             loginButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(TokenIntent.FetchLoginToken)
                 }
@@ -87,8 +77,14 @@ class LoginFragment : AuthFragment() {
 
         initFacebookLogin()
 
-        binding.switchToRegisterSubtitle.setOnClickListener {
-            navController.navigate(R.id.action_loginFragment_to_registerFragment)
+        with(binding) {
+            switchToRegisterSubtitle.setOnClickListener {
+                navController.navigate(R.id.action_loginFragment_to_registerFragment)
+            }
+
+            resetPasswordSubtitle.setOnClickListener {
+                navController.navigate(R.id.action_loginFragment_to_resetPasswordFragment)
+            }
         }
 
         observeFacebookState()
@@ -96,40 +92,22 @@ class LoginFragment : AuthFragment() {
         observePotentialTags()
     }
 
-    override fun initTextFieldValidators() {
-        with(binding) {
-            emailInputField.addTextChangedListener(
-                Constants.emailInputError,
-                Constants.emailPredicate
+    override fun observePredicateValidators() {
+        with(viewModel) {
+            password.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
             )
 
-            passwordInputField.addTextChangedListener(
-                Constants.passwordInputError,
-                Constants.passwordPredicate()
+            email.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
             )
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        initTextFieldValidators()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            emailInputField.removeAllEditTextWatchers()
-            passwordInputField.removeAllEditTextWatchers()
-        }
-    }
-
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(
-                emailInputField,
-                Constants.emailInputError
-            ) || FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.loginButton))
     }
 
     private fun initFacebookLogin() {
@@ -203,8 +181,7 @@ class LoginFragment : AuthFragment() {
                         }
                     }
                     is FacebookState.OnData.EmailReceived -> {
-                        Log.i("LoginFragment", "Email received ${it.email}")
-                        viewModel.email.value = it.email
+                        it.email?.let { it1 -> viewModel.email.setValue(it1) }
                         viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
                     }
                     is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
@@ -219,8 +196,12 @@ class LoginFragment : AuthFragment() {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
                             .show()
 
-                        LoginManager.getInstance().logOut()
-                        if((requireActivity() as BaseActivity).refreshConnectivityMonitor.value == true) {
+                        // don't log out if only the email couldn't have been fetched
+                        if(!it.error.equals(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)) {
+                            LoginManager.getInstance().logOut()
+                        }
+
+                        if(connectivityManager.isConnected()) {
                             if (it.error != Constants.serverConnectionError) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
@@ -291,6 +272,7 @@ class LoginFragment : AuthFragment() {
                             )
                         )
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
@@ -303,50 +285,50 @@ class LoginFragment : AuthFragment() {
             viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
-                val profile = Profile.getCurrentProfile()
-                val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
-                    val glide = Glide.with(this@LoginFragment)
+                Profile.getCurrentProfile()?.let {
+                    val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
+                        val glide = Glide.with(this@LoginFragment)
 
-                    var bmapResource: Bitmap? = null
-                    val target = object : CustomTarget<Bitmap>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap>?
-                        ) {
-                            bmapResource = resource
-                            continuation.resume(resource, null)
+                        var bmapResource: Bitmap? = null
+                        val target = object : CustomTarget<Bitmap>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap>?
+                            ) {
+                                bmapResource = resource
+                                continuation.resume(resource, null)
+                            }
+
+                            override fun onLoadCleared(placeholder: Drawable?) {
+                                bmapResource?.recycle()
+                                continuation.cancel(Constants.ImageFetchException())
+                            }
                         }
 
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            bmapResource?.recycle()
-                            continuation.cancel(Constants.ImageFetchException())
+                        glide
+                            .asBitmap()
+                            .load(
+                                it.getProfilePictureUri(
+                                    Constants.profileImageWidth,
+                                    Constants.profileImageHeight
+                                )
+                            ).into(target)
+
+                        continuation.invokeOnCancellation {
+                            glide.clear(target)
                         }
                     }
-
-                    glide
-                        .asBitmap()
-                        .load(
-                            profile.getProfilePictureUri(
-                                Constants.profileImageWidth,
-                                Constants.profileImageHeight
-                            )
-                        ).into(target)
-
-                    continuation.invokeOnCancellation {
-                        glide.clear(target)
-                    }
-                }
-
-                val image = ImageUtils.encodeImage(
-                    bitmap
-                )
-                viewModel.sendIntent(
-                    TokenIntent.FetchFacebookRegisterToken(
-                        AccessToken.getCurrentAccessToken().token,
-                        profile.name,
-                        image
+                    val image = ImageUtils.encodeImage(
+                        bitmap
                     )
-                )
+                    viewModel.sendIntent(
+                        TokenIntent.FetchFacebookRegisterToken(
+                            AccessToken.getCurrentAccessToken().token,
+                            it.name,
+                            image
+                        )
+                    )
+                }
             }
         }
     }

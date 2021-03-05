@@ -1,16 +1,18 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.forceObserve
+import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.shared.replaceOrAdd
 import com.example.hobbyfi.state.EventListState
 import com.google.android.gms.maps.model.LatLng
@@ -18,6 +20,7 @@ import com.google.android.gms.maps.model.Marker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -60,25 +63,54 @@ class EventMapsActivityViewModel(
                     is EventListIntent.DeleteAnEventCache -> {
                         deleteEventCache(it.eventId)
                     }
+                    is EventListIntent.RefetchEvent -> {
+                        refetchEvent()
+                    }
                     else -> throw Intent.InvalidIntentException()
                 }
             }
         }
     }
 
+    // only triggers LD observers (kind of a "silent" StateIntent combo)
+    private suspend fun refetchEvent() {
+        eventRepository.getEvent(event.value!!.id).catch { e ->
+            e.printStackTrace()
+            eventsStateIntent.setState(
+                EventListState.Error(
+                    e.message,
+                    e.isCritical
+                )
+            )
+        }.collectLatest {
+            if(it != null) {
+                setEvent(it)
+            } else {
+                Log.w("EventMapsActivityVM", "Event repository returned null event on refetchEvent() call!")
+            }
+        }
+    }
+
+    private fun setEvent(event: Event) {
+        _relatedEvent = event
+        _event.value = event
+    }
+
     private suspend fun deleteEventsCache(eventIds: List<Long>) {
+        eventsStateIntent.setState(EventListState.Loading)
         eventsStateIntent.setState(if(eventRepository.deleteEventsCache(eventIds))
             EventListState.OnData.DeleteEventsCacheResult(eventIds)
         else EventListState.Error(Constants.cacheDeletionError, true)) // shouldReath = shouldExit here
     }
 
     private suspend fun deleteEventCache(eventId: Long) {
+        eventsStateIntent.setState(EventListState.Loading)
         eventsStateIntent.setState(if(eventRepository.deleteEventCache(eventId))
             EventListState.OnData.DeleteAnEventCacheResult(eventId)
         else EventListState.Error(Constants.cacheDeletionError, true))
     }
 
-    private suspend fun updateAndSaveCurrentEvent(updateFields: Map<String?, String?>) {
+    private suspend fun updateAndSaveCurrentEvent(updateFields: Map<String, String?>) {
         val updatedEvent = _event.value!!.updateFromFieldMap(updateFields)
         eventRepository.saveEvent(updatedEvent)
         _event.value = updatedEvent

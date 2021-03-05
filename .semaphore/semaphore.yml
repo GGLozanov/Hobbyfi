@@ -34,7 +34,7 @@ blocks:
           commands:
             - sem-version java 1.8
             - chmod +x gradlew
-            - ./gradlew build
+            - ./gradlew build -Dorg.gradle.jvmargs=-Xmx1536m
       epilogue:
         on_pass:
           commands:

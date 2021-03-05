@@ -13,7 +13,7 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.adapters.tag.TagListAdapter
-import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
@@ -86,10 +86,12 @@ abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
             // Chatroom details may have changed if reloaded from the database,
             // but ID is fixed.
             override fun areItemsTheSame(oldChatroom: Chatroom,
-                                         newChatroom: Chatroom) = oldChatroom.id == newChatroom.id
+                                         newChatroom: Chatroom
+            ) = oldChatroom.id == newChatroom.id
 
             override fun areContentsTheSame(oldChatroom: Chatroom,
-                                            newChatroom: Chatroom) = oldChatroom == newChatroom
+                                            newChatroom: Chatroom
+            ) = oldChatroom == newChatroom
         }
 
     }

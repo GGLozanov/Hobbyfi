@@ -7,19 +7,22 @@ import android.content.Context.ACTIVITY_SERVICE
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
-import android.text.TextWatcher
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
-import android.widget.EditText
 import android.widget.GridView
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.util.Predicate
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.forEach
 import androidx.core.util.set
 import androidx.fragment.app.DialogFragment
@@ -33,21 +36,19 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.paging.PagingDataAdapter
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.*
+import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.TokenUtils
-import com.example.spendidly.utils.PredicateTextWatcher
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
 import java.lang.reflect.Field
+
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -59,34 +60,39 @@ inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(
     object : TypeToken<T>() {}.type
 )
 
-fun TextInputLayout.addTextChangedListener(errorText: String, predicate: Predicate<String>): PredicateTextWatcher {
-    val watcher = PredicateTextWatcher(
-        this,
-        errorText,
-        predicate
-    )
-    this.editText!!.addTextChangedListener(
-        watcher
-    )
-    return watcher
-}
 
-fun TextInputLayout.removeAllEditTextWatchers() {
-    editText!!.removeAllTextWatchers()
-}
+// original function by Zhuinden; modified to work for INvalidation purposes instead of validation
+fun invalidateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = MediatorLiveData<Boolean>().also { mediator ->
+    mediator.value = liveDatas.all { it.value == false }
 
-fun EditText.removeAllTextWatchers() {
-    try {
-        val field: Field? = findField("mListeners", javaClass)
-        if (field != null) {
-            field.isAccessible = true
-            val list = field.get(this) as ArrayList<TextWatcher> //IllegalAccessException
-            list.removeAll(list.filterIsInstance<PredicateTextWatcher>())
+    for (current in liveDatas) {
+        mediator.addSource(current) { valid ->
+            var isInvalid = valid
+            if (!isInvalid) {
+                for (liveData in liveDatas) {
+                    if (liveData !== current) {
+                        if (liveData.value != false) {
+                            isInvalid = true
+                            break
+                        }
+                    }
+                }
+            }
+
+            mediator.value = isInvalid
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 }
+
+fun <T : Comparable<*>> T?.equalsOrBiggerThan(comp: T?): Boolean =
+    compareValues(this, comp).run {
+        this >= 0
+    }
+
+fun <T : Comparable<*>> T?.equalsOrLessThan(comp: T?): Boolean =
+    compareValues(this, comp).run {
+        this <= 0
+    }
 
 private fun findField(name: String, type: Class<*>): Field? {
     for (declaredField in type.declaredFields) {
@@ -140,6 +146,9 @@ fun <T> List<T>.replaceOrAdd(newValue: T, predicate: (T) -> Boolean): List<T> {
 val FragmentManager.currentNavigationFragment: Fragment?
     get() = primaryNavigationFragment?.childFragmentManager?.fragments?.first()
 
+val FragmentManager.previousNavigationFragment: Fragment?
+    get() = primaryNavigationFragment?.childFragmentManager?.fragments?.get(1)
+
 fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     menu.clear()
     inflateMenu(menuId)
@@ -150,19 +159,19 @@ fun Context.buildYesNoAlertDialog(
     onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener,
     onDismiss: DialogInterface.OnDismissListener? = null
 ) {
-   val dialogBuilder = AlertDialog.Builder(this)
-    .setMessage(dialogMessage)
-    .setPositiveButton(getString(R.string.yes), onConfirm)
-    .setNegativeButton(getString(R.string.no), onCancel)
+    val dialogBuilder = AlertDialog.Builder(this)
+        .setMessage(dialogMessage)
+        .setPositiveButton(getString(R.string.yes), onConfirm)
+        .setNegativeButton(getString(R.string.no), onCancel)
 
-   onDismiss?.let {
-       dialogBuilder.setOnDismissListener(it)
-   }
+    onDismiss?.let {
+        dialogBuilder.setOnDismissListener(it)
+    }
 
-   dialogBuilder.create().apply {
-       window!!.setBackgroundDrawableResource(R.color.colorBackground)
-       show()
-   }
+    dialogBuilder.create().apply {
+        window!!.setBackgroundDrawableResource(R.color.colorBackground)
+        show()
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -263,6 +272,11 @@ fun <T> MutableLiveData<T>.forceObserve() {
     this.value = this.value
 }
 
+fun Context.convertDrawableResToBitmap(@DrawableRes drawableId: Int, width: Int?, height: Int?): Bitmap {
+    val d: Drawable = ContextCompat.getDrawable(this, drawableId) ?: throw Resources.NotFoundException()
+    return d.toBitmap(width ?: d.intrinsicWidth, height ?: d.intrinsicHeight)
+}
+
 fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
 
 fun comeFromAuthDeepLink(intent: Intent): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
@@ -316,6 +330,13 @@ fun android.content.Intent.putDeletedModelIdExtra(data: Map<String, String>) =
             .toLong()
     )
 
+fun android.content.Intent.putDeletedModelUserSentIdExtra(data: Map<String, String>) =
+    putExtra(
+        Constants.DELETED_MODEL_USER_SENT_ID,
+        (data[Constants.USER_SENT_ID] ?: error("Data User sent ID must not be null!"))
+            .toLong()
+    )
+
 // generic go rippppp
 fun android.content.Intent.putParcelableUserExtra(data: Map<String, String>) {
     putExtra(Constants.PARCELABLE_MODEL, User(data))
@@ -333,7 +354,7 @@ fun android.content.Intent.putParcelableEventExtra(data: Map<String, String>) {
     putExtra(Constants.PARCELABLE_MODEL, Event(data))
 }
 
-fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
+fun android.content.Intent.getDestructedMapExtra(): Map<String, String?> {
     val keys = extras?.get(Constants.DATA_KEYS) as Array<String>
     val values = extras?.get(Constants.DATA_VALUES) as Array<String>
     return keys.zip(values)
@@ -343,18 +364,18 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String?, String?> {
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
 fun android.content.Intent.getEventIdsExtra(): List<Long> {
-     return Constants.tagJsonConverter.fromJson(
-         extras?.getString(
-             Constants.EVENT_IDS
-         )
-     )!!
+    return Constants.tagJsonConverter.fromJson(
+        extras?.getString(
+            Constants.EVENT_IDS
+        )
+    )!!
 }
 
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
         this is io.jsonwebtoken.lang.InstantiationException || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException || this is TokenUtils.InvalidStoredTokenException
 
-fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData(): List<T> {
+fun <T: Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
         try {
@@ -369,8 +390,18 @@ fun <T : Model> PagingDataAdapter<T, *>.extractModelListFromCurrentPagingData():
     return list
 }
 
-fun <T : Model> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T) -> Boolean): T? {
-    return extractModelListFromCurrentPagingData().find(predicate)
+fun <T: Any> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
+    snapshot().find(predicate)
+
+fun <T: Any> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
+    val snapshot = snapshot()
+    snapshot.items.forEachIndexed { index, t ->
+        Log.i("findIPositionFCPData", "item: ${t}")
+        if(t == item) {
+            return index
+        }
+    }
+    return null
 }
 
 fun Bundle.toReadable(): String {
@@ -404,7 +435,8 @@ fun JSONObject.toBundle(): Bundle? {
         } else if (!num.isNaN()) bundle.putDouble(key, num) else if (str != null) bundle.putString(
             key,
             str
-        ) else Log.e("Extensions",
+        ) else Log.e(
+            "Extensions",
             "JsonObject toBundle() -> unable to transform json to bundle $key"
         )
     }

@@ -7,34 +7,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.shared.showDistinctDialog
-import com.example.hobbyfi.state.EventState
-import com.example.hobbyfi.state.State
-import com.example.hobbyfi.viewmodels.chatroom.EventSelectionBottomSheetDialogFragmentViewModel
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDialogFragment() {
-    private val viewModel: EventSelectionBottomSheetDialogFragmentViewModel by viewModels()
-
     override val eventsSource: LiveData<List<Event>>
         get() = activityViewModel.authEvents
 
     override val eventListAdapter: EventListAdapter by lazy {
         EventListAdapter(
-            eventsSource.value ?: emptyList(),
+            eventsSource.value ?: arrayListOf(),
             { v: View, event: Event ->
                 v.isEnabled = false
                 parentFragmentManager.showDistinctDialog(
@@ -50,7 +43,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
                     requireContext().getString(R.string.delete_event),
                     { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {
-                            viewModel.sendIntent(
+                            activityViewModel.sendEventIntent(
                                 EventIntent.DeleteEvent(event.id)
                             )
                         }
@@ -87,36 +80,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
             )
         }
 
-        observeEventState()
-
         return view
-    }
-
-    private fun observeEventState() {
-        lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
-                when(it) {
-                    is EventState.Idle -> {
-
-                    }
-                    is EventState.Loading -> {
-
-                    }
-                    is EventState.OnData.EventDeleteResult -> {
-                        activityViewModel.sendEventsIntent(EventListIntent.DeleteAnEventCache(it.eventId))
-                        Toast.makeText(
-                            requireContext(),
-                            "Event successfuly deleted!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    is EventState.Error -> {
-                        // TODO: Handle error
-                    }
-                    else -> throw State.InvalidStateException()
-                }
-            }
-        }
     }
 
     override fun setViewsVisibilityOnEvents(events: List<Event>) {

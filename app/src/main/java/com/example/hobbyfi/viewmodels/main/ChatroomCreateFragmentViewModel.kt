@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.TagBundle
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.data.TagBundle
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical

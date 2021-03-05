@@ -1,8 +1,6 @@
 package com.example.hobbyfi.services
 
 import android.app.*
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.location.Location
@@ -13,8 +11,8 @@ import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.createNotificationChannel
@@ -203,13 +201,13 @@ class EventLocationUpdatesService : Service(), KodeinAware {
 
         val text: String = LocationUtils.getLocationText(lastLocation)
 
-        // The PendingIntent that leads to a call to onStartCommand() in this service.
+        // PendingIntent leads to a call to onStartCommand() in this service.
         val servicePendingIntent = PendingIntent.getService(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // The PendingIntent to launch activity.
+        // PendingIntent to launch activity.
         val activityPendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this, EventMapsActivity::class.java).apply {

@@ -9,10 +9,10 @@
 
         <variable
             name="chatroom"
-            type="com.example.hobbyfi.models.Chatroom" />
+            type="com.example.hobbyfi.models.data.Chatroom" />
     </data>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -121,7 +121,7 @@
                     app:layout_constraintTop_toBottomOf="@id/chatroom_hosting_event"
                     tools:listitem="@layout/chatroom_tag_card" />
 
-                <LinearLayout
+                <androidx.appcompat.widget.LinearLayoutCompat
                     android:id="@+id/chatroom_interact_buttons"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -133,16 +133,20 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/chatroom_leave_button"
+                        android:text="@string/chatroom_leave_button_text"
+                        android:drawableStart="@drawable/ic_baseline_person_remove_24"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/chatroom_join_button"
                         android:layout_width="wrap_content"
+                        android:text="@string/chatroom_join_button_text"
+                        android:drawableStart="@drawable/ic_baseline_person_add_24"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp" />
-                </LinearLayout>
+                </androidx.appcompat.widget.LinearLayoutCompat>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

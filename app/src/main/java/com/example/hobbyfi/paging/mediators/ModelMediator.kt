@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.paging.*
 import androidx.room.withTransaction
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.RemoteKeys
+import com.example.hobbyfi.models.data.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
-import com.example.hobbyfi.models.Model
+import com.example.hobbyfi.models.data.Model
 import com.example.hobbyfi.persistence.RemoteKeysDao
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
@@ -17,14 +17,15 @@ abstract class ModelMediator<Key: Any, Value: Model>(
     protected val prefConfig: PrefConfig,
     protected val hobbyfiAPI: HobbyfiAPI,
     protected val mainRemoteKeyType: RemoteKeyType
-) : RemoteMediator<Key, Value>() {
+): RemoteMediator<Key, Value>() {
     companion object {
         val DEFAULT_PAGE_INDEX = 1
     }
 
+    protected abstract val cachePrefId: Int
     protected val remoteKeysDao: RemoteKeysDao = hobbyfiDatabase.remoteKeysDao()
 
-    protected suspend fun getPage(loadType: LoadType, state: PagingState<Key, Value>): Any {
+    protected open suspend fun getPage(loadType: LoadType, state: PagingState<Key, Value>): Any {
         return when (loadType) {
             LoadType.REFRESH -> {
                 val remoteKeys = hobbyfiDatabase.withTransaction {
@@ -39,21 +40,26 @@ abstract class ModelMediator<Key: Any, Value: Model>(
                 val remoteKeys = hobbyfiDatabase.withTransaction {
                     getLastRemoteKey(state)
                 }
+                Log.i("ModelRemoteM", "getKeyPageData => APPEND Paging STATE: ${state.pages.map { it.data}}")
+
                 Log.i("ModelRemoteM", "getKeyPageData => APPEND Remote Keys: $remoteKeys")
                 if (remoteKeys?.nextKey == null) {
-                    Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND")
+                    Log.i(
+                        "ModelRemoteM",
+                        "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR APPEND"
+                    )
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
 
                 remoteKeys.nextKey
             }
             LoadType.PREPEND -> {
-                // return MediatorResult.Success(endOfPaginationReached = true) // load type for whenever data needs to be prepended to the paged list (scroll up after down)
+                // load type for whenever data needs to be prepended to the paged list (scroll up after down)
                 val remoteKeys = hobbyfiDatabase.withTransaction {
                     getFirstRemoteKey(state)
                 }
                 // end of list condition reached -> reached the top of the page where the first page is loaded initially
-                // which meanas we can set endOfPaginationReached to true
+                // which means we can set endOfPaginationReached to true
                 Log.i("ModelRemoteM", "getKeyPageData => PREPEND Remote Keys: $remoteKeys")
                 if(remoteKeys?.prevKey == null) {
                     Log.i("ModelRemoteM", "getKeyPageData => REMOTE MEDIATOR TRIGGERED RETURN (END OF PAGINATION) FOR PREPEND")
@@ -65,24 +71,26 @@ abstract class ModelMediator<Key: Any, Value: Model>(
         }
     }
 
-    protected open suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getLastRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.pages
             .lastOrNull { it.data.isNotEmpty() }
             ?.data?.lastOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, mainRemoteKeyType) }
+            ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    protected open suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    protected suspend fun getFirstRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+        Log.i("ModelMediator", "getFirstRemoteKey -> state pages data: ${state.pages.firstOrNull()?.data}")
+
         return state.pages
             .firstOrNull { it.data.isNotEmpty() }
             ?.data?.firstOrNull()
-            ?.let { model -> remoteKeysDao.getRemoteKeysByIdAndType(model.id, mainRemoteKeyType) }
+            ?.let { model -> getRemoteKeysByIdAndType(model.id) }
     }
 
-    protected open suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
+    private suspend fun getClosestRemoteKey(state: PagingState<Key, Value>): RemoteKeys? {
         return state.anchorPosition?.let { position ->
             state.closestItemToPosition(position)?.id?.let { modelId ->
-                remoteKeysDao.getRemoteKeysByIdAndType(modelId, mainRemoteKeyType)
+                getRemoteKeysByIdAndType(modelId)
             }
         }
     }
@@ -97,4 +105,7 @@ abstract class ModelMediator<Key: Any, Value: Model>(
             )
         }
     }
+
+    protected open suspend fun getRemoteKeysByIdAndType(modelId: Long): RemoteKeys? =
+        remoteKeysDao.getRemoteKeysByIdAndType(modelId, mainRemoteKeyType)
 }

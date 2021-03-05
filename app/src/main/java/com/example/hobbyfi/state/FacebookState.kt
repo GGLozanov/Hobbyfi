@@ -1,6 +1,6 @@
 package com.example.hobbyfi.state
 
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
 sealed class FacebookState : State {

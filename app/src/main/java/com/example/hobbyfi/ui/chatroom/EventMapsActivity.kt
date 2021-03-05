@@ -17,17 +17,16 @@ import androidx.lifecycle.map
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
+import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.models.UserGeoPoint
+import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.services.EventLocationUpdatesService
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.EventBroadcastReceiverFactory
-import com.example.hobbyfi.shared.animateMarker
-import com.example.hobbyfi.shared.buildYesNoAlertDialog
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
 import com.example.hobbyfi.ui.base.MapsActivity
+import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -44,7 +43,8 @@ import java.lang.IllegalStateException
 
 
 @ExperimentalCoroutinesApi
-class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
+class EventMapsActivity : MapsActivity(),
+        SharedPreferences.OnSharedPreferenceChangeListener, RefreshConnectionAware {
     private val viewModel: EventMapsActivityViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             application,
@@ -54,12 +54,54 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
 
     private lateinit var binding: ActivityEventMapsBinding
 
-    // TODO: Handle DELETE_CHATROOM and check if this triggers other notifications of same type (bad)
     // sync here
     private var deleteEventReceiver: BroadcastReceiver? = null
     private var editEventReceiver: BroadcastReceiver? = null
     private var deleteEventBatchReceiver: BroadcastReceiver? = null
     private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
+
+    // not an auctionated receiver because custom behaviour
+    private val chatroomDeleteReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, intent: Intent) {
+            if(intent.action == Constants.DELETE_CHATROOM_TYPE) {
+                emergencyActivityExit(Constants.RESULT_CHATROOM_DELETE, intent)
+            } else {
+                Log.e(
+                    "EventMapsActivity",
+                    "chatroomDeleteReceiver called with wrong intent action!"
+                )
+            }
+        }
+    }
+
+    private val leaveUserReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(p0: Context?, intent: Intent) {
+            val userId = try {
+                prefConfig.getAuthUserIdFromToken()
+            } catch(e: Exception) {
+                Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
+                    .show()
+                emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
+                return
+            }
+
+            if(intent.action == Constants.LEAVE_USER_TYPE) {
+                if(intent.getDeletedModelIdExtra() == userId) {
+                    emergencyActivityExit(Constants.RESULT_KICKED, intent)
+                } else {
+                    Log.w(
+                        "EventMapsActivity",
+                        "leaveUserReceiver called with ID different from auth user..."
+                    )
+                }
+            } else {
+                Log.e(
+                    "EventMapsActivity",
+                    "leaveUserReceiver called with wrong intent action!"
+                )
+            }
+        }
+    }
 
     private val locationUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -130,6 +172,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                     )
                 }
             }
+
             if(viewModel.initialStart) {
                 buildLocationTrackingDialog()
                 // initialStart is useless now but due to feedback from friend, location updates are NOT initially enabled
@@ -138,6 +181,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         }
 
         observeEventListState()
+        observeConnectionRefresh(savedInstanceState, refreshConnectivityMonitor)
     }
 
     override fun onMapReady(gMap: GoogleMap) {
@@ -266,7 +310,7 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                                         .show()
                                 }
                             } else {
-                                viewModel.setUserGeoPoints(emptyList())
+                                viewModel.setUserGeoPoints(arrayListOf())
                             }
                         })
                     }
@@ -422,10 +466,9 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
 
         with(localBroadcastManager) {
-            registerReceiver(
-                locationUpdateReceiver,
-                IntentFilter(Constants.UPDATED_LOCATION_ACTION)
-            )
+            registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
+            registerReceiver(chatroomDeleteReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
+            registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
             registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
             registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
             registerReceiver(deleteEventBatchReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
@@ -439,6 +482,8 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         prefConfig.writeRequestLocationServiceRunning(true)
         with(localBroadcastManager) {
             unregisterReceiver(locationUpdateReceiver)
+            unregisterReceiver(chatroomDeleteReceiver)
+            unregisterReceiver(leaveUserReceiver)
             unregisterReceiver(deleteEventReceiver!!)
             unregisterReceiver(editEventReceiver!!)
             unregisterReceiver(deleteEventBatchReceiver!!)
@@ -480,6 +525,29 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
         }
     }
 
+    override fun observeConnectionRefresh(
+        savedState: Bundle?,
+        refreshConnectivityMonitor: RefreshConnectivityMonitor
+    ) {
+        super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
+        refreshConnectivityMonitor.observe(this, Observer {
+            if(it) {
+                Log.i("EventMapsActivity", "EventMapsActivity CONNECTED")
+                refreshDataOnConnectionRefresh()
+            } else {
+                Log.i("EventMapsActivity", "EventMapsActivity DIS-CONNECTED")
+            }
+        })
+    }
+
+    override fun refreshDataOnConnectionRefresh() {
+        lifecycleScope.launch {
+            viewModel.sendEventsIntent(
+                EventListIntent.RefetchEvent
+            )
+        }
+    }
+
     private fun setFABState(requestingUpdates: Boolean) {
         with(binding) {
             enableLocationUpdatesFab.isEnabled = !requestingUpdates
@@ -501,8 +569,8 @@ class EventMapsActivity : MapsActivity(), SharedPreferences.OnSharedPreferenceCh
                 .position(LatLng(geoPoint.geoPoint.latitude, geoPoint.geoPoint.longitude))
         )
 
-    private fun emergencyActivityExit(result: Int = RESULT_CANCELED) {
-        setResult(result)
+    private fun emergencyActivityExit(result: Int = RESULT_CANCELED, intent: Intent? = null) {
+        if(intent != null) setResult(result, intent) else setResult(result)
         finish()
     }
 

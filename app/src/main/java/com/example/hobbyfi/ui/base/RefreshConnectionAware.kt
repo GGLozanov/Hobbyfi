@@ -8,4 +8,6 @@ interface RefreshConnectionAware {
     fun observeConnectionRefresh(savedState: Bundle?, refreshConnectivityMonitor: RefreshConnectivityMonitor) {
         refreshConnectivityMonitor.postLastConnection(savedState?.getBoolean(Constants.LAST_CONNECTIVITY) == true)
     }
+
+    fun refreshDataOnConnectionRefresh()
 }

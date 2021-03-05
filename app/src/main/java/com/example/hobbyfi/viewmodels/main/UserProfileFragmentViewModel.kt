@@ -1,9 +1,8 @@
 package com.example.hobbyfi.viewmodels.main
 
 import android.app.Application
-import com.example.hobbyfi.models.Base64Image
-import com.example.hobbyfi.models.Tag
-import com.example.hobbyfi.models.TagBundle
+import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.models.data.TagBundle
 import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -17,4 +16,4 @@ class UserProfileFragmentViewModel(application: Application, initialTags: List<T
     fun setOriginalSelectedTags(tags: List<Tag>) {
         _originalSelectedTags = tags
     }
-    }
+}

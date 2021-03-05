@@ -8,7 +8,7 @@
 
         <variable
             name="chatroom"
-            type="com.example.hobbyfi.models.Chatroom" />
+            type="com.example.hobbyfi.models.data.Chatroom" />
     </data>
 
     <com.google.android.material.card.MaterialCardView
@@ -74,7 +74,7 @@
                     app:layout_constraintVertical_bias="0.0" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/sub_card_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -115,11 +115,15 @@
                 <include
                     android:id="@+id/join_chatroom_button_bar"
                     layout="@layout/button_bar_pair"
+                    app:leftButtonText="@{@string/chatroom_leave_button_text}"
+                    app:rightButtonText="@{@string/enter}"
+                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_person_remove_24}"
+                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_input_24}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="8dp" />
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </com.google.android.material.card.MaterialCardView>

@@ -1,35 +1,19 @@
 package com.example.hobbyfi.shared
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import androidx.fragment.app.Fragment
-import android.content.Context
-import android.content.DialogInterface
 import android.util.Log
-import android.util.Patterns
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
-import androidx.core.util.Predicate
-import androidx.databinding.BindingAdapter
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.commit
 import androidx.paging.PagingConfig
 import com.example.hobbyfi.BuildConfig
-import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
-import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
 
 
 object Constants {
@@ -74,6 +58,15 @@ object Constants {
     const val invalidAccessError: String = "In order to access this content, you'll need to log in, or sign up and join the chatroom first."
     const val eventAlreadyDeleted: String = "Linked event seems to already have been deleted by the chatroom owner!"
     const val notJoinedChatroomError: String = "Can't participate in an event whose chatroom you haven't joined!"
+    const val tapToViewImage: String = "Tap to view sent image"
+    const val emailNotFound: String = "User with this given e-mail wasn't found!"
+    const val emailSendFail: String= "Failed to send e-mail! Please, try again!"
+    const val facebookUserSendAttempt: String = "User with this e-mail is a Facebook user and doesn't need an e-mail sent!"
+    const val searchMessageNotFound: String = "Message you were searching for couldn't be found!"
+    const val userKickFail: String = "Couldn't manage to kick user!"
+    const val userKickSuccess: String = "User successfully kicked!"
+    const val chatroomDeletedMessage: String = "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!"
+    const val chatroomKickedMessage: String = "Oh no, it looks like you've been kicked from the chatroom by the owner!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -87,7 +80,8 @@ object Constants {
 
     const val eventLocationRequestCode: Int = 999
     const val eventMapsRequestCode: Int = 666
-    const val deepLinkRequestCode: Int = 423
+    const val RESULT_CHATROOM_DELETE: Int = 423
+    const val RESULT_KICKED: Int = 246
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -108,38 +102,6 @@ object Constants {
             "#8f7edf"
         )
     )
-
-    // TODO: Put in in-memory db annotated by room with @Database
-    val emailPredicate = Predicate<String> {
-        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches()
-    }
-
-    fun newEmailPredicate(originalEmail: String?) = Predicate<String> {
-        return@Predicate it.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(it).matches() ||
-                originalEmail == it
-    }
-
-    fun passwordPredicate(confirmPasswordField: EditText? = null) = Predicate<String> {
-        return@Predicate it.isEmpty() || it.length <= 4 || it.length >= 15 ||
-                if(confirmPasswordField == null ||
-                    confirmPasswordField.text.toString().isEmpty()) false else it != confirmPasswordField.text.toString()
-    }
-
-    fun confirmPasswordPredicate(passwordField: EditText) = Predicate<String> {
-        return@Predicate it.isEmpty() || it != passwordField.text.toString()
-    }
-
-    val namePredicate = Predicate<String> {
-        return@Predicate it.isEmpty() || it.length >= 25
-    }
-
-    val descriptionPredicate = Predicate<String> {
-        return@Predicate it.length >= 30
-    }
-    
-    val messagePredicate = Predicate<String> {
-        return@Predicate it.isEmpty() || it.length >= 200
-    }
 
     const val chatroomPageSize: Int = 5
     const val messagesPageSize: Int = 20
@@ -173,7 +135,7 @@ object Constants {
     const val FAILED_RESPONSE = "failed"
     const val IMAGE_UPLOAD_SUCCESS_RESPONSE = "Image Uploaded"
     const val IMAGE_UPLOAD_FAILED_RESPONSE = "Image Upload Failed"
-    const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Error with fetching your Facebook email! Stopping login!"
+    const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Couldn't fetch Facebook email!"
     const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
     const val EXISTS_RESPONSE = "exists"
     const val INVALID_TOKEN = "invalid"
@@ -189,6 +151,7 @@ object Constants {
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
     const val CHATROOM_ID = "chatroom_id"
+    const val MESSAGE_ID = "message_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
     const val OWNER_ID = "owner_id"
@@ -203,6 +166,7 @@ object Constants {
     const val CHATROOM_SENT_ID = "chatroom_sent_id"
     const val START_DATE = "start_date"
     const val DATE = "date"
+    const val USER_ID = "user_id"
     const val LATITUDE = "latitude"
     const val LONGITUDE = "longitude"
 
@@ -244,7 +208,6 @@ object Constants {
         return chatroomTopicPrefix + chatroomId
     }
 
-
     // dupped from API and whenever that changes, this needs to as well, but...
     // how else? Getting it from the server each time?
     const val CREATE_MESSAGE_TYPE: String = "CREATE_MESSAGE"
@@ -260,13 +223,17 @@ object Constants {
     const val DELETE_EVENT_TYPE: String = "DELETE_EVENT"
     const val DELETE_EVENT_BATCH_TYPE: String = "DELETE_EVENT_BATCH"
 
+    const val DELETED_MODEL_USER_SENT_ID: String = "DELETED_MODEL_USER_SENT_ID"
+
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
     const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
 
-    const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED"
+    const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED" // TODO: Use
+
+    const val QUERY: String = "query"
 
     // TODO: Move to DI and use it somehow...?!??
-    // Process death go brrr :(((
+    // Process death go brrr
     val tagJsonConverter: Gson = GsonBuilder()
         .registerTypeAdapter(
             Tag::class.java,
@@ -289,6 +256,10 @@ object Constants {
         Regex.escape(BuildConfig.BASE_URL) +
                 "uploads\\/[^.]+\\.jpg"
     )
+
+    const val searchMessage: String = "searchMessage"
+    const val currentMessages: String = "currentMessages"
+    const val messagesPagingData: String = "MESSAGES_PAGING_DATA"
 
     const val LOCATIONS_COLLECTION: String = "locations"
     const val LOCATION: String = "location"
@@ -314,13 +285,12 @@ object Constants {
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
     const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
-    const val REQUEST_LOCATION_SERVICE_RUNNING: String = "REQUEST_LOCATION_SERVICE_RUNNING"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
     const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
     @SuppressLint("SimpleDateFormat")
-    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
 
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER

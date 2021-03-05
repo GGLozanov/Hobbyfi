@@ -5,9 +5,10 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.StateIntent
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.repositories.UserRepository
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
@@ -15,11 +16,13 @@ import com.example.hobbyfi.state.UserState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
-abstract class AuthUserHolderViewModel(application: Application, user: User?) : StateIntentViewModel<UserState, UserIntent>(application),
+abstract class AuthUserHolderViewModel(
+    application: Application,
+    user: User?
+) : StateIntentViewModel<UserState, UserIntent>(application),
         TwoWayDataBindable by TwoWayDataBindableViewModel() {
     protected val userRepository: UserRepository by instance(tag = "userRepository")
 
@@ -65,7 +68,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         _authUser.value = user
     }
 
-    protected fun updateAndSaveUser(userFields: Map<String?, String?>) {
+    protected fun updateAndSaveUser(userFields: Map<String, String?>) {
         viewModelScope.launch {
             val updatedUser = _authUser.value!!.updateFromFieldMap(userFields)
             saveUser(updatedUser)
@@ -90,7 +93,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
             mainStateIntent.setState(
                 UserState.Error(
                     e.message,
-                    shouldReauth = e.isCritical
+                    shouldReauth = e.isCritical || e is HobbyfiAPI.NoConnectivityException // always needs to be connected for this call
                 )
             )
         }.collect {
@@ -101,7 +104,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
         }
     }
 
-    private suspend fun updateUser(userFields: Map<String?, String?>) {
+    private suspend fun updateUser(userFields: Map<String, String?>) {
         val userIsUpdatingTags = userFields.containsKey(Constants.TAGS + "[]")
         mainStateIntent.setState(UserState.Loading)
 
@@ -147,7 +150,7 @@ abstract class AuthUserHolderViewModel(application: Application, user: User?) : 
     private fun updateAndNotifyTagUpdateFail(userUpdatingTags: Boolean, failed: Boolean) {
         if(userUpdatingTags) { // hacky fix for user selecting tags and tags not being updated => resetting tags in UserProfileFragment UI
             _latestTagUpdateFail.apply {
-                value = false
+                value = failed
             }
         }
     }

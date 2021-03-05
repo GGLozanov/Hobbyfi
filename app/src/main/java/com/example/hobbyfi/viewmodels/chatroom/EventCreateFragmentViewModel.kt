@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState

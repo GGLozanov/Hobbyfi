@@ -50,13 +50,14 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                     )
 
                                     dialogInterface.dismiss()
-                                    navigateToChatroom()
+                                    navigateToChatroomPerDeepLinkExtras()
                                 }
                                 .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
                                     prefConfig.writeChatroomJoinRememberNavigate(
                                         if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
                                         else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
                                     )
+
                                     dialogInterface.dismiss()
                                 }
                                 .create()
@@ -64,7 +65,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                             dialog.show()
                         }
                         Constants.NoRememberDualChoice.REMEMBER_YES.ordinal -> {
-                            navigateToChatroom()
+                            navigateToChatroomPerDeepLinkExtras()
                         }
                     }
                 }
@@ -96,9 +97,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
                 Log.i("ChatroomListFragment", "user chatroom ids: ${user.chatroomIds}")
-
-                // TODO: Modify for support for one-to-many connection AND modify DeleteChatroomsCache
-                // TODO: To delete chatrooms with IDs IN user chatroom IDs array
+                
                 val userHasChatroom = user.chatroomIds != null
 
                 loadStateAdapter?.setUserChatroomOwnership(userHasChatroom)
@@ -150,24 +149,13 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
     override fun navigateToChatroom() {
         // only called while user is currently joining a chatroom
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
-        if(activityViewModel.deepLinkExtras != null &&
-                viewModel.buttonSelectedChatroom?.id ==
-            activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
-            startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
-                putExtras(activityViewModel.deepLinkExtras!!)
-            })
-
-            activityViewModel.setDeepLinkExtras(null)
-            finishAffinity(requireActivity())
-        } else {
-            navController.navigate(
-                ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
-                    activityViewModel.authUser.value,
-                    viewModel.buttonSelectedChatroom,
-                )
+        navController.navigate(
+            ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
+                activityViewModel.authUser.value,
+                viewModel.buttonSelectedChatroom,
             )
-            viewModel.setButtonSelectedChatroom(null)
-        }
+        )
+        viewModel.setButtonSelectedChatroom(null)
     }
 
     override fun navigateToChatroomCreate() {

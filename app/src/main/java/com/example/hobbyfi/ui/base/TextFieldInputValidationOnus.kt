@@ -1,7 +1,7 @@
 package com.example.hobbyfi.ui.base
 
 interface TextFieldInputValidationOnus {
-    fun initTextFieldValidators()
+    fun observePredicateValidators()
 
-    fun assertTextFieldsInvalidity(): Boolean
+    fun observeCombinedObserversInvalidity()
 }

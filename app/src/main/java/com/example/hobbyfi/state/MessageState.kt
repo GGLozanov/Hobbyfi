@@ -12,8 +12,6 @@ sealed class MessageState : State {
         data class MessageCreateResult(val response: CreateTimeIdResponse?) : OnData()
         data class MessageUpdateResult(val response: Response?) : OnData()
         data class MessageDeleteResult(val response: Response?) : OnData()
-
-        object DeleteMessageCacheResult : OnData()
     }
 
     data class Error(val error: String?, val shouldExit: Boolean = false) : MessageState()

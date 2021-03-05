@@ -5,18 +5,17 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.state.ChatroomState
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.kodein.di.generic.instance
@@ -39,9 +38,9 @@ abstract class AuthChatroomHolderViewModel(
 
     val chatroomState get() = chatroomStateIntent.state
 
-    private var _isAuthUserChatroomOwner = MutableLiveData(authUser.value?.id ==
+    protected var _isAuthUserChatroomOwner = MutableLiveData((authUser.value?.id ?: false) ==
             authChatroom.value?.ownerId) // initial check; updated every time auth user or auth chatroom changes
-    val isAuthUserChatroomOwner get() = _isAuthUserChatroomOwner
+    val isAuthUserChatroomOwner: LiveData<Boolean> get() = _isAuthUserChatroomOwner
 
     fun setChatroom(chatroom: Chatroom?) {
         _authChatroom.value = chatroom
@@ -75,7 +74,7 @@ abstract class AuthChatroomHolderViewModel(
                     }
                     is ChatroomIntent.DeleteChatroomCache -> {
                         Log.i("AuthChatromHVM", "Deleting chatroom auth chatroom cache intent sent!")
-                        deleteChatroomCache(true)
+                        deleteChatroomCache(true, it.kicked)
                     }
                     is ChatroomIntent.UpdateChatroomCache -> {
                         updateAndSaveChatroom(it.chatroomUpdateFields)
@@ -93,7 +92,7 @@ abstract class AuthChatroomHolderViewModel(
             chatroomStateIntent.setState(
                 ChatroomState.Error(
                     e.message,
-                    shouldExit = e.isCritical
+                    shouldExit = e.isCritical || e is HobbyfiAPI.NoConnectivityException // always needs to be connected for these calls (due to CONTEXT)
                 )
             )
         }.collect {
@@ -112,7 +111,7 @@ abstract class AuthChatroomHolderViewModel(
                 chatroomRepository.deleteChatroom(_authChatroom.value!!.id)
             )
 
-            deleteChatroomCache()
+            deleteChatroomCache(kicked = false)
 
             response
         } catch(ex: Exception) {
@@ -123,24 +122,29 @@ abstract class AuthChatroomHolderViewModel(
         })
     }
 
-    private suspend fun deleteChatroomCache(setState: Boolean = false) {
-        val success = chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
-                userRepository.deleteUsersCache(_authUser.value!!.id)
+    private suspend fun deleteChatroomCache(setState: Boolean = false, kicked: Boolean) {
+        val success = if(!kicked) {
+            chatroomRepository.deleteChatroomCache(_authChatroom.value!!) &&
+                    userRepository.deleteUsersCache(_authUser.value!!.id)
+        } else userRepository.deleteUsersCache(_authUser.value!!.id)
+        // just delete users if kick (hacky solution and fucks up semantics but w/e)
 
-        updateAndSaveUser(mapOf(
-            Pair(Constants.CHATROOM_IDS,
-                Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
-        )) // nullify chatroom for cache user after deletion
+        if(!kicked) {
+            updateAndSaveUser(mapOf(
+                Pair(Constants.CHATROOM_IDS,
+                    Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
+            )) // nullify chatroom for cache user after deletion
+        }
 
         if(setState) {
-            chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult
+            chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult(kicked)
                 else ChatroomState.Error(Constants.cacheDeletionError))
         } else if(!success) {
             throw Exception(Constants.cacheDeletionError)
         }
     }
 
-    private suspend fun updateChatroom(updateFields: Map<String?, String?>) {
+    private suspend fun updateChatroom(updateFields: Map<String, String?>) {
         chatroomStateIntent.setState(ChatroomState.Loading)
 
         chatroomStateIntent.setState(try {
@@ -160,7 +164,7 @@ abstract class AuthChatroomHolderViewModel(
         })
     }
 
-    protected suspend fun updateAndSaveChatroom(chatroomFields: Map<String?, String?>) {
+    protected suspend fun updateAndSaveChatroom(chatroomFields: Map<String, String?>) {
         val updatedChatroom = _authChatroom.value?.updateFromFieldMap(chatroomFields)
 
         saveChatroom(updatedChatroom!!)

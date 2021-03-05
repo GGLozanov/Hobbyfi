@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel" />
+            type="com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -128,6 +128,10 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:leftButtonStartDrawable="@{@drawable/ic_baseline_cancel_24}"
+            app:rightButtonStartDrawable="@{@drawable/ic_baseline_check_24}"
+            app:leftButtonText="@{@string/cancel}"
+            app:rightButtonText="@{@string/confirm}"
             app:layout_constraintTop_toBottomOf="@id/confirm_password_input_field"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

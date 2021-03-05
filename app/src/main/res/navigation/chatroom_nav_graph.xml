@@ -10,13 +10,23 @@
         android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment">
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditFragment"
-            app:destination="@id/chatroomEditFragment" />
+            app:destination="@id/chatroomEditFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
-            app:destination="@id/event_create_navigation" />
+            app:destination="@id/event_create_navigation"
+            app:popUpTo="@id/chatroomMessageListFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_eventDetailsFragment"
-            app:destination="@id/eventDetailsFragment" />
+            app:destination="@id/eventDetailsFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_imageViewFragment"
+            app:destination="@id/imageViewFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment"
+            app:destination="@id/chatroomMessageSearchViewFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -28,10 +38,10 @@
             app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
             <argument
                 android:name="tags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
     </fragment>
     <navigation android:id="@+id/event_create_navigation"
@@ -50,7 +60,7 @@
         tools:layout="@layout/activity_event_maps" >
         <argument
             android:name="event"
-            app:argType="com.example.hobbyfi.models.Event" />
+            app:argType="com.example.hobbyfi.models.data.Event" />
     </activity>
     <fragment
         android:id="@+id/eventDetailsFragment"
@@ -61,6 +71,20 @@
             app:destination="@id/eventMapsActivity" />
         <argument
             android:name="event"
-            app:argType="com.example.hobbyfi.models.Event" />
+            app:argType="com.example.hobbyfi.models.data.Event" />
     </fragment>
+    <fragment
+        android:id="@+id/imageViewFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ImageViewFragment"
+        android:label="View Image"
+        tools:layout="@layout/fragment_image_view" >
+        <argument
+            android:name="imageUrl"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatroomMessageSearchViewFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageSearchViewFragment"
+        android:label="Search Messages"
+        tools:layout="@layout/fragment_message_search_view" />
 </navigation>

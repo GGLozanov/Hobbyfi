@@ -21,7 +21,10 @@
     <string name="pref_chatroom_join_remember_navigate">com.example.preference_chatroom_join_remember_navigate</string>
     <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
     <string name="pref_requesting_location_updates">com.example.preference_requesting_location_updates</string>
-    <string name="pref_first_app_boot">com.example.first_app_boot</string> <!-- TODO: Used for future onboarding -->
+    <string name="pref_restarted_from_chatroom_task_root">com.example.preference_restarted_from_chatroom_task_root</string>
+    <string name="pref_request_location_service_running">com.example.preference_request_location_service_running</string>
+    <string name="pref_first_app_boot">com.example.first_app_boot</string>
+    <string name="pref_reached_bottom_messages_after_search">com.example.preference_reached_bottom_messages_after_search</string>
 
     <string name="default_notification_channel_id">HOBBYFI_NOTIFICATION_CHANNEL</string>
 
@@ -149,4 +152,45 @@
     <string name="enable_location_update_CD">Enable Location Updates</string>
     <string name="location_monitor_ask">Do you want to automatically enable location tracking now to keep in touch with the other users in the event? If you don\'t, you won\'t be shown as a participant in the event!</string>
     <string name="no_users">No Users</string>
+    <string name="chatroom_leave_button_text">Leave</string>
+    <string name="chatroom_join_button_text">Join</string>
+    <string name="create_chatroom">Create Chatroom</string>
+    <string name="retry">Retry</string>
+    <string name="share_to_facebook">Share</string>
+    <string name="delete_old_events">Delete Old</string>
+    <string name="create_custom">Create Custom</string>
+    <string name="choose_tags">Choose Tags</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="join_event">Join Event</string>
+    <string name="leave_event">Leave Event</string>
+    <string name="set_time">Set Date</string>
+    <string name="set_location">Set Place</string>
+    <string name="enter">Enter</string>
+    <string name="auth">Auth</string>
+    <string name="title_activity_onboarding">OnboardingActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="cont">Continue</string>
+    <string name="finish">Finish</string>
+    <string name="reset_password_hint">Forgot your pasword? Reset it!</string>
+    <string name="welcome_to_app">Welcome to Hobbyfi: The Hobbyists\' Platform!</string>
+    <string name="app_description">Hobbyfi\'s goal is to allow all kinds of hobbyists—from artists, to sports players, to teachers, and just plain friends—to connect with each other and interact in real time!</string>
+    <string name="auth_explanation">To begin using Hobbyfi, you\'ll first need to either log in from an existing account or create one.</string>
+    <string name="facebook_mention">You may also choose to log in with a Facebook account, if you so desire.</string>
+    <string name="chatrooms_explanation">After customising your account, you may partake in...</string>
+    <string name="app_description_outro">Rooms! You can join rooms and interact with others, join events, and much more!</string>
+    <string name="closing_onboarding">In summary, that\'s it! But Hobbyfi has a lot to offer, so be sure to explore. Thank you for making it this far :)</string>
+    <string name="reset_password_header">Reset Password</string>
+    <string name="reset">Reset</string>
+    <string name="download">Download</string>
+    <string name="search_messages">Search messages...</string>
+    <string name="kick">Kick</string>
+    <string name="kick_user_confirm">Are you certain you want to kick this user?</string>
+    <string name="user_chatroom_owner">Chatroom Admin</string>
 </resources>

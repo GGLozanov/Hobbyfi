@@ -8,12 +8,12 @@ import android.widget.ArrayAdapter
 import androidx.databinding.DataBindingUtil
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ChatroomTagCardBinding
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.utils.ColourUtils
 
 
 class TagListAdapter(
-    private var chatroomTags: List<Tag>, 
+    private var chatroomTags: List<Tag>,
     context: Context, resource: Int
 ) : ArrayAdapter<Tag>(context, resource) {
     override fun getCount(): Int {

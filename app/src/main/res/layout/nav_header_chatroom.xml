@@ -10,7 +10,7 @@
             type="com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel" />
     </data>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -35,5 +35,5 @@
             android:text="@{viewModel.authChatroom.description}"
             android:textStyle="bold"
             android:textSize="20sp" />
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

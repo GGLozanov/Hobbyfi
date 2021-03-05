@@ -4,10 +4,10 @@
     <data>
         <variable
             name="message"
-            type="com.example.hobbyfi.models.Message" />
+            type="com.example.hobbyfi.models.data.Message" />
     </data>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/message_card_timeline_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,6 +27,6 @@
             android:textStyle="bold">
 
         </com.google.android.material.textview.MaterialTextView>
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 </layout>

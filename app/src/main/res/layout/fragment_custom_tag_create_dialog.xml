@@ -82,7 +82,7 @@
 
         </com.skydoves.colorpickerview.ColorPickerView>
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:id="@+id/button_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -94,6 +94,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancel_button"
+                android:text="@string/cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
@@ -103,10 +104,11 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/confirm_custom_tag_button"
+                android:text="@string/confirm"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
             </com.google.android.material.button.MaterialButton>
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

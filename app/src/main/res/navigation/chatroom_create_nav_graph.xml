@@ -12,12 +12,12 @@
         <argument
             android:name="user"
             android:defaultValue="@null"
-            app:argType="com.example.hobbyfi.models.User"
+            app:argType="com.example.hobbyfi.models.data.User"
             app:nullable="true" />
         <argument
             android:name="chatroom"
             android:defaultValue="@null"
-            app:argType="com.example.hobbyfi.models.Chatroom"
+            app:argType="com.example.hobbyfi.models.data.Chatroom"
             app:nullable="true" />
     </activity>
     <fragment
@@ -27,16 +27,16 @@
         android:label="Create Chatroom">
         <argument
             android:name="user"
-            app:argType="com.example.hobbyfi.models.User" />
+            app:argType="com.example.hobbyfi.models.data.User" />
         <action
             android:id="@+id/action_chatroomCreateFragment_to_tag_nav_graph"
             app:destination="@id/tag_nav_graph">
             <argument
                 android:name="selectedTags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
             <argument
                 android:name="tags"
-                app:argType="com.example.hobbyfi.models.Tag[]" />
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
         <action
             android:id="@+id/action_chatroomCreateFragment_to_chatroomActivity"

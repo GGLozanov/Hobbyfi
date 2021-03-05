@@ -2,24 +2,23 @@ package com.example.hobbyfi.viewmodels.auth
 
 import android.app.Application
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.models.Base64Image
+import com.example.hobbyfi.models.data.TagBundle
+import com.example.hobbyfi.shared.invalidateBy
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.viewmodels.base.Base64ImageHolder
-import com.example.hobbyfi.viewmodels.base.Base64ImageHolderViewModel
-import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable
-import com.example.hobbyfi.viewmodels.base.NameDescriptionBindableViewModel
+import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
-class RegisterFragmentViewModel(application: Application) : AuthFragmentViewModel(application),
+class RegisterFragmentViewModel(application: Application) : AuthConfirmationViewModel(application),
     NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
+    var tagBundle: TagBundle = TagBundle()
 
     init {
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
@@ -58,4 +57,12 @@ class RegisterFragmentViewModel(application: Application) : AuthFragmentViewMode
             TokenState.Error(e.message) // TODO: More specific error handling w/ custom exceptions
         })
     }
+
+    override val combinedObserversInvalidity: LiveData<Boolean> get() = invalidateBy(
+            name.invalidity,
+            description.invalidity,
+            password.invalidity,
+            email.invalidity,
+            confirmPassword.invalidity,
+        )
 }

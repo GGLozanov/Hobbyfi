@@ -3,7 +3,7 @@ package com.example.hobbyfi.viewmodels.factories
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.hobbyfi.models.Event
+import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
 import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel

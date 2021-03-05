@@ -14,15 +14,13 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
 import com.example.hobbyfi.databinding.UserCardBinding
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.PrefConfig
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
 
-// Discord doesn't do pagination for their guild users...
-// ...so neither will I!
 class ChatroomUserListAdapter(
     private var users: List<User>,
     private val onUserCardPress: ((View, User) -> Unit)? = null

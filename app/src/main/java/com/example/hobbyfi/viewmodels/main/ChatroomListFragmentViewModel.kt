@@ -7,8 +7,8 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.hobbyfi.intents.ChatroomListIntent
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel

@@ -48,7 +48,7 @@ class DefaultLoadStateAdapter(
                     refreshPageButton.isVisible = loadState is LoadState.Error || userIsAChatroomOwner
                     chatroomCreateButton.isVisible = !userIsAChatroomOwner
                 } else {
-                    // TOOD: Maybe add error header and refresh page button on error?
+                    // TODO: Maybe add error header and refresh page button on error?
                     listErrorHeader.isVisible = false
                     refreshPageButton.isVisible = false
                     chatroomCreateButton.isVisible = false

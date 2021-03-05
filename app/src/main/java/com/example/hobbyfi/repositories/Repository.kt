@@ -1,7 +1,6 @@
 package com.example.hobbyfi.repositories
 
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.models.Model
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.PrefConfig

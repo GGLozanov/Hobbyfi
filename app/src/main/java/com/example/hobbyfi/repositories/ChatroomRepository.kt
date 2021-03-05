@@ -7,18 +7,15 @@ import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
-import com.example.hobbyfi.models.Chatroom
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.paging.mediators.ChatroomMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
-import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
-import com.google.firebase.FirebaseException
-import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.sendBlocking
@@ -129,7 +126,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }, { createChatroom(name, description, base64Image, tags) })
     }
 
-    suspend fun editChatroom(chatroomFields: Map<String?, String?>): Response? {
+    suspend fun editChatroom(chatroomFields: Map<String, String?>): Response? {
         Log.i("TokenRepository", "editChatroom -> editing current chatroom")
 
         return performAuthorisedRequest({
@@ -144,24 +141,9 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         Log.i("ChatroomRepository", "deleteChatroom -> deleting current chatroom")
 
         return performAuthorisedRequest({
-            val response = hobbyfiAPI.deleteChatroom(
+            hobbyfiAPI.deleteChatroom(
                 prefConfig.getAuthUserToken()!!,
             )
-
-            firestore.collection(Constants.LOCATIONS_COLLECTION)
-                .whereArrayContains(Constants.CHATROOM_ID, chatroomId)
-                .get().addOnSuccessListener {
-                    it.documents.forEach { doc ->
-                        if((doc[Constants.CHATROOM_ID] as List<Long>).size == 1) {
-                            doc.reference.delete()
-                        } else {
-                            doc.reference.update(Constants.CHATROOM_ID, FieldValue.arrayRemove(chatroomId))
-                        }
-                    }
-                }.addOnFailureListener {
-                    throw FirebaseException(Constants.firestoreDeletionError)
-                }
-            response
         }, { deleteChatroom(chatroomId) })
     }
 
@@ -187,6 +169,15 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }
     }
 
+    suspend fun kickUser(userId: Long): Response? {
+        Log.i("ChatroomRepository", "kickUser -> kicking user with id: ${userId}")
+        return performAuthorisedRequest({
+            hobbyfiAPI.kickUser(
+                prefConfig.getAuthUserToken()!!,
+                userId
+            )
+        }, { kickUser(userId) })
+    }
 
     private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =
         withContext(Dispatchers.IO) {

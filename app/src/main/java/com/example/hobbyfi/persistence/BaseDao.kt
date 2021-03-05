@@ -1,7 +1,7 @@
 package com.example.hobbyfi.persistence
 
 import androidx.room.*
-import com.example.hobbyfi.models.Model
+import com.example.hobbyfi.models.data.Model
 
 
 @Dao

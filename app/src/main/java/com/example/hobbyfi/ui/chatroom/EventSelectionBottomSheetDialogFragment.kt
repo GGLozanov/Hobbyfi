@@ -1,42 +1,22 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavController
-import androidx.recyclerview.widget.RecyclerView
-import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.databinding.FragmentEventSelectionBottomSheetDialogBinding
-import com.example.hobbyfi.intents.EventIntent
-import com.example.hobbyfi.intents.EventListIntent
-import com.example.hobbyfi.models.Event
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.state.EventState
-import com.example.hobbyfi.state.State
-import com.example.hobbyfi.viewmodels.chatroom.EventSelectionBottomSheetDialogFragmentViewModel
+import com.example.hobbyfi.models.data.Event
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
 abstract class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment() {
-    // TODO: Pass in events directly (FOR NOW) because this will ONLY be avaialble for admin user
-
     protected abstract val eventListAdapter: EventListAdapter
     protected lateinit var binding: FragmentEventSelectionBottomSheetDialogBinding
     protected abstract val eventsSource: LiveData<List<Event>>
@@ -52,7 +32,7 @@ abstract class EventSelectionBottomSheetDialogFragment : ChatroomBottomSheetDial
             false
         )
 
-        val initialEvents = eventsSource.value ?: emptyList()
+        val initialEvents = eventsSource.value ?: arrayListOf()
 
         setViewsVisibilityOnEvents(initialEvents)
 

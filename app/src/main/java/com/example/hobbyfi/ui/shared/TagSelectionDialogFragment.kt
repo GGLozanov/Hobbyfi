@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.shared
 
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +11,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagSelectionListAdapter
 import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.ui.base.BaseDialogFragment
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory

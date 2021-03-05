@@ -6,18 +6,11 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.multidex.MultiDexApplication
-import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.models.User
-import com.example.hobbyfi.repositories.TokenRepository
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.viewmodels.base.AuthUserHolderViewModel
-import com.example.hobbyfi.viewmodels.base.BaseViewModel
-import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class MainActivityViewModel(
@@ -28,7 +21,7 @@ class MainActivityViewModel(
     val joinedChatroom: LiveData<Boolean> get() = _joinedChatroom
     private val _leftChatroom: MutableLiveData<Boolean> = MutableLiveData(false)
     val leftChatroom: LiveData<Boolean> get() = _leftChatroom
-    private var latestUserUpdateFields: Map<String?, String?>? = null
+    private var latestUserUpdateFields: Map<String, String?>? = null
     
     private val _isUserProfileUpdateButtonEnabled: MutableLiveData<Boolean> = MutableLiveData(true)
     val isUserProfileUpdateButtonEnabled: LiveData<Boolean> get() = _isUserProfileUpdateButtonEnabled
@@ -62,7 +55,7 @@ class MainActivityViewModel(
         _leftChatroom.value = leftChatroom
     }
 
-    fun setLatestUserUpdateFields(updateFields: Map<String?, String?>?) {
+    fun setLatestUserUpdateFields(updateFields: Map<String, String?>?) {
         latestUserUpdateFields = updateFields
     }
 

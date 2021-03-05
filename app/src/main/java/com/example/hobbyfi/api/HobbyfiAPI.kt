@@ -7,7 +7,8 @@ import com.example.hobbyfi.adapters.message.MessageResponseDeserializer
 import com.example.hobbyfi.adapters.tag.TagTypeAdapter
 import com.example.hobbyfi.adapters.user.UserResponseDeserializer
 import com.example.hobbyfi.models.*
-import com.example.hobbyfi.models.Tag
+import com.example.hobbyfi.models.data.*
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
@@ -21,8 +22,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import java.io.IOException
+import java.net.ConnectException
 import java.util.concurrent.TimeUnit
 
+
+const val API_VERSION = "1.0"
 
 interface HobbyfiAPI {
 
@@ -34,7 +38,7 @@ interface HobbyfiAPI {
      * @param description - auth user's description
      * @return - a Token model containing a JWT and refresh JWT on success and a failed response from the server on failure
      */
-    @POST("api/v1.0/user/create")
+    @POST("api/v${API_VERSION}/user/create")
     @FormUrlEncoded
     suspend fun fetchRegistrationToken(
         @Header(Constants.AUTH_HEADER) facebookToken: String?, // potential fb token sent to validate fb create request
@@ -50,7 +54,7 @@ interface HobbyfiAPI {
      * GET request to check if a user already exists on the back-end
      * @param username - a given username to check by (usernames are ALWAYS unique)
      */
-    @GET("api/v1.0/user/exists")
+    @GET("api/v${API_VERSION}/user/exists")
     suspend fun fetchUserExists(
         @Query(Constants.ID) id: Long
     ): Boolean
@@ -61,7 +65,7 @@ interface HobbyfiAPI {
      * @param password - auth user's password
      * @return - a Token model containing a JWT and refresh JWT on success and a failed response from the server on failure
      */
-    @GET("api/v1.0/user/authenticate")
+    @GET("api/v${API_VERSION}/user/authenticate")
     suspend fun fetchLoginToken(
         @Query(Constants.EMAIL) email: String,
         @Query(Constants.PASSWORD) password: String
@@ -72,17 +76,25 @@ interface HobbyfiAPI {
      * @param refreshJWT - refresh JWT with a long expiry date used to retrieve new user JWTs
      * @return - a Token model containing a new JWT on success and a failed response from the server on failure
      */
-    @GET("api/v1.0/user/refresh_token")
+    @GET("api/v${API_VERSION}/user/refresh_token")
     suspend fun fetchNewTokenWithRefresh(
         @Header(Constants.AUTH_HEADER) refreshJWT: String
     ): TokenResponse?
+
+    /**
+     *
+     */
+    @GET("api/v${API_VERSION}/user/reset_password")
+    suspend fun resetPassword(
+        @Query(Constants.EMAIL) email: String
+    ): Response?
 
     /**
      * GET request to retrieve a user's/users' info from the server
      * @param token - JWT for the given auth user used to validate requests to secure endpoints
      * @return - a User model containing all the necessary information and the appropriate response from server
      */
-    @GET("api/v1.0/user/read")
+    @GET("api/v${API_VERSION}/user/read")
     suspend fun fetchUser(
         @Header(Constants.AUTH_HEADER) token: String // id inside token for DB query; token inside auth header
     ): CacheResponse<User>?
@@ -90,7 +102,7 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/users/read")
+    @GET("api/v${API_VERSION}/users/read")
     suspend fun fetchUsers(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.CHATROOM_ID) chatroomId: Long
@@ -102,18 +114,18 @@ interface HobbyfiAPI {
      * @param body - POST body fields containing key-value pairs on fields to be updated in the backend
      * @return - a Model containing a response from the server based on success or failure
      */
-    @POST("api/v1.0/user/edit") // should semantically be PATCH but w/e (for now)
+    @POST("api/v${API_VERSION}/user/edit") // should semantically be PATCH but w/e (for now)
     @FormUrlEncoded
     suspend fun editUser(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?> // variable body parameters (which is why a map is used)
+        @FieldMap body: Map<String, String?> // variable body parameters (which is why a map is used)
     ): Response?
 
     /**
      * DELETE request to, well, delete a user
      * @param token - JWT for the given auth user used to validate requests to secure endpoints (contains auth user's id)
      */
-    @DELETE("api/v1.0/user/delete")
+    @DELETE("api/v${API_VERSION}/user/delete")
     suspend fun deleteUser(
         @Header(Constants.AUTH_HEADER) token: String
     ): Response?
@@ -121,7 +133,7 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @POST("api/v1.0/chatroom/create")
+    @POST("api/v${API_VERSION}/chatroom/create")
     @FormUrlEncoded
     suspend fun createChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
@@ -134,17 +146,17 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @POST("api/v1.0/chatroom/edit")
+    @POST("api/v${API_VERSION}/chatroom/edit")
     @FormUrlEncoded
     suspend fun editChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?>
+        @FieldMap body: Map<String, String?>
     ): Response?
 
     /**
      *
      */
-    @DELETE("api/v1.0/chatroom/delete")
+    @DELETE("api/v${API_VERSION}/chatroom/delete")
     suspend fun deleteChatroom(
         @Header(Constants.AUTH_HEADER) token: String
     ): Response?
@@ -152,7 +164,7 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/chatroom/read")
+    @GET("api/v${API_VERSION}/chatroom/read")
     suspend fun fetchChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.ID) chatroomId: Long
@@ -161,7 +173,7 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/chatrooms/read")
+    @GET("api/v${API_VERSION}/chatrooms/read")
     suspend fun fetchChatrooms(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.PAGE) page: Int,
@@ -172,16 +184,23 @@ interface HobbyfiAPI {
      *
      * This is a separate request because pagination in all chatrooms read request doesn't guarantee return of joined chatrooms on initial page
      */
-    @GET("api/v1.0/chatrooms/read_own")
+    @GET("api/v${API_VERSION}/chatrooms/read_own")
     suspend fun fetchAuthChatrooms(
         @Header(Constants.AUTH_HEADER) token: String?,
         @Query(Constants.PAGE) page: Int
     ): CacheListResponse<Chatroom>
 
+    @POST("api/v${API_VERSION}/chatroom/kick")
+    @FormUrlEncoded
+    suspend fun kickUser(
+        @Header(Constants.AUTH_HEADER) token: String?,
+        @Field(Constants.USER_ID) userId: Long
+    ): Response?
+
     /**
      *
      */
-    @POST("api/v1.0/message/create")
+    @POST("api/v${API_VERSION}/message/create")
     @FormUrlEncoded
     suspend fun createMessage(
         @Header(Constants.AUTH_HEADER) token: String,
@@ -193,39 +212,57 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @GET("api/v1.0/messages/read")
+    @GET("api/v${API_VERSION}/messages/read")
     suspend fun fetchMessages(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.CHATROOM_ID) chatroomId: Long,
-        @Query(Constants.PAGE) page: Int
+        @Query(Constants.PAGE) page: Int,
+        @Query(Constants.QUERY) query: String? = null
     ): CacheListResponse<Message>
 
     /**
      *
      */
-    @POST("api/v1.0/message/edit")
+    @GET("api/v${API_VERSION}/messages/page_find")
+    suspend fun fetchMessagesId(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long,
+        @Query(Constants.MESSAGE_ID) messageId: Long
+    ): CacheListPageResponse<Message>
+
+    /**
+     *
+     */
+    @POST("api/v${API_VERSION}/message/edit")
     @FormUrlEncoded
     suspend fun editMessage(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?> // ALWAYS takes Id
+        @FieldMap body: Map<String, String?> // ALWAYS takes Id
     ): Response?
 
-    @DELETE("api/v1.0/message/delete")
+
+    @DELETE("api/v${API_VERSION}/message/delete")
     suspend fun deleteMessage(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.ID) id: Long
     ): Response?
 
-    // TODO: Modify to CacheResponse<List<Event>> when backend supports one-to-many chatroom and event connection
-    @GET("api/v1.0/events/read")
+    @GET("api/v${API_VERSION}/event/read")
     suspend fun fetchEvent(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.ID) id: Long
+    ): CacheResponse<Event>
+
+    @GET("api/v${API_VERSION}/events/read")
+    suspend fun fetchEvents(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long
     ): CacheListResponse<Event>
 
     /**
      *
      */
-    @POST("api/v1.0/event/create")
+    @POST("api/v${API_VERSION}/event/create")
     @FormUrlEncoded
     suspend fun createEvent(
         @Header(Constants.AUTH_HEADER) token: String,
@@ -237,17 +274,17 @@ interface HobbyfiAPI {
         @Field(Constants.LONGITUDE) long: Double
     ): StartDateIdResponse?
 
-    @POST("api/v1.0/event/edit")
+    @POST("api/v${API_VERSION}/event/edit")
     @FormUrlEncoded
     suspend fun editEvent(
         @Header(Constants.AUTH_HEADER) token: String,
-        @FieldMap body: Map<String?, String?>
+        @FieldMap body: Map<String, String?>
     ): Response?
 
     /**
      *
      */
-    @DELETE("api/v1.0/event/delete")
+    @DELETE("api/v${API_VERSION}/event/delete")
     suspend fun deleteEvent(
         @Header(Constants.AUTH_HEADER) token: String,
         @Query(Constants.ID) eventId: Long
@@ -256,7 +293,7 @@ interface HobbyfiAPI {
     /**
      *
      */
-    @DELETE("api/v1.0/event/delete_old")
+    @DELETE("api/v${API_VERSION}/event/delete_old")
     suspend fun deleteOldEvents(
         @Header(Constants.AUTH_HEADER) token: String
     ): CacheListResponse<Long>?
@@ -264,25 +301,29 @@ interface HobbyfiAPI {
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {
-                if(!connectivityManager.isConnected()) {
+                try {
+                    if(!connectivityManager.isConnected()) {
+                        throw NoConnectivityException()
+                    }
+
+                    val headers = it.request().headers
+                        .newBuilder()
+                        .add("Content-Type", if(it.request().method == "POST") "application/x-www-form-urlencoded"
+                        else
+                            "application/json")
+                        .add("Accept", "*/*")
+                        .add("Connection", "keep-alive")
+                        .build()
+
+                    val request = it.request()
+                        .newBuilder()
+                        .headers(headers)
+                        .build()
+
+                    return@Interceptor it.proceed(request)
+                } catch(ex: ConnectException) {
                     throw NoConnectivityException()
                 }
-
-                val headers = it.request().headers
-                    .newBuilder()
-                    .add("Content-Type", if(it.request().method == "POST") "application/x-www-form-urlencoded"
-                        else
-                        "application/json")
-                    .add("Accept", "*/*")
-                    .add("Connection", "keep-alive")
-                    .build()
-
-                val request = it.request()
-                    .newBuilder()
-                    .headers(headers)
-                    .build()
-
-                return@Interceptor it.proceed(request)
             }
 
             val loggingInterceptor = HttpLoggingInterceptor()

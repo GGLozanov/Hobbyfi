@@ -2,7 +2,7 @@ package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
 import com.example.hobbyfi.intents.EventIntent
-import com.example.hobbyfi.models.StateIntent
+import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.NameDescriptionBindable

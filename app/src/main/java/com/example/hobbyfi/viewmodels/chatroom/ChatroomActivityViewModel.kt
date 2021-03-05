@@ -5,11 +5,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.hobbyfi.intents.EventListIntent
-import com.example.hobbyfi.intents.Intent
-import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.intents.UserListIntent
-import com.example.hobbyfi.models.*
+import com.example.hobbyfi.intents.*
+import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.shared.*
@@ -30,7 +27,7 @@ class ChatroomActivityViewModel(
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
-    private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(emptyList())
+    private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(arrayListOf())
     val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 
     private var _authEvents: MutableLiveData<List<Event>> = MutableLiveData()
@@ -40,7 +37,7 @@ class ChatroomActivityViewModel(
     val authUserGeoPoint: StateFlow<UserGeoPoint?> get() = _authUserGeoPoint
 
     fun setAuthEvents(events: List<Event>?) {
-        _authEvents.value = events
+        _authEvents.value = events ?: arrayListOf()
     }
 
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
@@ -62,6 +59,14 @@ class ChatroomActivityViewModel(
     }
     val userGeoPointState get() = userGeoPointStateIntent.state
 
+    private val eventStateIntent: StateIntent<EventState, EventIntent> = object : StateIntent<EventState, EventIntent>() {
+        override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
+    }
+    
+    val eventState get() = eventStateIntent.state
+
+    suspend fun sendEventIntent(intent: EventIntent) = eventStateIntent.sendIntent(intent)
+
     suspend fun sendUserGeoPointIntent(intent: UserGeoPointIntent) = userGeoPointStateIntent.sendIntent(intent)
 
     fun resetUserListState() = usersStateIntent.setState(UserListState.Idle)
@@ -69,6 +74,8 @@ class ChatroomActivityViewModel(
     fun resetChatroomState() = chatroomStateIntent.setState(ChatroomState.Idle)
 
     fun resetEventListState() = eventsStateIntent.setState(EventListState.Idle)
+
+    fun resetEventState() = eventStateIntent.setState(EventState.Idle)
 
     override fun handleIntent() {
         super.handleIntent()
@@ -78,7 +85,7 @@ class ChatroomActivityViewModel(
                     is EventListIntent.AddAnEventCache -> {
                         Log.i("ChatroomActivityVM", "Add Event to List Intent caught")
                         saveEvent(it.event)
-                        setAuthEvents((_authEvents.value ?: emptyList()) + it.event)
+                        setAuthEvents((_authEvents.value ?: arrayListOf()) + it.event)
                         updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
                             .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
@@ -92,7 +99,6 @@ class ChatroomActivityViewModel(
                         }
                     }
                     is EventListIntent.DeleteOldEvents -> {
-                        // TODO: wire up this with delete_old events in repo and API
                         deleteOldEvents()
                     }
                     is EventListIntent.DeleteEventsCache -> {
@@ -105,6 +111,17 @@ class ChatroomActivityViewModel(
                     is EventListIntent.FetchEvents -> {
                         fetchEvents()
                     }
+                    else -> throw Intent.InvalidIntentException()
+                }
+            }
+        }
+        viewModelScope.launch {
+            eventStateIntent.intentAsFlow().collectLatest {
+                when(it) {
+                    is EventIntent.DeleteEvent -> {
+                        deleteEvent(it.eventId)
+                    }
+                    else -> throw Intent.InvalidIntentException()
                 }
             }
         }
@@ -129,6 +146,9 @@ class ChatroomActivityViewModel(
                     }
                     is UserListIntent.FetchUsers -> {
                         fetchUsers()
+                    }
+                    is UserListIntent.KickUser -> {
+                        kickUser(it.userId)
                     }
                 }
             }
@@ -221,7 +241,7 @@ class ChatroomActivityViewModel(
         }
     }
 
-    private suspend fun updateAndSaveEvent(eventFields: Map<String?, String?>) {
+    private suspend fun updateAndSaveEvent(eventFields: Map<String, String?>) {
         val updatedEvent = _authEvents.value!!.find { it.id == (eventFields[Constants.ID]
                 ?: error("Event ID must not be null in UpdateAnEventCache Intent!")).toLong() }!!
             .updateFromFieldMap(eventFields)
@@ -252,6 +272,26 @@ class ChatroomActivityViewModel(
         })
     }
 
+    private suspend fun deleteEvent(eventId: Long) {
+        eventStateIntent.setState(EventState.Loading)
+
+        eventStateIntent.setState(try {
+            val state = EventState.OnData.EventDeleteResult(
+                eventRepository.deleteEvent(eventId), eventId
+            )
+
+            deleteEventCache(eventId)
+
+            state
+        } catch(ex: Exception) {
+            ex.printStackTrace()
+
+            EventState.Error(
+                ex.message
+            )
+        })
+    }
+
     private suspend fun deleteUserCache(id: Long, shouldWritePrefTime: Boolean = true) {
         // TODO: Add setState bool?
         userRepository.deleteUserCache(id, shouldWritePrefTime)
@@ -264,6 +304,7 @@ class ChatroomActivityViewModel(
                 Pair(Constants.EVENT_IDS,
                     Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
             ))
+            setAuthEvents(_authEvents.value!!.filter { event -> !eventIds.contains(event.id) })
         }
 
         if(setState) {
@@ -273,11 +314,41 @@ class ChatroomActivityViewModel(
         }
     }
 
+    // FIXME: Ge. Ne. RIIIIICS. Well, not really but still code dup with other deleteCache methods. Mitigate that.
+    // TODO: Also, delete this if not actually needed because fcm sync
+    private suspend fun deleteEventCache(eventId: Long, setState: Boolean = false): Boolean {
+        val success = eventRepository.deleteEventCache(eventId)
+
+        if(setState) {
+            eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
+            else EventState.Error(Constants.cacheDeletionError))
+        } else if(!success) {
+            throw Exception(Constants.cacheDeletionError)
+        }
+
+        return true
+    }
+
+    private suspend fun kickUser(userId: Long) {
+        // no loading here (no fetch)
+        viewModelScope.launch {
+            usersStateIntent.setState(try {
+                chatroomRepository.kickUser(userId)
+                UserListState.OnUserKick(userId)
+            } catch(e: Exception) {
+                UserListState.Error(
+                    Constants.userKickFail,
+                    shouldReauth = e.isCritical
+                )
+            })
+        }
+    }
+
     private fun setCurrentUsers(users: List<User>) {
         _chatroomUsers.value = users
     }
 
-    var _consumedEventDeepLink: Boolean = false
+    private var _consumedEventDeepLink: Boolean = false
     val consumedEventDeepLink get() = _consumedEventDeepLink
 
     fun setConsumedEventDeepLink(consumed: Boolean) {
@@ -291,6 +362,6 @@ class ChatroomActivityViewModel(
     }
 
     fun forceIsAuthUserOwnerObservation() {
-        isAuthUserChatroomOwner.forceObserve()
+        _isAuthUserChatroomOwner.forceObserve()
     }
 }

@@ -7,14 +7,13 @@ import androidx.room.withTransaction
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
-import com.example.hobbyfi.models.User
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.responses.CacheListResponse
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.utils.TokenUtils
-import com.google.firebase.FirebaseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -54,11 +53,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                         Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
                         flowOf(null)
                     } catch(authEx: AuthorisedRequestException) {
-                        try {
-                            getNewTokenWithRefresh()
-                        } catch(ex: Exception) {
-                            Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned nothing")
-                        }
+                        getNewTokenWithRefresh()
 
                         loadFromDb()
                     }
@@ -81,32 +76,9 @@ class UserRepository @ExperimentalPagingApi constructor(
         }.asFlow()
     }
 
-    suspend fun editUser(userFields: Map<String?, String?>, originalUsername: String): Response? {
+    suspend fun editUser(userFields: Map<String, String?>, originalUsername: String): Response? {
         Log.i("TokenRepository", "editUser -> editing current user. Edit map: ${userFields}")
         return performAuthorisedRequest({
-            // renaming/resetting geopoint records
-            if(userFields.containsKey(Constants.USERNAME)) {
-                val username = userFields[Constants.USERNAME]
-                    ?: error("Username in editUser UserRepository call must not be null after check for contains()!")
-                firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
-                    .get().addOnSuccessListener {
-                        if(it != null && it.exists() && it.data != null
-                                && it.data!!.isNotEmpty()) {
-                            firestore.collection(Constants.LOCATIONS_COLLECTION).document(username)
-                                .set(it.data!!).addOnSuccessListener {
-                                    firestore.collection(Constants.LOCATIONS_COLLECTION).document(originalUsername)
-                                        .delete()
-                                }.addOnFailureListener {
-                                    throw FirebaseException(Constants.firestoreUpdateError)
-                                }
-                        } else {
-                            Log.w("UserRepository", "Found   but couldn't ")
-                        }
-                    }.addOnFailureListener {
-                        throw FirebaseException(Constants.firestoreDeletionError)
-                    }
-            }
-
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
                 userFields
@@ -119,13 +91,9 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun deleteUser(username: String): Response? {
         Log.i("TokenRepository", "deleteUser -> deleting current user")
         return performAuthorisedRequest({
-            val response = hobbyfiAPI.deleteUser(
+            hobbyfiAPI.deleteUser(
                 prefConfig.getAuthUserToken()!!
             )
-
-            firestore.collection(Constants.LOCATIONS_COLLECTION)
-                .document(username).delete()
-            response
         }, {
             deleteUser(username)
         })

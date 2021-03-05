@@ -1,7 +1,7 @@
 package com.example.hobbyfi.state
 
 import androidx.paging.PagingData
-import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.data.Chatroom
 import kotlinx.coroutines.flow.Flow
 
 sealed class ChatroomListState : State {

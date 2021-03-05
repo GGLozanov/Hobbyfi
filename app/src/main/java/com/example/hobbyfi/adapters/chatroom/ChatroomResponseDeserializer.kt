@@ -1,7 +1,7 @@
 package com.example.hobbyfi.adapters.chatroom
 
 import com.example.hobbyfi.adapters.BaseJsonDeserializer
-import com.example.hobbyfi.models.Chatroom
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson

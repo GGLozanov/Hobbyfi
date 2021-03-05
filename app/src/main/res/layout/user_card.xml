@@ -4,7 +4,7 @@
     <data>
         <variable
             name="user"
-            type="com.example.hobbyfi.models.User" />
+            type="com.example.hobbyfi.models.data.User" />
     </data>
 
     <com.google.android.material.card.MaterialCardView
@@ -14,7 +14,7 @@
         android:backgroundTint="@color/colorPrimaryDark"
         android:orientation="horizontal">
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -22,11 +22,11 @@
                 android:id="@+id/user_profile_image"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="5dp"
                 android:layout_marginTop="5dp"
                 android:src="@drawable/chatroom_default_pic" />
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/user_text_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -57,7 +57,7 @@
                     android:textSize="18sp">
 
                 </com.google.android.material.textview.MaterialTextView>
-            </LinearLayout>
-        </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </com.google.android.material.card.MaterialCardView>
 </layout>

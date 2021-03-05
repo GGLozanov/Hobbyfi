@@ -1,36 +1,35 @@
 package com.example.hobbyfi.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChangePasswordDialogBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.addTextChangedListener
-import com.example.hobbyfi.shared.removeAllEditTextWatchers
+import com.example.hobbyfi.shared.TextInputLayoutFocusObserver
+import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
+import com.example.hobbyfi.shared.ViewReverseEnablerObserver
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.ui.base.BaseDialogFragment
-import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.FieldUtils
-import com.example.hobbyfi.viewmodels.main.AuthChangeDialogFragmentViewModel
-import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
+import com.example.hobbyfi.viewmodels.main.ChangePasswordDialogFragmentViewModel
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
 class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
-    private val viewModel: AuthChangeDialogFragmentViewModel by viewModels()
+    private val viewModel: ChangePasswordDialogFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChangePasswordDialogBinding
 
     override fun onCreateView(
@@ -45,23 +44,21 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         )
 
         binding.viewModel = viewModel
+        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@ChangePasswordDialogFragment
 
             buttonBar.leftButton.setOnClickListener { dismiss() }
             buttonBar.rightButton.setOnClickListener {
-                if(assertTextFieldsInvalidity()) {
-                    return@setOnClickListener
-                }
-
                 if(viewModel!!.password.value == viewModel!!.newPassword.value) {
                     Toast.makeText(requireContext(), "Passwords must not be the same! Please enter a new, unique password!", Toast.LENGTH_LONG)
                         .show()
                     return@setOnClickListener
                 }
 
-                viewModel!!.email.value = activityViewModel.authUser.value?.email // set user email to AuthUser Activity VM email
+                viewModel!!.email.value = (requireActivity() as MainActivity).viewModel.authUser.value?.email
+                    // set user email to AuthUser Activity VM email
 
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(TokenIntent.FetchLoginToken)
@@ -69,7 +66,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             }
 
             lifecycleScope.launchWhenCreated {
-                viewModel!!.mainState.collect {
+                viewModel!!.mainState.collectLatest {
                     when(it) {
                         is TokenState.Idle -> {
 
@@ -80,13 +77,13 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                         is TokenState.TokenReceived -> {
                             it.token?.jwt?.let { jwt -> prefConfig.writeToken(jwt) }
                             it.token?.refreshJwt?.let { refreshJwt -> prefConfig.writeToken(refreshJwt) }
-                            activityViewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
+                            (requireActivity() as MainActivity).viewModel.sendIntent(UserIntent.UpdateUser(mutableMapOf(
                                 Pair(Constants.PASSWORD, viewModel!!.newPassword.value!!)
                             )))
                             dismiss()
                         }
                         is TokenState.Error -> {
-                            Toast.makeText(requireContext(), "Invalid access! Please enter the correct ", Toast.LENGTH_LONG)
+                            Toast.makeText(requireContext(), "Invalid access! Please enter the correct origina password!", Toast.LENGTH_LONG)
                                 .show()
                         }
                         else -> throw State.InvalidStateException()
@@ -98,42 +95,53 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         }
     }
 
-    override fun initTextFieldValidators() {
-        with(binding) {
-            passwordInputField.addTextChangedListener(
-                Constants.passwordInputError,
-                Constants.passwordPredicate()
+    override fun observePredicateValidators() {
+        with(viewModel) {
+            password.invalidity.observe(
+                viewLifecycleOwner,
+                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
             )
-            newPasswordInputField.addTextChangedListener(
-                Constants.passwordInputError,
-                Constants.passwordPredicate(confirmNewPasswordInputField.editText)
+
+            newPassword.invalidity.observe(
+                viewLifecycleOwner,
+                object : TextInputLayoutFocusObserver<Boolean>(binding.newPasswordInputField) {
+                    override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
+                        textInputLayout.error = if(t) Constants.passwordInputError else null
+                        binding.confirmNewPasswordInputField.error =
+                            if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
+                    }
+                }
             )
-            confirmNewPasswordInputField.addTextChangedListener(
-                Constants.confirmPasswordInputError,
-                Constants.confirmPasswordPredicate(newPasswordInputField.editText!!)
+
+            confirmPassword.invalidity.observe(
+                viewLifecycleOwner,
+                object : TextInputLayoutFocusObserver<Boolean>(binding.confirmNewPasswordInputField) {
+                    override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
+                        textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
+                        binding.newPasswordInputField.error =
+                            if(t && newPassword.invalidity.value == true) Constants.passwordInputError else null
+                    }
+                }
             )
         }
     }
 
-    override fun assertTextFieldsInvalidity(): Boolean {
-        with(binding) {
-            return@assertTextFieldsInvalidity FieldUtils.isTextFieldInvalid(passwordInputField, Constants.passwordInputError)
-                    || FieldUtils.isTextFieldInvalid(newPasswordInputField, Constants.passwordInputError) ||
-                        FieldUtils.isTextFieldInvalid(confirmNewPasswordInputField, Constants.confirmPasswordInputError)
-        }
+    override fun observeCombinedObserversInvalidity() {
+        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, {
+            with(viewModel) {
+                Log.i("ChangePassDFVM", "PASSWORD invalidity: ${password.invalidity.value}")
+                Log.i("ChangePassDFVM", "NEWPASSWORD invalidity: ${newPassword.invalidity.value}")
+                Log.i("ChangePassDFVM", "CONFIRMPASSWORD invalidity: ${confirmPassword.invalidity.value}")
+            }
+
+            binding.buttonBar.rightButton.isEnabled = it == false
+            // ViewReverseEnablerObserver(binding.buttonBar.rightButton))
+        })
     }
 
     override fun onStart() {
         super.onStart()
-        initTextFieldValidators()
+        observePredicateValidators()
     }
 
-    override fun onPause() {
-        super.onPause()
-        with(binding) {
-            passwordInputField.removeAllEditTextWatchers()
-            newPasswordInputField.removeAllEditTextWatchers()
-            confirmNewPasswordInputField.removeAllEditTextWatchers()
-        }
-    }
 }

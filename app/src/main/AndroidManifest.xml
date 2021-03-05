@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.hobbyfi">
-
+    package="com.example.hobbyfi" >
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -23,8 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
-        tools:targetApi="m">
-
+        tools:targetApi="m" >
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -36,7 +34,6 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
-
         <!--
  Set custom default icon. This is used when no icon is set for incoming notification messages.
      See README(https://goo.gl/l4GJaQ) for more.
@@ -54,7 +51,7 @@
 
         <service
             android:name=".services.NotificationMessagingService"
-            android:exported="false">
+            android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
@@ -67,7 +64,7 @@
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/FB_APP_ID" /> <!-- FIXME: Might be wrong format -->
+            android:value="@string/FB_APP_ID" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -79,20 +76,35 @@
             android:name="androidx.core.content.FileProvider"
             android:authorities="@string/file_provider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <provider android:name=".shared.MessageSuggestionsProvider"
+            android:authorities="com.example.hobbyfi.MessageSuggestionsProvider" />
+
         <activity
-            android:name=".ui.auth.AuthActivity"
-            android:windowSoftInputMode="adjustPan">
+            android:name=".ui.auth.SplashScreenActivity"
+            android:noHistory="true"
+            android:theme="@style/SplashScreenTheme"
+            android:windowSoftInputMode="adjustPan" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.onboard.OnboardingActivity"
+            android:label="@string/title_activity_onboarding"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
+        <activity
+            android:name=".ui.auth.AuthActivity"
+            android:label="@string/auth"
+            android:windowSoftInputMode="adjustPan" >
         </activity>
         <activity
             android:name=".ui.chatroom.ChatroomActivity"
@@ -101,31 +113,49 @@
             android:parentActivityName=".ui.main.MainActivity" >
             <intent-filter>
                 <data android:scheme="hobbyfi" />
+
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
 
             <!-- Branch App Links (optional) -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter android:autoVerify="true" >
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="dq20i.app.link" />
-                <data android:scheme="https" android:host="dq20i-alternate.app.link" />
-                <data android:scheme="https" android:host="dq20i.test-app.link" />
-                <!-- example-alternate domain is required for App Links when the Journeys/Web SDK and Deepviews are used inside your website.  -->
-                <data android:scheme="https" android:host="dq20i-alternate.test-app.link" />
+
+                <data
+                    android:host="dq20i.app.link"
+                    android:scheme="https" />
+                <data
+                    android:host="dq20i-alternate.app.link"
+                    android:scheme="https" />
+                <data
+                    android:host="dq20i.test-app.link"
+                    android:scheme="https" />
+                <!-- example-alternate domain is required for App Links when the Journeys/Web SDK and Deepviews are used inside your website. -->
+                <data
+                    android:host="dq20i-alternate.test-app.link"
+                    android:scheme="https" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable_messages"/>
         </activity>
         <activity
             android:name=".ui.chatroom.EventChooseLocationMapsActivity"
-            android:parentActivityName=".ui.chatroom.ChatroomActivity"
-            android:label="@string/title_activity_event_choose_location_maps" />
+            android:label="@string/title_activity_event_choose_location_maps"
+            android:parentActivityName=".ui.chatroom.ChatroomActivity" />
         <activity
             android:name=".ui.chatroom.EventMapsActivity"
-            android:launchMode="singleTop"
             android:label="@string/title_activity_event_maps"
+            android:launchMode="singleTop"
             android:parentActivityName=".ui.chatroom.ChatroomActivity" />
         <activity
             android:name=".ui.main.MainActivity"
@@ -133,7 +163,7 @@
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".ui.exported.FacebookChromeCustomTabsActivity"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -144,8 +174,15 @@
             </intent-filter>
         </activity>
 
-        <meta-data android:name="io.branch.sdk.BranchKey" android:value="key_live_ad0iyfEPhx5vc99rC48TcffpqCotbLgS" />
-        <meta-data android:name="io.branch.sdk.BranchKey.test" android:value="key_test_mo3jtnsNmz5Fl44vB4908lbirqiucGh5" />
-        <meta-data android:name="io.branch.sdk.TestMode" android:value="false" />     <!-- Set to true to use Branch_Test_Key (useful when simulating installs and/or switching between debug and production flavors) -->
+        <meta-data
+            android:name="io.branch.sdk.BranchKey"
+            android:value="key_live_ad0iyfEPhx5vc99rC48TcffpqCotbLgS" />
+        <meta-data
+            android:name="io.branch.sdk.BranchKey.test"
+            android:value="key_test_mo3jtnsNmz5Fl44vB4908lbirqiucGh5" />
+        <meta-data
+            android:name="io.branch.sdk.TestMode"
+            android:value="false" />
     </application>
+
 </manifest>
