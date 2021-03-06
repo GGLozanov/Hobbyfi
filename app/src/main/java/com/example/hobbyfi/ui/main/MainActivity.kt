@@ -30,8 +30,10 @@ import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.ui.base.OnAuthStateReset
 import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
+import com.example.hobbyfi.work.DeviceTokenDeleteWorker
 import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import com.facebook.login.LoginManager
 import com.google.firebase.ktx.Firebase
@@ -221,6 +223,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     private fun resetAuthProperties() {
         LoginManager.getInstance().logOut()
+        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(prefConfig.readDeviceToken(), this)
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()

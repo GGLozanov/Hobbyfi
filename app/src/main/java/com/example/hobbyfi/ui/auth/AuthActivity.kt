@@ -59,4 +59,10 @@ class AuthActivity : NavigationActivity() {
 
         return true
     }
+
+    // TODO: Handle deleting device token every time here
+    // TODO: Handle possible conflict from starting Main & Auth activity together (one sends to delete, the other - to upload)
+    private fun handleDeviceTokenDeletion() {
+
+    }
 }

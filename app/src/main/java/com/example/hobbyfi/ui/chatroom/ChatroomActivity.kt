@@ -48,8 +48,11 @@ import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.ui.onboard.OnboardingActivity
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
+import com.example.hobbyfi.work.DeviceTokenDeleteWorker
+import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.facebook.login.LoginManager
 import com.google.android.gms.common.ConnectionResult.*
@@ -418,7 +421,7 @@ class ChatroomActivity : NavigationActivity(),
         }
     }
 
-    // for deeplink errors
+    // for deeplink & shouldExit errors
     private fun leaveChatroomWithRestart(
         exitMsg: String = Constants.invalidAccessError,
         linkParams: JSONObject? = viewModel.currentLinkProperties,
@@ -430,6 +433,7 @@ class ChatroomActivity : NavigationActivity(),
 
         // log out of all accounts
         LoginManager.getInstance().logOut()
+        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(prefConfig.readDeviceToken(), this)
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
 

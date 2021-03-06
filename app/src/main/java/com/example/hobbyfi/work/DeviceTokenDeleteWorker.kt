@@ -1,15 +1,11 @@
 package com.example.hobbyfi.work
 
 import android.content.Context
-import android.util.Log
-import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.shared.Constants
-import java.lang.Exception
 import java.lang.IllegalArgumentException
 
-class DeviceTokenUploadWorker(
+class DeviceTokenDeleteWorker(
     context: Context,
     params: WorkerParameters
 ) : DeviceTokenWorker(context, params) {
@@ -17,12 +13,12 @@ class DeviceTokenUploadWorker(
     override suspend fun performDeviceTokenRequest() {
         val deviceToken = inputData.getString(Constants.TOKEN) ?: throw IllegalArgumentException()
 
-        hobbyfiAPI.sendDeviceToken(
+        hobbyfiAPI.deleteDeviceToken(
             prefConfig.getAuthUserToken()!!,
             deviceToken
         )
     }
 
     override val writeDeviceTokenUploadedOnFinish: Boolean
-        get() = true
+        get() = false
 }

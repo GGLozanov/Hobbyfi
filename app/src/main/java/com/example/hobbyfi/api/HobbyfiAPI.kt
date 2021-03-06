@@ -308,6 +308,15 @@ interface HobbyfiAPI {
         @Field(Constants.TOKEN) deviceToken: String
     ): Response?
 
+    /**
+     *
+     */
+    @DELETE("api/v${API_VERSION}/token/fcm")
+    suspend fun deleteDeviceToken(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.TOKEN) deviceToken: String
+    ): Response?
+
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {

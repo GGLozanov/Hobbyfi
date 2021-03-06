@@ -33,8 +33,7 @@ object TokenUtils {
         }
 
         // FIXME: Random zip error that yeets the app
-        val rsaPublicKey: RSAPublicKey
-        rsaPublicKey = try {
+        val rsaPublicKey: RSAPublicKey = try {
             val decodedPublicKey: ByteArray = android.util.Base64.decode(BuildConfig.JWT_PUBLIC_KEY, DEFAULT)
             val keySpecX509 = X509EncodedKeySpec(decodedPublicKey) // ASN.1 encoding of public key
             val keyFactory: KeyFactory =

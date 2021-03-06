@@ -8,7 +8,9 @@ import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.AuthActivityViewModel
+import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInputValidationOnus {
@@ -23,6 +25,9 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
     override fun login(action: NavDirections, token: String?, refreshToken: String?) {
         if(token != null) {
             prefConfig.writeToken(token)
+            if(!prefConfig.readCurrentDeviceTokenUploaded()) {
+                WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(token, requireContext())
+            }
         }
 
         if(refreshToken != null) {

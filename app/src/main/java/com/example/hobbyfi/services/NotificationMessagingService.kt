@@ -30,11 +30,11 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
-import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.example.hobbyfi.work.DeviceTokenUploadWorker
+import com.example.hobbyfi.utils.WorkerUtils
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -234,13 +234,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         try {
             prefConfig.getAuthUserIdFromToken().let {
-                val workData = workDataOf(Constants.TOKEN to token)
-
-                // send to server (auth'd)
-                val deviceTokenUploadWork = OneTimeWorkRequestBuilder<DeviceTokenUploadWorker>()
-                    .setInputData(workData)
-                    .build()
-                WorkManager.getInstance(applicationContext).enqueue(deviceTokenUploadWork)
+                WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(token, applicationContext)
             }
         } catch(ex: Exception) {
             Log.w("NotificationMService", "onNewToken user unathenticated => NOT sending to server yet!!!!")

@@ -61,7 +61,7 @@ class PrefConfig(private val context: Context) {
     fun readDeviceToken(): String? {
         return sharedPreferences.getString(
             context.getString(R.string.pref_device_token),
-            "invalid"
+            null
         )
     }
 

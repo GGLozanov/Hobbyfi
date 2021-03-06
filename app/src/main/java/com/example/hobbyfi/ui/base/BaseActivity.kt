@@ -31,20 +31,6 @@ abstract class BaseActivity : AppCompatActivity(), KodeinAware {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleDeviceTokenUpload()
         refreshConnectivityMonitor = RefreshConnectivityMonitor(this)
-    }
-
-    private fun handleDeviceTokenUpload() {
-        if(!prefConfig.readCurrentDeviceTokenUploaded()) {
-            Log.i("BaseActivity", "BaseActivity triggers prefConfig send upload to server!!")
-            val workData = workDataOf(Constants.TOKEN to prefConfig.readDeviceToken())
-
-            // send to server (auth'd)
-            val deviceTokenUploadWork = OneTimeWorkRequestBuilder<DeviceTokenUploadWorker>()
-                .setInputData(workData)
-                .build()
-            WorkManager.getInstance(this@BaseActivity).enqueue(deviceTokenUploadWork)
-        }
     }
 }
