@@ -105,17 +105,19 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
-                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity({
-                                activityViewModel.setJoinedChatroom(true)
-                                navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
-                                    activityViewModel.authUser.value,
-                                    it.response
-                                ))
-                            },
-                            it.response.id,
-                            fcmTopicErrorFallback,
-                            connectivityManager
-                        )
+                        activityViewModel.setJoinedChatroom(true)
+                        navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
+                            activityViewModel.authUser.value,
+                            it.response
+                        ))
+
+//                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity({
+//
+//                            },
+//                            it.response.id,
+//                            fcmTopicErrorFallback,
+//                            connectivityManager
+//                        )
                         viewModel.resetState()
                     }
                     is ChatroomState.Error -> {

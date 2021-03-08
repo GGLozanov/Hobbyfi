@@ -25,9 +25,10 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
     override fun login(action: NavDirections, token: String?, refreshToken: String?) {
         if(token != null) {
             prefConfig.writeToken(token)
-            if(!prefConfig.readCurrentDeviceTokenUploaded()) {
-                WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(token, requireContext())
-            }
+        }
+
+        if(!prefConfig.readCurrentDeviceTokenUploaded()) {
+            WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(prefConfig.readDeviceToken(), requireContext())
         }
 
         if(refreshToken != null) {

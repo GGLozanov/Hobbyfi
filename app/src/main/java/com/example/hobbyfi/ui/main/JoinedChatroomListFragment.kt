@@ -91,13 +91,14 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
 
                 if(left) {
                     if(viewModel.buttonSelectedChatroom != null) {
-                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
-                                leaveChatroomAndUpdate()
-                            },
-                            viewModel.buttonSelectedChatroom!!.id,
-                            fcmTopicErrorFallback,
-                            connectivityManager
-                        )
+                        leaveChatroomAndUpdate()
+//                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
+//                                leaveChatroomAndUpdate()
+//                            },
+//                            viewModel.buttonSelectedChatroom!!.id,
+//                            fcmTopicErrorFallback,
+//                            connectivityManager
+//                        )
                     } else {
                         leaveChatroomAndUpdate()
                     }

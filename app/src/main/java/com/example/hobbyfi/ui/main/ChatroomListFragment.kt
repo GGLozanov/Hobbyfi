@@ -76,12 +76,13 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                             activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
                         joinChatroomWithDialog()
                     } else {
-                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
-                            joinChatroomWithDialog,
-                            viewModel.buttonSelectedChatroom!!.id,
-                            fcmTopicErrorFallback,
-                            connectivityManager
-                        )
+                        joinChatroomWithDialog()
+//                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
+//                            joinChatroomWithDialog,
+//                            viewModel.buttonSelectedChatroom!!.id,
+//                            fcmTopicErrorFallback,
+//                            connectivityManager
+//                        )
                     }
                 } else {
                     joinChatroomAndUpdate()

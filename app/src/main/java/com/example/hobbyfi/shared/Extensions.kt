@@ -46,6 +46,7 @@ import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Field
 
@@ -317,6 +318,10 @@ fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
     val params = layoutParams
     params.height = totalHeight
     layoutParams = params
+}
+
+fun JSONObject.toPlainStringMap(): Map<String, String> = keys().asSequence().associateWith {
+    this[it].toString()
 }
 
 fun android.content.Intent.putDestructedMapExtra(data: Map<String, String>) {

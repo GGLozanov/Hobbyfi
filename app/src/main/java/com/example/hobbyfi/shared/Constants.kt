@@ -241,7 +241,7 @@ object Constants {
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
 
-    const val TOKEN: String = "TOKEN"
+    const val TOKEN: String = "token"
     const val API: String = "API"
 
     const val USER = "USER"
@@ -284,6 +284,8 @@ object Constants {
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
     const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
+
+    const val JOIN_CHATROOM: String = "join_chatroom"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")

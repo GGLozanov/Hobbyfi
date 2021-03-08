@@ -84,16 +84,20 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             }
         } else {
             // otherwise simply allow the user to join their chatroom
-            Callbacks.subscribeToChatroomTopicByCurrentConnectivity( {
-                    updateJob = lifecycleScope.launch {
-                        prefConfig.writeLastEnteredChatroomId(chatroom.id)
-                        navigateToChatroomPerDeepLinkExtras()
-                    }
-                },
-                chatroom.id,
-                fcmTopicErrorFallback,
-                connectivityManager
-            )
+            updateJob = lifecycleScope.launch {
+                prefConfig.writeLastEnteredChatroomId(chatroom.id)
+                navigateToChatroomPerDeepLinkExtras()
+            }
+//            Callbacks.subscribeToChatroomTopicByCurrentConnectivity( {
+//                    updateJob = lifecycleScope.launch {
+//                        prefConfig.writeLastEnteredChatroomId(chatroom.id)
+//                        navigateToChatroomPerDeepLinkExtras()
+//                    }
+//                },
+//                chatroom.id,
+//                fcmTopicErrorFallback,
+//                connectivityManager
+//            )
         }
     }
 
