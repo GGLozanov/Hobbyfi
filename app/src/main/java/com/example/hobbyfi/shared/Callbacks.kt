@@ -23,6 +23,7 @@ import com.example.hobbyfi.ui.chatroom.EventChooseLocationMapsActivity
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventAccessorViewModel
+import com.facebook.AccessToken
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.FirebaseException
@@ -266,8 +267,8 @@ object Callbacks {
                     }
                     401 -> { // unauthorized
                         throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                            else if (!Constants.isFacebookUserAuthd())
-                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
+                            else if (AccessToken.getCurrentAccessToken() != null)
+                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)
                             else Repository.ReauthenticationException(Constants.reauthError)
                     }
                     404 -> { // not found

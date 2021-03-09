@@ -83,7 +83,13 @@ data class Event(
     }
 
     private fun localDateTimeFromString(src: String): LocalDateTime {
-        return LocalDateTime.parse(src, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        return try {
+            LocalDateTime.parse(src, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        } catch(ex: Exception) {
+            LocalDateTime.parse(src, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SS"))
+        } catch(ex: Exception) {
+            throw IllegalArgumentException()
+        }
     }
 
     fun calculateDateDiff(): Duration = Duration.between(LocalDateTime.now(), localDateTimeFromDate)

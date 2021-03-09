@@ -20,13 +20,13 @@ import org.kodein.di.android.x.kodein
 import org.kodein.di.generic.instance
 import pub.devrel.easypermissions.EasyPermissions
 
-abstract class BaseFragment : Fragment(), KodeinAware, EasyPermissions.PermissionCallbacks {
+abstract class BaseFragment : Fragment(), KodeinAware, ConnectivityAccessor, EasyPermissions.PermissionCallbacks {
     override val kodein: Kodein by kodein()
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
         // no need for weakreference this time because PrefConfig will use appContext!
     protected lateinit var navController: NavController
-    protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
+    override val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
     protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

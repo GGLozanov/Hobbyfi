@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.content.*
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.provider.SearchRecentSuggestions
 import android.util.Log
@@ -64,7 +65,9 @@ import io.branch.referral.Branch
 import io.branch.referral.Branch.BranchReferralInitListener
 import io.socket.client.IO
 import io.socket.client.Socket
+import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
+import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -112,6 +115,18 @@ class ChatroomActivity : NavigationActivity(),
 
     override val emitterListenerFactory: EmitterListenerFactory by lazy {
         EmitterListenerFactory(this)
+    }
+
+    override val serverSocket: Socket? by lazy {
+        try {
+            val socket = IO.socket(BuildConfig.SOCKET_BASE_URL,
+                SocketOptionBuilder.builder().setTransports(arrayOf(WebSocket.NAME)).setForceNew(true).build())
+            Log.i("ServerSocketAccessor", "Accessed socket with successful connection")
+            socket
+        } catch(e: URISyntaxException) {
+            onConnectedServerSocketFail()
+            null
+        }
     }
 
     private var sentJoinChatroomEvent: Boolean = false
@@ -265,12 +280,20 @@ class ChatroomActivity : NavigationActivity(),
 
     override fun onConnectedServerSocketFail() {
         Log.w("ChatroomActivity", "Socket connection from current auth user: ${viewModel.authUser.value} failed!")
-        leaveChatroom()
+        runOnUiThread {
+            Toast.makeText(
+                this,
+                Constants.socketConnectionError,
+                Toast.LENGTH_LONG
+            ).show()
+            leaveChatroom()
+        }
     }
 
     override fun connectServerSocketListeners() {
-        emitJoinChatroomEventOnCurrentNonNull()
-
+        serverSocket?.on(Socket.EVENT_CONNECT) {
+            emitJoinChatroomEventOnCurrentNonNull()
+        }
 //        serverSocket?.on(Constants.LEAVE_USER_TYPE)
         // TODO: The rest of the socket events
     }
@@ -284,6 +307,8 @@ class ChatroomActivity : NavigationActivity(),
         serverSocket?.off(Constants.EDIT_EVENT_TYPE)
         serverSocket?.off(Constants.DELETE_EVENT_TYPE)
         serverSocket?.off(Constants.DELETE_EVENT_BATCH_TYPE)
+
+        serverSocket?.off(Constants.CREATE_MESSAGE_TYPE)
 
         sentJoinChatroomEvent = false
     }
@@ -406,7 +431,7 @@ class ChatroomActivity : NavigationActivity(),
         leaveChatroom()
     }
 
-    private fun leaveChatroom(
+    fun leaveChatroom(
         linkParams: JSONObject? = null, sendExtrasBack: Boolean = false,
         leaveDestination: Class<*> = AuthActivity::class.java
     ) {
@@ -469,11 +494,11 @@ class ChatroomActivity : NavigationActivity(),
             .show()
 
         // log out of all accounts
-        LoginManager.getInstance().logOut()
         WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
             prefConfig.readDeviceToken(),
             this
         )
+        LoginManager.getInstance().logOut()
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()
 
@@ -827,8 +852,8 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     override fun onPause() {
-        super.onPause()
         disconnectServerSocket()
+        super.onPause()
         unregisterCRUDReceivers()
         prefConfig.writeRestartedFromChatroomTaskRoot(false)
     }
@@ -994,12 +1019,21 @@ class ChatroomActivity : NavigationActivity(),
         }
 
     private fun reinitCalendarDecorators(events: List<Event>) {
+        var emittedErrorForEventParsingAlready = false
         with(binding) {
             eventCalendar.removeDecorators()
             eventCalendar.addDecorator(
                 EventCalendarDecorator(
                     ContextCompat.getColor(this@ChatroomActivity, R.color.colorPrimary),
-                    events.map { it.calendarDayFromDate }
+                    events.mapNotNull { try { it.calendarDayFromDate
+                        } catch(ex: Exception) {
+                            if(!emittedErrorForEventParsingAlready) {
+                                emittedErrorForEventParsingAlready = true
+                                Toast.makeText(this@ChatroomActivity,
+                                    Constants.eventParsingError, Toast.LENGTH_LONG)
+                            }
+                            null
+                        } }
                 )
             )
         }
@@ -1087,16 +1121,18 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun emitJoinChatroomEventOnCurrentNonNull() {
-        viewModel.authUser.value?.let { userId ->
-            viewModel.authChatroom.value?.let { chatroomId ->
+        viewModel.authUser.value?.id?.let { userId ->
+            viewModel.authChatroom.value?.id?.let { chatroomId ->
                 if(!sentJoinChatroomEvent) {
+                    Log.i("ChatroomActivity", "Emitting join_chatroom event!!!!")
+
                     serverSocket?.emit(Constants.JOIN_CHATROOM, JSONObject(mapOf(
                         Constants.ID to userId,
                         Constants.CHATROOM_ID to chatroomId
                     )))
                     sentJoinChatroomEvent = true
                 } else {
-                    Log.w("ChatroomActivity", "Not emitting join chatroom event due to it already having been emitted")
+                    Log.w("ChatroomActivity", "Not emitting join_chatroom event due to it already having been emitted")
                 }
             }
         }

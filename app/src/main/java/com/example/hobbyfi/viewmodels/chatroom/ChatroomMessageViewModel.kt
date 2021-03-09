@@ -76,7 +76,7 @@ abstract class ChatroomMessageViewModel(
                                 else messageRepository.getSearchMessages(chatroomId = chatroomId, query = query))
                 .distinctUntilChanged()
                 .map { pagingData ->
-                    pagingData.map { message -> com.example.hobbyfi.models.ui.UIMessage.MessageItem(message) }
+                    pagingData.map { message -> UIMessage.MessageItem(message) }
                 }
                 .map {
                     it.insertSeparators { before, after ->
@@ -101,9 +101,6 @@ abstract class ChatroomMessageViewModel(
                                 val now = LocalDateTime.now()
                                 val dayDiffAfterNow = abs(ChronoUnit.DAYS.between(afterTime, now))
                                 val dayDiffBeforeNow = abs(ChronoUnit.DAYS.between(beforeTime, now))
-
-                                Log.i("ChatroomMessageVM", "dayDiffAfterNow: ${dayDiffAfterNow}")
-                                Log.i("ChatroomMessageVM", "dayDiffBeforeNow: ${dayDiffBeforeNow}")
 
                                 when {
                                     dayDiffAfterNow == 1L &&

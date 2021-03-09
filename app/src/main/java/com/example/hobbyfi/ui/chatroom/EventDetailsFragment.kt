@@ -184,23 +184,29 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
 
     private fun setCalendarDateData() {
         with(binding) {
-            val startDate = viewModel!!.relatedEvent.calendarDayFromStartDate
-            val date = viewModel!!.relatedEvent.calendarDayFromDate
-            dateRangeCalendar.selectRange(
-                startDate,
-                date
-            )
+            try {
+                val startDate = viewModel!!.relatedEvent.calendarDayFromStartDate
+                val date = viewModel!!.relatedEvent.calendarDayFromDate
 
-            dateRangeCalendar.state().edit()
-                .setMinimumDate(startDate)
-                .setMaximumDate(date)
-                .commit()
-            dateRangeCalendar.addDecorator(
-                EventCalendarDecorator(
-                    ContextCompat.getColor(requireContext(), R.color.colorPrimary),
-                    listOf(CalendarDay.today())
+                dateRangeCalendar.selectRange(
+                    startDate,
+                    date
                 )
-            )
+
+                dateRangeCalendar.state().edit()
+                    .setMinimumDate(startDate)
+                    .setMaximumDate(date)
+                    .commit()
+                dateRangeCalendar.addDecorator(
+                    EventCalendarDecorator(
+                        ContextCompat.getColor(requireContext(), R.color.colorPrimary),
+                        listOf(CalendarDay.today())
+                    )
+                )
+            } catch(ex: IllegalArgumentException) {
+                Toast.makeText(requireContext(), Constants.eventParsingError, Toast.LENGTH_LONG)
+                    .show()
+            }
         }
     }
 

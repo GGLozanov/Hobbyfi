@@ -119,7 +119,9 @@ class ChatroomActivityViewModel(
             eventStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.DeleteEvent -> {
-                        deleteEvent(it.eventId)
+                        viewModelScope.launch {
+                            deleteEvent(it.eventId)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

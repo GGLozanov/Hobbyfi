@@ -19,6 +19,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
@@ -38,10 +39,14 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewMo
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.client.SocketOptionBuilder
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import java.io.FileNotFoundException
 import java.lang.Exception
+import java.net.URISyntaxException
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -129,6 +134,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         EmitterListenerFactory(requireActivity())
     }
 
+    override val serverSocket: Socket? by lazy {
+        (requireActivity() as ChatroomActivity).serverSocket
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val activity = requireActivity() as ChatroomActivity
@@ -214,7 +223,12 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onConnectedServerSocketFail() {
-
+        Toast.makeText(
+            requireContext(),
+            Constants.socketConnectionError,
+            Toast.LENGTH_LONG
+        ).show()
+        (requireActivity() as ChatroomActivity).leaveChatroom()
     }
 
     override fun connectServerSocketListeners() {

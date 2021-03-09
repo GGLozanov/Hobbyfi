@@ -21,13 +21,13 @@ import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
 
-abstract class BaseActivity : AppCompatActivity(), KodeinAware {
+abstract class BaseActivity : AppCompatActivity(), KodeinAware, ConnectivityAccessor {
     override val kodein: Kodein by kodein()
     protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
     lateinit var refreshConnectivityMonitor: RefreshConnectivityMonitor
-    protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
+    override val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
