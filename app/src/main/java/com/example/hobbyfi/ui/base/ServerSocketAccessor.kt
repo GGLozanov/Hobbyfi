@@ -1,17 +1,16 @@
     package com.example.hobbyfi.ui.base
 
-import android.net.ConnectivityManager
 import android.util.Log
 import androidx.annotation.MainThread
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.EmitterListenerFactory
 import com.example.hobbyfi.shared.isConnected
-import io.socket.client.IO
+import io.socket.client.Manager
 import io.socket.client.Socket
-import io.socket.client.SocketOptionBuilder
-import java.net.URISyntaxException
+import io.socket.emitter.Emitter
+import io.socket.engineio.client.Transport
 
-interface ServerSocketAccessor: ConnectivityAccessor {
+
+    interface ServerSocketAccessor: ConnectivityAccessor {
     val serverSocket: Socket?
     val emitterListenerFactory: EmitterListenerFactory
 
@@ -23,6 +22,18 @@ interface ServerSocketAccessor: ConnectivityAccessor {
                 onConnectedServerSocketFail()
             }
         }
+
+        serverSocket?.io()?.on(Manager.EVENT_TRANSPORT) {
+            val transport: Transport = it[0] as Transport
+            transport.on(Transport.EVENT_ERROR) { args ->
+                val e = args[0] as Exception
+                Log.e("ServerSocketAccessor", "Transport error $e")
+                e.printStackTrace()
+                e.cause!!.printStackTrace()
+            }
+        }
+
+        Log.i("ServerSocketAccessor", "Connecting server socket")
 
         serverSocket?.connect()
     }
@@ -36,7 +47,11 @@ interface ServerSocketAccessor: ConnectivityAccessor {
     @MainThread
     fun onConnectedServerSocketFail()
 
+    @MainThread
     fun connectServerSocketListeners()
 
-    fun disconnectServerSocketListeners()
+    @MainThread
+    fun disconnectServerSocketListeners() {
+
+    }
 }

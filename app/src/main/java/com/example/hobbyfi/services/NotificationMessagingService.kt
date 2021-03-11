@@ -4,7 +4,6 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -22,9 +21,6 @@ import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.paging.ExperimentalPagingApi
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -47,15 +43,15 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
-class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver, KodeinAware,
-        SharedPreferences.OnSharedPreferenceChangeListener {
+class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserver, KodeinAware {
     private var isAppInForeground: Boolean = false
     private var isAppInFocus: Boolean = true
 
     override val kodein: Kodein by kodein(MainApplication.applicationContext)
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
     private val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
-    private val deferredBroadcastsQueue: Queue<Intent> = LinkedList()
+
+    private var fcmForegroundBaseIntentForReactivation: Intent? = null
 
     private val windowManager: WindowManager = MainApplication.applicationContext.getSystemService(Context.WINDOW_SERVICE)
             as WindowManager
@@ -65,13 +61,11 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
     override fun onCreate() {
         super.onCreate()
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-        prefConfig.registerPrefsListener(this)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
-        prefConfig.unregisterPrefsListener(this)
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
@@ -88,19 +82,12 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             return
         }
 
-        deferredBroadcastsQueue.forEach {
-            if(it.action == Constants.CREATE_MESSAGE_TYPE && !prefConfig.readReachedBottomMessagesAfterSearch()) {
-                // await for change in status before launching
-                return
-            }
-
-            localBroadcastManager.sendBroadcast(it)
-        }
-
-        if(!prefConfig.readReachedBottomMessagesAfterSearch()) {
-            deferredBroadcastsQueue.clear()
-        } else {
-            deferredBroadcastsQueue.removeIf { it.action != Constants.CREATE_MESSAGE_TYPE }
+        val sendIntent = fcmForegroundBaseIntentForReactivation
+        if(sendIntent != null) {
+            localBroadcastManager.sendBroadcast(Intent(Constants.FOREGROUND_REACTIVIATION_ACTION).apply {
+                putExtras(sendIntent)
+            })
+            fcmForegroundBaseIntentForReactivation = null
         }
     }
 
@@ -117,15 +104,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun onForegroundDestroy() {
-        prefConfig.writeReachedBottomMessagesAfterSearch(true) // reset on, well, onDestroy
-    }
-
-    override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
-        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(key, true)) {
-            deferredBroadcastsQueue.filter { it.action == Constants.CREATE_MESSAGE_TYPE }.forEach {
-                localBroadcastManager.sendBroadcast(it)
-            }
-        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -140,6 +118,8 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         var title: String? = null
         var body: String? = null
         var isImageMessage = false
+
+        // create message, create event, join user, leave user, delete chatroom
 
         when(notificationType) {
             Constants.CREATE_MESSAGE_TYPE -> {
@@ -199,14 +179,11 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         val screenOff =
             display?.state != Display.STATE_ON && !powerManager.isInteractive
 
-        val searchMessageCreateMessageBroadcast =
-            notificationType == Constants.CREATE_MESSAGE_TYPE && !prefConfig.readReachedBottomMessagesAfterSearch()
-
-        if(((!isAppInFocus && screenOff) || (!screenOff && !isAppInForeground)) ||
-                searchMessageCreateMessageBroadcast) {
+        if(((!isAppInFocus && screenOff) || (!screenOff && !isAppInForeground))) {
             Log.i("NotificationMService", "App is in DOZE/onPause state, NOT onStop(). Adding to deferred broadcasts queue")
-            deferredBroadcastsQueue.add(intent)
-            if(((title == null || body == null) && !isImageMessage) || searchMessageCreateMessageBroadcast) {
+            // localBroadcastManager.sendBroadcast(intent)
+            fcmForegroundBaseIntentForReactivation = intent
+            if(((title == null || body == null) && !isImageMessage)) {
                 return
             }
         }
@@ -214,14 +191,12 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         if(title != null) {
             // title/body set => hit a possible push notification
             handlePushMessageForChatroomByLifecycle(
-                intent,
+                Intent(Constants.FOREGROUND_REACTIVIATION_ACTION).apply {
+                    putExtras(intent)
+                },
                 title,
                 body
             )
-        } else {
-            // not push notification
-            Log.i("NotificationMService", "Normal notification detected. Simply sending broadcast!")
-            localBroadcastManager.sendBroadcast(intent)
         }
     }
 
@@ -233,8 +208,10 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         prefConfig.writeCurrentDeviceTokenUploaded(false)
 
         try {
-            prefConfig.getAuthUserIdFromToken().let {
-                WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(token, applicationContext)
+            prefConfig.getAuthUserToken()?.let {
+                WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(
+                    it,
+                    token, applicationContext)
             }
         } catch(ex: Exception) {
             Log.w("NotificationMService", "onNewToken user unathenticated => NOT sending to server yet!!!!")
@@ -251,14 +228,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         pushTitle: String,
         pushBody: String?
     ) {
-        if(isAppInForeground) {
-            // send broadcast
-            Log.i(
-                "NotificationMService",
-                "App is in FOREGROUND. Sending broadcast for current intent: ${intent}"
-            )
-            localBroadcastManager.sendBroadcast(intent)
-        } else {
+        if(!isAppInForeground) {
             // handle background the same way as killed state (hopefully)
             Log.i(
                 "NotificationMService",
@@ -272,6 +242,14 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 // image notification for message - always
                 sendImagePushNotificationForChatroom(intent, pushTitle, intent.getParcelableExtra<Message>(Constants.PARCELABLE_MODEL)!!.message)
             }
+
+        } else {
+            // send broadcast
+            Log.i(
+                "NotificationMService",
+                "App is in FOREGROUND. Sending broadcast for RESYNCHRONIZATION. Current intent: ${intent}"
+            )
+            localBroadcastManager.sendBroadcast(intent)
         }
     }
 

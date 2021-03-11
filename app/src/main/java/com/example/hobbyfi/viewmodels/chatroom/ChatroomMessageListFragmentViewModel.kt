@@ -3,6 +3,7 @@ package com.example.hobbyfi.viewmodels.chatroom
 import android.app.Application
 import androidx.databinding.Bindable
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.BuildConfig
@@ -37,6 +38,29 @@ class ChatroomMessageListFragmentViewModel(
 
     suspend fun sendMessageIntent(intent: MessageIntent) {
         messageStateIntent.sendIntent(intent)
+    }
+
+    private val searchDeferredMessages: MutableList<Message> = mutableListOf()
+
+    fun addSearchDeferredMessage(message: Message) {
+        searchDeferredMessages.add(message)
+    }
+
+    fun createSearchDeferredMessages() {
+        searchDeferredMessages.forEach {
+            viewModelScope.launch {
+                messageStateIntent.sendIntent(
+                    MessageIntent.CreateMessageCache(
+                        it
+                    )
+                )
+            }
+        }
+        clearSearchDeferredMessages()
+    }
+
+    private fun clearSearchDeferredMessages() {
+        searchDeferredMessages.clear()
     }
 
     override fun handleIntent() {

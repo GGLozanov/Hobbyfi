@@ -9,8 +9,11 @@ import com.example.hobbyfi.work.DeviceTokenWorker
 import java.util.concurrent.TimeUnit
 
 object WorkerUtils {
-    inline fun <reified T: DeviceTokenWorker> buildAndEnqueueDeviceTokenWorker(token: String?, context: Context) {
-        val workData = workDataOf(Constants.TOKEN to token)
+    inline fun <reified T: DeviceTokenWorker> buildAndEnqueueDeviceTokenWorker(
+        authToken: String,
+        token: String?, context: Context
+    ) {
+        val workData = workDataOf(Constants.TOKEN to token, Constants.AUTH_HEADER to authToken)
 
         // send to server (auth'd)
         val deviceTokenUploadWork = OneTimeWorkRequestBuilder<T>()

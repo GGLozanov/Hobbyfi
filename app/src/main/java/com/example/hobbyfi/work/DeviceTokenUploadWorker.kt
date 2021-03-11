@@ -16,9 +16,10 @@ class DeviceTokenUploadWorker(
 
     override suspend fun performDeviceTokenRequest() {
         val deviceToken = inputData.getString(Constants.TOKEN) ?: throw IllegalArgumentException()
+        val authToken = inputData.getString(Constants.AUTH_HEADER) ?: throw IllegalArgumentException()
 
         hobbyfiAPI.sendDeviceToken(
-            prefConfig.getAuthUserToken()!!,
+            authToken,
             deviceToken
         )
     }

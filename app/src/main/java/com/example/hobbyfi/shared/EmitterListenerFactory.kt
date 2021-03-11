@@ -11,8 +11,8 @@ class EmitterListenerFactory(private val activity: Activity) {
 
     fun <T: Model> createEmitterListenerForCreate(
         modelFromMap: (map: Map<String, String>) -> T,
-        onModelDeserialised: (T) -> Unit, errorFallback: (Exception) -> Unit = { throw it }): Emitter.Listener {
-        return Emitter.Listener {
+        onModelDeserialised: (T) -> Unit, errorFallback: (Exception) -> Unit = { throw it }
+    ): Emitter.Listener = Emitter.Listener {
             activity.runOnUiThread {
                 try {
                     Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
@@ -22,14 +22,54 @@ class EmitterListenerFactory(private val activity: Activity) {
                 }
             }
         }
+
+    fun createEmitterListenerForEdit(
+        onEditFieldMapReceived: (Map<String, String?>) -> Unit, errorFallback: (Exception) -> Unit = { throw it }
+    ): Emitter.Listener = Emitter.Listener {
+        activity.runOnUiThread {
+            try {
+                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                onEditFieldMapReceived((it[0] as JSONObject).toPlainStringMap())
+            } catch(ex: Exception) {
+                errorFallback(ex)
+            }
+        }
     }
 
-    fun createEmitterListenerForEdit() {
-        TODO("Need to implement")
+    fun createEmitterListenerForDelete(
+        onIdFieldReceived: (id: Long) -> Unit, errorFallback: (Exception) -> Unit = { throw it },
+        idField: String = Constants.ID
+    ): Emitter.Listener = Emitter.Listener {
+        activity.runOnUiThread {
+            try {
+                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                onIdFieldReceived(
+                    (it[0] as JSONObject).toPlainStringMap()[idField]?.toLong()
+                        ?: throw IllegalArgumentException(
+                            "Id field in createEmitterListenerForDelete not found! Sent data is incorrect!")
+                )
+            } catch(ex: Exception) {
+                errorFallback(ex)
+            }
+        }
     }
 
-    // TODO: Handle event_delete_batch with this too
-    fun createEmitterListenerForDelete() {
-        TODO("Need to implement")
+    fun createEmitterListenerForDeleteArray(
+        onIdFieldArrayReceived: (id: List<Long>) -> Unit, errorFallback: (Exception) -> Unit = { throw it },
+        idField: String
+    ): Emitter.Listener = Emitter.Listener {
+        activity.runOnUiThread {
+            try {
+                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                onIdFieldArrayReceived(
+                    Constants.tagJsonConverter.fromJson(
+                        (it[0] as JSONObject).toPlainStringMap()[idField]
+                    ) ?: throw IllegalArgumentException(
+                            "Id field in createEmitterListenerForDelete not found! Sent data is incorrect!")
+                )
+            } catch(ex: Exception) {
+                errorFallback(ex)
+            }
+        }
     }
 }

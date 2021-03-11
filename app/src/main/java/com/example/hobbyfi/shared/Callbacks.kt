@@ -267,7 +267,8 @@ object Callbacks {
                     }
                     401 -> { // unauthorized
                         throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                            else if (AccessToken.getCurrentAccessToken() != null)
+                            else if (AccessToken.getCurrentAccessToken() != null &&
+                                        AccessToken.getCurrentAccessToken().isExpired)
                                 Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)
                             else Repository.ReauthenticationException(Constants.reauthError)
                     }

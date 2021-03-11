@@ -1,7 +1,9 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
+import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -42,6 +44,7 @@ import com.kroegerama.imgpicker.ButtonType
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.client.SocketOptionBuilder
+import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import java.io.FileNotFoundException
@@ -53,10 +56,8 @@ import java.net.URISyntaxException
 class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputValidationOnus,
         BottomSheetImagePicker.OnImagesSelectedListener,
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, ServerSocketAccessor,
-        RefreshConnectionAware {
+        SharedPreferences.OnSharedPreferenceChangeListener, RefreshConnectionAware {
 
-    @ExperimentalCoroutinesApi
-    @ExperimentalPagingApi
     public override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
 
     private lateinit var binding: FragmentChatroomMessageListBinding
@@ -124,11 +125,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-    private var chatroomMessageBroadcastReceiverFactory: ChatroomMessageBroadcastReceiverFactory? = null
-
-    private var createMessageReceiver: BroadcastReceiver? = null
-    private var editMessageReceiver: BroadcastReceiver? = null
-    private var deleteMessageReceiver: BroadcastReceiver? = null
 
     override val emitterListenerFactory: EmitterListenerFactory by lazy {
         EmitterListenerFactory(requireActivity())
@@ -138,37 +134,88 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         (requireActivity() as ChatroomActivity).serverSocket
     }
 
+    private val socketEmissionErrorFallback = { e: Exception ->
+        (requireActivity() as ChatroomActivity).handleAuthActionableError(
+            e.message,
+            e.isCritical,
+            context = requireContext()
+        )
+    }
+
+    private val createMessageEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForCreate(
+            ::Message,
+            { message ->
+                if(prefConfig.readReachedBottomMessagesAfterSearch()) {
+                    if(activityViewModel.authUser.value?.chatroomIds?.contains(message.chatroomSentId) == true) {
+                        // assert user still in chatroom (kick race condition)
+                        lifecycleScope.launchWhenCreated {
+                            viewModel.messageStateIntent.sendIntent(
+                                MessageIntent.CreateMessageCache(
+                                    message
+                                )
+                            )
+                        }
+                    } else {
+                        Log.wtf("ChatroomActivity", "Received message for INVALID CHATROOM. THIS SHOULDN'T HAPPEN!")
+                    }
+                } else {
+                    Log.i("ChatroomActivity", "RECEIVED MESSAGE WHILE BOTTOM GENERATION IS STILL NOT RENDERED")
+                    viewModel.addSearchDeferredMessage(message)
+                }
+            },
+            socketEmissionErrorFallback
+        )
+    }
+
+    private val editMessageEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForEdit(
+            { editFields ->
+                if(messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id ==
+                            editFields[Constants.ID]?.toLong() } != null &&
+                    activityViewModel.authUser.value?.chatroomIds?.contains(
+                        editFields[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
+                    // only update if item is currently visible in pages
+                    lifecycleScope.launchWhenCreated {
+                        viewModel.messageStateIntent.sendIntent(
+                            MessageIntent.UpdateMessageCache(
+                                editFields
+                            )
+                        )
+                    }
+                }
+            },
+            socketEmissionErrorFallback
+        )
+    }
+
+    private val deleteMessageEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDelete(
+            { id ->
+                if(messageListAdapter.findItemFromCurrentPagingData {
+                            msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
+                    activityViewModel.authUser.value?.chatroomIds?.contains(
+                        activityViewModel.authChatroom.value?.id
+                    ) == true) {
+                    // only delete if message currently visible
+                    lifecycleScope.launchWhenCreated {
+                        viewModel.messageStateIntent.sendIntent(
+                            MessageIntent.DeleteMessageCache(
+                                id
+                            )
+                        )
+                    }
+                }
+            },
+            socketEmissionErrorFallback
+        )
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val activity = requireActivity() as ChatroomActivity
 
         connectServerSocketListeners()
-//
-//        // TODO: Move receiver registration in after chatroom messages fetch!!!
-//        chatroomMessageBroadcastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
-//            .getInstance(viewModel, messageListAdapter, activityViewModel, activity)
-//        createMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
-//            Constants.CREATE_MESSAGE_TYPE
-//        )
-//        editMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
-//            Constants.EDIT_MESSAGE_TYPE
-//        )
-//        deleteMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
-//            Constants.DELETE_MESSAGE_TYPE
-//        )
-//
-//        localBroadcastManager.registerReceiver(
-//            createMessageReceiver!!,
-//            IntentFilter(Constants.CREATE_MESSAGE_TYPE)
-//        )
-//        localBroadcastManager.registerReceiver(
-//            editMessageReceiver!!,
-//            IntentFilter(Constants.EDIT_MESSAGE_TYPE)
-//        )
-//        localBroadcastManager.registerReceiver(
-//            deleteMessageReceiver!!,
-//            IntentFilter(Constants.DELETE_MESSAGE_TYPE)
-//        )
     }
 
     override fun onCreateView(
@@ -232,40 +279,18 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun connectServerSocketListeners() {
-        val errorFallback = { e: Exception ->
-            (requireActivity() as ChatroomActivity).handleAuthActionableError(
-                e.message,
-                e.isCritical,
-                context = requireContext()
-            )
-        }
-
         serverSocket?.on(
             Constants.CREATE_MESSAGE_TYPE,
-            emitterListenerFactory.createEmitterListenerForCreate(
-                { map -> Message(map) },
-                { message ->
-                    Log.i("ChatroomMListFrag", "Received CREATE_MESSAGE event & deserialized model: ${message}")
-                    lifecycleScope.launchWhenStarted {
-                        viewModel.messageStateIntent.sendIntent(
-                            MessageIntent.CreateMessageCache(
-                                message
-                            )
-                        )
-                    }
-                },
-                errorFallback
-            )
+            createMessageEmitterListener
         )
-
-//        serverSocket?.on(Constants.EDIT_MESSAGE_TYPE)
-//        serverSocket?.on(Constants.DELETE_MESSAGE_TYPE)
-    }
-
-    override fun disconnectServerSocketListeners() {
-        serverSocket?.off(Constants.CREATE_MESSAGE_TYPE)
-        serverSocket?.off(Constants.EDIT_MESSAGE_TYPE)
-        serverSocket?.off(Constants.DELETE_MESSAGE_TYPE)
+        serverSocket?.on(
+            Constants.EDIT_MESSAGE_TYPE,
+            editMessageEmitterListener
+        )
+        serverSocket?.on(
+            Constants.DELETE_MESSAGE_TYPE,
+            deleteMessageEmitterListener
+        )
     }
 
     @ExperimentalPagingApi
@@ -415,6 +440,12 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         messageListAdapter.refresh()
     }
 
+    override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
+        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(key, true)) {
+            viewModel.createSearchDeferredMessages()
+        }
+    }
+
     override fun initMessageListAdapter() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
@@ -495,24 +526,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         viewModel.combinedObserversInvalidity.observe(
             viewLifecycleOwner, ViewReverseEnablerObserver(binding.sendMessageButton)
         )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disconnectServerSocketListeners()
-//        val activity = requireActivity()
-//
-//        if(!activity.isTaskRoot) {
-//            createMessageReceiver?.let {
-//                localBroadcastManager.unregisterReceiver(it)
-//            }
-//            editMessageReceiver?.let {
-//                localBroadcastManager.unregisterReceiver(it)
-//            }
-//            deleteMessageReceiver?.let {
-//                localBroadcastManager.unregisterReceiver(it)
-//            }
-//        }
     }
 
     override fun onEditMessageSelect(view: View, message: Message) {

@@ -25,8 +25,10 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
+import com.example.hobbyfi.ui.base.ForegroundFCMReactivationListener
 import com.example.hobbyfi.ui.base.MapsActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.base.ServerSocketAccessor
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -36,15 +38,21 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.GeoPoint
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.client.SocketOptionBuilder
+import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.lang.IllegalStateException
+import java.net.URISyntaxException
 
 
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity(),
-        SharedPreferences.OnSharedPreferenceChangeListener, RefreshConnectionAware {
+        SharedPreferences.OnSharedPreferenceChangeListener,
+        ServerSocketAccessor, ForegroundFCMReactivationListener {
     private val viewModel: EventMapsActivityViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             application,
@@ -53,55 +61,6 @@ class EventMapsActivity : MapsActivity(),
     })
 
     private lateinit var binding: ActivityEventMapsBinding
-
-    // sync here
-    private var deleteEventReceiver: BroadcastReceiver? = null
-    private var editEventReceiver: BroadcastReceiver? = null
-    private var deleteEventBatchReceiver: BroadcastReceiver? = null
-    private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
-
-    // not an auctionated receiver because custom behaviour
-    private val chatroomDeleteReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(p0: Context?, intent: Intent) {
-            if(intent.action == Constants.DELETE_CHATROOM_TYPE) {
-                emergencyActivityExit(Constants.RESULT_CHATROOM_DELETE, intent)
-            } else {
-                Log.e(
-                    "EventMapsActivity",
-                    "chatroomDeleteReceiver called with wrong intent action!"
-                )
-            }
-        }
-    }
-
-    private val leaveUserReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(p0: Context?, intent: Intent) {
-            val userId = try {
-                prefConfig.getAuthUserIdFromToken()
-            } catch(e: Exception) {
-                Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
-                    .show()
-                emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
-                return
-            }
-
-            if(intent.action == Constants.LEAVE_USER_TYPE) {
-                if(intent.getDeletedModelIdExtra() == userId) {
-                    emergencyActivityExit(Constants.RESULT_KICKED, intent)
-                } else {
-                    Log.w(
-                        "EventMapsActivity",
-                        "leaveUserReceiver called with ID different from auth user..."
-                    )
-                }
-            } else {
-                Log.e(
-                    "EventMapsActivity",
-                    "leaveUserReceiver called with wrong intent action!"
-                )
-            }
-        }
-    }
 
     private val locationUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -150,6 +109,22 @@ class EventMapsActivity : MapsActivity(),
             locationUpdatesService = null
             serviceBound = false
         }
+    }
+
+    override val serverSocket: Socket? by lazy {
+        try {
+            val socket = IO.socket(BuildConfig.SOCKET_BASE_URL,
+                SocketOptionBuilder.builder().setForceNew(true).build())
+            Log.i("ServerSocketAccessor", "Accessed socket with successful connection")
+            socket
+        } catch(e: URISyntaxException) {
+            onConnectedServerSocketFail()
+            null
+        }
+    }
+
+    override val emitterListenerFactory: EmitterListenerFactory by lazy {
+        EmitterListenerFactory(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -455,24 +430,24 @@ class EventMapsActivity : MapsActivity(),
         )
     }
 
+    override fun onConnectedServerSocketFail() {
+        runOnUiThread {
+            emergencyActivityExit()
+        }
+    }
+
+    override fun connectServerSocketListeners() {
+        TODO("Not yet implemented")
+    }
+
+    override fun disconnectServerSocketListeners() {
+        TODO("Not yet implemented")
+    }
+
     override fun onResume() {
         super.onResume()
         prefConfig.writeRequestLocationServiceRunning(false)
-        eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(
-            viewModel, this
-        )
-        deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
-        deleteEventBatchReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_BATCH_TYPE)
-        editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
-
-        with(localBroadcastManager) {
-            registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
-            registerReceiver(chatroomDeleteReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
-            registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
-            registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
-            registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
-            registerReceiver(deleteEventBatchReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
-        }
+        localBroadcastManager.registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
 
         setFABState(prefConfig.readRequestingLocationUpdates())
     }
@@ -480,14 +455,7 @@ class EventMapsActivity : MapsActivity(),
     override fun onPause() {
         super.onPause()
         prefConfig.writeRequestLocationServiceRunning(true)
-        with(localBroadcastManager) {
-            unregisterReceiver(locationUpdateReceiver)
-            unregisterReceiver(chatroomDeleteReceiver)
-            unregisterReceiver(leaveUserReceiver)
-            unregisterReceiver(deleteEventReceiver!!)
-            unregisterReceiver(editEventReceiver!!)
-            unregisterReceiver(deleteEventBatchReceiver!!)
-        }
+        localBroadcastManager.unregisterReceiver(locationUpdateReceiver)
     }
 
     override fun onStop() {
@@ -546,6 +514,10 @@ class EventMapsActivity : MapsActivity(),
                 EventListIntent.RefetchEvent
             )
         }
+    }
+
+    override fun onForegroundReactivation(intent: Intent) {
+        TODO("Not yet implemented")
     }
 
     private fun setFABState(requestingUpdates: Boolean) {

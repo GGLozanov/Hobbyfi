@@ -31,6 +31,7 @@ object Constants {
     const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
     const val invalidDataError: String = "Invalid data format!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
+    const val noConnectionOrAuthTaskRootError: String = "Couldn't enter the chatroom! Please check your connection or login again!"
     const val invalidCredentialsError: String = "Invalid credentials!"
     const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
     const val invalidTokenError: String = "Invalid access! Please login again!"
@@ -69,6 +70,7 @@ object Constants {
     const val chatroomKickedMessage: String = "Oh no, it looks like you've been kicked from the chatroom by the owner!"
     const val eventParsingError: String = "Failed to parse event date!"
     const val socketConnectionError: String = "Couldn't connect to server for realtime capabilities!"
+    const val socketEmissionError: String = "Couldn't receive new messages to display!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -281,7 +283,8 @@ object Constants {
 
     const val UPDATED_LOCATION: String = "UPDATED_LOCATION"
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
-    const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
+    const val UPDATED_LOCATION_ACTION: String = "com.example.hobbyfi.UPDATED_LOCATION_ACTION"
+    const val FOREGROUND_REACTIVIATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVIATION_ACTION";
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
@@ -290,7 +293,7 @@ object Constants {
     const val JOIN_CHATROOM: String = "join_chatroom"
 
     @SuppressLint("SimpleDateFormat")
-    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER

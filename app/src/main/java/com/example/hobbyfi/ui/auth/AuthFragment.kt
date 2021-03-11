@@ -28,7 +28,10 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
         }
 
         if(!prefConfig.readCurrentDeviceTokenUploaded()) {
-            WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(prefConfig.readDeviceToken(), requireContext())
+            WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(
+                prefConfig.getAuthUserToken()!!,
+                prefConfig.readDeviceToken(), requireContext()
+            )
         }
 
         if(refreshToken != null) {

@@ -222,10 +222,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     }
 
     private fun resetAuthProperties() {
-        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
-            prefConfig.readDeviceToken(),
-            this
-        )
+        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(prefConfig.getAuthUserToken()!!,
+            prefConfig.readDeviceToken(), this)
         LoginManager.getInstance().logOut()
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()
