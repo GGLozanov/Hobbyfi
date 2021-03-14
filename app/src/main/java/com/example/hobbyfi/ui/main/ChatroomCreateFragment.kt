@@ -42,11 +42,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         menu.clear()
     }
 
-    private val fcmTopicErrorFallback: OnFailureListener by instance(
-        tag = "fcmTopicErrorFallback",
-        MainApplication.applicationContext
-    )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -106,18 +101,11 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
                         activityViewModel.setJoinedChatroom(true)
+                        prefConfig.writeLastEnteredChatroomId(it.response.id)
                         navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
                             activityViewModel.authUser.value,
                             it.response
                         ))
-
-//                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity({
-//
-//                            },
-//                            it.response.id,
-//                            fcmTopicErrorFallback,
-//                            connectivityManager
-//                        )
                         viewModel.resetState()
                     }
                     is ChatroomState.Error -> {

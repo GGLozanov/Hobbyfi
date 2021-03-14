@@ -24,11 +24,10 @@ import androidx.work.workDataOf
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.intents.UserIntent
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.UserState
-import com.example.hobbyfi.ui.base.BaseActivity
-import com.example.hobbyfi.ui.base.NavigationActivity
-import com.example.hobbyfi.ui.base.OnAuthStateReset
+import com.example.hobbyfi.ui.base.*
 import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
@@ -38,12 +37,15 @@ import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import com.facebook.login.LoginManager
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
+import io.socket.client.Socket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import org.json.JSONObject
 
 
 @ExperimentalCoroutinesApi
-class MainActivity : NavigationActivity(), OnAuthStateReset {
+class MainActivity : NavigationActivity(), OnAuthStateReset,
+        ServerSocketAccessor {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
         AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
     })
@@ -52,6 +54,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     private var poppedFromLogoutButton: Boolean = false
 
+    private var sentEnterMainSocketEvent: Boolean = false
 
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -76,6 +79,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        connectServerSocket()
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
@@ -98,6 +102,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     override fun onStart() {
         super.onStart()
+        // connectServerSocket()
+        observeAuthUser()
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
         )
@@ -107,6 +113,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     override fun onResume() {
         super.onResume()
+        connectServerSocket()
         initNavController()
     }
 
@@ -222,8 +229,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
     }
 
     private fun resetAuthProperties() {
-        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(prefConfig.getAuthUserToken()!!,
-            prefConfig.readDeviceToken(), this)
+        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
+            prefConfig.getAuthUserTokenRefresh()!!,
+            prefConfig.readDeviceToken(), this
+        )
         LoginManager.getInstance().logOut()
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         prefConfig.resetToken()
@@ -245,6 +254,45 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
         return true
     }
 
+    // delegation not allowed in interfaces :(
+    override val serverSocket: Socket? by lazy {
+        initSocket()
+    }
+    override val emitterListenerFactory: EmitterListenerFactory by lazy {
+        EmitterListenerFactory(this)
+    }
+
+    override fun onConnectedServerSocketFail() {
+        Log.w("MainActivity", "User failed to connect to external FCM monitoring socket from MainActivity!")
+    }
+
+    override fun connectServerSocketListeners() {
+        serverSocket?.on(Socket.EVENT_DISCONNECT) {
+            sentEnterMainSocketEvent = false
+        }
+    }
+
+    private fun observeAuthUser() {
+        viewModel.authUser.observe(this, Observer {
+            emitEnterMainEventOnUserObserve(it)
+        })
+    }
+
+    private fun emitEnterMainEventOnUserObserve(user: User?) {
+        user?.id?.let {
+            if(!sentEnterMainSocketEvent) {
+                Log.i("MainActivity", "Emitting enter_main event!!!!")
+
+                serverSocket?.emit(Constants.ENTER_MAIN, JSONObject(mapOf(
+                    Constants.ID to it,
+                )))
+                sentEnterMainSocketEvent = true
+            } else {
+                Log.w("MainActivity", "Not emitting enter_main event due to it already having been emitted")
+            }
+        }
+    }
+
     // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
         if(poppedFromLogoutButton) {
@@ -259,6 +307,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset {
 
     override fun onDestroy() {
         super.onDestroy()
+        disconnectServerSocket()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
     }
 

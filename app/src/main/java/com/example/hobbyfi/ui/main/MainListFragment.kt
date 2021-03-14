@@ -46,11 +46,6 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
 
     protected var updateJob: Job? = null
 
-    protected val fcmTopicErrorFallback: OnFailureListener by instance(
-        tag = "fcmTopicErrorFallback",
-        MainApplication.applicationContext
-    )
-
     protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
         e.printStackTrace()
         if(e.isCritical) {
@@ -88,16 +83,6 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
                 prefConfig.writeLastEnteredChatroomId(chatroom.id)
                 navigateToChatroomPerDeepLinkExtras()
             }
-//            Callbacks.subscribeToChatroomTopicByCurrentConnectivity( {
-//                    updateJob = lifecycleScope.launch {
-//                        prefConfig.writeLastEnteredChatroomId(chatroom.id)
-//                        navigateToChatroomPerDeepLinkExtras()
-//                    }
-//                },
-//                chatroom.id,
-//                fcmTopicErrorFallback,
-//                connectivityManager
-//            )
         }
     }
 

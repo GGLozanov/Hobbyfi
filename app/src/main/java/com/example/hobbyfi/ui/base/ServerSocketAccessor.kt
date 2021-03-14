@@ -2,12 +2,16 @@
 
 import android.util.Log
 import androidx.annotation.MainThread
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.EmitterListenerFactory
 import com.example.hobbyfi.shared.isConnected
+import io.socket.client.IO
 import io.socket.client.Manager
 import io.socket.client.Socket
+import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
 import io.socket.engineio.client.Transport
+import java.net.URISyntaxException
 
 
     interface ServerSocketAccessor: ConnectivityAccessor {
@@ -40,9 +44,22 @@ import io.socket.engineio.client.Transport
 
     fun disconnectServerSocket() {
         Log.i("ServerSocketAccessor", "Disconnecting server socket")
+        serverSocket?.off()
         serverSocket?.disconnect()
         disconnectServerSocketListeners()
     }
+
+    fun initSocket(): Socket? =
+        try {
+            val socket = IO.socket(
+                BuildConfig.SOCKET_BASE_URL,
+                SocketOptionBuilder.builder().setForceNew(true).build())
+            Log.i("ServerSocketAccessor", "Accessed socket with successful connection")
+            socket
+        } catch(e: URISyntaxException) {
+            onConnectedServerSocketFail()
+            null
+        }
 
     @MainThread
     fun onConnectedServerSocketFail()

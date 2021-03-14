@@ -37,6 +37,7 @@ import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
 import com.example.hobbyfi.intents.*
+import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.models.data.User
@@ -44,8 +45,8 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.auth.AuthActivity
-import com.example.hobbyfi.ui.base.ForegroundFCMReactivationListener
 import com.example.hobbyfi.ui.base.NavigationActivity
+import com.example.hobbyfi.ui.base.RefreshConnectionForegroundFCMReactivationListener
 import com.example.hobbyfi.ui.base.ServerSocketAccessor
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.ui.main.MainActivity
@@ -58,7 +59,6 @@ import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.facebook.login.LoginManager
 import com.google.android.gms.common.ConnectionResult.*
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.tasks.OnFailureListener
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import io.branch.referral.Branch
 import io.branch.referral.Branch.BranchReferralInitListener
@@ -66,13 +66,11 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
-import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import org.kodein.di.generic.instance
 import java.net.URISyntaxException
 import java.util.*
 
@@ -80,7 +78,7 @@ import java.util.*
 @ExperimentalCoroutinesApi
 class ChatroomActivity : NavigationActivity(),
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, ServerSocketAccessor,
-        ForegroundFCMReactivationListener {
+        RefreshConnectionForegroundFCMReactivationListener {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
@@ -247,17 +245,8 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     override val serverSocket: Socket? by lazy {
-        try {
-            val socket = IO.socket(BuildConfig.SOCKET_BASE_URL,
-                SocketOptionBuilder.builder().setForceNew(true).build())
-            Log.i("ServerSocketAccessor", "Accessed socket with successful connection")
-            socket
-        } catch(e: URISyntaxException) {
-            onConnectedServerSocketFail()
-            null
-        }
+        initSocket()
     }
-
     private var sentJoinChatroomSocketEvent = false
 
     @ExperimentalPagingApi
@@ -416,10 +405,6 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     override fun connectServerSocketListeners() {
-        serverSocket?.on(Socket.EVENT_CONNECT) {
-            emitJoinChatroomEventOnCurrentNonNull()
-        }
-
         serverSocket?.on(Socket.EVENT_DISCONNECT) {
             sentJoinChatroomSocketEvent = false
         }
@@ -435,22 +420,10 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     override fun disconnectServerSocketListeners() {
-        serverSocket?.off(Constants.LEAVE_USER_TYPE)
-        serverSocket?.off(Constants.EDIT_CHATROOM_TYPE)
-        serverSocket?.off(Constants.DELETE_CHATROOM_TYPE)
-        serverSocket?.off(Constants.EDIT_USER_TYPE)
-        serverSocket?.off(Constants.CREATE_EVENT_TYPE)
-        serverSocket?.off(Constants.EDIT_EVENT_TYPE)
-        serverSocket?.off(Constants.DELETE_EVENT_TYPE)
-        serverSocket?.off(Constants.DELETE_EVENT_BATCH_TYPE)
-
-        serverSocket?.off(Constants.CREATE_MESSAGE_TYPE)
-        serverSocket?.off(Constants.EDIT_MESSAGE_TYPE)
-        serverSocket?.off(Constants.DELETE_MESSAGE_TYPE)
-
         sentJoinChatroomSocketEvent = false
     }
 
+    @ExperimentalPagingApi
     override fun onForegroundReactivation(intent: Intent) {
         val data = JSONObject.wrap(intent.extras)
         // ASSOC MAP GO BRRR
@@ -477,13 +450,16 @@ class ChatroomActivity : NavigationActivity(),
                 deleteEventEmitterListener.call(data)
             }
             Constants.CREATE_MESSAGE_TYPE -> {
-
+                (supportFragmentManager.findFragmentByType<ChatroomMessageListFragment>())
+                    ?.createMessageEmitterListener?.call(data)
             }
             Constants.EDIT_MESSAGE_TYPE -> {
-
+                (supportFragmentManager.findFragmentByType<ChatroomMessageListFragment>())
+                    ?.editMessageEmitterListener?.call(data)
             }
             Constants.DELETE_MESSAGE_TYPE -> {
-
+                (supportFragmentManager.findFragmentByType<ChatroomMessageListFragment>())
+                    ?.deleteMessageEmitterListener?.call(data)
             }
         }
     }
@@ -546,7 +522,6 @@ class ChatroomActivity : NavigationActivity(),
                         // TODO: Loading
                     }
                     is ChatroomState.OnData.ChatroomResult -> {
-                        emitJoinChatroomEventOnCurrentNonNull()
                         viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
@@ -653,9 +628,9 @@ class ChatroomActivity : NavigationActivity(),
         Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
             .show()
 
-        // log out of all accounts
+        // log out of all accounts (use refresh token to authorise properly)
         WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
-            prefConfig.getAuthUserToken()!!,
+            prefConfig.getAuthUserTokenRefresh()!!,
             prefConfig.readDeviceToken(), this)
         LoginManager.getInstance().logOut()
         prefConfig.resetToken()
@@ -830,6 +805,7 @@ class ChatroomActivity : NavigationActivity(),
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer { chatroom ->
             if (chatroom != null) {
+                emitJoinChatroomEventOnChatroomObserve(chatroom)
                 Log.i("ChatroomActivity", "Observed chatroom: ${chatroom}")
                 // TODO: Remove
                 if (supportFragmentManager.currentNavigationFragment is ChatroomMessageListFragment) {
@@ -1284,9 +1260,9 @@ class ChatroomActivity : NavigationActivity(),
         }
     }
 
-    private fun emitJoinChatroomEventOnCurrentNonNull() {
-        viewModel.authUser.value?.id?.let { userId ->
-            viewModel.authChatroom.value?.id?.let { chatroomId ->
+    private fun emitJoinChatroomEventOnChatroomObserve(chatroom: Chatroom) {
+        viewModel.authUser.value?.id.let { userId ->
+            chatroom.id.let { chatroomId ->
                 if(!sentJoinChatroomSocketEvent) {
                     Log.i("ChatroomActivity", "Emitting join_chatroom event!!!!")
 
@@ -1340,7 +1316,7 @@ class ChatroomActivity : NavigationActivity(),
 
     override fun onBackPressed() {
         if (viewModel.authChatroom.value != null) {
-            prefConfig.resetLastEnteredChatroomId()
+            // prefConfig.resetLastEnteredChatroomId()
             if (!isFinishing) {
                 super.onBackPressed()
             }

@@ -84,6 +84,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
 
         val sendIntent = fcmForegroundBaseIntentForReactivation
         if(sendIntent != null) {
+            Log.i("NotificationMService", "Sending FOREGROUND_REACTIVATION_ACTION after foreground resume; base intent: ${sendIntent}")
             localBroadcastManager.sendBroadcast(Intent(Constants.FOREGROUND_REACTIVIATION_ACTION).apply {
                 putExtras(sendIntent)
             })
@@ -242,7 +243,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                 // image notification for message - always
                 sendImagePushNotificationForChatroom(intent, pushTitle, intent.getParcelableExtra<Message>(Constants.PARCELABLE_MODEL)!!.message)
             }
-
         } else {
             // send broadcast
             Log.i(

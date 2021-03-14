@@ -6,23 +6,21 @@ import android.content.Intent
 import android.util.Log
 import com.example.hobbyfi.shared.Constants
 
-interface ForegroundFCMReactivationListener: RefreshConnectionAware {
+interface ForegroundFCMReactivationListener {
     val foregroundFCMReceiver: BroadcastReceiver
         get() = ForegroundFCMReactivationReceiver.getInstance(
-            ::onForegroundReactivation, ::refreshDataOnConnectionRefresh
+            ::onForegroundReactivation
         )
 
     fun onForegroundReactivation(intent: Intent)
 
-    class ForegroundFCMReactivationReceiver(
+    open class ForegroundFCMReactivationReceiver(
         private val onForegroundReactivation: (intent: Intent) -> Unit,
-        private val refreshDataProcedure: () -> Unit
     ) : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.FOREGROUND_REACTIVIATION_ACTION) {
                 onForegroundReactivation(intent)
-                refreshDataProcedure()
             } else {
                 Log.w(context::class.simpleName, "Foreground reactivation for App Standby broadcastreceiver called with incorrect action!")
             }
@@ -33,11 +31,11 @@ interface ForegroundFCMReactivationListener: RefreshConnectionAware {
             private var instance: ForegroundFCMReactivationReceiver? = null
 
             @JvmName("getInstance1")
-            fun getInstance(onForegroundReactivation: (intent: Intent) -> Unit, refreshDataProcedure: () -> Unit):
+            fun getInstance(onForegroundReactivation: (intent: Intent) -> Unit):
                     ForegroundFCMReactivationReceiver {
                 synchronized(this) {
                     if(instance == null) {
-                        instance = ForegroundFCMReactivationReceiver(onForegroundReactivation, refreshDataProcedure)
+                        instance = ForegroundFCMReactivationReceiver(onForegroundReactivation)
                     }
 
                     return instance as ForegroundFCMReactivationReceiver

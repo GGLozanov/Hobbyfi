@@ -142,7 +142,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         )
     }
 
-    private val createMessageEmitterListener: Emitter.Listener by lazy {
+    val createMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForCreate(
             ::Message,
             { message ->
@@ -168,7 +168,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         )
     }
 
-    private val editMessageEmitterListener: Emitter.Listener by lazy {
+    val editMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForEdit(
             { editFields ->
                 if(messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id ==
@@ -189,14 +189,13 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         )
     }
 
-    private val deleteMessageEmitterListener: Emitter.Listener by lazy {
+    val deleteMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForDelete(
             { id ->
                 if(messageListAdapter.findItemFromCurrentPagingData {
                             msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
                     activityViewModel.authUser.value?.chatroomIds?.contains(
-                        activityViewModel.authChatroom.value?.id
-                    ) == true) {
+                        activityViewModel.authChatroom.value?.id) == true) {
                     // only delete if message currently visible
                     lifecycleScope.launchWhenCreated {
                         viewModel.messageStateIntent.sendIntent(

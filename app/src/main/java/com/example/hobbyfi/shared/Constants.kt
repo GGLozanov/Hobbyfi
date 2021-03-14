@@ -42,7 +42,6 @@ object Constants {
     const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
     const val resourceNotFoundError: String = "Requested resource not found!"
-    const val fcmTopicError: String = "Couldn't access realtime messaging services! Please check your connection or consult with Google, as this error is not ours!"
     const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
     const val invalidStateError: String = "Invalid state to call this method in!"
     const val firestoreDeletionError: String = "Couldn't delete remote source records needed to have been deleted!"
@@ -86,6 +85,7 @@ object Constants {
     const val eventMapsRequestCode: Int = 666
     const val RESULT_CHATROOM_DELETE: Int = 423
     const val RESULT_KICKED: Int = 246
+    const val RESULT_REAUTH: Int = 111
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -291,6 +291,7 @@ object Constants {
     const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
     const val JOIN_CHATROOM: String = "join_chatroom"
+    const val ENTER_MAIN: String = "enter_main"
 
     @SuppressLint("SimpleDateFormat")
     val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

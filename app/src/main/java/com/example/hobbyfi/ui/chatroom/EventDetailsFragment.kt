@@ -445,6 +445,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     // FIXME: Probably through some kind of a sharedprefs/livedata observer on a bool
                     (requireActivity() as ChatroomActivity).refreshDataOnConnectionRefresh()
                 }
+                Constants.RESULT_REAUTH -> {
+                    (requireActivity() as ChatroomActivity).leaveChatroom()
+                }
                 RESULT_CANCELED -> {
                     Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!")
                     Toast.makeText(requireContext(), Constants.eventDeleted, LENGTH_LONG)

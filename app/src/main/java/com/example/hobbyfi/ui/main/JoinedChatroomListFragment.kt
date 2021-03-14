@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent

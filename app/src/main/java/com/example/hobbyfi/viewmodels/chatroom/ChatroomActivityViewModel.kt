@@ -191,26 +191,35 @@ class ChatroomActivityViewModel(
     private suspend fun fetchUsers() {
         usersStateIntent.setState(UserListState.Loading)
 
-        userRepository.getChatroomUsers(
-            authChatroom.value!!.id,
-            prefConfig.getAuthUserIdFromToken()
-        ).catch { e ->
+        try {
+            userRepository.getChatroomUsers(
+                authChatroom.value!!.id,
+                prefConfig.getAuthUserIdFromToken()
+            ).catch { e ->
+                usersStateIntent.setState(
+                    UserListState.Error(
+                        e.message,
+                        e.isCritical
+                    )
+                )
+            }.collectLatest {
+                if(it != null) {
+                    Log.i("ChatroomActivityVM", "Collecting new users from SSOT cache!!! $it")
+                    setCurrentUsers(it)
+                    usersStateIntent.setState(
+                        UserListState.OnData.UsersResult(
+                            it
+                        )
+                    )
+                }
+            }
+        } catch(e: Exception) {
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
                     e.isCritical
                 )
             )
-        }.collectLatest {
-            if(it != null) {
-                Log.i("ChatroomActivityVM", "Collecting new users from SSOT cache!!! $it")
-                setCurrentUsers(it)
-                usersStateIntent.setState(
-                    UserListState.OnData.UsersResult(
-                        it
-                    )
-                )
-            }
         }
     }
 

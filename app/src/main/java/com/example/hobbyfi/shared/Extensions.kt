@@ -50,7 +50,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Field
 
-
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
     object : TypeToken<T>() {}.type
@@ -60,7 +59,6 @@ inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(
     json,
     object : TypeToken<T>() {}.type
 )
-
 
 // original function by Zhuinden; modified to work for INvalidation purposes instead of validation
 fun invalidateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = MediatorLiveData<Boolean>().also { mediator ->
@@ -149,6 +147,8 @@ val FragmentManager.currentNavigationFragment: Fragment?
 
 val FragmentManager.previousNavigationFragment: Fragment?
     get() = primaryNavigationFragment?.childFragmentManager?.fragments?.get(1)
+
+inline fun <reified T : Fragment> FragmentManager.findFragmentByType(): T? = fragments.firstOrNull { it is T } as T?
 
 fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     menu.clear()

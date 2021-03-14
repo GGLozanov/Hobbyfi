@@ -77,12 +77,6 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                         joinChatroomWithDialog()
                     } else {
                         joinChatroomWithDialog()
-//                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
-//                            joinChatroomWithDialog,
-//                            viewModel.buttonSelectedChatroom!!.id,
-//                            fcmTopicErrorFallback,
-//                            connectivityManager
-//                        )
                     }
                 } else {
                     joinChatroomAndUpdate()

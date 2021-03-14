@@ -247,4 +247,7 @@ class PrefConfig(private val context: Context) {
 
     fun getAuthUserToken(): String? =
         if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else readToken()
+
+    fun getAuthUserTokenRefresh(): String? =
+        if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else readRefreshToken()
 }

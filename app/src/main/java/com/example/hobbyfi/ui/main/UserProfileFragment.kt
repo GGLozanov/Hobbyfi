@@ -177,8 +177,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         // observe
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
             if (it != null) {
-                viewModel.description.setValue(it.description)
-                viewModel.name.setValue(it.name)
+                viewModel.description.value = it.description
+                viewModel.name.value = it.name
                 it.tags?.let { selectedTags ->
                     viewModel.tagBundle.setSelectedTags(selectedTags)
                     viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)

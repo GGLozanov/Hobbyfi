@@ -3,18 +3,13 @@ package com.example.hobbyfi
 import android.content.Context
 import android.location.LocationManager
 import android.net.ConnectivityManager
-import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import androidx.paging.ExperimentalPagingApi
-import com.bumptech.glide.load.resource.bitmap.Downsampler
 import com.example.hobbyfi.api.HobbyfiAPI
-import com.example.hobbyfi.paging.mediators.ChatroomMediator
-import com.example.hobbyfi.paging.mediators.MessageMediator
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.*
-import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.facebook.CallbackManager
 import com.facebook.FacebookSdk
@@ -76,12 +71,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
                 instance(tag = "database") as HobbyfiDatabase,
                 instance(tag = "connectivityManager") as ConnectivityManager
             )
-        }
-        bind(tag = "fcmTopicErrorFallback") from factory { context: Context ->
-            OnFailureListener {
-                Toast.makeText(context, Constants.fcmTopicError, Toast.LENGTH_LONG)
-                    .show()
-            }
         }
         bind(tag = "callbackManager") from singleton {
             CallbackManager.Factory.create()

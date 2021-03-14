@@ -25,10 +25,7 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
-import com.example.hobbyfi.ui.base.ForegroundFCMReactivationListener
-import com.example.hobbyfi.ui.base.MapsActivity
-import com.example.hobbyfi.ui.base.RefreshConnectionAware
-import com.example.hobbyfi.ui.base.ServerSocketAccessor
+import com.example.hobbyfi.ui.base.*
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -48,11 +45,10 @@ import kotlinx.coroutines.launch
 import java.lang.IllegalStateException
 import java.net.URISyntaxException
 
-
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity(),
         SharedPreferences.OnSharedPreferenceChangeListener,
-        ServerSocketAccessor, ForegroundFCMReactivationListener {
+        ServerSocketAccessor, RefreshConnectionForegroundFCMReactivationListener {
     private val viewModel: EventMapsActivityViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             application,
@@ -112,17 +108,8 @@ class EventMapsActivity : MapsActivity(),
     }
 
     override val serverSocket: Socket? by lazy {
-        try {
-            val socket = IO.socket(BuildConfig.SOCKET_BASE_URL,
-                SocketOptionBuilder.builder().setForceNew(true).build())
-            Log.i("ServerSocketAccessor", "Accessed socket with successful connection")
-            socket
-        } catch(e: URISyntaxException) {
-            onConnectedServerSocketFail()
-            null
-        }
+        initSocket()
     }
-
     override val emitterListenerFactory: EmitterListenerFactory by lazy {
         EmitterListenerFactory(this)
     }
@@ -130,6 +117,7 @@ class EventMapsActivity : MapsActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEventMapsBinding.inflate(layoutInflater)
+        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVIATION_ACTION))
         setContentView(binding.root)
 
         val mapFragment = supportFragmentManager
@@ -181,6 +169,7 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onStart() {
         super.onStart()
+        connectServerSocket()
         prefConfig.registerPrefsListener(this)
 
         with(binding) {
@@ -437,15 +426,14 @@ class EventMapsActivity : MapsActivity(),
     }
 
     override fun connectServerSocketListeners() {
-        TODO("Not yet implemented")
     }
 
     override fun disconnectServerSocketListeners() {
-        TODO("Not yet implemented")
     }
 
     override fun onResume() {
         super.onResume()
+        connectServerSocket()
         prefConfig.writeRequestLocationServiceRunning(false)
         localBroadcastManager.registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
 
@@ -454,11 +442,13 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onPause() {
         super.onPause()
+        disconnectServerSocket()
         prefConfig.writeRequestLocationServiceRunning(true)
         localBroadcastManager.unregisterReceiver(locationUpdateReceiver)
     }
 
     override fun onStop() {
+        disconnectServerSocket()
         unbindServiceIfBound()
         prefConfig
             .unregisterPrefsListener(this)
@@ -517,7 +507,9 @@ class EventMapsActivity : MapsActivity(),
     }
 
     override fun onForegroundReactivation(intent: Intent) {
-        TODO("Not yet implemented")
+        when(intent.action) {
+
+        }
     }
 
     private fun setFABState(requestingUpdates: Boolean) {
@@ -531,7 +523,7 @@ class EventMapsActivity : MapsActivity(),
         Toast.makeText(this@EventMapsActivity, error, Toast.LENGTH_LONG)
             .show()
         if(shouldReauth) {
-            emergencyActivityExit(RESULT_OK)
+            emergencyActivityExit(Constants.RESULT_REAUTH)
         }
     }
 
@@ -600,6 +592,7 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
+        localBroadcastManager.unregisterReceiver(foregroundFCMReceiver)
         prefConfig.writeRequestLocationServiceRunning(true)
         viewModel.setUserMarkers(null)
     }

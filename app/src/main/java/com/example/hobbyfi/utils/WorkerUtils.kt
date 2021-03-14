@@ -21,8 +21,8 @@ object WorkerUtils {
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
                 OneTimeWorkRequest.MIN_BACKOFF_MILLIS * 6, // 10 seconds * 6 = 1 minute
-                TimeUnit.MILLISECONDS)
-            .build()
+                TimeUnit.MILLISECONDS
+            ).build()
         WorkManager.getInstance(context).enqueue(deviceTokenUploadWork)
     }
 }
