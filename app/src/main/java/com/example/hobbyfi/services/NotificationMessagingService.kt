@@ -38,6 +38,7 @@ import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
+import java.lang.IllegalStateException
 import java.util.*
 
 
@@ -209,11 +210,13 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         prefConfig.writeCurrentDeviceTokenUploaded(false)
 
         try {
-            prefConfig.getAuthUserToken()?.let {
+            val authToken = prefConfig.getAuthUserTokenRefresh()
+            if(authToken != null && authToken != Constants.INVALID_TOKEN) {
                 WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(
-                    it,
-                    token, applicationContext)
-            }
+                    authToken,
+                    token, applicationContext
+                )
+            } else throw IllegalStateException()
         } catch(ex: Exception) {
             Log.w("NotificationMService", "onNewToken user unathenticated => NOT sending to server yet!!!!")
         }

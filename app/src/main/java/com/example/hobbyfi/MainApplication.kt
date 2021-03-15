@@ -14,6 +14,7 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.facebook.CallbackManager
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
+import com.google.android.gms.security.ProviderInstaller
 import com.google.android.gms.tasks.OnFailureListener
 import io.branch.referral.Branch
 import org.kodein.di.Kodein
@@ -83,6 +84,7 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         AppEventsLogger.activateApp(this)
         MainApplication.applicationContext = applicationContext
 
+        ProviderInstaller.installIfNeeded(applicationContext)
         // Branch logging for debugging
         Branch.enableLogging()
 

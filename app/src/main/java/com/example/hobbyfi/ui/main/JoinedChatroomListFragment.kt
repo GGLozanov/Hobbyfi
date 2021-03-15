@@ -91,18 +91,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                 }
 
                 if(left) {
-                    if(viewModel.buttonSelectedChatroom != null) {
-                        leaveChatroomAndUpdate()
-//                        Callbacks.unsubscribeToChatroomTopicByCurrentConnectivity({
-//                                leaveChatroomAndUpdate()
-//                            },
-//                            viewModel.buttonSelectedChatroom!!.id,
-//                            fcmTopicErrorFallback,
-//                            connectivityManager
-//                        )
-                    } else {
-                        leaveChatroomAndUpdate()
-                    }
+                    leaveChatroomAndUpdate()
                     activityViewModel.setLeftChatroom(false)
                 }  else {
                     Log.i("ChatroomListFragment", "Observing user left chatroom false")
@@ -128,6 +117,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
     }
 
     override fun navigateToChatroom() {
+        super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomJListFragment", "Navigating to ChatroomActivity. Chatroom selected: ${viewModel.buttonSelectedChatroom}")
         navController.navigate(

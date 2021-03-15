@@ -79,7 +79,9 @@ abstract class AuthChatroomHolderViewModel(
                     is ChatroomIntent.UpdateChatroomCache -> {
                         updateAndSaveChatroom(it.chatroomUpdateFields)
                     }
-                    else -> throw Intent.InvalidIntentException()
+                    is ChatroomIntent.TogglePushNotificationForChatroomAuthUser -> {
+                        togglePushNotificationAllow(it.send)
+                    }
                 }
             }
         }
@@ -169,6 +171,31 @@ abstract class AuthChatroomHolderViewModel(
 
         saveChatroom(updatedChatroom!!)
         _authChatroom.value = updatedChatroom
+    }
+
+    private suspend fun togglePushNotificationAllow(allow: Boolean) {
+        try {
+            userRepository.togglePushNotificationAllowForChatroomUser(
+                authChatroom.value!!.id,
+                allow
+            )
+
+            updateAndSaveUser(mapOf(
+                Pair(Constants.ALLOWED_PUSH_CHATROOM_IDS,
+                    (if(!allow) Constants.tagJsonConverter.toJson(
+                        _authUser.value!!.allowedPushChatroomIds?.filter { chId -> chId != _authChatroom.value!!.id }
+                    ) else Constants.tagJsonConverter.toJson(_authUser.value!!.allowedPushChatroomIds?.plus(
+                        _authChatroom.value!!.id
+                    )))
+            )))
+        } catch(ex: Exception) {
+            chatroomStateIntent.setState(
+                ChatroomState.Error(
+                    ex.message,
+                    ex.isCritical
+                )
+            )
+        }
     }
 
     private suspend fun saveChatroom(chatroom: Chatroom) = chatroomRepository.saveChatroom(chatroom)

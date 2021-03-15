@@ -317,6 +317,14 @@ interface HobbyfiAPI {
         @Query(Constants.TOKEN) deviceToken: String
     ): Response?
 
+    @POST("api/v${API_VERSION}/user/toggle_push")
+    @FormUrlEncoded
+    suspend fun togglePushNotificationAllowForChatrooom(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.CHATROOM_ID) chatroomId: Long,
+        @Field(Constants.TOGGLE) toggle: Int
+    ): Response?
+
     companion object {
         operator fun invoke(connectivityManager: ConnectivityManager): HobbyfiAPI {
             val requestInterceptor = Interceptor {

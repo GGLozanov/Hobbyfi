@@ -23,7 +23,9 @@ data class User(
     override var photoUrl: String?,
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_IDS)
-    var chatroomIds: List<Long>?
+    var chatroomIds: List<Long>?,
+    @SerializedName(Constants.ALLOWED_PUSH_CHATROOM_IDS)
+    var allowedPushChatroomIds: List<Long>?
 ) : ExpandedModel {
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
@@ -32,7 +34,8 @@ data class User(
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
         Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
-        Constants.tagJsonConverter.fromJson(data[Constants.CHATROOM_IDS])
+        Constants.tagJsonConverter.fromJson(data[Constants.CHATROOM_IDS]),
+        Constants.tagJsonConverter.fromJson(data[Constants.ALLOWED_PUSH_CHATROOM_IDS])
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String, String?>): User {

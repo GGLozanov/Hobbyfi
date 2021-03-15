@@ -149,6 +149,7 @@ object Constants {
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
     const val CHATROOM_ID = "chatroom_id"
+    const val TOGGLE = "toggle"
     const val MESSAGE_ID = "message_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
@@ -273,6 +274,7 @@ object Constants {
     const val EVENT_ID = "event_id"
     const val EVENT_IDS: String = "event_ids"
     const val CHATROOM_IDS: String = "chatroom_ids"
+    const val ALLOWED_PUSH_CHATROOM_IDS: String = "allowed_push_chatroom_ids"
     const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"
 
     const val LAST_CONNECTIVITY: String = "LAST_CONNECTIVITY"

@@ -270,6 +270,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         serverSocket?.on(Socket.EVENT_DISCONNECT) {
             sentEnterMainSocketEvent = false
         }
+        
+        serverSocket?.on(Socket.EVENT_CONNECT) {
+            emitEnterMainEventOnUserObserve(viewModel.authUser.value)
+        }
     }
 
     private fun observeAuthUser() {
@@ -309,6 +313,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         super.onDestroy()
         disconnectServerSocket()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
+    }
+
+    override fun disconnectServerSocketListeners() {
+        sentEnterMainSocketEvent = false
     }
 
     override fun onSupportNavigateUp(): Boolean {

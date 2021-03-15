@@ -194,4 +194,5 @@
     <string name="kick">Kick</string>
     <string name="kick_user_confirm">Are you certain you want to kick this user?</string>
     <string name="user_chatroom_owner">Chatroom Admin</string>
+    <string name="push_notification_toggle">Receive notifications from this room?</string>
 </resources>

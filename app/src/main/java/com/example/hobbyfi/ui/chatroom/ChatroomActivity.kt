@@ -154,7 +154,7 @@ class ChatroomActivity : NavigationActivity(),
 
     private val deleteChatroomEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForDelete(
-            { id ->
+            {
                 if(viewModel.isAuthUserChatroomOwner.value == false) {
                     lifecycleScope.launchWhenStarted {
                         viewModel.sendChatroomIntent(
@@ -253,9 +253,10 @@ class ChatroomActivity : NavigationActivity(),
     private val branchReferralInitListener =
         BranchReferralInitListener { linkProperties, error ->
             val comeFromAuthDeepLink = comeFromAuthDeepLink()
+            Log.i("ChatroomActivity", "BranchReferralListener triggered; comeFromAuthDeepLink: $comeFromAuthDeepLink; deepLink props: $linkProperties")
             viewModel.setCurrentLinkProperties(linkProperties)
             if ((linkProperties != null && getClickedBranchLinkFromLinkProps(linkProperties)) ||
-                comeFromAuthDeepLink) {
+                    comeFromAuthDeepLink) {
                 val safeLinkProps = linkProperties ?: Branch.getInstance().latestReferringParams
                 Log.i("ChatroomActivity", "Safe link props: ${safeLinkProps}")
                 viewModel.setConsumedEventDeepLink(false)
@@ -276,6 +277,7 @@ class ChatroomActivity : NavigationActivity(),
                         // force refetch if called from different chatroom
                         viewModel.setChatroom(null)
                         viewModel.setUser(null)
+                        viewModel.setChatroomUsers(null)
                         viewModel.setAuthEvents(null)
                         (supportFragmentManager.currentNavigationFragment as ChatroomMessageListFragment?)
                             ?.resetMessages()
@@ -288,6 +290,7 @@ class ChatroomActivity : NavigationActivity(),
                     } else {
                         // something is missing (most likely the auth user)
                         sendUserIntentFetchIntentOnCurrentNull()
+                        sendChatroomFetchIntentOnCurrentNull()
                     }
                 }
             } else {
@@ -305,9 +308,11 @@ class ChatroomActivity : NavigationActivity(),
             "ChatroomActivity",
             "onNewIntent triggered! intent extras: ${intent?.extras?.toReadable()}"
         )
-        // if activity is in foreground (or in backstack but partially visible) launching the same
-        // activity will skip onStart, handle this case with reInitSession
-        Branch.sessionBuilder(this).withCallback(branchReferralInitListener).reInit()
+        // if activity is in foreground (or in backstack but partially visible), launching the same
+        // activity will skip onStart; handle this case with reInitSession
+        Branch.sessionBuilder(this)
+            .withCallback(branchReferralInitListener)
+            .withData(intent?.data).reInit()
         handleSearchQuery()
     }
 
@@ -320,6 +325,7 @@ class ChatroomActivity : NavigationActivity(),
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         initNavController()
         initDynamicToolbarTitle()
+        initPushNotificationToggleSwitch()
 
         Log.i("ChatroomActivity", "intent extras: ${intent.extras?.toReadable()}")
         if (checkNotificationOrDeepLinkCall()) {
@@ -361,6 +367,16 @@ class ChatroomActivity : NavigationActivity(),
     private fun initDynamicToolbarTitle() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             setLabelOnDestination(destination)
+        }
+    }
+
+    private fun initPushNotificationToggleSwitch() {
+        binding.notificationSwitch.setOnCheckedChangeListener { compoundButton, value ->
+            lifecycleScope.launchWhenCreated {
+                viewModel.sendChatroomIntent(
+                    ChatroomIntent.TogglePushNotificationForChatroomAuthUser(value)
+                )
+            }
         }
     }
 
@@ -1263,13 +1279,15 @@ class ChatroomActivity : NavigationActivity(),
     private fun emitJoinChatroomEventOnChatroomObserve(chatroom: Chatroom) {
         viewModel.authUser.value?.id.let { userId ->
             chatroom.id.let { chatroomId ->
-                if(!sentJoinChatroomSocketEvent) {
+                if(!sentJoinChatroomSocketEvent ||
+                        chatroomId != viewModel.lastSentJoinChatroomSocketEventId) {
                     Log.i("ChatroomActivity", "Emitting join_chatroom event!!!!")
 
                     serverSocket?.emit(Constants.JOIN_CHATROOM, JSONObject(mapOf(
                         Constants.ID to userId,
                         Constants.CHATROOM_ID to chatroomId
                     )))
+                    viewModel.setLastSentJoinChatroomSocketEventId(chatroomId)
                     sentJoinChatroomSocketEvent = true
                 } else {
                     Log.w("ChatroomActivity", "Not emitting join_chatroom event due to it already having been emitted")

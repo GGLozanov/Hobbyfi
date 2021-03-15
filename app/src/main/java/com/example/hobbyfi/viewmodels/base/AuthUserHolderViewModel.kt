@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.api.HobbyfiAPI
+import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.models.data.User

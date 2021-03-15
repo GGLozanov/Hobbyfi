@@ -142,6 +142,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
     }
 
     override fun navigateToChatroom() {
+        super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
         navController.navigate(

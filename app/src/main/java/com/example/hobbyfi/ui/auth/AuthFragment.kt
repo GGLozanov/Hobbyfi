@@ -11,6 +11,7 @@ import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.AuthActivityViewModel
 import com.example.hobbyfi.work.DeviceTokenUploadWorker
+import com.facebook.AccessToken
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInputValidationOnus {
@@ -29,7 +30,7 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
 
         if(!prefConfig.readCurrentDeviceTokenUploaded()) {
             WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(
-                prefConfig.getAuthUserToken()!!,
+                token ?: AccessToken.getCurrentAccessToken().token, // not pref because pref write is async
                 prefConfig.readDeviceToken(), requireContext()
             )
         }

@@ -27,6 +27,12 @@ class ChatroomActivityViewModel(
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
+    private var _lastSentJoinChatroomSocketEventId: Long = 0
+    val lastSentJoinChatroomSocketEventId get() = _lastSentJoinChatroomSocketEventId
+    fun setLastSentJoinChatroomSocketEventId(lastId: Long) {
+        _lastSentJoinChatroomSocketEventId = lastId
+    }
+
     private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(arrayListOf())
     val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 
@@ -38,6 +44,10 @@ class ChatroomActivityViewModel(
 
     fun setAuthEvents(events: List<Event>?) {
         _authEvents.value = events ?: arrayListOf()
+    }
+
+    fun setChatroomUsers(users: List<User>?) {
+        _chatroomUsers.value = users ?: arrayListOf()
     }
 
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
@@ -147,7 +157,9 @@ class ChatroomActivityViewModel(
                         setCurrentUsers(chatroomUsers.value!!)
                     }
                     is UserListIntent.FetchUsers -> {
-                        fetchUsers()
+                        viewModelScope.launch {
+                            fetchUsers()
+                        }
                     }
                     is UserListIntent.KickUser -> {
                         kickUser(it.userId)
