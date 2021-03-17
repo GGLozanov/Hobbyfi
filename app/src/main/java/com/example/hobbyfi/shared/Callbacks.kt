@@ -269,8 +269,8 @@ object Callbacks {
                         throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
                             else if (AccessToken.getCurrentAccessToken() != null &&
                                         AccessToken.getCurrentAccessToken().isExpired)
-                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)
-                            else Repository.ReauthenticationException(Constants.reauthError)
+                                Repository.ReauthenticationException(Constants.reauthError)
+                            else Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)
                     }
                     404 -> { // not found
                         throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
@@ -284,7 +284,7 @@ object Callbacks {
                     429 -> { // too many
                         throw Exception(Constants.limitReachedError)
                     }
-                    500 -> {
+                    500 -> { // server error
                         throw Repository.ReauthenticationException(Constants.internalServerError)
                     }
                 }

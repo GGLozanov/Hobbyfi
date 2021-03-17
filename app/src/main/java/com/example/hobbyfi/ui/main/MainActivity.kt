@@ -92,7 +92,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onStart() {
         super.onStart()
-        connectServerSocket()
+         connectServerSocket()
         observeAuthUser()
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
@@ -104,7 +104,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
     override fun onResume() {
         super.onResume()
 
-        if(serverSocket?.connected() == false) {
+        if(!sentEnterMainSocketEvent && serverSocket?.connected() == false) {
             connectServerSocket()
         }
 
@@ -112,8 +112,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
     }
 
     override fun onPause() {
-        super.onPause()
         disconnectServerSocket()
+        super.onPause()
     }
 
     override fun initNavController() {

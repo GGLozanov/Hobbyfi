@@ -48,8 +48,8 @@ interface ServerSocketAccessor: ConnectivityAccessor {
 
     fun disconnectServerSocket() {
         Log.i("ServerSocketAccessor", "Disconnecting server socket")
-        serverSocket?.off()
         serverSocket?.disconnect()
+        // serverSocket?.off()
         disconnectServerSocketListeners()
     }
 

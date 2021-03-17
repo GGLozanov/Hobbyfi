@@ -17,6 +17,7 @@ class EmitterListenerFactory(private val activity: Activity) {
                     Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
                     onModelDeserialised(modelFromMap((it[0] as JSONObject).toPlainStringMap()))
                 } catch(ex: Exception) {
+                    ex.printStackTrace()
                     errorFallback(ex)
                 }
             }
@@ -30,6 +31,7 @@ class EmitterListenerFactory(private val activity: Activity) {
                 Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
                 onEditFieldMapReceived((it[0] as JSONObject).toPlainStringMap())
             } catch(ex: Exception) {
+                ex.printStackTrace()
                 errorFallback(ex)
             }
         }
@@ -48,6 +50,7 @@ class EmitterListenerFactory(private val activity: Activity) {
                             "Id field in createEmitterListenerForDelete not found! Sent data is incorrect!")
                 )
             } catch(ex: Exception) {
+                ex.printStackTrace()
                 errorFallback(ex)
             }
         }

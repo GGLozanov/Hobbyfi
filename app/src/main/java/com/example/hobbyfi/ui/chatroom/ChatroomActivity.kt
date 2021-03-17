@@ -99,6 +99,22 @@ class ChatroomActivity : NavigationActivity(),
         ).show()
         leaveChatroom()
     }
+    
+    private val userJoinEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForCreate(
+            ::User,
+            { user ->
+                lifecycleScope.launchWhenStarted {
+                    viewModel.sendUsersIntent(
+                        UserListIntent.AddAUserCache(
+                            user
+                        )
+                    )
+                }
+            },
+            errorFallback = socketEventErrorFallback
+        )
+    }
 
     private val userLeaveEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForCreate(
@@ -318,8 +334,12 @@ class ChatroomActivity : NavigationActivity(),
         super.onCreate(savedInstanceState)
         binding = ActivityChatroomBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.viewModel = viewModel
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        headerBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
+        headerBinding.viewModel = viewModel
+
         initNavController()
         initDynamicToolbarTitle()
         initPushNotificationToggleSwitch()
@@ -332,11 +352,6 @@ class ChatroomActivity : NavigationActivity(),
         handleSearchQuery()
 
         assertGooglePlayAvailability()
-
-        binding.viewModel = viewModel
-
-        headerBinding = NavHeaderChatroomBinding.bind(binding.navViewChatroom.getHeaderView(0))
-        headerBinding.viewModel = viewModel
 
         userListAdapter = ChatroomUserListAdapter(
             viewModel.chatroomUsers.value ?: arrayListOf()
@@ -434,6 +449,7 @@ class ChatroomActivity : NavigationActivity(),
             sentJoinChatroomSocketEvent = false
         }
 
+        serverSocket?.on(Constants.JOIN_USER_TYPE, userJoinEmitterListener)
         serverSocket?.on(Constants.LEAVE_USER_TYPE, userLeaveEmitterListener)
         serverSocket?.on(Constants.EDIT_CHATROOM_TYPE, editChatroomEmitterListener)
         serverSocket?.on(Constants.DELETE_CHATROOM_TYPE, deleteChatroomEmitterListener)
@@ -453,6 +469,9 @@ class ChatroomActivity : NavigationActivity(),
         val data = JSONObject.wrap(intent.extras)
         // ASSOC MAP GO BRRR
         when(intent.action) {
+            Constants.JOIN_USER_TYPE -> {
+                userJoinEmitterListener.call(data)
+            }
             Constants.LEAVE_USER_TYPE -> {
                 userLeaveEmitterListener.call(data)
             }
@@ -678,7 +697,7 @@ class ChatroomActivity : NavigationActivity(),
                 return@Observer
             }
 
-            userListAdapter!!.setUsers(it)
+            userListAdapter?.setUsers(it)
         })
     }
 

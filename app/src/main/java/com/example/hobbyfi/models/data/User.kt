@@ -30,7 +30,7 @@ data class User(
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
         data[Constants.EMAIL],
-        data[Constants.USERNAME] ?: error("User username must not be null!"),
+        data[Constants.USERNAME] ?: data[Constants.NAME] ?: error("User username must not be null!"),
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
         Constants.jsonConverter.fromJson(data[Constants.TAGS]),

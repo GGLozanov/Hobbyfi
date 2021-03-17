@@ -185,10 +185,8 @@ abstract class ChatroomMessageAdapter(
 
     @JvmName("setCurrentUsers1")
     fun setCurrentUsers(users: List<User>) {
-        if(currentUsers != users) {
-            currentUsers = users
-            notifyDataSetChanged()
-        }
+        currentUsers = users
+        notifyDataSetChanged()
     }
 
     companion object {
