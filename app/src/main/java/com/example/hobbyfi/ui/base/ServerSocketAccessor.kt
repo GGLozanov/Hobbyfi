@@ -9,12 +9,16 @@ import io.socket.client.IO
 import io.socket.client.Manager
 import io.socket.client.Socket
 import io.socket.client.SocketOptionBuilder
-import io.socket.emitter.Emitter
 import io.socket.engineio.client.Transport
+import okhttp3.OkHttpClient
 import java.net.URISyntaxException
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.*
+import javax.security.cert.CertificateException
 
 
-    interface ServerSocketAccessor: ConnectivityAccessor {
+interface ServerSocketAccessor: ConnectivityAccessor {
     val serverSocket: Socket?
     val emitterListenerFactory: EmitterListenerFactory
 
@@ -60,6 +64,65 @@ import java.net.URISyntaxException
             onConnectedServerSocketFail()
             null
         }
+
+//        try {
+//            val myHostnameVerifier: HostnameVerifier =
+//                HostnameVerifier { hostname, session -> true }
+//            val mySSLContext: SSLContext = SSLContext.getInstance("TLS")
+//            val trustAllCerts: Array<TrustManager> =
+//                arrayOf<TrustManager>(object : X509TrustManager {
+//                    @Throws(CertificateException::class)
+//                    override fun checkClientTrusted(
+//                        chain: Array<X509Certificate?>?,
+//                        authType: String?
+//                    ) {
+//                    }
+//
+//                    @Throws(CertificateException::class)
+//                    override fun checkServerTrusted(
+//                        chain: Array<X509Certificate?>?,
+//                        authType: String?
+//                    ) {
+//                    }
+//
+//                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+//                })
+//            mySSLContext.init(null, trustAllCerts, SecureRandom())
+//            val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+//                .hostnameVerifier(myHostnameVerifier)
+//                .sslSocketFactory(mySSLContext.socketFactory, object : X509TrustManager {
+//                    @Throws(CertificateException::class)
+//                    override fun checkClientTrusted(
+//                        chain: Array<X509Certificate?>?,
+//                        authType: String?
+//                    ) {
+//                    }
+//
+//                    @Throws(CertificateException::class)
+//                    override fun checkServerTrusted(
+//                        chain: Array<X509Certificate?>?,
+//                        authType: String?
+//                    ) {
+//                    }
+//
+//                    override fun getAcceptedIssuers(): Array<X509Certificate?> {
+//                        return arrayOfNulls(0)
+//                    }
+//                })
+//                .build()
+//
+//            val options = SocketOptionBuilder.builder().setForceNew(true).build()
+//            options.callFactory = okHttpClient
+//            options.webSocketFactory = okHttpClient
+//            IO.socket(
+//                BuildConfig.SOCKET_BASE_URL,
+//                options
+//            )
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            onConnectedServerSocketFail()
+//            null
+//        }
 
     @MainThread
     fun onConnectedServerSocketFail()

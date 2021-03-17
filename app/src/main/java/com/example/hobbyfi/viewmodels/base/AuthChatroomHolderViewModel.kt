@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.ChatroomIntent
-import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
@@ -134,7 +133,7 @@ abstract class AuthChatroomHolderViewModel(
         if(!kicked) {
             updateAndSaveUser(mapOf(
                 Pair(Constants.CHATROOM_IDS,
-                    Constants.tagJsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
+                    Constants.jsonConverter.toJson(_authUser.value!!.chatroomIds?.filter { chIds -> chIds != _authChatroom.value!!.id }))
             )) // nullify chatroom for cache user after deletion
         }
 
@@ -182,11 +181,10 @@ abstract class AuthChatroomHolderViewModel(
 
             updateAndSaveUser(mapOf(
                 Pair(Constants.ALLOWED_PUSH_CHATROOM_IDS,
-                    (if(!allow) Constants.tagJsonConverter.toJson(
+                    (if(!allow) Constants.jsonConverter.toJson(
                         _authUser.value!!.allowedPushChatroomIds?.filter { chId -> chId != _authChatroom.value!!.id }
-                    ) else Constants.tagJsonConverter.toJson(_authUser.value!!.allowedPushChatroomIds?.plus(
-                        _authChatroom.value!!.id
-                    )))
+                    ) else Constants.jsonConverter.toJson(_authUser.value!!.allowedPushChatroomIds?.plus(
+                        _authChatroom.value!!.id) ?: arrayOf(_authChatroom.value!!.id)))
             )))
         } catch(ex: Exception) {
             chatroomStateIntent.setState(

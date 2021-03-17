@@ -128,7 +128,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 if ((activityViewModel.authUser.value?.tags
                         ?: arrayListOf()) != viewModel!!.tagBundle.selectedTags
                 ) {
-                    fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
+                    fieldMap[Constants.TAGS + "[]"] = Constants.jsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 

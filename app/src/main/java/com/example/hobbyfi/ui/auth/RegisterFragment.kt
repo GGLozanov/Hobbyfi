@@ -95,15 +95,16 @@ class RegisterFragment : AuthFragment() {
                         login(
                             RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
                                 User(
-                                id,
-                                viewModel.email.value!!,
-                                viewModel.name.value!!,
-                                viewModel.description.value,
-                                if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
-                                        + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
-                                viewModel.tagBundle.selectedTags,
-                                null
-                            )
+                                    id,
+                                    viewModel.email.value!!,
+                                    viewModel.name.value!!,
+                                    viewModel.description.value,
+                                    if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                            + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
+                                    viewModel.tagBundle.selectedTags,
+                                    null,
+                                    null
+                                )
                             ),
                             it.token?.jwt,
                             it.token?.refreshJwt

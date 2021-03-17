@@ -64,7 +64,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 }
 
                 if((activityViewModel.authChatroom.value?.tags ?: arrayListOf()) != viewModel!!.tagBundle.selectedTags) {
-                    fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
+                    fieldMap[Constants.TAGS + "[]"] = Constants.jsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 

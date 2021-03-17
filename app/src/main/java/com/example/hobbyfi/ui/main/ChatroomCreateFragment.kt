@@ -11,7 +11,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
-import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
@@ -22,11 +21,9 @@ import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
-import com.google.android.gms.tasks.OnFailureListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
@@ -94,7 +91,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                     is ChatroomState.OnData.ChatroomCreateResult -> {
                         activityViewModel.sendIntent(
                             UserIntent.UpdateUserCache(mapOf(
-                                Pair(Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                Pair(Constants.CHATROOM_IDS, Constants.jsonConverter.toJson(
                                     activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id))
                                 )
                             )

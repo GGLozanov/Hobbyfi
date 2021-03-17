@@ -2,7 +2,6 @@ package com.example.hobbyfi.shared
 
 import android.app.Activity
 import android.util.Log
-import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.models.data.Model
 import io.socket.emitter.Emitter
 import org.json.JSONObject
@@ -62,7 +61,7 @@ class EmitterListenerFactory(private val activity: Activity) {
             try {
                 Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
                 onIdFieldArrayReceived(
-                    Constants.tagJsonConverter.fromJson(
+                    Constants.jsonConverter.fromJson(
                         (it[0] as JSONObject).toPlainStringMap()[idField]
                     ) ?: throw IllegalArgumentException(
                             "Id field in createEmitterListenerForDelete not found! Sent data is incorrect!")

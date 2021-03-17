@@ -232,7 +232,7 @@ object Constants {
 
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr
-    val tagJsonConverter: Gson = GsonBuilder()
+    val jsonConverter: Gson = GsonBuilder()
         .registerTypeAdapter(
             Tag::class.java,
             TagTypeAdapter()

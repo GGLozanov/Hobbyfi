@@ -4,23 +4,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.core.view.get
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
 import com.example.hobbyfi.intents.UserIntent
@@ -28,15 +22,11 @@ import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.UserState
 import com.example.hobbyfi.ui.base.*
-import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
 import com.example.hobbyfi.viewmodels.main.MainActivityViewModel
 import com.example.hobbyfi.work.DeviceTokenDeleteWorker
-import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import com.facebook.login.LoginManager
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
 import io.socket.client.Socket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
@@ -62,7 +52,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                 // TODO: Remove chatroom ID here from user list one-to-many connection
                 viewModel.setLatestUserUpdateFields(mapOf(
                     Pair(Constants.CHATROOM_IDS,
-                        Constants.tagJsonConverter.toJson(
+                        Constants.jsonConverter.toJson(
                             viewModel.authUser.value?.chatroomIds?.filter
                             { it != intent.getLongExtra(Constants.CHATROOM_ID, 0) }
                         )
@@ -79,7 +69,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        connectServerSocket()
+//        connectServerSocket()
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
@@ -102,7 +92,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onStart() {
         super.onStart()
-        // connectServerSocket()
+        connectServerSocket()
         observeAuthUser()
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
@@ -113,8 +103,17 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onResume() {
         super.onResume()
-        connectServerSocket()
+
+        if(serverSocket?.connected() == false) {
+            connectServerSocket()
+        }
+
         initNavController()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        disconnectServerSocket()
     }
 
     override fun initNavController() {
@@ -169,11 +168,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                             lateinit var userChatroomFields: Map<String, String?>
                             if (hasJoinedChatroom) {
                                 userChatroomFields = mapOf(
-                                    Pair(
-                                        Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                            viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
-                                                ?: listOf(it.userFields[Constants.CHATROOM_ID])
-                                        )
+                                    Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
+                                        viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
+                                            ?: listOf(it.userFields[Constants.CHATROOM_ID])
+                                    ),
+                                    Constants.ALLOWED_PUSH_CHATROOM_IDS to Constants.jsonConverter.toJson(
+                                        viewModel.authUser.value!!.allowedPushChatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
+                                            ?: listOf(it.userFields[Constants.CHATROOM_ID])
                                     )
                                 )
                                 viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
@@ -181,12 +182,10 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                             }
                             if (hasLeftChatroom) {
                                 userChatroomFields = mapOf(
-                                    Pair(
-                                        Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
-                                            viewModel.authUser.value!!.chatroomIds?.filter { id -> (it.userFields[Constants.LEAVE_CHATROOM_ID]
-                                                    ?: error("Leave chatroom Id must not be null in collection of UpdateUser state in MainActivity"))
-                                                .toLong() != id }
-                                        )
+                                    Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
+                                        viewModel.authUser.value!!.chatroomIds?.filter { id -> (it.userFields[Constants.LEAVE_CHATROOM_ID]
+                                                ?: error("Leave chatroom Id must not be null in collection of UpdateUser state in MainActivity"))
+                                            .toLong() != id }
                                     )
                                 )
                                 viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment

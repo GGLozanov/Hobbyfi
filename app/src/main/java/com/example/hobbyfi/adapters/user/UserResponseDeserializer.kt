@@ -24,10 +24,12 @@ class UserResponseDeserializer : BaseJsonDeserializer<CacheResponse<User>>() {
             deserializeJSONField(Constants.USERNAME, DeserializeOption.AS_STRING) as String,
             deserializeJSONField(Constants.DESCRIPTION, DeserializeOption.AS_STRING) as String?,
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
-            Constants.tagJsonConverter
+            Constants.jsonConverter
                 .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
-            Constants.tagJsonConverter
-                .fromJson(deserializeJSONField(Constants.CHATROOM_IDS, DeserializeOption.AS_ARRAY) as JsonArray?)
+            Constants.jsonConverter
+                .fromJson(deserializeJSONField(Constants.CHATROOM_IDS, DeserializeOption.AS_ARRAY) as JsonArray?),
+            Constants.jsonConverter
+                .fromJson(deserializeJSONField(Constants.ALLOWED_PUSH_CHATROOM_IDS, DeserializeOption.AS_ARRAY) as JsonArray?)
         )
 
         var response = deserializeJSONField(

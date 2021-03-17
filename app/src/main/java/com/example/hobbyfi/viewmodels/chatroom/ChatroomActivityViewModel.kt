@@ -96,14 +96,14 @@ class ChatroomActivityViewModel(
                         Log.i("ChatroomActivityVM", "Add Event to List Intent caught")
                         saveEvent(it.event)
                         setAuthEvents((_authEvents.value ?: arrayListOf()) + it.event)
-                        updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                        updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.jsonConverter
                             .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
                     is EventListIntent.DeleteAnEventCache -> {
                         eventsStateIntent.setState(EventListState.Idle)
                         if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
-                            updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                            updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.jsonConverter
                                 .toJson(authChatroom.value!!.eventIds?.filter { eventId -> eventId != it.eventId }))))
                             eventsStateIntent.setState(EventListState.OnData.DeleteAnEventCacheResult(it.eventId))
                         }
@@ -325,7 +325,7 @@ class ChatroomActivityViewModel(
         if(success) {
             updateAndSaveChatroom(mapOf(
                 Pair(Constants.EVENT_IDS,
-                    Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
+                    Constants.jsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
             ))
             setAuthEvents(_authEvents.value!!.filter { event -> !eventIds.contains(event.id) })
         }

@@ -58,6 +58,8 @@ class EventMapsActivity : MapsActivity(),
 
     private lateinit var binding: ActivityEventMapsBinding
 
+    private var initialServerSocketConnect: Boolean = true
+
     private val locationUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             // i.e. just update authUserGeo point in backend and have the snapshot listener re-trigger
@@ -426,6 +428,11 @@ class EventMapsActivity : MapsActivity(),
     }
 
     override fun connectServerSocketListeners() {
+        serverSocket?.on(Socket.EVENT_CONNECT) {
+            if(!initialServerSocketConnect) {
+                refreshDataOnConnectionRefresh()
+            } else initialServerSocketConnect = false
+        }
     }
 
     override fun disconnectServerSocketListeners() {
@@ -433,7 +440,9 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onResume() {
         super.onResume()
-        connectServerSocket()
+        if(!initialServerSocketConnect && serverSocket?.connected() == false) {
+            connectServerSocket()
+        }
         prefConfig.writeRequestLocationServiceRunning(false)
         localBroadcastManager.registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
 
@@ -508,7 +517,21 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onForegroundReactivation(intent: Intent) {
         when(intent.action) {
+            Constants.DELETE_EVENT_TYPE -> {
 
+            }
+            Constants.EDIT_EVENT_TYPE -> {
+
+            }
+            Constants.DELETE_EVENT_BATCH_TYPE -> {
+
+            }
+            Constants.DELETE_CHATROOM_TYPE -> {
+
+            }
+            Constants.LEAVE_USER_TYPE -> {
+
+            }
         }
     }
 

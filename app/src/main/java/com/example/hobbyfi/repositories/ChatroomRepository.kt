@@ -121,7 +121,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
                 name,
                 description,
                 base64Image,
-                if(tags.isEmpty()) null else Constants.tagJsonConverter.toJson(tags)
+                if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
         }, { createChatroom(name, description, base64Image, tags) })
     }
@@ -182,7 +182,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.userDao().getUserChatroomIds(userId).map {
-                Constants.tagJsonConverter.fromJson(it)
+                Constants.jsonConverter.fromJson(it)
             }
         }
 }

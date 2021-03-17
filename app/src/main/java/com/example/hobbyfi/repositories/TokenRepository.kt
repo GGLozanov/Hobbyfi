@@ -31,7 +31,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 password,
                 description,
                 base64Image,
-                if(tags.isEmpty()) null else Constants.tagJsonConverter.toJson(tags)
+                if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
         } catch(ex: Exception) {
             Callbacks.dissectRepositoryExceptionAndThrow(ex)

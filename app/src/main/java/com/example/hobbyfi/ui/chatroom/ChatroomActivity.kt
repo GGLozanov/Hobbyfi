@@ -30,7 +30,6 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
@@ -62,16 +61,13 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.prolificinteractive.materialcalendarview.MaterialCalendarView.*
 import io.branch.referral.Branch
 import io.branch.referral.Branch.BranchReferralInitListener
-import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.net.URISyntaxException
 import java.util.*
 
 
@@ -121,7 +117,7 @@ class ChatroomActivity : NavigationActivity(),
                         viewModel.sendIntent(
                             UserIntent.UpdateUserCache(
                                 mapOf(
-                                    Constants.CHATROOM_IDS to Constants.tagJsonConverter.toJson(
+                                    Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
                                         viewModel.authUser.value!!.chatroomIds?.filter { id -> (viewModel.authChatroom.value?.id
                                             ?: error("Leave chatroom Id must not be null in leave user broadcast action for AUTH user!"))
                                             .toLong() != id
@@ -248,6 +244,7 @@ class ChatroomActivity : NavigationActivity(),
         initSocket()
     }
     private var sentJoinChatroomSocketEvent = false
+    private var initialServerSocketConnect: Boolean = true
 
     @ExperimentalPagingApi
     private val branchReferralInitListener =
@@ -371,10 +368,11 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun initPushNotificationToggleSwitch() {
-        binding.notificationSwitch.setOnCheckedChangeListener { compoundButton, value ->
+        // onClick as to not implicity trigger the switch w/ onCheckedChanged listener
+        binding.notificationSwitch.setOnClickListener { view ->
             lifecycleScope.launchWhenCreated {
                 viewModel.sendChatroomIntent(
-                    ChatroomIntent.TogglePushNotificationForChatroomAuthUser(value)
+                    ChatroomIntent.TogglePushNotificationForChatroomAuthUser(binding.notificationSwitch.isChecked)
                 )
             }
         }
@@ -420,7 +418,18 @@ class ChatroomActivity : NavigationActivity(),
         }
     }
 
+    @ExperimentalPagingApi
     override fun connectServerSocketListeners() {
+        serverSocket?.on(Socket.EVENT_CONNECT) {
+            Log.i("ChatroomActivity", "initial server socket connect: $initialServerSocketConnect")
+            if(!initialServerSocketConnect) {
+                refreshDataOnConnectionRefresh()
+                (supportFragmentManager
+                    .primaryNavigationFragment?.childFragmentManager
+                    ?.findFragmentByType<ChatroomMessageListFragment>())?.refreshDataOnConnectionRefresh()
+            } else initialServerSocketConnect = false
+        }
+
         serverSocket?.on(Socket.EVENT_DISCONNECT) {
             sentJoinChatroomSocketEvent = false
         }
@@ -465,16 +474,23 @@ class ChatroomActivity : NavigationActivity(),
             Constants.DELETE_EVENT_TYPE -> {
                 deleteEventEmitterListener.call(data)
             }
+            // Actual puke code
             Constants.CREATE_MESSAGE_TYPE -> {
-                (supportFragmentManager.findFragmentByType<ChatroomMessageListFragment>())
+                (supportFragmentManager
+                    .primaryNavigationFragment?.childFragmentManager
+                    ?.findFragmentByType<ChatroomMessageListFragment>())
                     ?.createMessageEmitterListener?.call(data)
             }
             Constants.EDIT_MESSAGE_TYPE -> {
-                (supportFragmentManager.findFragmentByType<ChatroomMessageListFragment>())
+                (supportFragmentManager
+                    .primaryNavigationFragment?.childFragmentManager
+                    ?.findFragmentByType<ChatroomMessageListFragment>())
                     ?.editMessageEmitterListener?.call(data)
             }
             Constants.DELETE_MESSAGE_TYPE -> {
-                (supportFragmentManager.findFragmentByType<ChatroomMessageListFragment>())
+                (supportFragmentManager
+                    .primaryNavigationFragment?.childFragmentManager
+                    ?.findFragmentByType<ChatroomMessageListFragment>())
                     ?.deleteMessageEmitterListener?.call(data)
             }
         }
@@ -926,7 +942,7 @@ class ChatroomActivity : NavigationActivity(),
         super.observeConnectionRefresh(savedState, refreshConnectivityMonitor)
         refreshConnectivityMonitor.observe(this, Observer { connectionRefreshed ->
             // connectivityManager.isConnected() IMPORTANT TODO: Fix in order to refetch if user
-            //  enter without internet (currently refetches old chatrooms in itiial joins)
+            // enter without internet (currently refetches old chatrooms in itiial joins)
             if (connectionRefreshed) {
                 Log.i("ChatroomActivity", "ChatroomActivity CONNECTED")
                 refreshDataOnConnectionRefresh()
@@ -992,7 +1008,9 @@ class ChatroomActivity : NavigationActivity(),
     @ExperimentalPagingApi
     override fun onResume() {
         super.onResume()
-        connectServerSocket()
+        if(!initialServerSocketConnect && serverSocket?.connected() == false) {
+            connectServerSocket()
+        }
         assertGooglePlayAvailability()
 
         navController.currentDestination?.let {

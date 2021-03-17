@@ -15,12 +15,14 @@ import com.facebook.CallbackManager
 import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.security.ProviderInstaller
-import com.google.android.gms.tasks.OnFailureListener
 import io.branch.referral.Branch
+import io.socket.client.IO
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.androidXModule
 import org.kodein.di.generic.*
+import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier
 
 class MainApplication : MultiDexApplication(), KodeinAware {
     @ExperimentalPagingApi
@@ -29,10 +31,12 @@ class MainApplication : MultiDexApplication(), KodeinAware {
 
         // todo: remove these service bindings and replace them with the bindings from Kodein's module.kt
         bind(tag = "connectivityManager") from singleton { applicationContext!!.getSystemService(
-            Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            Context.CONNECTIVITY_SERVICE
+        ) as ConnectivityManager
         }
         bind(tag = "locationManager") from singleton { applicationContext!!.getSystemService(
-            Context.LOCATION_SERVICE) as LocationManager
+            Context.LOCATION_SERVICE
+        ) as LocationManager
         }
         bind(tag = "localBroadcastManager") from singleton {
             LocalBroadcastManager.getInstance(applicationContext!!)
@@ -41,9 +45,9 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         bind(tag = "database") from singleton { HobbyfiDatabase.getInstance(context = applicationContext) }
         bind(tag = "prefConfig") from singleton { PrefConfig(applicationContext) }
         bind(tag = "tokenRepository") from singleton { TokenRepository(
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI
-            )
+            instance(tag = "prefConfig") as PrefConfig,
+            instance(tag = "api") as HobbyfiAPI
+        )
         }
         bind(tag = "userRepository") from singleton { UserRepository(
             instance(tag = "prefConfig") as PrefConfig,
@@ -53,25 +57,25 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         )
         }
         bind(tag = "chatroomRepository") from singleton { ChatroomRepository(
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "connectivityManager") as ConnectivityManager
-            )
+            instance(tag = "prefConfig") as PrefConfig,
+            instance(tag = "api") as HobbyfiAPI,
+            instance(tag = "database") as HobbyfiDatabase,
+            instance(tag = "connectivityManager") as ConnectivityManager
+        )
         }
         bind(tag = "eventRepository") from singleton { EventRepository(
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "connectivityManager") as ConnectivityManager
-            )
+            instance(tag = "prefConfig") as PrefConfig,
+            instance(tag = "api") as HobbyfiAPI,
+            instance(tag = "database") as HobbyfiDatabase,
+            instance(tag = "connectivityManager") as ConnectivityManager
+        )
         }
         bind(tag = "messageRepository") from singleton { MessageRepository(
-                instance(tag = "prefConfig") as PrefConfig,
-                instance(tag = "api") as HobbyfiAPI,
-                instance(tag = "database") as HobbyfiDatabase,
-                instance(tag = "connectivityManager") as ConnectivityManager
-            )
+            instance(tag = "prefConfig") as PrefConfig,
+            instance(tag = "api") as HobbyfiAPI,
+            instance(tag = "database") as HobbyfiDatabase,
+            instance(tag = "connectivityManager") as ConnectivityManager
+        )
         }
         bind(tag = "callbackManager") from singleton {
             CallbackManager.Factory.create()

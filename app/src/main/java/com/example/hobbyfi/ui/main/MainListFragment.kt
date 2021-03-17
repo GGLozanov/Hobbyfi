@@ -170,7 +170,7 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
     }
 
     protected open fun navigateToChatroom() {
-        // (requireActivity() as MainActivity).disconnectServerSocket()
+        (requireActivity() as MainActivity).disconnectServerSocket()
     }
 
     protected abstract fun navigateToChatroomCreate()

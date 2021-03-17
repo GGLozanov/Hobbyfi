@@ -46,7 +46,6 @@ import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
-import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Field
 
@@ -369,7 +368,7 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String, String?> {
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
 fun android.content.Intent.getEventIdsExtra(): List<Long> {
-    return Constants.tagJsonConverter.fromJson(
+    return Constants.jsonConverter.fromJson(
         extras?.getString(
             Constants.EVENT_IDS
         )

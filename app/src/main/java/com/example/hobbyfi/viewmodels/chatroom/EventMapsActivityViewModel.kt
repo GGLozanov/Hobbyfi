@@ -35,7 +35,6 @@ class EventMapsActivityViewModel(
 
     private var _userMarkers: List<Marker>? = null
     val userMarkers: List<Marker>? get() = _userMarkers
-
     fun setUserMarkers(markers: List<Marker>?) {
         _userMarkers = markers
     }

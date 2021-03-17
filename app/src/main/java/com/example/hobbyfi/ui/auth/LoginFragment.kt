@@ -265,8 +265,10 @@ class LoginFragment : AuthFragment() {
                                     viewModel.email.value,
                                     profile.name,
                                     null,
-                                    BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                    BuildConfig.BASE_URL + "uploads/" +
+                                            Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
                                     viewModel.tagBundle.selectedTags,
+                                    null,
                                     null
                                 )
                             )
