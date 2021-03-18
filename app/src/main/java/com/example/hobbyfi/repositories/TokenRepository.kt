@@ -34,7 +34,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            dissectRepositoryExceptionAndThrow(ex)
         }
     }
 
@@ -48,7 +48,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 password
             )
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            dissectRepositoryExceptionAndThrow(ex)
         }
     }
 
@@ -113,7 +113,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         return try {
             hobbyfiAPI.resetPassword(email)
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            dissectRepositoryExceptionAndThrow(ex)
         }
     }
 }

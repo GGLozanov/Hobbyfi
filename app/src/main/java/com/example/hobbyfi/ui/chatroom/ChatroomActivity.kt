@@ -1314,7 +1314,7 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun emitJoinChatroomEventOnChatroomObserve(chatroom: Chatroom) {
-        viewModel.authUser.value?.id.let { userId ->
+        viewModel.authUser.value?.id?.let { userId ->
             chatroom.id.let { chatroomId ->
                 if(!sentJoinChatroomSocketEvent ||
                         chatroomId != viewModel.lastSentJoinChatroomSocketEventId) {

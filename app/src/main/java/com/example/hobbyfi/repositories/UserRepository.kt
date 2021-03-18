@@ -48,7 +48,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                     hobbyfiDatabase.userDao().getUserById(userId)
                 } catch(ex: Exception) {
                     try {
-                        Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+                        dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
                     } catch(tokenEx: TokenUtils.InvalidStoredTokenException) {
                         Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
                         flowOf(null)
