@@ -362,7 +362,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                                 // user joined event
                                 // since it's impossible to change the geopoint inside eventMapsActivity,
                                 // just sending the geoPoint as it is will suffice (only user location is changed)
-                                // and even when the user backs from maps activity, the snapshot listener OUGHT to be trigger again
+                                // and even when the user backs from maps activity, the snapshot listener OUGHT to be triggered again
                                 // and the location—become up to date
                                 navigateToEventMaps(geoPoint)
                             } else {

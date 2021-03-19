@@ -17,8 +17,12 @@ import androidx.lifecycle.map
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
+import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
+import com.example.hobbyfi.intents.UserIntent
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.services.EventLocationUpdatesService
 import com.example.hobbyfi.shared.*
@@ -38,10 +42,12 @@ import com.google.firebase.firestore.GeoPoint
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.client.SocketOptionBuilder
+import io.socket.emitter.Emitter
 import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.lang.IllegalStateException
 import java.net.URISyntaxException
 
@@ -88,6 +94,16 @@ class EventMapsActivity : MapsActivity(),
     private var locationUpdatesService: EventLocationUpdatesService? = null
     private var serviceBound: Boolean = false
 
+    private val authUserIdWithErrorHandle: Long? get() =
+        try {
+            prefConfig.getAuthUserIdFromToken()
+        } catch(e: Exception) {
+            Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
+                .show()
+            emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
+            null
+        }
+
     private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
             locationUpdatesService = (binder as EventLocationUpdatesService.LocalBinder)
@@ -109,11 +125,101 @@ class EventMapsActivity : MapsActivity(),
         }
     }
 
+    // FIXME: This, too, should probably be extracted in a specific interface w/ ChatroomActivity
+    @Volatile
+    private var sentJoinChatroomSocketEvent = false
+
     override val serverSocket: Socket? by lazy {
         initSocket()
     }
     override val emitterListenerFactory: EmitterListenerFactory by lazy {
         EmitterListenerFactory(this)
+    }
+
+    private val socketEventErrorFallback = { _: Exception ->
+        Toast.makeText(
+            this@EventMapsActivity,
+            Constants.socketEmissionError,
+            Toast.LENGTH_LONG
+        ).show()
+        emergencyActivityExit(Constants.RESULT_REAUTH)
+    }
+
+    // FIXME: Code dup w/ ChatroomActivity
+    private val editEventEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForEdit(
+            { editFields ->
+                lifecycleScope.launchWhenCreated {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.UpdateAnEventCache(
+                            editFields
+                        )
+                    )
+                }
+            },
+            socketEventErrorFallback
+        )
+    }
+
+    private val deleteEventEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDelete(
+            { id ->
+                lifecycleScope.launchWhenCreated {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.DeleteAnEventCache(
+                            id
+                        )
+                    )
+                }
+            },
+            socketEventErrorFallback
+        )
+    }
+
+    private val deleteEventBatchEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDeleteArray(
+            { ids ->
+                lifecycleScope.launchWhenCreated {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.DeleteEventsCache(
+                            ids
+                        )
+                    )
+                }
+            },
+            socketEventErrorFallback,
+            Constants.EVENT_IDS
+        )
+    }
+
+    private val deleteChatroomEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDelete(
+            {
+                emergencyActivityExit(Constants.RESULT_CHATROOM_DELETE, Intent(Constants.DELETE_CHATROOM_TYPE).apply {
+                    putExtra(Constants.DELETED_MODEL_ID, it)
+                })
+            },
+            socketEventErrorFallback
+        )
+    }
+
+    private val userLeaveEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForCreate(
+            ::User,
+            { user ->
+                if(user.id == authUserIdWithErrorHandle) {
+                    emergencyActivityExit(Constants.RESULT_KICKED, Intent(Constants.LEAVE_USER_TYPE).apply {
+                        putExtra(Constants.DELETED_MODEL_ID, user.id)
+                    })
+                } else {
+                    Log.w(
+                        "EventMapsActivity",
+                        "leaveUserReceiver called with ID different from auth user..."
+                    )
+                }
+            },
+            errorFallback = socketEventErrorFallback
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -342,6 +448,7 @@ class EventMapsActivity : MapsActivity(),
 
     private fun observeEvent() {
         viewModel.event.observe(this, Observer {
+            emitJoinChatroomEventOnEventObserve(it)
             Log.i("EventMapsActivity", "Received Event from observer in EventMapsActivity! $it")
             resetEventMarkerAndAddNew(
                 LatLng(it.latitude, it.longitude),
@@ -433,9 +540,20 @@ class EventMapsActivity : MapsActivity(),
                 refreshDataOnConnectionRefresh()
             } else initialServerSocketConnect = false
         }
+
+        serverSocket?.on(Socket.EVENT_DISCONNECT) {
+            sentJoinChatroomSocketEvent = false
+        }
+
+        serverSocket?.on(Constants.LEAVE_USER_TYPE, userLeaveEmitterListener)
+        serverSocket?.on(Constants.DELETE_CHATROOM_TYPE, deleteChatroomEmitterListener)
+        serverSocket?.on(Constants.EDIT_EVENT_TYPE, editEventEmitterListener)
+        serverSocket?.on(Constants.DELETE_EVENT_TYPE, deleteEventEmitterListener)
+        serverSocket?.on(Constants.DELETE_EVENT_BATCH_TYPE, deleteEventBatchEmitterListener)
     }
 
     override fun disconnectServerSocketListeners() {
+        sentJoinChatroomSocketEvent = false
     }
 
     override fun onResume() {
@@ -518,20 +636,36 @@ class EventMapsActivity : MapsActivity(),
     override fun onForegroundReactivation(intent: Intent) {
         when(intent.action) {
             Constants.DELETE_EVENT_TYPE -> {
-
+                deleteEventEmitterListener.call(intent)
             }
             Constants.EDIT_EVENT_TYPE -> {
-
+                editEventEmitterListener.call(intent)
             }
             Constants.DELETE_EVENT_BATCH_TYPE -> {
-
+                deleteEventBatchEmitterListener.call(intent)
             }
             Constants.DELETE_CHATROOM_TYPE -> {
-
+                deleteChatroomEmitterListener.call(intent)
             }
             Constants.LEAVE_USER_TYPE -> {
-
+                userLeaveEmitterListener.call(intent)
             }
+        }
+    }
+
+    private fun emitJoinChatroomEventOnEventObserve(event: Event) {
+        if(!sentJoinChatroomSocketEvent) {
+            Log.i("EventMapsActivity", "Emitting join_chatroom event!!!!")
+
+            authUserIdWithErrorHandle?.let {
+                serverSocket?.emit(Constants.JOIN_CHATROOM, JSONObject(mapOf(
+                    Constants.ID to it,
+                    Constants.CHATROOM_ID to event.chatroomId
+                )))
+                sentJoinChatroomSocketEvent = true
+            }
+        } else {
+            Log.w("EventMapsActivity", "Not emitting join_chatroom event due to it already having been emitted")
         }
     }
 

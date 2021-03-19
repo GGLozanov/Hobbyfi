@@ -44,12 +44,12 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     private var poppedFromLogoutButton: Boolean = false
 
+    @Volatile
     private var sentEnterMainSocketEvent: Boolean = false
 
     private val chatroomDeletedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == Constants.CHATROOM_DELETED) {
-                // TODO: Remove chatroom ID here from user list one-to-many connection
                 viewModel.setLatestUserUpdateFields(mapOf(
                     Pair(Constants.CHATROOM_IDS,
                         Constants.jsonConverter.toJson(

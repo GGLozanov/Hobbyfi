@@ -229,6 +229,7 @@ object Constants {
     const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED" // TODO: Use
 
     const val QUERY: String = "query"
+    const val ROOM_IDS: String = "roomIds"
 
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr

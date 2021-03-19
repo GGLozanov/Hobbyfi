@@ -259,6 +259,7 @@ class ChatroomActivity : NavigationActivity(),
     override val serverSocket: Socket? by lazy {
         initSocket()
     }
+    @Volatile
     private var sentJoinChatroomSocketEvent = false
     private var initialServerSocketConnect: Boolean = true
 
@@ -856,6 +857,8 @@ class ChatroomActivity : NavigationActivity(),
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer { chatroom ->
             if (chatroom != null) {
+                binding.notificationSwitch.isChecked = viewModel.authUser.value?.allowedPushChatroomIds
+                    ?.contains(chatroom.id) == true
                 emitJoinChatroomEventOnChatroomObserve(chatroom)
                 Log.i("ChatroomActivity", "Observed chatroom: ${chatroom}")
                 // TODO: Remove
@@ -1068,6 +1071,13 @@ class ChatroomActivity : NavigationActivity(),
 
             restartIntent.data = intent.data
             restartIntent.putExtras(intent)
+
+            // check if notification and open appropriate chatroom
+            intent.getLongArrayExtra(Constants.ROOM_IDS)?.let {
+                // one of them ought to be right
+                // if just chatroom notification => array has only 1 element and will return the required chatroom id
+                prefConfig.writeLastEnteredChatroomId(it.random())
+            }
 
             // reset all props for re-fetch
             viewModel.setAuthEvents(null)

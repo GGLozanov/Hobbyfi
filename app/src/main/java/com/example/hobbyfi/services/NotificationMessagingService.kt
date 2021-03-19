@@ -104,10 +104,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         isAppInForeground = false
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    fun onForegroundDestroy() {
-    }
-
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         Log.i("NotificationMService", "WOOOOOOOOOO, FCM MESSAGE RECEIVED BEYBEEEE: ${message}")
@@ -122,7 +118,6 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         var isImageMessage = false
 
         // create message, create event, join user, leave user, delete chatroom
-
         when(notificationType) {
             Constants.CREATE_MESSAGE_TYPE -> {
                 intent.putParcelableMessageExtra(data)
@@ -162,13 +157,19 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
             Constants.JOIN_USER_TYPE -> {
                 intent.putParcelableUserExtra(data)
                 title = resources.getString(R.string.join_user_notification_title)
-                body = "${data[Constants.USERNAME]} just joined one of your chatrooms!"
+                body = "${data[Constants.USERNAME] ?: data[Constants.NAME]} just joined one of your chatrooms!"
             }
             Constants.LEAVE_USER_TYPE -> {
                 intent.putDeletedModelIdExtra(data)
                 title = resources.getString(R.string.leave_user_notification_title)
-                body = "${data[Constants.USERNAME]} just left one of your chatrooms!"
+                body = "${data[Constants.USERNAME] ?: data[Constants.NAME]} just left one of your chatrooms!"
             }
+        }
+
+        try {
+            intent.putExtra(Constants.ROOM_IDS, Constants.jsonConverter.fromJson(data[Constants.ROOM_IDS]) as LongArray?)
+        } catch(ex: Exception) {
+            Log.w("NotificationMService", "COULD NOT DESERIALIZE ROOM_IDS FROM NOTIFICATION PAYLOAD?!")
         }
 
         val display = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
