@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -18,6 +19,7 @@ import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -91,6 +93,16 @@ class RegisterFragment : AuthFragment() {
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
                         Callbacks.hideKeyboardFrom(requireContext(), requireView())
+
+                        viewModel.base64Image.originalUri?.let { image ->
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                id,
+                                it.token!!.jwt!!,
+                                Constants.USERS,
+                                image,
+                                requireContext()
+                            )
+                        }
 
                         login(
                             RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
@@ -177,12 +189,10 @@ class RegisterFragment : AuthFragment() {
             resultCode,
             data
         ) {
-            binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            Glide.with(requireContext())
+                .load(data!!.data!!)
+                .into(binding.profileImage)
+            viewModel.base64Image.setOriginalUri(data.data!!.toString())
         }
     }
 }

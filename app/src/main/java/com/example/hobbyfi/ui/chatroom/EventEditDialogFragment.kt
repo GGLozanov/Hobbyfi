@@ -27,6 +27,7 @@ import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.model.LatLng
@@ -90,50 +91,60 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
             }
 
             eventEditDialogButtonBar.rightButton.setOnClickListener {
-                val eventUpdateFields: MutableMap<String, String?> = mutableMapOf()
+                val fieldMap: MutableMap<String, String?> = mutableMapOf()
 
                 if(viewModel!!.name.value != viewModel!!.event.name) {
-                    eventUpdateFields[Constants.NAME] = viewModel!!.name.value
+                    fieldMap[Constants.NAME] = viewModel!!.name.value
                 }
 
                 if(viewModel!!.description.value != viewModel!!.event.description) {
-                    eventUpdateFields[Constants.DESCRIPTION] = viewModel!!.description.value
+                    fieldMap[Constants.DESCRIPTION] = viewModel!!.description.value
                 }
 
-                viewModel!!.base64Image.base64?.let {
-                    eventUpdateFields[Constants.IMAGE] = it
+                viewModel!!.base64Image.originalUri?.let {
+                    fieldMap[Constants.IMAGE] = it
                 }
 
                 viewModel!!.eventLatLng?.let {
                     if(it.latitude != viewModel!!.event.latitude) {
-                        eventUpdateFields[Constants.LATITUDE] = it.latitude.toString()
+                        fieldMap[Constants.LATITUDE] = it.latitude.toString()
                     }
 
                     if(it.longitude != viewModel!!.event.longitude) {
-                        eventUpdateFields[Constants.LONGITUDE] = it.longitude.toString()
+                        fieldMap[Constants.LONGITUDE] = it.longitude.toString()
                     }
                 }
 
                 viewModel!!.eventDate?.let {
                     val formattedDate = Constants.dateTimeFormatter.format(viewModel!!.eventDate!!)
                     if(viewModel!!.event.date != formattedDate) {
-                        eventUpdateFields[Constants.DATE] = formattedDate
+                        fieldMap[Constants.DATE] = formattedDate
                     }
                 }
 
-                if(eventUpdateFields.isEmpty()) {
+                if(fieldMap.isEmpty()) {
                     Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
                         .show()
                     return@setOnClickListener
+                } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
+                    WorkerUtils.buildAndEnqueueImageUploadWorker(
+                        viewModel!!.event.id,
+                        prefConfig.getAuthUserToken()!!,
+                        Constants.EDIT_EVENT_TYPE,
+                        viewModel!!.base64Image.originalUri!!,
+                        requireContext(),
+                        activityViewModel.authChatroom.value!!.id
+                    )
+                    return@setOnClickListener
                 }
 
-                eventUpdateFields[Constants.ID] = viewModel!!.event.id.toString()
-                Log.i("EventEditFragment", "EventFieldMap update: $eventUpdateFields")
+                fieldMap[Constants.ID] = viewModel!!.event.id.toString()
+                Log.i("EventEditFragment", "EventFieldMap update: $fieldMap")
 
                 lifecycleScope.launch {
                     viewModel!!.sendIntent(
                         EventIntent.UpdateEvent(
-                            eventUpdateFields
+                            fieldMap
                         )
                     )
                 }
@@ -193,6 +204,16 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                     is EventState.OnData.EventEditResult -> {
                         isCancelable = true
                         activityViewModel.sendEventsIntent(EventListIntent.UpdateAnEventCache(it.updateFields))
+                        if(it.updateFields.containsKey(Constants.IMAGE)) {
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                viewModel.event.id,
+                                prefConfig.getAuthUserToken()!!,
+                                Constants.EDIT_EVENT_TYPE,
+                                viewModel.base64Image.originalUri!!,
+                                requireContext(),
+                                activityViewModel.authChatroom.value!!.id
+                            )
+                        }
 
                         viewModel.resetState()
                         dismiss()
@@ -221,12 +242,10 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
             resultCode,
             data
         ) {
-            binding.eventInfo.eventImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            Glide.with(requireContext())
+                .load(data!!.data!!)
+                .into(binding.eventInfo.eventImage)
+            viewModel.base64Image.setOriginalUri(data.data.toString())
         }
     }
 

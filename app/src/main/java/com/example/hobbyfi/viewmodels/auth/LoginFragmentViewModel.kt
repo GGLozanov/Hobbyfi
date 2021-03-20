@@ -59,7 +59,7 @@ class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(
                     }
                     is TokenIntent.FetchFacebookRegisterToken -> {
                         Log.i("LoginFragmentVM", "fetching FB register token")
-                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value, it.image,
+                        fetchRegisterTokenFacebook(it.facebookToken, it.username, email.value,
                             tagBundle.selectedTags) // fixme: repeated unnecessary checks
                     }
                     else -> throw Intent.InvalidIntentException()
@@ -108,7 +108,7 @@ class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(
     // TODO: Save facebook user picture on own back-end? Useless but easier?
     // ...if the Facebook user changes their profile picture, it won't be synced in the app...
     // Too bad!
-    private suspend fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, image: String, tags: List<Tag>) {
+    private suspend fun fetchRegisterTokenFacebook(facebookToken: String, username: String, email: String?, tags: List<Tag>) {
         mainStateIntent.setState(TokenState.Loading)
         mainStateIntent.setState(try {
             tokenRepository.getRegisterToken(
@@ -117,7 +117,6 @@ class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(
                 null,
                 username,
                 null,
-                image,
                 tags
             )
             TokenState.FacebookRegisterTokenSuccess

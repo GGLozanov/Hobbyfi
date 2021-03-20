@@ -19,9 +19,9 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     suspend fun getRegisterToken(
         facebookToken: String?,
             email: String?, password: String?, username: String, description: String?,
-            base64Image: String?, tags: List<Tag>): TokenResponse? {
+            tags: List<Tag>): TokenResponse? {
         Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
-                + email + "; username:" + username + "; description: " + description + "; image: " + base64Image + "; tags: " + tags + "\n register token")
+                + email + "; username:" + username + "; description: " + description + "; tags: " + tags + "\n register token")
 
         return try {
             hobbyfiAPI.fetchRegistrationToken(
@@ -30,7 +30,6 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 username,
                 password,
                 description,
-                base64Image,
                 if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
         } catch(ex: Exception) {

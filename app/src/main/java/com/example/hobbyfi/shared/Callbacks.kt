@@ -64,7 +64,7 @@ object Callbacks {
         if (requestCode == requiredRequestCode &&
             resultCode == Activity.RESULT_OK && data != null && data.data != null) {
             try {
-                return ImageUtils.getBitmapFromUri(activity, data.data!!)
+                return ImageUtils.getBitmapFromUri(activity.contentResolver, data.data!!)
             } catch (ex: IOException) {
                 Log.e(
                     "Callbacks.imageCallback", "onActivityResult (image retrieval) " +

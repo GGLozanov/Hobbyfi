@@ -493,7 +493,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     withContext(Dispatchers.IO) {
                         uris.map {
                             try {
-                                ImageUtils.getEncodedImageFromUri(requireActivity(), it)
+                                ImageUtils.getEncodedImageFromUri(requireActivity().contentResolver, it)
                             } catch (ex: FileNotFoundException) {
                                 Toast.makeText(
                                     requireContext(),

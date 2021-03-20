@@ -594,6 +594,16 @@ class ChatroomActivity : NavigationActivity(),
                         leaveDeletedChatroom()
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
+                        if(it.fieldMap.containsKey(Constants.IMAGE)) {
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                viewModel.authChatroom.value!!.id,
+                                prefConfig.getAuthUserToken()!!,
+                                Constants.EDIT_CHATROOM_TYPE,
+                                it.fieldMap[Constants.IMAGE]!!,
+                                this@ChatroomActivity
+                            )
+                        }
+
                         Toast.makeText(
                             this@ChatroomActivity,
                             "Successfully updated chatroom!",

@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
@@ -20,6 +21,7 @@ import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
@@ -97,6 +99,16 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
+                        viewModel.base64Image.originalUri?.let { image ->
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                it.response.id,
+                                prefConfig.getAuthUserToken()!!,
+                                Constants.CHATROOMS,
+                                image,
+                                requireContext()
+                            )
+                        }
+
                         activityViewModel.setJoinedChatroom(true)
                         prefConfig.writeLastEnteredChatroomId(it.response.id)
                         navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
@@ -161,12 +173,10 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             data
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
-            binding.chatroomInfo.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            Glide.with(requireContext())
+                .load(data!!.data!!)
+                .into(binding.chatroomInfo.chatroomImage)
+            viewModel.base64Image.setOriginalUri(data.data!!.toString())
         }
     }
 }

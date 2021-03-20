@@ -87,6 +87,9 @@ object Constants {
     const val RESULT_KICKED: Int = 246
     const val RESULT_REAUTH: Int = 111
 
+    const val imageUploadSuccess: String = "Image uploaded successfully!"
+    const val imageUploadFail: String = "Image upload failed!"
+
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
         Tag(
@@ -230,6 +233,10 @@ object Constants {
 
     const val QUERY: String = "query"
     const val ROOM_IDS: String = "roomIds"
+
+    const val USERS: String = "users"
+    const val CHATROOMS: String = "chatrooms"
+    const val EVENTS: String = "events"
 
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr

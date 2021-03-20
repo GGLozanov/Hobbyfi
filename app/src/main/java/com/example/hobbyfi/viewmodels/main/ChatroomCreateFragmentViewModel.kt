@@ -59,7 +59,6 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
             val response = chatroomRepository.createChatroom(
                 name.value!!,
                 description.value!!,
-                base64Image.base64,
                 tagBundle.selectedTags
             )
 

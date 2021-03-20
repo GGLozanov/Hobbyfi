@@ -81,7 +81,7 @@ class UserRepository @ExperimentalPagingApi constructor(
         return performAuthorisedRequest({
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
-                userFields
+                userFields.filterKeys { it != Constants.IMAGE }
             )
         }, {
             editUser(userFields, originalUsername) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop

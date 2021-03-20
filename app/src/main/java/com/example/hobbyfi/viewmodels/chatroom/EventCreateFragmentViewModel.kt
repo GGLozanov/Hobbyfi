@@ -49,7 +49,6 @@ class EventCreateFragmentViewModel(
                 name.value!!,
                 description.value,
                 parsedEventDate,
-                base64Image.base64,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude
             )

@@ -21,6 +21,7 @@ import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.main.UserProfileFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -132,14 +133,23 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 
-                if (viewModel!!.base64Image.base64 != null) { // means user has changed their pfp
-                    fieldMap[Constants.IMAGE] = viewModel!!.base64Image.base64
+                if (viewModel!!.base64Image.originalUri != null) { // means user has changed their pfp
+                    fieldMap[Constants.IMAGE] = viewModel!!.base64Image.originalUri
                 }
 
                 Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
                 if (fieldMap.isEmpty()) {
                     Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
                         .show()
+                    return@setOnClickListener
+                } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
+                    WorkerUtils.buildAndEnqueueImageUploadWorker(
+                        activityViewModel.authUser.value!!.id,
+                        prefConfig.getAuthUserToken()!!,
+                        Constants.EDIT_USER_TYPE,
+                        viewModel!!.base64Image.originalUri!!,
+                        requireContext()
+                    )
                     return@setOnClickListener
                 }
 
@@ -239,11 +249,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             Glide.with(requireContext())
                 .load(data!!.data!!)
                 .into(binding.profileImage)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setOriginalUri(data.data!!.toString())
         }
     }
 }

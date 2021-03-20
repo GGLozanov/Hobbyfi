@@ -46,7 +46,6 @@ interface HobbyfiAPI {
         @Field(Constants.USERNAME) username: String,
         @Field(Constants.PASSWORD) password: String?,
         @Field(Constants.DESCRIPTION) description: String?,
-        @Field(Constants.IMAGE) image: String?,
         @Field(Constants.TAGS + "[]") tags: String?
     ): TokenResponse?
 
@@ -139,7 +138,6 @@ interface HobbyfiAPI {
         @Header(Constants.AUTH_HEADER) token: String,
         @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
-        @Field(Constants.IMAGE) image: String?,
         @Field(Constants.TAGS + "[]") tags: String?
     ): IdResponse?
 
@@ -269,7 +267,6 @@ interface HobbyfiAPI {
         @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
         @Field(Constants.DATE) date: String,
-        @Field(Constants.IMAGE) image: String?,
         @Field(Constants.LATITUDE) lat: Double,
         @Field(Constants.LONGITUDE) long: Double
     ): StartDateIdResponse?
@@ -323,6 +320,16 @@ interface HobbyfiAPI {
         @Header(Constants.AUTH_HEADER) token: String,
         @Field(Constants.CHATROOM_ID) chatroomId: Long,
         @Field(Constants.TOGGLE) toggle: Int
+    ): Response?
+
+    @POST("api/v${API_VERSION}/image/upload")
+    @FormUrlEncoded
+    suspend fun uploadImage(
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.ID) modelId: Long,
+        @Field(Constants.IMAGE) image: String,
+        @Field(Constants.TYPE) type: String,
+        @Field(Constants.CHATROOM_ID) chatroomId: Long?,
     ): Response?
 
     companion object {

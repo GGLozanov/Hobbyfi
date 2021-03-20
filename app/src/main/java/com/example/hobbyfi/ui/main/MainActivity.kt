@@ -161,6 +161,16 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                     is UserState.OnData.UserUpdateResult -> {
                         // FIXME: This feels quite coupled as it exposes the knowledge of the fragment
                         //  ... but I can't think of any other alternative for now
+                        if(it.userFields.containsKey(Constants.IMAGE)) {
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                viewModel.authUser.value!!.id,
+                                prefConfig.getAuthUserToken()!!,
+                                Constants.EDIT_USER_TYPE,
+                                it.userFields[Constants.IMAGE]!!,
+                                this@MainActivity
+                            )
+                        }
+
                         val hasJoinedChatroom = it.userFields.containsKey(Constants.CHATROOM_ID)
                         val hasLeftChatroom = it.userFields.containsKey(Constants.LEAVE_CHATROOM_ID)
                         if (hasJoinedChatroom || hasLeftChatroom) {

@@ -11,7 +11,7 @@ import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
 
 abstract class KodeinCoroutineWorker(
-    context: Context,
+    protected val context: Context,
     params: WorkerParameters
 ) : CoroutineWorker(context, params), KodeinAware {
     override val kodein: Kodein by kodein(context)
