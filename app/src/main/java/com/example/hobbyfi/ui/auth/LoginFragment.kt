@@ -296,7 +296,8 @@ class LoginFragment : AuthFragment() {
                                     AccessToken.getCurrentAccessToken().token,
                                     Constants.USERS,
                                     file.toURI().toString(),
-                                    requireContext()
+                                    requireContext(),
+                                    R.string.pref_last_user_fetch_time
                                 )
 
                                 withContext(Dispatchers.Main) {

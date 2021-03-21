@@ -29,7 +29,12 @@ abstract class DeviceTokenWorker(
             Log.w("DeviceTokenWorker", "Hobbyfi device token request " +
                     "(writeDeviceTokenUploadedOnFinish: ${writeDeviceTokenUploadedOnFinish}) =>>> FAIL")
             return if(ex !is IllegalArgumentException &&
-                (ex is HttpException && ex.code() != 406 && ex.code() != 400)) Result.retry() else Result.failure()
+                (ex is HttpException && ex.code() != 400)) {
+                prefConfig.writeCurrentDeviceTokenUploaded(writeDeviceTokenUploadedOnFinish)
+                if(ex.code() != 406) {
+                    Result.retry()
+                } else Result.failure()
+            } else Result.failure()
         }
     }
 }

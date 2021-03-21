@@ -134,6 +134,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
                     Constants.deepLinkGenFail,
                     Toast.LENGTH_LONG
                 ).show()
+                return@generateShortUrl
             }
 
             if (ShareDialog.canShow(ShareLinkContent::class.java)) {

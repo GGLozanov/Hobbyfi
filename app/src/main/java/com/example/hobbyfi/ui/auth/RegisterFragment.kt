@@ -100,7 +100,8 @@ class RegisterFragment : AuthFragment() {
                                 it.token!!.jwt!!,
                                 Constants.USERS,
                                 image,
-                                requireContext()
+                                requireContext(),
+                                R.string.pref_last_user_fetch_time
                             )
                         }
 

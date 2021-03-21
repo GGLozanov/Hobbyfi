@@ -175,6 +175,7 @@ object Constants {
     const val PHOTO_URL = "photo_url"
 
     const val AUTH_HEADER = "Authorization"
+    const val PREF_ID = "PREF_ID"
 
     const val tagsKey = "tag"
     const val selectedTagsKey = "selectedTags"

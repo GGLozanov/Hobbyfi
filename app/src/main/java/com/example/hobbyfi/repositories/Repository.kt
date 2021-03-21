@@ -2,7 +2,6 @@ package com.example.hobbyfi.repositories
 
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.responses.TokenResponse
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.TokenUtils
@@ -32,7 +31,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
                 }
             } else throw IllegalStateException()
         } catch(ex: Exception) {
-            dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 
@@ -41,7 +40,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
         request()
     } catch(ex: Exception) {
         try {
-            dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+            dissectExceptionAndThrow(ex, isAuthorisedRequest = true)
         } catch(authEx: AuthorisedRequestException) {
             getNewTokenWithRefresh()
                 // if this ^ throws exception => user reauth; invalid refresh token & can't fetch response
@@ -51,7 +50,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
 
     companion object {
         // always throws an exception
-        fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
+        fun dissectExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
             ex.printStackTrace()
             when(ex) {
                 is HobbyfiAPI.NoConnectivityException, is FirebaseException -> throw Exception(Constants.noConnectionError)

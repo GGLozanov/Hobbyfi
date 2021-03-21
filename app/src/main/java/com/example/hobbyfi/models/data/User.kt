@@ -70,4 +70,8 @@ data class User(
         }
         return this
     }
+
+    override fun equals(other: Any?): Boolean {
+        return if(other is User) other.id == this.id else false
+    }
 }

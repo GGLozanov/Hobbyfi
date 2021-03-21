@@ -583,6 +583,7 @@ class ChatroomActivity : NavigationActivity(),
                             Toast.LENGTH_LONG
                         ).show()
                         leaveDeletedChatroom()
+                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(
@@ -592,6 +593,7 @@ class ChatroomActivity : NavigationActivity(),
                             Toast.LENGTH_LONG
                         ).show()
                         leaveDeletedChatroom()
+                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         if(it.fieldMap.containsKey(Constants.IMAGE)) {
@@ -600,7 +602,8 @@ class ChatroomActivity : NavigationActivity(),
                                 prefConfig.getAuthUserToken()!!,
                                 Constants.EDIT_CHATROOM_TYPE,
                                 it.fieldMap[Constants.IMAGE]!!,
-                                this@ChatroomActivity
+                                this@ChatroomActivity,
+                                R.string.pref_last_chatrooms_fetch_time
                             )
                         }
 
@@ -628,7 +631,7 @@ class ChatroomActivity : NavigationActivity(),
             .apply {
                 putExtra(
                     Constants.CHATROOM_ID,
-                    viewModel.authChatroom.value!!.id
+                    viewModel.authChatroom.value?.id ?: prefConfig.readLastEnteredChatroomId()
                 )
             }
         )
@@ -703,7 +706,9 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUsers() {
         viewModel.chatroomUsers.observe(this, Observer {
-            if (viewModel.authUser.value?.chatroomIds?.contains(viewModel.authChatroom.value?.id) == false) {
+            Log.i("ChatroomActivity", "auth user in users observe: ${viewModel.authUser.value}")
+            Log.i("ChatroomActivity", "observed users: $it")
+            if (it.isNotEmpty() && !it.contains(viewModel.authUser.value)) {
                 leaveChatroomWithDelete()
                 return@Observer
             }

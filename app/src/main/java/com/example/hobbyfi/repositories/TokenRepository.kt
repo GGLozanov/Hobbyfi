@@ -5,7 +5,6 @@ import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.ColourUtils
@@ -33,7 +32,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
         } catch(ex: Exception) {
-            dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 
@@ -47,7 +46,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 password
             )
         } catch(ex: Exception) {
-            dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 
@@ -112,7 +111,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         return try {
             hobbyfiAPI.resetPassword(email)
         } catch(ex: Exception) {
-            dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 }

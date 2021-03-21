@@ -250,7 +250,7 @@ class ChatroomActivityViewModel(
                         e.isCritical
                     )
                 )
-            }.collectLatest {
+            }.distinctUntilChanged().collectLatest {
                 Log.i("ChatroomActivityVM", "Events collected: ${it}")
                 if(it != null) {
                     _authEvents.value = it
@@ -324,8 +324,8 @@ class ChatroomActivityViewModel(
         val success = eventRepository.deleteEventsCache(eventIds)
         if(success) {
             updateAndSaveChatroom(mapOf(
-                Pair(Constants.EVENT_IDS,
-                    Constants.jsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
+                Constants.EVENT_IDS to
+                    Constants.jsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) })
             ))
             setAuthEvents(_authEvents.value!!.filter { event -> !eventIds.contains(event.id) })
         }
@@ -344,7 +344,7 @@ class ChatroomActivityViewModel(
 
         if(setState) {
             eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
-            else EventState.Error(Constants.cacheDeletionError))
+                else EventState.Error(Constants.cacheDeletionError))
         } else if(!success) {
             throw Exception(Constants.cacheDeletionError)
         }

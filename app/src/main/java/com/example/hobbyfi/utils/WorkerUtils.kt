@@ -34,6 +34,7 @@ object WorkerUtils {
         type: String,
         imageUri: String,
         context: Context,
+        clearRefreshPrefId: Int, // TODO: These should be replaced w/ separate prefs tracking image changes, not cache
         chatroomId: Long? = null
     ) {
         val workData = workDataOf(
@@ -41,7 +42,8 @@ object WorkerUtils {
             Constants.AUTH_HEADER to authToken,
             Constants.TYPE to type,
             Constants.CHATROOM_ID to chatroomId,
-            Constants.IMAGE to imageUri
+            Constants.IMAGE to imageUri,
+            Constants.PREF_ID to clearRefreshPrefId
         )
 
         // send to server (auth'd)

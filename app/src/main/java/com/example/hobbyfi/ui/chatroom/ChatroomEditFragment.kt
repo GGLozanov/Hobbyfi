@@ -84,7 +84,8 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                         prefConfig.getAuthUserToken()!!,
                         Constants.EDIT_CHATROOM_TYPE,
                         viewModel!!.base64Image.originalUri!!,
-                        requireContext()
+                        requireContext(),
+                        R.string.pref_last_chatrooms_fetch_time
                     )
                     return@setOnClickListener
                 }

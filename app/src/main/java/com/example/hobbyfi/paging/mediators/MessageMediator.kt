@@ -11,7 +11,6 @@ import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.persistence.HobbyfiDatabase
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.responses.CacheListResponse
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
@@ -43,7 +42,7 @@ class MessageMediator(
         } catch(ex: Exception) {
             ex.printStackTrace()
             try {
-                Repository.dissectRepositoryExceptionAndThrow(ex)
+                Repository.dissectExceptionAndThrow(ex)
             } catch(parsedEx: Exception) {
                 MediatorResult.Error(parsedEx)
             }

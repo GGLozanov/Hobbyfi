@@ -133,6 +133,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                         Constants.EDIT_EVENT_TYPE,
                         viewModel!!.base64Image.originalUri!!,
                         requireContext(),
+                        R.string.pref_last_events_fetch_time,
                         activityViewModel.authChatroom.value!!.id
                     )
                     return@setOnClickListener
@@ -211,6 +212,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                                 Constants.EDIT_EVENT_TYPE,
                                 viewModel.base64Image.originalUri!!,
                                 requireContext(),
+                                R.string.pref_last_events_fetch_time,
                                 activityViewModel.authChatroom.value!!.id
                             )
                         }

@@ -167,7 +167,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                                 prefConfig.getAuthUserToken()!!,
                                 Constants.EDIT_USER_TYPE,
                                 it.userFields[Constants.IMAGE]!!,
-                                this@MainActivity
+                                this@MainActivity,
+                                R.string.pref_last_user_fetch_time
                             )
                         }
 
@@ -182,10 +183,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                                         viewModel.authUser.value!!.chatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
                                             ?: listOf(it.userFields[Constants.CHATROOM_ID])
                                     ),
-                                    Constants.ALLOWED_PUSH_CHATROOM_IDS to Constants.jsonConverter.toJson(
-                                        viewModel.authUser.value!!.allowedPushChatroomIds?.plus(it.userFields[Constants.CHATROOM_ID])
-                                            ?: listOf(it.userFields[Constants.CHATROOM_ID])
-                                    )
                                 )
                                 viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                                 viewModel.setJoinedChatroom(hasJoinedChatroom)
@@ -196,6 +193,11 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                                         viewModel.authUser.value!!.chatroomIds?.filter { id -> (it.userFields[Constants.LEAVE_CHATROOM_ID]
                                                 ?: error("Leave chatroom Id must not be null in collection of UpdateUser state in MainActivity"))
                                             .toLong() != id }
+                                    ),
+                                    Constants.ALLOWED_PUSH_CHATROOM_IDS to Constants.jsonConverter.toJson(
+                                        viewModel.authUser.value!!.allowedPushChatroomIds?.filter { id -> (it.userFields[Constants.LEAVE_CHATROOM_ID]
+                                                ?: error("Leave chatroom Id must not be null in collection of UpdateUser state in MainActivity"))
+                                            .toLong() != id  }
                                     )
                                 )
                                 viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment

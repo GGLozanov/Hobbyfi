@@ -26,6 +26,8 @@ class ImageUploadWorker(
                     && type == Constants.EDIT_EVENT_TYPE) throw IllegalArgumentException()
                 else inputData.getLong(Constants.CHATROOM_ID, -1L)
         val image = inputData.getString(Constants.IMAGE) ?: throw IllegalArgumentException()
+        val prefId = if(inputData.getInt(Constants.PREF_ID, -1) == -1) throw IllegalArgumentException()
+                else inputData.getInt(Constants.PREF_ID, -1)
 
         return try {
             hobbyfiAPI.uploadImage(
@@ -40,6 +42,7 @@ class ImageUploadWorker(
                 Toast.makeText(context, Constants.imageUploadSuccess, Toast.LENGTH_LONG)
                     .show()
             }
+            prefConfig.writeLastPrefFetchTimeNow(prefId)
             Result.success()
         } catch(ex: Exception) {
             Log.w("DeviceTokenWorker", "Hobbyfi image upload request =>>> FAIL")

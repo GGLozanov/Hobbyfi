@@ -95,7 +95,8 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                                 prefConfig.getAuthUserToken()!!,
                                 Constants.EVENTS,
                                 image,
-                                requireContext()
+                                requireContext(),
+                                R.string.pref_last_events_fetch_time
                             )
                         }
 

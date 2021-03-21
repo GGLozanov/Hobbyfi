@@ -59,8 +59,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                     )
 
                                     dialogInterface.dismiss()
-                                }
-                                .create()
+                                }.create()
                             dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
                             dialog.show()
                         }

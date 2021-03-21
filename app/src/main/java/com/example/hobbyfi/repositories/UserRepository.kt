@@ -48,7 +48,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                     hobbyfiDatabase.userDao().getUserById(userId)
                 } catch(ex: Exception) {
                     try {
-                        dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+                        dissectExceptionAndThrow(ex, isAuthorisedRequest = true)
                     } catch(tokenEx: TokenUtils.InvalidStoredTokenException) {
                         Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
                         flowOf(null)
@@ -181,7 +181,7 @@ class UserRepository @ExperimentalPagingApi constructor(
 
             override suspend fun loadFromDb(): Flow<List<User>?> =
                 hobbyfiDatabase.userDao().getUsers().mapLatest {
-                    it?.filter { user -> user.chatroomIds?.contains(chatroomId) == true } }
+                    it?.filter { user -> user.chatroomIds?.contains(chatroomId) == true } } // bruh but SQL's giving issues with filtering in lists
 
             override suspend fun fetchFromNetwork(): CacheListResponse<User>? = performAuthorisedRequest(
                 {

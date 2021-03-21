@@ -148,7 +148,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                         prefConfig.getAuthUserToken()!!,
                         Constants.EDIT_USER_TYPE,
                         viewModel!!.base64Image.originalUri!!,
-                        requireContext()
+                        requireContext(),
+                        R.string.pref_last_user_fetch_time
                     )
                     return@setOnClickListener
                 }

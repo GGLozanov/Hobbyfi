@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
+import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
@@ -105,7 +106,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                                 prefConfig.getAuthUserToken()!!,
                                 Constants.CHATROOMS,
                                 image,
-                                requireContext()
+                                requireContext(),
+                                R.string.pref_last_chatrooms_fetch_time
                             )
                         }
 
