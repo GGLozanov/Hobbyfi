@@ -23,6 +23,7 @@ import com.example.hobbyfi.ui.chatroom.EventChooseLocationMapsActivity
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventAccessorViewModel
+import com.facebook.AccessToken
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.firebase.FirebaseException
@@ -63,7 +64,7 @@ object Callbacks {
         if (requestCode == requiredRequestCode &&
             resultCode == Activity.RESULT_OK && data != null && data.data != null) {
             try {
-                return ImageUtils.getBitmapFromUri(activity, data.data!!)
+                return ImageUtils.getBitmapFromUri(activity.contentResolver, data.data!!)
             } catch (ex: IOException) {
                 Log.e(
                     "Callbacks.imageCallback", "onActivityResult (image retrieval) " +
@@ -251,53 +252,6 @@ object Callbacks {
             putExtra(Constants.EVENT_LOCATION, latLng ?: viewModel.eventLatLng)
         }.run {
             fragment.startActivityForResult(this, Constants.eventLocationRequestCode)
-        }
-    }
-
-    // always throws an exception
-    fun dissectRepositoryExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
-        ex.printStackTrace()
-        when(ex) {
-            is HobbyfiAPI.NoConnectivityException, is FirebaseException -> throw Exception(Constants.noConnectionError)
-            is HttpException -> {
-                when (ex.code()) {
-                    400 -> { // bad request (missing data)
-                        throw Exception(Constants.missingDataError)
-                    }
-                    401 -> { // unauthorized
-                        throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                            else if (!Constants.isFacebookUserAuthd())
-                                Repository.AuthorisedRequestException(Constants.unauthorisedAccessError)  // only for login incorrect password error
-                            else Repository.ReauthenticationException(Constants.reauthError)
-                    }
-                    404 -> { // not found
-                        throw Repository.ReauthenticationException(Constants.resourceNotFoundError)
-                    }
-                    406 -> { // not acceptable
-                        throw Exception(Constants.invalidDataError)
-                    }
-                    409 -> { // conflict
-                        throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk
-                    }
-                    429 -> { // too many
-                        throw Exception(Constants.limitReachedError)
-                    }
-                    500 -> {
-                        throw Repository.ReauthenticationException(Constants.internalServerError)
-                    }
-                }
-
-                throw Repository.NetworkException(ex.message().toString() + "; code: " + ex.code())
-            }
-            is ExpiredJwtException -> {
-                throw if (isAuthorisedRequest) Repository.AuthorisedRequestException()
-                else Repository.ReauthenticationException(Constants.expiredTokenError)
-            }
-            is Repository.ReauthenticationException,
-                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
-            else -> throw if(ex is SocketTimeoutException)
-                Repository.ReauthenticationException(Constants.serverConnectionError)
-                    else Repository.UnknownErrorException(Constants.unknownError(ex.message))
         }
     }
 }

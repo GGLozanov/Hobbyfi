@@ -49,7 +49,6 @@ class RegisterFragmentViewModel(application: Application) : AuthConfirmationView
                 password.value,
                 name.value!!,
                 description.value,
-                base64Image.base64,
                 tagBundle.selectedTags
             ))
         } catch (e: Exception) {

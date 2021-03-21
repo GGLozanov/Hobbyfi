@@ -24,10 +24,10 @@ class ChatroomResponseDeserializer : BaseJsonDeserializer<CacheResponse<Chatroom
             deserializeJSONField(Constants.NAME, DeserializeOption.AS_STRING) as String,
             deserializeJSONField(Constants.DESCRIPTION, DeserializeOption.AS_STRING) as String?,
             deserializeJSONField(Constants.PHOTO_URL, DeserializeOption.AS_STRING) as String?,
-            Constants.tagJsonConverter
+            Constants.jsonConverter
                 .fromJson(deserializeJSONField(Constants.TAGS, DeserializeOption.AS_ARRAY) as JsonArray?),
             deserializeJSONField(Constants.OWNER_ID, DeserializeOption.AS_LONG) as Long,
-            Constants.tagJsonConverter
+            Constants.jsonConverter
                 .fromJson(deserializeJSONField(Constants.EVENT_IDS, DeserializeOption.AS_ARRAY) as JsonArray?)
         )
 

@@ -48,7 +48,7 @@ class UserRepository @ExperimentalPagingApi constructor(
                     hobbyfiDatabase.userDao().getUserById(userId)
                 } catch(ex: Exception) {
                     try {
-                        Callbacks.dissectRepositoryExceptionAndThrow(ex, isAuthorisedRequest = true)
+                        dissectExceptionAndThrow(ex, isAuthorisedRequest = true)
                     } catch(tokenEx: TokenUtils.InvalidStoredTokenException) {
                         Log.w("UserRepository", "getUser() -> getNewTokenWithRefresh returned InvalidStoredTokenException")
                         flowOf(null)
@@ -81,7 +81,7 @@ class UserRepository @ExperimentalPagingApi constructor(
         return performAuthorisedRequest({
             hobbyfiAPI.editUser(
                 prefConfig.getAuthUserToken()!!,
-                userFields
+                userFields.filterKeys { it != Constants.IMAGE }
             )
         }, {
             editUser(userFields, originalUsername) // recursive call to this again; if everything goes as planned, this should never cause a recursive loop
@@ -181,7 +181,7 @@ class UserRepository @ExperimentalPagingApi constructor(
 
             override suspend fun loadFromDb(): Flow<List<User>?> =
                 hobbyfiDatabase.userDao().getUsers().mapLatest {
-                    it?.filter { user -> user.chatroomIds?.contains(chatroomId) == true } }
+                    it?.filter { user -> user.chatroomIds?.contains(chatroomId) == true } } // bruh but SQL's giving issues with filtering in lists
 
             override suspend fun fetchFromNetwork(): CacheListResponse<User>? = performAuthorisedRequest(
                 {
@@ -193,5 +193,18 @@ class UserRepository @ExperimentalPagingApi constructor(
                     response
                 }, { fetchFromNetwork() })
         }.asFlow()
+    }
+
+    suspend fun togglePushNotificationAllowForChatroomUser(chatroomId: Long, allow: Boolean) {
+        Log.i("UserRepository", "togglePushNotificationAllowForChatroomUser -> toggling push notifictation for auth user and chatroom w/ id $chatroomId with toggle status: $allow")
+        return performAuthorisedRequest({
+            hobbyfiAPI.togglePushNotificationAllowForChatrooom(
+                prefConfig.getAuthUserToken()!!,
+                chatroomId,
+                if(allow) 1 else 0
+            )
+        }, {
+            togglePushNotificationAllowForChatroomUser(chatroomId, allow)
+        })
     }
 }

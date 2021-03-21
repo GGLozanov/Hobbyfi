@@ -1,7 +1,6 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -24,7 +23,7 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginManager
@@ -33,6 +32,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import org.kodein.di.generic.instance
+import java.io.File
 
 
 @ExperimentalCoroutinesApi
@@ -258,19 +258,67 @@ class LoginFragment : AuthFragment() {
                     }
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
-                        login(
-                            LoginFragmentDirections.actionLoginFragmentToMainActivity(
-                                User(
-                                    profile.id.toLong(), // this will freaking die if Facebook changes their ID schema
-                                    viewModel.email.value,
-                                    profile.name,
-                                    null,
-                                    BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
-                                    viewModel.tagBundle.selectedTags,
-                                    null
+                        lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                val file = suspendCancellableCoroutine<File> { continuation ->
+                                    val glide = Glide.with(this@LoginFragment)
+
+                                    var fileResource: File? = null
+                                    val target = object : CustomTarget<File>() {
+                                        override fun onResourceReady(
+                                            resource: File,
+                                            transition: Transition<in File>?
+                                        ) {
+                                            fileResource = resource
+                                            continuation.resume(resource, null)
+                                        }
+
+                                        override fun onLoadCleared(placeholder: Drawable?) {
+                                            continuation.cancel(Constants.ImageFetchException())
+                                        }
+                                    }
+
+                                    glide
+                                        .download(
+                                            profile.getProfilePictureUri(
+                                                Constants.profileImageWidth,
+                                                Constants.profileImageHeight
+                                            )
+                                        ).into(target)
+
+                                    continuation.invokeOnCancellation {
+                                        glide.clear(target)
+                                    }
+                                }
+
+                                WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                    profile.id.toLong(),
+                                    AccessToken.getCurrentAccessToken().token,
+                                    Constants.USERS,
+                                    file.toURI().toString(),
+                                    requireContext(),
+                                    R.string.pref_last_user_fetch_time
                                 )
-                            )
-                        )
+
+                                withContext(Dispatchers.Main) {
+                                    login(
+                                        LoginFragmentDirections.actionLoginFragmentToMainActivity(
+                                            User(
+                                                profile.id.toLong(), // this will freaking die if Facebook changes their ID schema
+                                                viewModel.email.value,
+                                                profile.name,
+                                                null,
+                                                BuildConfig.BASE_URL + "uploads/" +
+                                                        Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                                viewModel.tagBundle.selectedTags,
+                                                null,
+                                                null
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -285,47 +333,11 @@ class LoginFragment : AuthFragment() {
             viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
             lifecycleScope.launch {
-                Profile.getCurrentProfile()?.let {
-                    val bitmap = suspendCancellableCoroutine<Bitmap> { continuation ->
-                        val glide = Glide.with(this@LoginFragment)
-
-                        var bmapResource: Bitmap? = null
-                        val target = object : CustomTarget<Bitmap>() {
-                            override fun onResourceReady(
-                                resource: Bitmap,
-                                transition: Transition<in Bitmap>?
-                            ) {
-                                bmapResource = resource
-                                continuation.resume(resource, null)
-                            }
-
-                            override fun onLoadCleared(placeholder: Drawable?) {
-                                bmapResource?.recycle()
-                                continuation.cancel(Constants.ImageFetchException())
-                            }
-                        }
-
-                        glide
-                            .asBitmap()
-                            .load(
-                                it.getProfilePictureUri(
-                                    Constants.profileImageWidth,
-                                    Constants.profileImageHeight
-                                )
-                            ).into(target)
-
-                        continuation.invokeOnCancellation {
-                            glide.clear(target)
-                        }
-                    }
-                    val image = ImageUtils.encodeImage(
-                        bitmap
-                    )
+                Profile.getCurrentProfile()?.let { profile ->
                     viewModel.sendIntent(
                         TokenIntent.FetchFacebookRegisterToken(
                             AccessToken.getCurrentAccessToken().token,
-                            it.name,
-                            image
+                            profile.name,
                         )
                     )
                 }

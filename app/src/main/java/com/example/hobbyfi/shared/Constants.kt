@@ -31,6 +31,7 @@ object Constants {
     const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
     const val invalidDataError: String = "Invalid data format!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
+    const val noConnectionOrAuthTaskRootError: String = "Couldn't enter the chatroom! Please check your connection or login again!"
     const val invalidCredentialsError: String = "Invalid credentials!"
     const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
     const val invalidTokenError: String = "Invalid access! Please login again!"
@@ -41,7 +42,6 @@ object Constants {
     const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
     const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
     const val resourceNotFoundError: String = "Requested resource not found!"
-    const val fcmTopicError: String = "Couldn't access realtime messaging services! Please check your connection or consult with Google, as this error is not ours!"
     const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
     const val invalidStateError: String = "Invalid state to call this method in!"
     const val firestoreDeletionError: String = "Couldn't delete remote source records needed to have been deleted!"
@@ -67,6 +67,9 @@ object Constants {
     const val userKickSuccess: String = "User successfully kicked!"
     const val chatroomDeletedMessage: String = "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!"
     const val chatroomKickedMessage: String = "Oh no, it looks like you've been kicked from the chatroom by the owner!"
+    const val eventParsingError: String = "Failed to parse event date!"
+    const val socketConnectionError: String = "Couldn't connect to server for realtime capabilities!"
+    const val socketEmissionError: String = "Couldn't receive new messages to display!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
     const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
@@ -82,6 +85,10 @@ object Constants {
     const val eventMapsRequestCode: Int = 666
     const val RESULT_CHATROOM_DELETE: Int = 423
     const val RESULT_KICKED: Int = 246
+    const val RESULT_REAUTH: Int = 111
+
+    const val imageUploadSuccess: String = "Image uploaded successfully!"
+    const val imageUploadFail: String = "Image upload failed!"
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -132,15 +139,9 @@ object Constants {
         .toLong()
 
     const val SUCCESS_RESPONSE = "Ok"
-    const val FAILED_RESPONSE = "failed"
-    const val IMAGE_UPLOAD_SUCCESS_RESPONSE = "Image Uploaded"
-    const val IMAGE_UPLOAD_FAILED_RESPONSE = "Image Upload Failed"
     const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Couldn't fetch Facebook email!"
     const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
-    const val EXISTS_RESPONSE = "exists"
     const val INVALID_TOKEN = "invalid"
-    const val REAUTH_FLAG = "Reauth"
-    const val FAILED_FLAG = "Failed: "
 
     // enum would've been more concise here but annotations can't have enums call toString()
     const val ID = "id"
@@ -151,6 +152,7 @@ object Constants {
     const val USERNAME = "username"
     const val DESCRIPTION = "description"
     const val CHATROOM_ID = "chatroom_id"
+    const val TOGGLE = "toggle"
     const val MESSAGE_ID = "message_id"
     const val IMAGE = "image"
     const val TAGS = "tags"
@@ -173,6 +175,7 @@ object Constants {
     const val PHOTO_URL = "photo_url"
 
     const val AUTH_HEADER = "Authorization"
+    const val PREF_ID = "PREF_ID"
 
     const val tagsKey = "tag"
     const val selectedTagsKey = "selectedTags"
@@ -226,15 +229,19 @@ object Constants {
     const val DELETED_MODEL_USER_SENT_ID: String = "DELETED_MODEL_USER_SENT_ID"
 
     const val CHATROOM_DELETED: String = "CHATROOM_DELETED" // action for broadcast whenever owner deletes chatroom
-    const val LOGOUT: String = "LOGOUT_ACTION" // action for user logout
 
     const val MAIN_ACTIVITY_FRAGMENT_SELECTED: String = "MAIN_ACTIVITY_FRAGMENT_SELECTED" // TODO: Use
 
     const val QUERY: String = "query"
+    const val ROOM_IDS: String = "roomIds"
+
+    const val USERS: String = "users"
+    const val CHATROOMS: String = "chatrooms"
+    const val EVENTS: String = "events"
 
     // TODO: Move to DI and use it somehow...?!??
     // Process death go brrr
-    val tagJsonConverter: Gson = GsonBuilder()
+    val jsonConverter: Gson = GsonBuilder()
         .registerTypeAdapter(
             Tag::class.java,
             TagTypeAdapter()
@@ -247,6 +254,9 @@ object Constants {
     const val DATA_VALUES: String = "data_values"
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
+
+    const val TOKEN: String = "token"
+    const val API: String = "API"
 
     const val USER = "USER"
 
@@ -273,6 +283,7 @@ object Constants {
     const val EVENT_ID = "event_id"
     const val EVENT_IDS: String = "event_ids"
     const val CHATROOM_IDS: String = "chatroom_ids"
+    const val ALLOWED_PUSH_CHATROOM_IDS: String = "allowed_push_chatroom_ids"
     const val LEAVE_CHATROOM_ID: String = "leave_chatroom_id"
 
     const val LAST_CONNECTIVITY: String = "LAST_CONNECTIVITY"
@@ -283,14 +294,18 @@ object Constants {
 
     const val UPDATED_LOCATION: String = "UPDATED_LOCATION"
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
-    const val UPDATED_LOCATION_ACTION: String = "UPDATED_LOCATION_ACTION"
+    const val UPDATED_LOCATION_ACTION: String = "com.example.hobbyfi.UPDATED_LOCATION_ACTION"
+    const val FOREGROUND_REACTIVIATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVIATION_ACTION";
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
     const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
+    const val JOIN_CHATROOM: String = "join_chatroom"
+    const val ENTER_MAIN: String = "enter_main"
+
     @SuppressLint("SimpleDateFormat")
-    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    val dateTimeFormatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
     enum class NoRememberDualChoice {
         REMEMBER_YES, REMEMBER_NO, NO_REMEMBER

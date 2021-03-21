@@ -16,7 +16,8 @@ import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.PrefConfig
 
 
-class ChatroomMessageListAdapter(
+class
+ChatroomMessageListAdapter(
     currentUsers: List<User>,
     private var isAuthUserChatroomOwner: Boolean,
     private inline val onMessageLongPress: (View, Message) -> Boolean,

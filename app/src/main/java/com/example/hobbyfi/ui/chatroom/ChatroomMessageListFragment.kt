@@ -1,7 +1,9 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.BroadcastReceiver
+import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -19,6 +21,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
+import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
@@ -31,25 +34,30 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.MessageState
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.base.ServerSocketAccessor
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.client.SocketOptionBuilder
+import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import java.io.FileNotFoundException
+import java.lang.Exception
+import java.net.URISyntaxException
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputValidationOnus,
         BottomSheetImagePicker.OnImagesSelectedListener,
-        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected,
-        RefreshConnectionAware {
+        ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, ServerSocketAccessor,
+        SharedPreferences.OnSharedPreferenceChangeListener, RefreshConnectionAware {
 
-    @ExperimentalCoroutinesApi
-    @ExperimentalPagingApi
     public override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
 
     private lateinit var binding: FragmentChatroomMessageListBinding
@@ -117,41 +125,96 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-    private var chatroomMessageBroadcastReceiverFactory: ChatroomMessageBroadcastReceiverFactory? = null
 
-    private var createMessageReceiver: BroadcastReceiver? = null
-    private var editMessageReceiver: BroadcastReceiver? = null
-    private var deleteMessageReceiver: BroadcastReceiver? = null
+    override val emitterListenerFactory: EmitterListenerFactory by lazy {
+        EmitterListenerFactory(requireActivity())
+    }
+
+    override val serverSocket: Socket? by lazy {
+        (requireActivity() as ChatroomActivity).serverSocket
+    }
+
+    private val socketEmissionErrorFallback = { e: Exception ->
+        (requireActivity() as ChatroomActivity).handleAuthActionableError(
+            e.message,
+            e.isCritical,
+            context = requireContext()
+        )
+    }
+
+    val createMessageEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForCreate(
+            ::Message,
+            { message ->
+                if(prefConfig.readReachedBottomMessagesAfterSearch()) {
+                    if(activityViewModel.authUser.value?.chatroomIds?.contains(message.chatroomSentId) == true) {
+                        // assert user still in chatroom (kick race condition)
+                        lifecycleScope.launchWhenCreated {
+                            viewModel.messageStateIntent.sendIntent(
+                                MessageIntent.CreateMessageCache(
+                                    message
+                                )
+                            )
+                        }
+                    } else {
+                        Log.wtf("ChatroomActivity", "Received message for INVALID CHATROOM. THIS SHOULDN'T HAPPEN!")
+                    }
+                } else {
+                    Log.i("ChatroomActivity", "RECEIVED MESSAGE WHILE BOTTOM GENERATION IS STILL NOT RENDERED")
+                    viewModel.addSearchDeferredMessage(message)
+                }
+            },
+            socketEmissionErrorFallback
+        )
+    }
+
+    val editMessageEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForEdit(
+            { editFields ->
+                if(messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id ==
+                            editFields[Constants.ID]?.toLong() } != null &&
+                    activityViewModel.authUser.value?.chatroomIds?.contains(
+                        editFields[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
+                    // only update if item is currently visible in pages
+                    lifecycleScope.launchWhenCreated {
+                        viewModel.messageStateIntent.sendIntent(
+                            MessageIntent.UpdateMessageCache(
+                                editFields
+                            )
+                        )
+                    }
+                }
+            },
+            socketEmissionErrorFallback
+        )
+    }
+
+    val deleteMessageEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDelete(
+            { id ->
+                if(messageListAdapter.findItemFromCurrentPagingData {
+                            msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
+                    activityViewModel.authUser.value?.chatroomIds?.contains(
+                        activityViewModel.authChatroom.value?.id) == true) {
+                    // only delete if message currently visible
+                    lifecycleScope.launchWhenCreated {
+                        viewModel.messageStateIntent.sendIntent(
+                            MessageIntent.DeleteMessageCache(
+                                id
+                            )
+                        )
+                    }
+                }
+            },
+            socketEmissionErrorFallback
+        )
+    }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val activity = requireActivity() as ChatroomActivity
 
-        // TODO: Move receiver registration in after chatroom messages fetch!!!
-        chatroomMessageBroadcastReceiverFactory = ChatroomMessageBroadcastReceiverFactory
-            .getInstance(viewModel, messageListAdapter, activityViewModel, activity)
-        createMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
-            Constants.CREATE_MESSAGE_TYPE
-        )
-        editMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
-            Constants.EDIT_MESSAGE_TYPE
-        )
-        deleteMessageReceiver = chatroomMessageBroadcastReceiverFactory!!.createActionatedReceiver(
-            Constants.DELETE_MESSAGE_TYPE
-        )
-
-        localBroadcastManager.registerReceiver(
-            createMessageReceiver!!,
-            IntentFilter(Constants.CREATE_MESSAGE_TYPE)
-        )
-        localBroadcastManager.registerReceiver(
-            editMessageReceiver!!,
-            IntentFilter(Constants.EDIT_MESSAGE_TYPE)
-        )
-        localBroadcastManager.registerReceiver(
-            deleteMessageReceiver!!,
-            IntentFilter(Constants.DELETE_MESSAGE_TYPE)
-        )
+        connectServerSocketListeners()
     }
 
     override fun onCreateView(
@@ -200,11 +263,33 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeSearchMessage()
+    }
+
+    override fun onConnectedServerSocketFail() {
+        Toast.makeText(
+            requireContext(),
+            Constants.socketConnectionError,
+            Toast.LENGTH_LONG
+        ).show()
+        (requireActivity() as ChatroomActivity).leaveChatroom()
+    }
+
+    override fun connectServerSocketListeners() {
+        serverSocket?.on(
+            Constants.CREATE_MESSAGE_TYPE,
+            createMessageEmitterListener
+        )
+        serverSocket?.on(
+            Constants.EDIT_MESSAGE_TYPE,
+            editMessageEmitterListener
+        )
+        serverSocket?.on(
+            Constants.DELETE_MESSAGE_TYPE,
+            deleteMessageEmitterListener
+        )
     }
 
     @ExperimentalPagingApi
@@ -273,36 +358,41 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             "ChatroomMListFragment",
                             "POSITION received from navcontroller handle: ${this}"
                         )
-                        if(this != null) {
-                            binding.messageList.scrollToPosition(this)
-                            Handler(Looper.myLooper() ?: binding.messageList.handler.looper).postDelayed({
-                                binding.messageList.smoothScrollToPosition(
-                                    this
-                                )
-                            }, 50)
 
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                Constants.searchMessage,
-                                null
-                            )
-                        } else if (connectivityManager.isConnected()) { // assert whether there's any point to search through the messages
-                            // delete messages cached so that new generation can be propagated (like Discord)
-                            viewModel.setSentMessageIdFetchRequestPrior(true)
-                            lifecycleScope.launch {
-                                viewModel.sendIntent(
-                                    MessageListIntent.FetchMessages(
-                                        activityViewModel.authChatroom.value!!.id,
-                                        messageId = navController.currentBackStackEntry
-                                            ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id
-                                        // always set at this point
+                        when {
+                            this != null -> {
+                                binding.messageList.scrollToPosition(this)
+                                Handler(Looper.myLooper() ?: binding.messageList.handler.looper).postDelayed({
+                                    binding.messageList.smoothScrollToPosition(
+                                        this
                                     )
+                                }, 50)
+
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    Constants.searchMessage,
+                                    null
                                 )
                             }
-                        } else { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
-                            navController.currentBackStackEntry?.savedStateHandle?.set(
-                                Constants.searchMessage,
-                                null
-                            )
+                            connectivityManager.isConnected() -> { // assert whether there's any point to search through the messages
+                                // delete messages cached so that new generation can be propagated (like Discord)
+                                viewModel.setSentMessageIdFetchRequestPrior(true)
+                                lifecycleScope.launch {
+                                    viewModel.sendIntent(
+                                        MessageListIntent.FetchMessages(
+                                            activityViewModel.authChatroom.value!!.id,
+                                            messageId = navController.currentBackStackEntry
+                                                ?.savedStateHandle?.get<Message?>(Constants.searchMessage)!!.id
+                                            // always set at this point
+                                        )
+                                    )
+                                }
+                            }
+                            else -> { // do nothing otherwise (this should some kind of a banner in the where it says there's no connection)
+                                navController.currentBackStackEntry?.savedStateHandle?.set(
+                                    Constants.searchMessage,
+                                    null
+                                )
+                            }
                         }
                     }
                 }
@@ -347,6 +437,12 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     override fun refreshDataOnConnectionRefresh() {
         messageListAdapter.refresh()
+    }
+
+    override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
+        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(key, true)) {
+            viewModel.createSearchDeferredMessages()
+        }
     }
 
     override fun initMessageListAdapter() {
@@ -397,7 +493,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     withContext(Dispatchers.IO) {
                         uris.map {
                             try {
-                                ImageUtils.getEncodedImageFromUri(requireActivity(), it)
+                                ImageUtils.getEncodedImageFromUri(requireActivity().contentResolver, it)
                             } catch (ex: FileNotFoundException) {
                                 Toast.makeText(
                                     requireContext(),
@@ -429,23 +525,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         viewModel.combinedObserversInvalidity.observe(
             viewLifecycleOwner, ViewReverseEnablerObserver(binding.sendMessageButton)
         )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        val activity = requireActivity()
-
-        if(!activity.isTaskRoot) {
-            createMessageReceiver?.let {
-                localBroadcastManager.unregisterReceiver(it)
-            }
-            editMessageReceiver?.let {
-                localBroadcastManager.unregisterReceiver(it)
-            }
-            deleteMessageReceiver?.let {
-                localBroadcastManager.unregisterReceiver(it)
-            }
-        }
     }
 
     override fun onEditMessageSelect(view: View, message: Message) {

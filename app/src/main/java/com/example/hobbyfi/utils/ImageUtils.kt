@@ -1,6 +1,7 @@
 package com.example.hobbyfi.utils
 
 import android.app.Activity
+import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -40,9 +41,7 @@ object ImageUtils {
             }
         }
 
-    fun getBitmapFromUri(activity: Activity, uri: Uri) : Bitmap {
-        val contentResolver = activity
-            .contentResolver // provides access to content model (class used to interface and access the data)
+    fun getBitmapFromUri(contentResolver: ContentResolver, uri: Uri) : Bitmap {
         return if (Build.VERSION.SDK_INT < 28) {
             MediaStore.Images.Media.getBitmap(
                 contentResolver,
@@ -58,5 +57,5 @@ object ImageUtils {
         }
     }
 
-    suspend fun getEncodedImageFromUri(activity: Activity, uri: Uri) = encodeImage(getBitmapFromUri(activity, uri))
+    suspend fun getEncodedImageFromUri(contentResolver: ContentResolver, uri: Uri) = encodeImage(getBitmapFromUri(contentResolver, uri))
 }

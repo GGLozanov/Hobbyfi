@@ -27,6 +27,12 @@ class ChatroomActivityViewModel(
     private val eventRepository: EventRepository by instance(tag = "eventRepository")
     private val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
+    private var _lastSentJoinChatroomSocketEventId: Long = 0
+    val lastSentJoinChatroomSocketEventId get() = _lastSentJoinChatroomSocketEventId
+    fun setLastSentJoinChatroomSocketEventId(lastId: Long) {
+        _lastSentJoinChatroomSocketEventId = lastId
+    }
+
     private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(arrayListOf())
     val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 
@@ -38,6 +44,10 @@ class ChatroomActivityViewModel(
 
     fun setAuthEvents(events: List<Event>?) {
         _authEvents.value = events ?: arrayListOf()
+    }
+
+    fun setChatroomUsers(users: List<User>?) {
+        _chatroomUsers.value = users ?: arrayListOf()
     }
 
     private val eventsStateIntent: StateIntent<EventListState, EventListIntent> = object : StateIntent<EventListState, EventListIntent>() {
@@ -86,14 +96,14 @@ class ChatroomActivityViewModel(
                         Log.i("ChatroomActivityVM", "Add Event to List Intent caught")
                         saveEvent(it.event)
                         setAuthEvents((_authEvents.value ?: arrayListOf()) + it.event)
-                        updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                        updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.jsonConverter
                             .toJson(authChatroom.value!!.eventIds?.plus(it.event.id)))))
                     }
                     is EventListIntent.DeleteAnEventCache -> {
                         eventsStateIntent.setState(EventListState.Idle)
                         if(eventRepository.deleteEventCache(it.eventId)) {
                             setAuthEvents(_authEvents.value!!.filter { event -> event.id != it.eventId })
-                            updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.tagJsonConverter
+                            updateAndSaveChatroom(mapOf(Pair(Constants.EVENT_IDS, Constants.jsonConverter
                                 .toJson(authChatroom.value!!.eventIds?.filter { eventId -> eventId != it.eventId }))))
                             eventsStateIntent.setState(EventListState.OnData.DeleteAnEventCacheResult(it.eventId))
                         }
@@ -119,7 +129,9 @@ class ChatroomActivityViewModel(
             eventStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.DeleteEvent -> {
-                        deleteEvent(it.eventId)
+                        viewModelScope.launch {
+                            deleteEvent(it.eventId)
+                        }
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -145,7 +157,9 @@ class ChatroomActivityViewModel(
                         setCurrentUsers(chatroomUsers.value!!)
                     }
                     is UserListIntent.FetchUsers -> {
-                        fetchUsers()
+                        viewModelScope.launch {
+                            fetchUsers()
+                        }
                     }
                     is UserListIntent.KickUser -> {
                         kickUser(it.userId)
@@ -189,26 +203,35 @@ class ChatroomActivityViewModel(
     private suspend fun fetchUsers() {
         usersStateIntent.setState(UserListState.Loading)
 
-        userRepository.getChatroomUsers(
-            authChatroom.value!!.id,
-            prefConfig.getAuthUserIdFromToken()
-        ).catch { e ->
+        try {
+            userRepository.getChatroomUsers(
+                authChatroom.value!!.id,
+                prefConfig.getAuthUserIdFromToken()
+            ).catch { e ->
+                usersStateIntent.setState(
+                    UserListState.Error(
+                        e.message,
+                        e.isCritical
+                    )
+                )
+            }.collectLatest {
+                if(it != null) {
+                    Log.i("ChatroomActivityVM", "Collecting new users from SSOT cache!!! $it")
+                    setCurrentUsers(it)
+                    usersStateIntent.setState(
+                        UserListState.OnData.UsersResult(
+                            it
+                        )
+                    )
+                }
+            }
+        } catch(e: Exception) {
             usersStateIntent.setState(
                 UserListState.Error(
                     e.message,
                     e.isCritical
                 )
             )
-        }.collectLatest {
-            if(it != null) {
-                Log.i("ChatroomActivityVM", "Collecting new users from SSOT cache!!! $it")
-                setCurrentUsers(it)
-                usersStateIntent.setState(
-                    UserListState.OnData.UsersResult(
-                        it
-                    )
-                )
-            }
         }
     }
 
@@ -227,7 +250,7 @@ class ChatroomActivityViewModel(
                         e.isCritical
                     )
                 )
-            }.collectLatest {
+            }.distinctUntilChanged().collectLatest {
                 Log.i("ChatroomActivityVM", "Events collected: ${it}")
                 if(it != null) {
                     _authEvents.value = it
@@ -301,8 +324,8 @@ class ChatroomActivityViewModel(
         val success = eventRepository.deleteEventsCache(eventIds)
         if(success) {
             updateAndSaveChatroom(mapOf(
-                Pair(Constants.EVENT_IDS,
-                    Constants.tagJsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) }))
+                Constants.EVENT_IDS to
+                    Constants.jsonConverter.toJson(authChatroom.value!!.eventIds?.filter { !eventIds.contains(it) })
             ))
             setAuthEvents(_authEvents.value!!.filter { event -> !eventIds.contains(event.id) })
         }
@@ -321,7 +344,7 @@ class ChatroomActivityViewModel(
 
         if(setState) {
             eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
-            else EventState.Error(Constants.cacheDeletionError))
+                else EventState.Error(Constants.cacheDeletionError))
         } else if(!success) {
             throw Exception(Constants.cacheDeletionError)
         }

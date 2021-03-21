@@ -11,7 +11,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
-import com.example.hobbyfi.MainApplication
+import com.bumptech.glide.Glide
+import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
@@ -21,12 +22,11 @@ import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
-import com.google.android.gms.tasks.OnFailureListener
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
@@ -41,11 +41,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun onPrepareOptionsMenu(menu: Menu) {
         menu.clear()
     }
-
-    private val fcmTopicErrorFallback: OnFailureListener by instance(
-        tag = "fcmTopicErrorFallback",
-        MainApplication.applicationContext
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,23 +94,29 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                     is ChatroomState.OnData.ChatroomCreateResult -> {
                         activityViewModel.sendIntent(
                             UserIntent.UpdateUserCache(mapOf(
-                                Pair(Constants.CHATROOM_IDS, Constants.tagJsonConverter.toJson(
+                                Pair(Constants.CHATROOM_IDS, Constants.jsonConverter.toJson(
                                     activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id))
                                 )
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
 
-                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity({
-                                activityViewModel.setJoinedChatroom(true)
-                                navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
-                                    activityViewModel.authUser.value,
-                                    it.response
-                                ))
-                            },
-                            it.response.id,
-                            fcmTopicErrorFallback,
-                            connectivityManager
-                        )
+                        viewModel.base64Image.originalUri?.let { image ->
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                it.response.id,
+                                prefConfig.getAuthUserToken()!!,
+                                Constants.CHATROOMS,
+                                image,
+                                requireContext(),
+                                R.string.pref_last_chatrooms_fetch_time
+                            )
+                        }
+
+                        activityViewModel.setJoinedChatroom(true)
+                        prefConfig.writeLastEnteredChatroomId(it.response.id)
+                        navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
+                            activityViewModel.authUser.value,
+                            it.response
+                        ))
                         viewModel.resetState()
                     }
                     is ChatroomState.Error -> {
@@ -174,12 +175,10 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             data
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
-            binding.chatroomInfo.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            Glide.with(requireContext())
+                .load(data!!.data!!)
+                .into(binding.chatroomInfo.chatroomImage)
+            viewModel.base64Image.setOriginalUri(data.data!!.toString())
         }
     }
 }

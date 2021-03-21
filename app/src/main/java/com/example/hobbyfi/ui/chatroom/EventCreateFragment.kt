@@ -20,8 +20,8 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -89,6 +89,17 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                         // TODO: Progressbar
                     }
                     is EventState.OnData.EventCreateResult -> {
+                        viewModel.base64Image.originalUri?.let { image ->
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                it.event.id,
+                                prefConfig.getAuthUserToken()!!,
+                                Constants.EVENTS,
+                                image,
+                                requireContext(),
+                                R.string.pref_last_events_fetch_time
+                            )
+                        }
+
                         activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
                         Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
                             .show()
@@ -150,11 +161,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
             data
         ) {
             binding.eventInfo.eventImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
         }
     }
 }

@@ -5,7 +5,6 @@ import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.ColourUtils
@@ -19,9 +18,9 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     suspend fun getRegisterToken(
         facebookToken: String?,
             email: String?, password: String?, username: String, description: String?,
-            base64Image: String?, tags: List<Tag>): TokenResponse? {
+            tags: List<Tag>): TokenResponse? {
         Log.i("TokenRepository", "getRegisterToken -> getting user w/ email:"
-                + email + "; username:" + username + "; description: " + description + "; image: " + base64Image + "; tags: " + tags + "\n register token")
+                + email + "; username:" + username + "; description: " + description + "; tags: " + tags + "\n register token")
 
         return try {
             hobbyfiAPI.fetchRegistrationToken(
@@ -30,11 +29,10 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 username,
                 password,
                 description,
-                base64Image,
-                if(tags.isEmpty()) null else Constants.tagJsonConverter.toJson(tags)
+                if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 
@@ -48,7 +46,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
                 password
             )
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 
@@ -113,7 +111,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         return try {
             hobbyfiAPI.resetPassword(email)
         } catch(ex: Exception) {
-            Callbacks.dissectRepositoryExceptionAndThrow(ex)
+            dissectExceptionAndThrow(ex)
         }
     }
 }

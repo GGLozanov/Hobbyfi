@@ -81,7 +81,7 @@ class EventRepository(
     }
 
     suspend fun createEvent(name: String, description: String?,
-                    date: String, base64Image: String?, lat: Double, long: Double): StartDateIdResponse? {
+                    date: String, lat: Double, long: Double): StartDateIdResponse? {
         Log.i("EventRepository", "createEvent -> Creating chatroom event w/ data. " +
                 "Name: $name, description: $description, date: $date, lat: $lat, long: $long")
         return performAuthorisedRequest({
@@ -90,11 +90,10 @@ class EventRepository(
                 name,
                 description,
                 date,
-                base64Image,
                 lat,
                 long
             )
-        }, { createEvent(name, description, date, base64Image, lat, long) })
+        }, { createEvent(name, description, date, lat, long) })
     }
 
     suspend fun deleteEvent(eventId: Long): Response? {
@@ -124,7 +123,7 @@ class EventRepository(
         return performAuthorisedRequest({
             hobbyfiAPI.editEvent(
                 prefConfig.getAuthUserToken()!!,
-                eventUpdateFields
+                eventUpdateFields.filterKeys { it != Constants.IMAGE } // do not send image
             )
         }, { editEvent(eventUpdateFields) })
     }

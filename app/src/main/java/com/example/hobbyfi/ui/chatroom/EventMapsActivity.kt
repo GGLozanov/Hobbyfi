@@ -17,16 +17,19 @@ import androidx.lifecycle.map
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
+import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
+import com.example.hobbyfi.intents.UserIntent
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.data.UserGeoPoint
 import com.example.hobbyfi.services.EventLocationUpdatesService
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventListState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
-import com.example.hobbyfi.ui.base.MapsActivity
-import com.example.hobbyfi.ui.base.RefreshConnectionAware
+import com.example.hobbyfi.ui.base.*
 import com.example.hobbyfi.viewmodels.chatroom.EventMapsActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -36,15 +39,22 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.GeoPoint
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.client.SocketOptionBuilder
+import io.socket.emitter.Emitter
+import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.lang.IllegalStateException
-
+import java.net.URISyntaxException
 
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity(),
-        SharedPreferences.OnSharedPreferenceChangeListener, RefreshConnectionAware {
+        SharedPreferences.OnSharedPreferenceChangeListener,
+        ServerSocketAccessor, RefreshConnectionForegroundFCMReactivationListener {
     private val viewModel: EventMapsActivityViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             application,
@@ -54,54 +64,7 @@ class EventMapsActivity : MapsActivity(),
 
     private lateinit var binding: ActivityEventMapsBinding
 
-    // sync here
-    private var deleteEventReceiver: BroadcastReceiver? = null
-    private var editEventReceiver: BroadcastReceiver? = null
-    private var deleteEventBatchReceiver: BroadcastReceiver? = null
-    private var eventReceiverFactory: EventBroadcastReceiverFactory? = null
-
-    // not an auctionated receiver because custom behaviour
-    private val chatroomDeleteReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(p0: Context?, intent: Intent) {
-            if(intent.action == Constants.DELETE_CHATROOM_TYPE) {
-                emergencyActivityExit(Constants.RESULT_CHATROOM_DELETE, intent)
-            } else {
-                Log.e(
-                    "EventMapsActivity",
-                    "chatroomDeleteReceiver called with wrong intent action!"
-                )
-            }
-        }
-    }
-
-    private val leaveUserReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(p0: Context?, intent: Intent) {
-            val userId = try {
-                prefConfig.getAuthUserIdFromToken()
-            } catch(e: Exception) {
-                Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
-                    .show()
-                emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
-                return
-            }
-
-            if(intent.action == Constants.LEAVE_USER_TYPE) {
-                if(intent.getDeletedModelIdExtra() == userId) {
-                    emergencyActivityExit(Constants.RESULT_KICKED, intent)
-                } else {
-                    Log.w(
-                        "EventMapsActivity",
-                        "leaveUserReceiver called with ID different from auth user..."
-                    )
-                }
-            } else {
-                Log.e(
-                    "EventMapsActivity",
-                    "leaveUserReceiver called with wrong intent action!"
-                )
-            }
-        }
-    }
+    private var initialServerSocketConnect: Boolean = true
 
     private val locationUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -131,6 +94,16 @@ class EventMapsActivity : MapsActivity(),
     private var locationUpdatesService: EventLocationUpdatesService? = null
     private var serviceBound: Boolean = false
 
+    private val authUserIdWithErrorHandle: Long? get() =
+        try {
+            prefConfig.getAuthUserIdFromToken()
+        } catch(e: Exception) {
+            Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
+                .show()
+            emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
+            null
+        }
+
     private val locationServiceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
             locationUpdatesService = (binder as EventLocationUpdatesService.LocalBinder)
@@ -152,9 +125,107 @@ class EventMapsActivity : MapsActivity(),
         }
     }
 
+    // FIXME: This, too, should probably be extracted in a specific interface w/ ChatroomActivity
+    @Volatile
+    private var sentJoinChatroomSocketEvent = false
+
+    override val serverSocket: Socket? by lazy {
+        initSocket()
+    }
+    override val emitterListenerFactory: EmitterListenerFactory by lazy {
+        EmitterListenerFactory(this)
+    }
+
+    private val socketEventErrorFallback = { _: Exception ->
+        Toast.makeText(
+            this@EventMapsActivity,
+            Constants.socketEmissionError,
+            Toast.LENGTH_LONG
+        ).show()
+        emergencyActivityExit(Constants.RESULT_REAUTH)
+    }
+
+    // FIXME: Code dup w/ ChatroomActivity
+    private val editEventEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForEdit(
+            { editFields ->
+                lifecycleScope.launchWhenCreated {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.UpdateAnEventCache(
+                            editFields
+                        )
+                    )
+                }
+            },
+            socketEventErrorFallback
+        )
+    }
+
+    private val deleteEventEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDelete(
+            { id ->
+                lifecycleScope.launchWhenCreated {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.DeleteAnEventCache(
+                            id
+                        )
+                    )
+                }
+            },
+            socketEventErrorFallback
+        )
+    }
+
+    private val deleteEventBatchEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDeleteArray(
+            { ids ->
+                lifecycleScope.launchWhenCreated {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.DeleteEventsCache(
+                            ids
+                        )
+                    )
+                }
+            },
+            socketEventErrorFallback,
+            Constants.EVENT_IDS
+        )
+    }
+
+    private val deleteChatroomEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForDelete(
+            {
+                emergencyActivityExit(Constants.RESULT_CHATROOM_DELETE, Intent(Constants.DELETE_CHATROOM_TYPE).apply {
+                    putExtra(Constants.DELETED_MODEL_ID, it)
+                })
+            },
+            socketEventErrorFallback
+        )
+    }
+
+    private val userLeaveEmitterListener: Emitter.Listener by lazy {
+        emitterListenerFactory.createEmitterListenerForCreate(
+            ::User,
+            { user ->
+                if(user.id == authUserIdWithErrorHandle) {
+                    emergencyActivityExit(Constants.RESULT_KICKED, Intent(Constants.LEAVE_USER_TYPE).apply {
+                        putExtra(Constants.DELETED_MODEL_ID, user.id)
+                    })
+                } else {
+                    Log.w(
+                        "EventMapsActivity",
+                        "leaveUserReceiver called with ID different from auth user..."
+                    )
+                }
+            },
+            errorFallback = socketEventErrorFallback
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEventMapsBinding.inflate(layoutInflater)
+        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVIATION_ACTION))
         setContentView(binding.root)
 
         val mapFragment = supportFragmentManager
@@ -206,6 +277,7 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onStart() {
         super.onStart()
+        connectServerSocket()
         prefConfig.registerPrefsListener(this)
 
         with(binding) {
@@ -376,6 +448,7 @@ class EventMapsActivity : MapsActivity(),
 
     private fun observeEvent() {
         viewModel.event.observe(this, Observer {
+            emitJoinChatroomEventOnEventObserve(it)
             Log.i("EventMapsActivity", "Received Event from observer in EventMapsActivity! $it")
             resetEventMarkerAndAddNew(
                 LatLng(it.latitude, it.longitude),
@@ -455,42 +528,54 @@ class EventMapsActivity : MapsActivity(),
         )
     }
 
+    override fun onConnectedServerSocketFail() {
+        runOnUiThread {
+            emergencyActivityExit()
+        }
+    }
+
+    override fun connectServerSocketListeners() {
+        serverSocket?.on(Socket.EVENT_CONNECT) {
+            if(!initialServerSocketConnect) {
+                refreshDataOnConnectionRefresh()
+            } else initialServerSocketConnect = false
+        }
+
+        serverSocket?.on(Socket.EVENT_DISCONNECT) {
+            sentJoinChatroomSocketEvent = false
+        }
+
+        serverSocket?.on(Constants.LEAVE_USER_TYPE, userLeaveEmitterListener)
+        serverSocket?.on(Constants.DELETE_CHATROOM_TYPE, deleteChatroomEmitterListener)
+        serverSocket?.on(Constants.EDIT_EVENT_TYPE, editEventEmitterListener)
+        serverSocket?.on(Constants.DELETE_EVENT_TYPE, deleteEventEmitterListener)
+        serverSocket?.on(Constants.DELETE_EVENT_BATCH_TYPE, deleteEventBatchEmitterListener)
+    }
+
+    override fun disconnectServerSocketListeners() {
+        sentJoinChatroomSocketEvent = false
+    }
+
     override fun onResume() {
         super.onResume()
-        prefConfig.writeRequestLocationServiceRunning(false)
-        eventReceiverFactory = EventBroadcastReceiverFactory.getInstance(
-            viewModel, this
-        )
-        deleteEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_TYPE)
-        deleteEventBatchReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.DELETE_EVENT_BATCH_TYPE)
-        editEventReceiver = eventReceiverFactory!!.createActionatedReceiver(Constants.EDIT_EVENT_TYPE)
-
-        with(localBroadcastManager) {
-            registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
-            registerReceiver(chatroomDeleteReceiver, IntentFilter(Constants.DELETE_CHATROOM_TYPE))
-            registerReceiver(leaveUserReceiver, IntentFilter(Constants.LEAVE_USER_TYPE))
-            registerReceiver(deleteEventReceiver!!, IntentFilter(Constants.DELETE_EVENT_TYPE))
-            registerReceiver(editEventReceiver!!, IntentFilter(Constants.EDIT_EVENT_TYPE))
-            registerReceiver(deleteEventBatchReceiver!!, IntentFilter(Constants.DELETE_EVENT_BATCH_TYPE))
+        if(!initialServerSocketConnect && serverSocket?.connected() == false) {
+            connectServerSocket()
         }
+        prefConfig.writeRequestLocationServiceRunning(false)
+        localBroadcastManager.registerReceiver(locationUpdateReceiver, IntentFilter(Constants.UPDATED_LOCATION_ACTION))
 
         setFABState(prefConfig.readRequestingLocationUpdates())
     }
 
     override fun onPause() {
         super.onPause()
+        disconnectServerSocket()
         prefConfig.writeRequestLocationServiceRunning(true)
-        with(localBroadcastManager) {
-            unregisterReceiver(locationUpdateReceiver)
-            unregisterReceiver(chatroomDeleteReceiver)
-            unregisterReceiver(leaveUserReceiver)
-            unregisterReceiver(deleteEventReceiver!!)
-            unregisterReceiver(editEventReceiver!!)
-            unregisterReceiver(deleteEventBatchReceiver!!)
-        }
+        localBroadcastManager.unregisterReceiver(locationUpdateReceiver)
     }
 
     override fun onStop() {
+        disconnectServerSocket()
         unbindServiceIfBound()
         prefConfig
             .unregisterPrefsListener(this)
@@ -548,6 +633,42 @@ class EventMapsActivity : MapsActivity(),
         }
     }
 
+    override fun onForegroundReactivation(intent: Intent) {
+        when(intent.action) {
+            Constants.DELETE_EVENT_TYPE -> {
+                deleteEventEmitterListener.call(intent)
+            }
+            Constants.EDIT_EVENT_TYPE -> {
+                editEventEmitterListener.call(intent)
+            }
+            Constants.DELETE_EVENT_BATCH_TYPE -> {
+                deleteEventBatchEmitterListener.call(intent)
+            }
+            Constants.DELETE_CHATROOM_TYPE -> {
+                deleteChatroomEmitterListener.call(intent)
+            }
+            Constants.LEAVE_USER_TYPE -> {
+                userLeaveEmitterListener.call(intent)
+            }
+        }
+    }
+
+    private fun emitJoinChatroomEventOnEventObserve(event: Event) {
+        if(!sentJoinChatroomSocketEvent) {
+            Log.i("EventMapsActivity", "Emitting join_chatroom event!!!!")
+
+            authUserIdWithErrorHandle?.let {
+                serverSocket?.emit(Constants.JOIN_CHATROOM, JSONObject(mapOf(
+                    Constants.ID to it,
+                    Constants.CHATROOM_ID to event.chatroomId
+                )))
+                sentJoinChatroomSocketEvent = true
+            }
+        } else {
+            Log.w("EventMapsActivity", "Not emitting join_chatroom event due to it already having been emitted")
+        }
+    }
+
     private fun setFABState(requestingUpdates: Boolean) {
         with(binding) {
             enableLocationUpdatesFab.isEnabled = !requestingUpdates
@@ -559,7 +680,7 @@ class EventMapsActivity : MapsActivity(),
         Toast.makeText(this@EventMapsActivity, error, Toast.LENGTH_LONG)
             .show()
         if(shouldReauth) {
-            emergencyActivityExit(RESULT_OK)
+            emergencyActivityExit(Constants.RESULT_REAUTH)
         }
     }
 
@@ -628,6 +749,7 @@ class EventMapsActivity : MapsActivity(),
 
     override fun onDestroy() {
         super.onDestroy()
+        localBroadcastManager.unregisterReceiver(foregroundFCMReceiver)
         prefConfig.writeRequestLocationServiceRunning(true)
         viewModel.setUserMarkers(null)
     }

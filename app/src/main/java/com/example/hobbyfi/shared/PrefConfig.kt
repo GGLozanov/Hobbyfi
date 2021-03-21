@@ -61,7 +61,7 @@ class PrefConfig(private val context: Context) {
     fun readDeviceToken(): String? {
         return sharedPreferences.getString(
             context.getString(R.string.pref_device_token),
-            "invalid"
+            null
         )
     }
 
@@ -214,6 +214,21 @@ class PrefConfig(private val context: Context) {
         ).apply()
     }
 
+    fun readCurrentDeviceTokenUploaded(): Boolean {
+        return sharedPreferences.getBoolean(
+            context.getString(R.string.pref_current_token_uploaded),
+            false
+        )
+    }
+
+    fun writeCurrentDeviceTokenUploaded(uploaded: Boolean) {
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(
+            context.getString(R.string.pref_current_token_uploaded),
+            uploaded
+        ).apply()
+    }
+
     fun getAuthUserIdFromToken(): Long =
         if(Constants.isFacebookUserAuthd()) Profile.getCurrentProfile().id.toLong() else
             TokenUtils.getTokenUserIdFromPayload(readToken())
@@ -231,5 +246,8 @@ class PrefConfig(private val context: Context) {
         }
 
     fun getAuthUserToken(): String? =
-        if(Constants.isFacebookUserAuthd()) AccessToken.getCurrentAccessToken().token else readToken()
+        if(AccessToken.getCurrentAccessToken() != null) AccessToken.getCurrentAccessToken().token else readToken()
+
+    fun getAuthUserTokenRefresh(): String? =
+        if(AccessToken.getCurrentAccessToken() != null) AccessToken.getCurrentAccessToken().token else readRefreshToken()
 }

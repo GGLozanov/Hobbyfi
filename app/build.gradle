@@ -28,6 +28,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
+            buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiSocketIOURL
             resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
             resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
             resValue "string", "MAPS_API_KEY", projectHobbyfiGoogleMapsAPIKey
@@ -38,6 +39,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
+            buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiSocketIOURL
             resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
             resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
             resValue "string", "MAPS_API_KEY", projectHobbyfiGoogleMapsAPIKey
@@ -74,6 +76,7 @@ dependencies {
     def room_version = "2.3.0-beta02"
     def paging_version = "3.0.0-beta01"
     def nav_version = "2.3.3"
+    def work_version = "2.5.0"
 
     // MultiDex
     implementation 'androidx.multidex:multidex:2.0.1'
@@ -87,6 +90,11 @@ dependencies {
     // FCM
     implementation 'com.google.android.gms:play-services-basement:17.6.0'
     implementation 'com.google.firebase:firebase-messaging-ktx'
+    
+    // Socket-IO
+    implementation ('io.socket:socket.io-client:2.0.0') {
+        exclude group: 'org.json', module: 'json'
+    }
 
     // Cloud Firestore
     implementation 'com.google.firebase:firebase-firestore-ktx'
@@ -158,6 +166,9 @@ dependencies {
     // NavComponent
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+
+    // WorkManager
+    implementation "androidx.work:work-runtime-ktx:$work_version"
 
     // Glide
     implementation 'com.github.bumptech.glide:glide:4.11.0'

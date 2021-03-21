@@ -32,7 +32,7 @@ data class Message(
     constructor(data: Map<String, String?>) : this((data[Constants.ID] ?: error("Message ID must not be null!")).toLong(),
         data[Constants.MESSAGE] ?: error("Message message must not be null!"),
         data[Constants.CREATE_TIME] ?: error("Message create time must not be null!"),
-        data[Constants.USER_SENT_ID]?.toLong(),
+        if(data[Constants.USER_SENT_ID] == "undefined") null else data[Constants.USER_SENT_ID]?.toLong(),
         (data[Constants.CHATROOM_SENT_ID] ?: error("Message chatroom sent ID must not be null!")).toLong(),
     )
 

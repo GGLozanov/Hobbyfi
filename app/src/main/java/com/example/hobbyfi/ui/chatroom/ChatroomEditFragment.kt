@@ -23,6 +23,7 @@ import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
 import com.example.hobbyfi.shared.ViewReverseEnablerObserver
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,7 +32,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOnus {
     private lateinit var binding: FragmentChatroomEditBinding
-    private val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
+    val viewModel: ChatroomEditFragmentViewModel by viewModels(factoryProducer = {
         TagListViewModelFactory(requireActivity().application,
             activityViewModel.authChatroom.value?.tags ?: arrayListOf())
     })
@@ -64,18 +65,28 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 }
 
                 if((activityViewModel.authChatroom.value?.tags ?: arrayListOf()) != viewModel!!.tagBundle.selectedTags) {
-                    fieldMap[Constants.TAGS + "[]"] = Constants.tagJsonConverter
+                    fieldMap[Constants.TAGS + "[]"] = Constants.jsonConverter
                         .toJson(viewModel!!.tagBundle.selectedTags)
                 }
 
-                if(viewModel!!.base64Image.base64 != null) { // means user has changed their pfp
-                    fieldMap[Constants.IMAGE] = viewModel!!.base64Image.base64
+                if(viewModel!!.base64Image.originalUri != null) { // means chatroom has changed pfp
+                    fieldMap[Constants.IMAGE] = viewModel!!.base64Image.originalUri
                 }
 
                 Log.i("ChatroomEditDFragment", "FieldMap update: ${fieldMap}")
                 if(fieldMap.isEmpty()) {
                     Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
                         .show()
+                    return@setOnClickListener
+                } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
+                    WorkerUtils.buildAndEnqueueImageUploadWorker(
+                        activityViewModel.authChatroom.value!!.id,
+                        prefConfig.getAuthUserToken()!!,
+                        Constants.EDIT_CHATROOM_TYPE,
+                        viewModel!!.base64Image.originalUri!!,
+                        requireContext(),
+                        R.string.pref_last_chatrooms_fetch_time
+                    )
                     return@setOnClickListener
                 }
 
@@ -86,8 +97,8 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
 
             activityViewModel.authChatroom.observe(viewLifecycleOwner, Observer {
                 if(it != null) {
-                    viewModel!!.name.setValue(it.name)
-                    viewModel!!.description.setValue(it.description)
+                    viewModel!!.name.value = it.name
+                    viewModel!!.description.value = it.description
                     it.tags?.let { selectedTags ->
                         viewModel!!.tagBundle.setSelectedTags(selectedTags)
                         viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
@@ -157,11 +168,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
             data
         ) {
             binding.chatroomInfo.chatroomImage.setImageBitmap(it)
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
         }
     }
 }

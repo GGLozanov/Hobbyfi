@@ -49,7 +49,6 @@ import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
 import java.lang.reflect.Field
 
-
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
     object : TypeToken<T>() {}.type
@@ -59,7 +58,6 @@ inline fun <reified T> Gson.fromJson(json: JsonElement?) = fromJson<T>(
     json,
     object : TypeToken<T>() {}.type
 )
-
 
 // original function by Zhuinden; modified to work for INvalidation purposes instead of validation
 fun invalidateBy(vararg liveDatas: LiveData<Boolean>): LiveData<Boolean> = MediatorLiveData<Boolean>().also { mediator ->
@@ -148,6 +146,8 @@ val FragmentManager.currentNavigationFragment: Fragment?
 
 val FragmentManager.previousNavigationFragment: Fragment?
     get() = primaryNavigationFragment?.childFragmentManager?.fragments?.get(1)
+
+inline fun <reified T : Fragment> FragmentManager.findFragmentByType(): T? = fragments.firstOrNull { it is T } as T?
 
 fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
     menu.clear()
@@ -319,6 +319,10 @@ fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
     layoutParams = params
 }
 
+fun JSONObject.toPlainStringMap(): Map<String, String> = keys().asSequence().associateWith {
+    this[it].toString()
+}
+
 fun android.content.Intent.putDestructedMapExtra(data: Map<String, String>) {
     putExtra(Constants.DATA_KEYS, data.keys.toTypedArray())
     putExtra(Constants.DATA_VALUES, data.values.toTypedArray())
@@ -364,7 +368,7 @@ fun android.content.Intent.getDestructedMapExtra(): Map<String, String?> {
 fun android.content.Intent.getDeletedModelIdExtra(): Long = extras?.getLong(Constants.DELETED_MODEL_ID)!!
 
 fun android.content.Intent.getEventIdsExtra(): List<Long> {
-    return Constants.tagJsonConverter.fromJson(
+    return Constants.jsonConverter.fromJson(
         extras?.getString(
             Constants.EVENT_IDS
         )

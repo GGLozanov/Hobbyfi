@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
@@ -18,6 +19,7 @@ import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
+import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -92,18 +94,30 @@ class RegisterFragment : AuthFragment() {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
                         Callbacks.hideKeyboardFrom(requireContext(), requireView())
 
+                        viewModel.base64Image.originalUri?.let { image ->
+                            WorkerUtils.buildAndEnqueueImageUploadWorker(
+                                id,
+                                it.token!!.jwt!!,
+                                Constants.USERS,
+                                image,
+                                requireContext(),
+                                R.string.pref_last_user_fetch_time
+                            )
+                        }
+
                         login(
                             RegisterFragmentDirections.actionRegisterFragmentToMainActivity(
                                 User(
-                                id,
-                                viewModel.email.value!!,
-                                viewModel.name.value!!,
-                                viewModel.description.value,
-                                if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
-                                        + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
-                                viewModel.tagBundle.selectedTags,
-                                null
-                            )
+                                    id,
+                                    viewModel.email.value!!,
+                                    viewModel.name.value!!,
+                                    viewModel.description.value,
+                                    if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                            + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
+                                    viewModel.tagBundle.selectedTags,
+                                    null,
+                                    null
+                                )
                             ),
                             it.token?.jwt,
                             it.token?.refreshJwt
@@ -176,12 +190,10 @@ class RegisterFragment : AuthFragment() {
             resultCode,
             data
         ) {
-            binding.profileImage.setImageBitmap(it) // set the new image resource to be decoded from the bitmap
-            lifecycleScope.launch {
-                viewModel.base64Image.setImageBase64(
-                    ImageUtils.encodeImage(it)
-                )
-            }
+            Glide.with(requireContext())
+                .load(data!!.data!!)
+                .into(binding.profileImage)
+            viewModel.base64Image.setOriginalUri(data.data!!.toString())
         }
     }
 }

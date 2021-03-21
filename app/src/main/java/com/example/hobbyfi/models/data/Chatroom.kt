@@ -31,9 +31,9 @@ data class Chatroom(
                 data[Constants.NAME] ?: error("Chatroom name must not be null!"),
                 data[Constants.DESCRIPTION],
                 data[Constants.PHOTO_URL],
-                Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
+                Constants.jsonConverter.fromJson(data[Constants.TAGS]),
                 (data[Constants.OWNER_ID] ?: error("Chatroom owner ID must not be null!")).toLong(),
-                Constants.tagJsonConverter.fromJson(data[Constants.EVENT_IDS])
+                Constants.jsonConverter.fromJson(data[Constants.EVENT_IDS])
             )
 
     override fun updateFromFieldMap(fieldMap: Map<String, String?>): Chatroom {
@@ -46,7 +46,7 @@ data class Chatroom(
                     description = value
                 }
                 Constants.TAGS, Constants.TAGS + "[]" -> {
-                    tags = Constants.tagJsonConverter
+                    tags = Constants.jsonConverter
                         .fromJson(value)
                 }
                 Constants.IMAGE -> {
@@ -54,7 +54,7 @@ data class Chatroom(
                 }
                 Constants.EVENT_IDS, Constants.EVENT_IDS + "[]" -> {
                     eventIds = Constants
-                        .tagJsonConverter.fromJson(value)
+                        .jsonConverter.fromJson(value)
                 }
             }
         }

@@ -133,6 +133,19 @@
                             app:mcv_showOtherDates="all" />
                     </com.google.android.material.card.MaterialCardView>
 
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/notification_switch"
+                        android:layout_marginStart="12dp"
+                        android:text="@string/push_notification_toggle"
+                        android:showText="true"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                    </com.google.android.material.switchmaterial.SwitchMaterial>
+
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/users_list"
                         android:layout_width="match_parent"

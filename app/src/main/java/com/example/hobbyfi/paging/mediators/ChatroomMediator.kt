@@ -10,8 +10,8 @@ import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.models.data.RemoteKeys
 import com.example.hobbyfi.persistence.HobbyfiDatabase
+import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.responses.CacheListResponse
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
@@ -49,7 +49,7 @@ class ChatroomMediator(
         } catch (ex: Exception) {
             ex.printStackTrace()
             try {
-                Callbacks.dissectRepositoryExceptionAndThrow(ex)
+                Repository.dissectExceptionAndThrow(ex)
             } catch(parsedEx: Exception) {
                 MediatorResult.Error(parsedEx)
             }

@@ -110,20 +110,18 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }.asFlow()
     }
 
-    suspend fun createChatroom(name: String, description: String?,
-                               base64Image: String?, tags: List<Tag>): IdResponse? {
+    suspend fun createChatroom(name: String, description: String?, tags: List<Tag>): IdResponse? {
         return performAuthorisedRequest({
             Log.i("ChatroomRepository", "createChatroom -> creating chatroom with name:"
-                    + name + "; description:" + description + "; ownerId: " + prefConfig.getAuthUserIdFromToken() + "; image: " + base64Image + "; tags: " + tags)
+                    + name + "; description:" + description + "; ownerId: " + prefConfig.getAuthUserIdFromToken() + "; tags: " + tags)
 
             hobbyfiAPI.createChatroom(
                 prefConfig.getAuthUserToken()!!,
                 name,
                 description,
-                base64Image,
-                if(tags.isEmpty()) null else Constants.tagJsonConverter.toJson(tags)
+                if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
             )
-        }, { createChatroom(name, description, base64Image, tags) })
+        }, { createChatroom(name, description, tags) })
     }
 
     suspend fun editChatroom(chatroomFields: Map<String, String?>): Response? {
@@ -132,7 +130,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         return performAuthorisedRequest({
             hobbyfiAPI.editChatroom(
                 prefConfig.getAuthUserToken()!!,
-                chatroomFields
+                chatroomFields.filterKeys { it != Constants.IMAGE }
             )
         }, { editChatroom(chatroomFields) })
     }
@@ -182,7 +180,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.userDao().getUserChatroomIds(userId).map {
-                Constants.tagJsonConverter.fromJson(it)
+                Constants.jsonConverter.fromJson(it)
             }
         }
 }

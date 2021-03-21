@@ -59,8 +59,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                     )
 
                                     dialogInterface.dismiss()
-                                }
-                                .create()
+                                }.create()
                             dialog.window!!.setBackgroundDrawableResource(R.color.colorBackground)
                             dialog.show()
                         }
@@ -76,12 +75,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                             activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
                         joinChatroomWithDialog()
                     } else {
-                        Callbacks.subscribeToChatroomTopicByCurrentConnectivity(
-                            joinChatroomWithDialog,
-                            viewModel.buttonSelectedChatroom!!.id,
-                            fcmTopicErrorFallback,
-                            connectivityManager
-                        )
+                        joinChatroomWithDialog()
                     }
                 } else {
                     joinChatroomAndUpdate()
@@ -147,6 +141,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
     }
 
     override fun navigateToChatroom() {
+        super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
         navController.navigate(

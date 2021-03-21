@@ -23,16 +23,19 @@ data class User(
     override var photoUrl: String?,
     var tags: List<Tag>?,
     @SerializedName(Constants.CHATROOM_IDS)
-    var chatroomIds: List<Long>?
+    var chatroomIds: List<Long>?,
+    @SerializedName(Constants.ALLOWED_PUSH_CHATROOM_IDS)
+    var allowedPushChatroomIds: List<Long>?
 ) : ExpandedModel {
     constructor(data: Map<String, String?>) : this(
         (data[Constants.ID] ?: error("User ID must not be null!")).toLong(),
         data[Constants.EMAIL],
-        data[Constants.USERNAME] ?: error("User username must not be null!"),
+        data[Constants.USERNAME] ?: data[Constants.NAME] ?: error("User username must not be null!"),
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
-        Constants.tagJsonConverter.fromJson(data[Constants.TAGS]),
-        Constants.tagJsonConverter.fromJson(data[Constants.CHATROOM_IDS])
+        Constants.jsonConverter.fromJson(data[Constants.TAGS]),
+        Constants.jsonConverter.fromJson(data[Constants.CHATROOM_IDS]),
+        Constants.jsonConverter.fromJson(data[Constants.ALLOWED_PUSH_CHATROOM_IDS])
     )
 
     override fun updateFromFieldMap(fieldMap: Map<String, String?>): User {
@@ -48,7 +51,7 @@ data class User(
                     description = value
                 }
                 Constants.TAGS, Constants.TAGS + "[]" -> {
-                    tags = Constants.tagJsonConverter
+                    tags = Constants.jsonConverter
                         .fromJson(value!!)
                 }
                 Constants.IMAGE -> {
@@ -56,11 +59,19 @@ data class User(
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_IDS, Constants.CHATROOM_IDS + "[]" -> {
-                    chatroomIds = Constants.tagJsonConverter
+                    chatroomIds = Constants.jsonConverter
+                        .fromJson(value!!)
+                }
+                Constants.ALLOWED_PUSH_CHATROOM_IDS, Constants.ALLOWED_PUSH_CHATROOM_IDS + "[]" -> {
+                    allowedPushChatroomIds = Constants.jsonConverter
                         .fromJson(value!!)
                 }
             }
         }
         return this
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return if(other is User) other.id == this.id else false
     }
 }

@@ -46,11 +46,6 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
 
     protected var updateJob: Job? = null
 
-    protected val fcmTopicErrorFallback: OnFailureListener by instance(
-        tag = "fcmTopicErrorFallback",
-        MainApplication.applicationContext
-    )
-
     protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
         e.printStackTrace()
         if(e.isCritical) {
@@ -84,16 +79,10 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
             }
         } else {
             // otherwise simply allow the user to join their chatroom
-            Callbacks.subscribeToChatroomTopicByCurrentConnectivity( {
-                    updateJob = lifecycleScope.launch {
-                        prefConfig.writeLastEnteredChatroomId(chatroom.id)
-                        navigateToChatroomPerDeepLinkExtras()
-                    }
-                },
-                chatroom.id,
-                fcmTopicErrorFallback,
-                connectivityManager
-            )
+            updateJob = lifecycleScope.launch {
+                prefConfig.writeLastEnteredChatroomId(chatroom.id)
+                navigateToChatroomPerDeepLinkExtras()
+            }
         }
     }
 
@@ -180,7 +169,9 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
         }
     }
 
-    protected abstract fun navigateToChatroom()
+    protected open fun navigateToChatroom() {
+        (requireActivity() as MainActivity).disconnectServerSocket()
+    }
 
     protected abstract fun navigateToChatroomCreate()
 

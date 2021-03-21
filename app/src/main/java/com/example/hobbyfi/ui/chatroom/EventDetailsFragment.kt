@@ -184,23 +184,29 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
 
     private fun setCalendarDateData() {
         with(binding) {
-            val startDate = viewModel!!.relatedEvent.calendarDayFromStartDate
-            val date = viewModel!!.relatedEvent.calendarDayFromDate
-            dateRangeCalendar.selectRange(
-                startDate,
-                date
-            )
+            try {
+                val startDate = viewModel!!.relatedEvent.calendarDayFromStartDate
+                val date = viewModel!!.relatedEvent.calendarDayFromDate
 
-            dateRangeCalendar.state().edit()
-                .setMinimumDate(startDate)
-                .setMaximumDate(date)
-                .commit()
-            dateRangeCalendar.addDecorator(
-                EventCalendarDecorator(
-                    ContextCompat.getColor(requireContext(), R.color.colorPrimary),
-                    listOf(CalendarDay.today())
+                dateRangeCalendar.selectRange(
+                    startDate,
+                    date
                 )
-            )
+
+                dateRangeCalendar.state().edit()
+                    .setMinimumDate(startDate)
+                    .setMaximumDate(date)
+                    .commit()
+                dateRangeCalendar.addDecorator(
+                    EventCalendarDecorator(
+                        ContextCompat.getColor(requireContext(), R.color.colorPrimary),
+                        listOf(CalendarDay.today())
+                    )
+                )
+            } catch(ex: IllegalArgumentException) {
+                Toast.makeText(requireContext(), Constants.eventParsingError, Toast.LENGTH_LONG)
+                    .show()
+            }
         }
     }
 
@@ -356,7 +362,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                                 // user joined event
                                 // since it's impossible to change the geopoint inside eventMapsActivity,
                                 // just sending the geoPoint as it is will suffice (only user location is changed)
-                                // and even when the user backs from maps activity, the snapshot listener OUGHT to be trigger again
+                                // and even when the user backs from maps activity, the snapshot listener OUGHT to be triggered again
                                 // and the location—become up to date
                                 navigateToEventMaps(geoPoint)
                             } else {
@@ -438,6 +444,9 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     // FIXME: & launch them deferred when user reaches this point
                     // FIXME: Probably through some kind of a sharedprefs/livedata observer on a bool
                     (requireActivity() as ChatroomActivity).refreshDataOnConnectionRefresh()
+                }
+                Constants.RESULT_REAUTH -> {
+                    (requireActivity() as ChatroomActivity).leaveChatroom()
                 }
                 RESULT_CANCELED -> {
                     Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!")

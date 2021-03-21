@@ -91,8 +91,10 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
 
     private fun areThereOldEventsToDelete(): Boolean {
         eventsSource.value?.forEach {
-            if(it.calculateDateDiff().isNegative) {
-                return true
+            return try {
+                it.calculateDateDiff().isNegative
+            } catch(ex: Exception) {
+                true
             }
         }
         return false
