@@ -294,7 +294,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         Glide.with(this)
             .asBitmap()
             .load(imageURL)
-            .into(object : CustomTarget<Bitmap>(){
+            .into(object : CustomTarget<Bitmap>() {
                 override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                     val resultPendingIntent = buildResultPendingIntent(pushIntent)
                     val notification = NotificationCompat.Builder(

@@ -9,7 +9,11 @@ import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentImageViewBinding
+import com.example.hobbyfi.shared.Callbacks
+import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.downloadAndSaveImage
 import com.example.hobbyfi.ui.base.BaseFragment
+import java.util.*
 
 class ImageViewFragment : ChatroomModelFragment() {
 
@@ -42,10 +46,18 @@ class ImageViewFragment : ChatroomModelFragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_download -> {
-                // TODO: Download file in SAF-compliant way
+                if(Callbacks.requestExternalWriteForBelowQ(requireActivity())) {
+                    requireContext().downloadAndSaveImage(args.imageUrl, UUID.randomUUID().toString())
+                }
             }
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        if(requestCode == Constants.externalStorageWriteCode) {
+            requireContext().downloadAndSaveImage(args.imageUrl, UUID.randomUUID().toString())
+        }
     }
 }

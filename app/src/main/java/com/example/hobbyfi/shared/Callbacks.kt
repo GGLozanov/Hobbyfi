@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
+import android.os.Build
 import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
@@ -122,6 +123,25 @@ object Callbacks {
                 activity.getString(R.string.access_fine_location_rationale),
                 permissionRequestCode,
                 Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            false
+        }
+    }
+
+    fun requestExternalWriteForBelowQ(
+        activity: Activity,
+        permissionRequestCode: Int = Constants.externalStorageWriteCode
+    ): Boolean {
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || EasyPermissions.hasPermissions(
+                activity,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            true
+        } else {
+            EasyPermissions.requestPermissions(
+                activity,
+                activity.getString(R.string.access_fine_location_rationale),
+                permissionRequestCode,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
             false
         }

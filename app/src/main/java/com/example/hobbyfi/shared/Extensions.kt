@@ -2,18 +2,19 @@ package com.example.hobbyfi.shared
 
 import android.animation.ValueAnimator
 import android.app.*
-import android.content.Context
+import android.content.*
 import android.content.Context.ACTIVITY_SERVICE
-import android.content.DialogInterface
-import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
@@ -35,6 +36,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.paging.PagingDataAdapter
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
@@ -47,7 +51,13 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
 import java.lang.reflect.Field
+import java.util.*
+
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -319,6 +329,56 @@ fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
     layoutParams = params
 }
 
+@Throws(IOException::class)
+fun Context.downloadAndSaveImage(url: String, name: String) {
+    // bitmap code:
+//    val fos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//        val resolver: ContentResolver = contentResolver
+//        val contentValues = ContentValues()
+//        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "$name.jpg")
+//        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+//        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+//        val imageUri: Uri? =
+//            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+//        Objects.requireNonNull(imageUri)?.let { resolver.openOutputStream(it) }
+//    } else {
+//        val imagesDir: String =
+//            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString()
+//        val image = File(imagesDir, "$name.jpg")
+//        FileOutputStream(image)
+//    }
+//    resource.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+//    Objects.requireNonNull(fos)?.close()
+
+    val downloadManagerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
+
+
+                unregisterReceiver(this)
+            } else {
+
+            }
+        }
+    }
+
+    registerReceiver(downloadManagerReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
+    val downloadManagerRequest: DownloadManager.Request = DownloadManager.Request(Uri.parse(url))
+        .setAllowedNetworkTypes(
+            DownloadManager.Request.NETWORK_WIFI or
+                    DownloadManager.Request.NETWORK_MOBILE
+        )
+        .setAllowedOverRoaming(false)
+        .setTitle("Hobbyfi")
+        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        .setAllowedOverMetered(true)
+        .setDescription("Downloading image...").setMimeType("image/jpg")
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "/Hobbyfi/$name.jpg")
+    val downloadManager: DownloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    downloadManager.enqueue(downloadManagerRequest)
+}
+
 fun JSONObject.toPlainStringMap(): Map<String, String> = keys().asSequence().associateWith {
     this[it].toString()
 }
@@ -379,7 +439,7 @@ val Throwable.isCritical get() = this is Repository.ReauthenticationException ||
         this is io.jsonwebtoken.lang.InstantiationException || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException || this is TokenUtils.InvalidStoredTokenException
 
-fun <T: Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
+fun <T : Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
         try {
@@ -394,10 +454,10 @@ fun <T: Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T>
     return list
 }
 
-fun <T: Any> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
+fun <T : Any> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
     snapshot().find(predicate)
 
-fun <T: Any> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
+fun <T : Any> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
     val snapshot = snapshot()
     snapshot.items.forEachIndexed { index, t ->
         Log.i("findIPositionFCPData", "item: ${t}")

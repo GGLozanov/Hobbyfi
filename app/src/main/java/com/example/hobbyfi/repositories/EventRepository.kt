@@ -50,7 +50,7 @@ class EventRepository(
                         prefConfig.getAuthUserToken()!!,
                         chatroomId
                     )
-                }, { fetchFromNetwork() })
+                }, ::fetchFromNetwork)
             }
         }.asFlow()
     }

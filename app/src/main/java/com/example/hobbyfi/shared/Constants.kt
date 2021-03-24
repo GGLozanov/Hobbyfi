@@ -83,6 +83,7 @@ object Constants {
 
     const val eventLocationRequestCode: Int = 999
     const val eventMapsRequestCode: Int = 666
+    const val externalStorageWriteCode = 323
     const val RESULT_CHATROOM_DELETE: Int = 423
     const val RESULT_KICKED: Int = 246
     const val RESULT_REAUTH: Int = 111

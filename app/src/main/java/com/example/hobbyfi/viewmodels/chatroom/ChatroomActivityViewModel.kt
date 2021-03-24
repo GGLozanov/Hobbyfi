@@ -1,3 +1,4 @@
+
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
@@ -9,6 +10,7 @@ import com.example.hobbyfi.intents.*
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.repositories.EventRepository
+import com.example.hobbyfi.repositories.MessageRepository
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi

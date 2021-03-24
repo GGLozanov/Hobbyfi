@@ -125,7 +125,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-
     override val emitterListenerFactory: EmitterListenerFactory by lazy {
         EmitterListenerFactory(requireActivity())
     }
