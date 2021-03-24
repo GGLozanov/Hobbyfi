@@ -97,7 +97,7 @@ class ChatroomActivity : NavigationActivity(),
             Constants.socketEmissionError,
             Toast.LENGTH_LONG
         ).show()
-        leaveChatroom()
+        // leaveChatroom()
     }
     
     private val userJoinEmitterListener: Emitter.Listener by lazy {
@@ -430,7 +430,7 @@ class ChatroomActivity : NavigationActivity(),
                 Constants.socketConnectionError,
                 Toast.LENGTH_LONG
             ).show()
-            leaveChatroom()
+            // leaveChatroom()
         }
     }
 
@@ -1199,7 +1199,7 @@ class ChatroomActivity : NavigationActivity(),
             }
         }
 
-        return true
+        return false
     }
 
     // by default: sholdLeave => shouldExit

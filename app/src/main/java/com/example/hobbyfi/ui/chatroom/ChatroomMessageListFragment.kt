@@ -1,8 +1,5 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.content.BroadcastReceiver
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
@@ -21,7 +18,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
-import com.example.hobbyfi.BuildConfig
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
@@ -41,15 +39,11 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewMo
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
-import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import java.io.FileNotFoundException
-import java.lang.Exception
-import java.net.URISyntaxException
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -145,8 +139,8 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         emitterListenerFactory.createEmitterListenerForCreate(
             ::Message,
             { message ->
-                if(prefConfig.readReachedBottomMessagesAfterSearch()) {
-                    if(activityViewModel.authUser.value?.chatroomIds?.contains(message.chatroomSentId) == true) {
+                if (prefConfig.readReachedBottomMessagesAfterSearch()) {
+                    if (activityViewModel.authUser.value?.chatroomIds?.contains(message.chatroomSentId) == true) {
                         // assert user still in chatroom (kick race condition)
                         lifecycleScope.launchWhenCreated {
                             viewModel.messageStateIntent.sendIntent(
@@ -156,10 +150,16 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             )
                         }
                     } else {
-                        Log.wtf("ChatroomActivity", "Received message for INVALID CHATROOM. THIS SHOULDN'T HAPPEN!")
+                        Log.wtf(
+                            "ChatroomActivity",
+                            "Received message for INVALID CHATROOM. THIS SHOULDN'T HAPPEN!"
+                        )
                     }
                 } else {
-                    Log.i("ChatroomActivity", "RECEIVED MESSAGE WHILE BOTTOM GENERATION IS STILL NOT RENDERED")
+                    Log.i(
+                        "ChatroomActivity",
+                        "RECEIVED MESSAGE WHILE BOTTOM GENERATION IS STILL NOT RENDERED"
+                    )
                     viewModel.addSearchDeferredMessage(message)
                 }
             },
@@ -170,10 +170,13 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     val editMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForEdit(
             { editFields ->
-                if(messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id ==
-                            editFields[Constants.ID]?.toLong() } != null &&
+                if (messageListAdapter.findItemFromCurrentPagingData { msg ->
+                        msg is UIMessage.MessageItem && msg.message.id ==
+                                editFields[Constants.ID]?.toLong()
+                    } != null &&
                     activityViewModel.authUser.value?.chatroomIds?.contains(
-                        editFields[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
+                        editFields[Constants.CHATROOM_SENT_ID]?.toLong()
+                    ) == true) {
                     // only update if item is currently visible in pages
                     lifecycleScope.launchWhenCreated {
                         viewModel.messageStateIntent.sendIntent(
@@ -191,10 +194,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     val deleteMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForDelete(
             { id ->
-                if(messageListAdapter.findItemFromCurrentPagingData {
-                            msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
+                if (messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
                     activityViewModel.authUser.value?.chatroomIds?.contains(
-                        activityViewModel.authChatroom.value?.id) == true) {
+                        activityViewModel.authChatroom.value?.id
+                    ) == true) {
                     // only delete if message currently visible
                     lifecycleScope.launchWhenCreated {
                         viewModel.messageStateIntent.sendIntent(
@@ -211,7 +214,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val activity = requireActivity() as ChatroomActivity
 
         connectServerSocketListeners()
     }
@@ -268,12 +270,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onConnectedServerSocketFail() {
-        Toast.makeText(
-            requireContext(),
-            Constants.socketConnectionError,
-            Toast.LENGTH_LONG
-        ).show()
-        (requireActivity() as ChatroomActivity).leaveChatroom()
+        // handled by ChatroomActivity. . . BAD implementation
     }
 
     override fun connectServerSocketListeners() {
@@ -352,7 +349,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             ?.observe(viewLifecycleOwner, Observer {
                 Log.i("ChatroomMListFragment", "message received from navcontroller handle: ${it}")
                 it?.let {
-                    messageListAdapter.findItemPositionFromCurrentPagingData(UIMessage.MessageItem(it)).run {
+                    messageListAdapter.findItemPositionFromCurrentPagingData(
+                        UIMessage.MessageItem(
+                            it
+                        )
+                    ).run {
                         Log.i(
                             "ChatroomMListFragment",
                             "POSITION received from navcontroller handle: ${this}"
@@ -361,11 +362,16 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         when {
                             this != null -> {
                                 binding.messageList.scrollToPosition(this)
-                                Handler(Looper.myLooper() ?: binding.messageList.handler.looper).postDelayed({
-                                    binding.messageList.smoothScrollToPosition(
-                                        this
-                                    )
-                                }, 50)
+                                Handler(
+                                    Looper.myLooper() ?: binding.messageList.handler.looper
+                                ).postDelayed(
+                                    {
+                                        binding.messageList.smoothScrollToPosition(
+                                            this
+                                        )
+                                    },
+                                    50
+                                )
 
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     Constants.searchMessage,
@@ -439,7 +445,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
-        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(key, true)) {
+        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(
+                key,
+                true
+            )) {
             viewModel.createSearchDeferredMessages()
         }
     }
@@ -447,6 +456,18 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     override fun initMessageListAdapter() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
+            messageListAdapter.registerAdapterDataObserver(object :
+                RecyclerView.AdapterDataObserver() {
+                override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                    val firstVisiblePosition: Int =
+                        (binding.messageList.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+
+                    Log.i("ChatroomMListFragment", "first visible position: $firstVisiblePosition. Position start: $positionStart")
+                    if(firstVisiblePosition == -1 || (firstVisiblePosition == 0 && positionStart == 0)) {
+                        binding.messageList.scrollToPosition(positionStart)
+                    }
+                }
+            })
             messageList.adapter = messageListAdapter.withLoadStateFooter(loadStateAdapter)
         }
     }
@@ -492,7 +513,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     withContext(Dispatchers.IO) {
                         uris.map {
                             try {
-                                ImageUtils.getEncodedImageFromUri(requireActivity().contentResolver, it)
+                                ImageUtils.getEncodedImageFromUri(
+                                    requireActivity().contentResolver,
+                                    it
+                                )
                             } catch (ex: FileNotFoundException) {
                                 Toast.makeText(
                                     requireContext(),

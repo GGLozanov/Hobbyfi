@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 // TODO: Fix this redeclaration of States and find a way to create a generic responseState
 sealed class MessageListState : State {
     object Idle : MessageListState()
-    object Loading : MessageListState()
 
     sealed class OnData : MessageListState() {
         data class MessagesResult(val messages: Flow<PagingData<UIMessage>>, val queriedMessageId: Long? = null) : MessageListState()

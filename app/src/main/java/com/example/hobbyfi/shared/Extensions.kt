@@ -14,7 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
@@ -36,11 +35,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.paging.PagingDataAdapter
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.data.*
+import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.Event
+import com.example.hobbyfi.models.data.Message
+import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.repositories.Repository
 import com.example.hobbyfi.utils.TokenUtils
 import com.google.android.gms.maps.model.LatLng
@@ -51,12 +52,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import org.json.JSONObject
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
 import java.lang.reflect.Field
-import java.util.*
 
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
@@ -353,16 +350,40 @@ fun Context.downloadAndSaveImage(url: String, name: String) {
     val downloadManagerReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
-
-
-                unregisterReceiver(this)
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                    val contentValues = ContentValues()
+//                    val database: ContentResolver = this@downloadAndSaveImage.contentResolver
+//                    contentValues.put(MediaStore.Downloads.DISPLAY_NAME, "$name.jpg")
+//                    contentValues.put(MediaStore.Downloads.MIME_TYPE, mimeType)
+//                    contentValues.put(
+//                        MediaStore.Downloads.RELATIVE_PATH,
+//                        Environment.DIRECTORY_DOWNLOADS + "/Hobbyfi"
+//                    )
+//                    database.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+//                } else {
+//
+//                }
+            } else if(intent.action == DownloadManager.ACTION_NOTIFICATION_CLICKED) {
+                val dm = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                this@downloadAndSaveImage.startActivity(dm)
             } else {
-
+                Log.w(
+                    "Extensions",
+                    "downloadAndSaveImage -> received broadcast w/ invalid intent action!"
+                )
             }
+            this@downloadAndSaveImage.unregisterReceiver(this)
         }
     }
 
-    registerReceiver(downloadManagerReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    registerReceiver(
+        downloadManagerReceiver,
+        IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE).apply {
+            addAction(DownloadManager.ACTION_NOTIFICATION_CLICKED)
+        }
+    )
 
     val downloadManagerRequest: DownloadManager.Request = DownloadManager.Request(Uri.parse(url))
         .setAllowedNetworkTypes(
@@ -370,13 +391,19 @@ fun Context.downloadAndSaveImage(url: String, name: String) {
                     DownloadManager.Request.NETWORK_MOBILE
         )
         .setAllowedOverRoaming(false)
-        .setTitle("Hobbyfi")
+        .setTitle(name)
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
         .setDescription("Downloading image...").setMimeType("image/jpg")
-        .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "/Hobbyfi/$name.jpg")
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "/Hobbyfi/")
     val downloadManager: DownloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     downloadManager.enqueue(downloadManagerRequest)
+}
+
+fun RecyclerView.isLinearFirstVisible(): Boolean {
+    val layoutManager = layoutManager as LinearLayoutManager
+    val pos = layoutManager.findFirstCompletelyVisibleItemPosition()
+    return pos == 0
 }
 
 fun JSONObject.toPlainStringMap(): Map<String, String> = keys().asSequence().associateWith {

@@ -68,7 +68,7 @@ object Constants {
     const val chatroomDeletedMessage: String = "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!"
     const val chatroomKickedMessage: String = "Oh no, it looks like you've been kicked from the chatroom by the owner!"
     const val eventParsingError: String = "Failed to parse event date!"
-    const val socketConnectionError: String = "Couldn't connect to server for realtime capabilities!"
+    const val socketConnectionError: String = "Couldn't connect to server for realtime capabilities! Please check your connection!"
     const val socketEmissionError: String = "Couldn't receive new messages to display!"
     fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 

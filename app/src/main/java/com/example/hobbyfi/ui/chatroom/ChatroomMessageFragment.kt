@@ -5,10 +5,8 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
-import androidx.paging.map
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageAdapter
-import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
@@ -18,7 +16,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
 
 abstract class ChatroomMessageFragment : ChatroomFragment() {
     @ExperimentalCoroutinesApi
@@ -45,7 +42,7 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatest {
                 when(it) {
-                    is MessageListState.Idle, is MessageListState.Loading -> {
+                    is MessageListState.Idle -> {
 
                     }
                     is MessageListState.OnData.MessagesResult -> {

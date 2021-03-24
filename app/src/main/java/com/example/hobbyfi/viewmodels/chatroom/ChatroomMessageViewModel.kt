@@ -68,8 +68,6 @@ abstract class ChatroomMessageViewModel(
 
     @ExperimentalPagingApi
     protected fun fetchMessages(chatroomId: Long, query: String?, messageId: Long?) {
-        mainStateIntent.setState(MessageListState.Loading)
-
         if(_currentMessages == null || messageId != null || _sentMessageIdFetchRequestPrior) {
             _currentMessages = (if(query == null)
                         messageRepository.getMessages(chatroomId = chatroomId, messageId = messageId)

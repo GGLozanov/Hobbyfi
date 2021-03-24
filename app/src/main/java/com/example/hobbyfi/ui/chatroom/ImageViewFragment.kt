@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.chatroom
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil

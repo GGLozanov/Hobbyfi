@@ -88,7 +88,6 @@ class MainApplication : MultiDexApplication(), KodeinAware {
         AppEventsLogger.activateApp(this)
         MainApplication.applicationContext = applicationContext
 
-        ProviderInstaller.installIfNeeded(applicationContext)
         // Branch logging for debugging
         Branch.enableLogging()
 
