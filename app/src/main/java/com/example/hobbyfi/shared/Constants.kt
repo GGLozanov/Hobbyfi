@@ -256,6 +256,9 @@ object Constants {
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
 
+    const val USER_TYPING = "user_typing"
+    const val USER_CEASE_TYPING = "user_cease_typing"
+
     const val TOKEN: String = "token"
     const val API: String = "API"
 

@@ -36,7 +36,7 @@ abstract class ChatroomMessageAdapter(
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
     protected enum class MessageType {
-        SEND, RECEIVE, TIMELINE, SEPARATOR
+        SEND, RECEIVE, TIMELINE, SEPARATOR, USER_TYPING
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<UIMessage> {

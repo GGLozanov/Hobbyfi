@@ -391,7 +391,7 @@ fun Context.downloadAndSaveImage(url: String, name: String) {
                     DownloadManager.Request.NETWORK_MOBILE
         )
         .setAllowedOverRoaming(false)
-        .setTitle(name)
+        .setTitle("$name.jpg")
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
         .setDescription("Downloading image...").setMimeType("image/jpg")

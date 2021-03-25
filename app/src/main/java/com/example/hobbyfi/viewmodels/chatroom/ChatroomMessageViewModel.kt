@@ -119,6 +119,9 @@ abstract class ChatroomMessageViewModel(
                         }
                     }
                 }
+                .map {
+                    it.insertHeaderItem(item = UIMessage.MessageUsersTypingItem(listOf()))
+                }
                 .cachedIn(viewModelScope)
         }
 
