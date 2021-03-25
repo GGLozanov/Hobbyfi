@@ -180,8 +180,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                                 editFields[Constants.ID]?.toLong()
                     } != null &&
                     activityViewModel.authUser.value?.chatroomIds?.contains(
-                        editFields[Constants.CHATROOM_SENT_ID]?.toLong()
-                    ) == true) {
+                        editFields[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
                     // only update if item is currently visible in pages
                     lifecycleScope.launchWhenCreated {
                         viewModel.messageStateIntent.sendIntent(

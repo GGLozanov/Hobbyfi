@@ -35,6 +35,12 @@ class ChatroomActivityViewModel(
         _lastSentJoinChatroomSocketEventId = lastId
     }
 
+    private var _shownSocketError: Boolean = false
+    val shownSocketError: Boolean get() = _shownSocketError
+    fun setShownSocketError(shown: Boolean) {
+        _shownSocketError = shown
+    }
+
     private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(arrayListOf())
     val chatroomUsers: LiveData<List<User>> get() = _chatroomUsers
 

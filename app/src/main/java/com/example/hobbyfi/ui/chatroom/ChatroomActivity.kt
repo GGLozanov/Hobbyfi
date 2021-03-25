@@ -424,19 +424,23 @@ class ChatroomActivity : NavigationActivity(),
 
     override fun onConnectedServerSocketFail() {
         Log.w("ChatroomActivity", "Socket connection from current auth user: ${viewModel.authUser.value} failed!")
-        runOnUiThread {
-            Toast.makeText(
-                this,
-                Constants.socketConnectionError,
-                Toast.LENGTH_LONG
-            ).show()
-            // leaveChatroom()
+        if(!viewModel.shownSocketError) {
+            viewModel.setShownSocketError(true)
+            runOnUiThread {
+                Toast.makeText(
+                    this,
+                    Constants.socketConnectionError,
+                    Toast.LENGTH_LONG
+                ).show()
+                // leaveChatroom()
+            }
         }
     }
 
     @ExperimentalPagingApi
     override fun connectServerSocketListeners() {
         serverSocket?.on(Socket.EVENT_CONNECT) {
+            viewModel.setShownSocketError(false)
             Log.i("ChatroomActivity", "initial server socket connect: $initialServerSocketConnect")
             if(!initialServerSocketConnect) {
                 refreshDataOnConnectionRefresh()

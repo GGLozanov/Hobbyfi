@@ -21,8 +21,7 @@ class ChatroomMessageListAdapter(
     private inline val onMessageLongPress: (View, Message) -> Boolean,
     private inline val onImageMessagePress: (MessageCardBinding) -> Unit
 ): ChatroomMessageAdapter(currentUsers) {
-    private val _typingUsers: MutableList<Long> = mutableListOf()
-    val typingUsers: List<Long> get() = _typingUsers
+    private val _typingUsers: MutableSet<Long> = mutableSetOf()
 
     private abstract class UserChatroomMessageViewHolder(
         rootView: View,
@@ -176,7 +175,7 @@ class ChatroomMessageListAdapter(
 
             if(areThereUsersTyping) {
                 val firstThreeTyping = usersTyping.take(3)
-                users.filter { firstThreeTyping.contains(it.id) }.joinToString { it.name }
+                usersTypingText += users.filter { firstThreeTyping.contains(it.id) }.joinToString { it.name }
                 if(usersTyping.size > maxTypingUsers) {
                     usersTypingText += ", and ${users.size - 3} others"
                 }
@@ -226,9 +225,7 @@ class ChatroomMessageListAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if(position == 0) {
-            MessageType.USER_TYPING.ordinal
-        } else try {
+        return try {
             super.getItemViewType(position)
         } catch(ex: UnsupportedOperationException) {
             MessageType.USER_TYPING.ordinal // just this one for now, no special handling

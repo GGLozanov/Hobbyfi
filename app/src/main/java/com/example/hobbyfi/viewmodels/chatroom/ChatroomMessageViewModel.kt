@@ -85,7 +85,7 @@ abstract class ChatroomMessageViewModel(
 
                         if (before == null) {
                             // beginning of the list
-                            return@insertSeparators null
+                            return@insertSeparators UIMessage.MessageUsersTypingItem(listOf())
                         }
 
                         // check between 2 items
@@ -118,9 +118,6 @@ abstract class ChatroomMessageViewModel(
                             else -> null // no separator
                         }
                     }
-                }
-                .map {
-                    it.insertHeaderItem(item = UIMessage.MessageUsersTypingItem(listOf()))
                 }
                 .cachedIn(viewModelScope)
         }
