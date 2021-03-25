@@ -320,9 +320,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         }
     }
 
+    override fun onStop() {
+        disconnectServerSocket()
+        super.onStop()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        disconnectServerSocket()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
     }
 

@@ -1061,9 +1061,13 @@ class ChatroomActivity : NavigationActivity(),
         prefConfig.writeRestartedFromChatroomTaskRoot(false)
     }
 
+    override fun onStop() {
+        disconnectServerSocket()
+        super.onStop()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        disconnectServerSocket()
         localBroadcastManager.unregisterReceiver(foregroundFCMReceiver)
         prefConfig.writeRestartedFromChatroomTaskRoot(false)
         prefConfig.writeReachedBottomMessagesAfterSearch(true) // reset on, well, onDestroy

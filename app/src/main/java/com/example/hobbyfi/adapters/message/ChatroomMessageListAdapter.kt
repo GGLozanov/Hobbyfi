@@ -3,26 +3,27 @@ package com.example.hobbyfi.adapters.message
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import com.bumptech.glide.RequestManager
 import com.example.hobbyfi.R
-import com.example.hobbyfi.databinding.MessageCardBinding
-import com.example.hobbyfi.databinding.MessageCardReceiveBinding
-import com.example.hobbyfi.databinding.MessageCardSendBinding
-import com.example.hobbyfi.databinding.MessageCardTimelineBinding
+import com.example.hobbyfi.adapters.base.BaseViewHolder
+import com.example.hobbyfi.databinding.*
 import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.PrefConfig
 
 
-class
-ChatroomMessageListAdapter(
+class ChatroomMessageListAdapter(
     currentUsers: List<User>,
     private var isAuthUserChatroomOwner: Boolean,
     private inline val onMessageLongPress: (View, Message) -> Boolean,
     private inline val onImageMessagePress: (MessageCardBinding) -> Unit
 ): ChatroomMessageAdapter(currentUsers) {
+    private val _typingUsers: MutableList<Long> = mutableListOf()
+    val typingUsers: List<Long> get() = _typingUsers
+
     private abstract class UserChatroomMessageViewHolder(
         rootView: View,
         messageCardBinding: MessageCardBinding,
@@ -146,11 +147,63 @@ ChatroomMessageListAdapter(
         }
     }
 
+    // ALWAYS at index 0; invisible if inactive
+    private class ChatroomTypingUserMessageViewHolder(
+        val typingUserMessageBinding: TypingUserMessageBinding,
+        private val users: List<User>
+    ): BaseViewHolder<UIMessage>(typingUserMessageBinding.root) {
+        companion object {
+            fun getInstance(parent: ViewGroup, users: List<User>): ChatroomTypingUserMessageViewHolder {
+                val inflater = LayoutInflater.from(parent.context)
+                val binding: TypingUserMessageBinding =
+                    TypingUserMessageBinding.inflate(
+                        inflater, parent,
+                        false
+                    )
+                return ChatroomTypingUserMessageViewHolder(
+                    binding,
+                    users
+                )
+            }
+
+            const val maxTypingUsers: Int = 3
+        }
+
+        override fun bind(model: UIMessage?, position: Int) {
+            val usersTyping: List<Long> = (model as UIMessage.MessageUsersTypingItem?)?.usersIdTyping ?: listOf()
+            val areThereUsersTyping = usersTyping.isNotEmpty()
+            var usersTypingText: String? = null
+
+            if(areThereUsersTyping) {
+                val firstThreeTyping = usersTyping.take(3)
+                users.filter { firstThreeTyping.contains(it.id) }.joinToString { it.name }
+                if(usersTyping.size > maxTypingUsers) {
+                    usersTypingText += ", and ${users.size - 3} others"
+                }
+                usersTypingText += " are typing..."
+            }
+            typingUserMessageBinding.typingBroadcastText.apply {
+                text = usersTypingText
+                isVisible = areThereUsersTyping
+            }
+        }
+    }
+
     fun setAuthUserChatroomOwner(isOwner: Boolean) {
         if(isAuthUserChatroomOwner != isOwner) {
             isAuthUserChatroomOwner = isOwner
             notifyDataSetChanged()
         }
+    }
+
+    fun addTypingUser(id: Long) {
+        _typingUsers.add(id)
+        notifyItemChanged(0)
+    }
+
+    fun removeTypingUser(id: Long) {
+        _typingUsers.remove(id)
+        notifyItemChanged(0)
     }
 
     override fun getTimelineMessageViewHolderInstance(parent: ViewGroup): BaseTimelineMessageViewHolder =
@@ -163,4 +216,22 @@ ChatroomMessageListAdapter(
     override fun getSendMessageViewHolderInstance(parent: ViewGroup): BaseUserChatroomMessageViewHolder =
         ChatroomSendMessageViewHolder.getInstance(parent, onMessageLongPress, onImageMessagePress, currentUsers,
             isAuthUserChatroomOwner, prefConfig)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<UIMessage> {
+        return try {
+            super.onCreateViewHolder(parent, viewType)
+        } catch(ex: IllegalArgumentException) {
+            return ChatroomTypingUserMessageViewHolder.getInstance(parent, currentUsers)
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if(position == 0) {
+            MessageType.USER_TYPING.ordinal
+        } else try {
+            super.getItemViewType(position)
+        } catch(ex: UnsupportedOperationException) {
+            MessageType.USER_TYPING.ordinal // just this one for now, no special handling
+        }
+    }
 }

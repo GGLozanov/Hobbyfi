@@ -5,9 +5,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -43,7 +46,9 @@ import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
+import org.json.JSONObject
 import java.io.FileNotFoundException
+
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -212,6 +217,18 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         )
     }
 
+    private val userTypingEmitterListener: Emitter.Listener = Emitter.Listener {
+        requireActivity().runOnUiThread {
+            messageListAdapter.addTypingUser((it[0] as JSONObject).getLong(Constants.ID))
+        }
+    }
+
+    private val userStopTyingEmitterListener: Emitter.Listener = Emitter.Listener {
+        requireActivity().runOnUiThread {
+            messageListAdapter.removeTypingUser((it[0] as JSONObject).getLong(Constants.ID))
+        }
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
@@ -251,6 +268,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 editMessageOptionsLayout.isVisible = false
             }
 
+            initTypingListener()
             initMessageListAdapter()
             observeUsers()
             observeMessageState()
@@ -285,6 +303,14 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         serverSocket?.on(
             Constants.DELETE_MESSAGE_TYPE,
             deleteMessageEmitterListener
+        )
+        serverSocket?.on(
+            Constants.USER_TYPING,
+            userTypingEmitterListener
+        )
+        serverSocket?.on(
+            Constants.USER_CEASE_TYPING,
+            userStopTyingEmitterListener
         )
     }
 
@@ -453,6 +479,30 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
+    private fun initTypingListener() {
+        binding.messageInputField.editText?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable) {
+                // TODO: Optimise!
+                serverSocket?.emit(Constants.USER_TYPING, JSONObject(mapOf(
+                    Constants.ID to activityViewModel.authUser.value?.id,
+                    Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                )))
+            }
+        })
+
+        binding.messageInputField.editText?.onFocusChangeListener =
+            OnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus) {
+                    serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+                        Constants.ID to activityViewModel.authUser.value?.id,
+                        Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                    )))
+                }
+            }
+    }
+    
     override fun initMessageListAdapter() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
@@ -462,8 +512,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     val firstVisiblePosition: Int =
                         (binding.messageList.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
 
-                    Log.i("ChatroomMListFragment", "first visible position: $firstVisiblePosition. Position start: $positionStart")
-                    if(firstVisiblePosition == -1 || (firstVisiblePosition == 0 && positionStart == 0)) {
+                    Log.i(
+                        "ChatroomMListFragment",
+                        "first visible position: $firstVisiblePosition. Position start: $positionStart"
+                    )
+                    if (firstVisiblePosition == -1 || (firstVisiblePosition == 0 && positionStart == 0)) {
                         binding.messageList.scrollToPosition(positionStart)
                     }
                 }
