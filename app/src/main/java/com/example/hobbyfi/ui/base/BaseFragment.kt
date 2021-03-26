@@ -20,7 +20,8 @@ import org.kodein.di.android.x.kodein
 import org.kodein.di.generic.instance
 import pub.devrel.easypermissions.EasyPermissions
 
-abstract class BaseFragment : Fragment(), KodeinAware, ConnectivityAccessor, EasyPermissions.PermissionCallbacks {
+abstract class BaseFragment : Fragment(), KodeinAware,
+        ConnectivityAccessor, EasyPermissions.PermissionCallbacks {
     override val kodein: Kodein by kodein()
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")

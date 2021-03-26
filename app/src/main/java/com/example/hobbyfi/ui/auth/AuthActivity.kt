@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
@@ -30,39 +31,14 @@ class AuthActivity : NavigationActivity() {
             setContentView(view)
             initNavController()
 
-            binding.toolbar.setupWithNavController(
+            toolbar.setupWithNavController(
                 navController,
-                AppBarConfiguration(setOf(R.id.loginFragment, R.id.registerFragment))
+                AppBarConfiguration(setOf(R.id.authWrapperFragment))
             )
 
-            setSupportActionBar(toolbar)
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        super.onOptionsItemSelected(item)
-        when(item.itemId) {
-            R.id.action_register -> {
-                if(navController.currentDestination?.id == R.id.loginFragment) {
-                    navController.navigate(R.id.action_loginFragment_to_registerFragment)
-                }
+            navController.addOnDestinationChangedListener { _, destination, _ ->
+                toolbar.isVisible = destination.id != R.id.authWrapperFragment
             }
-            R.id.action_login -> {
-                if(navController.currentDestination?.id == R.id.registerFragment) {
-                    navController.navigate(R.id.action_registerFragment_to_loginFragment)
-                }
-            }
-            android.R.id.home -> {
-                navController.navigateUp()
-            } // explicitly handle; just in case
         }
-
-        return true
-    }
-
-    // TODO: Handle deleting device token every time here
-    // TODO: Handle possible conflict from starting Main & Auth activity together (one sends to delete, the other - to upload)
-    private fun handleDeviceTokenDeletion() {
-
     }
 }

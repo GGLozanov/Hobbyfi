@@ -85,7 +85,7 @@ abstract class ChatroomMessageViewModel(
 
                         if (before == null) {
                             // beginning of the list
-                            return@insertSeparators UIMessage.MessageUsersTypingItem(listOf())
+                            return@insertSeparators UIMessage.MessageUsersTypingItem
                         }
 
                         // check between 2 items

@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.chatroom
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
@@ -48,6 +49,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collectLatest
 import org.json.JSONObject
 import java.io.FileNotFoundException
+import java.util.*
 
 
 @ExperimentalCoroutinesApi
@@ -60,6 +62,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     public override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
 
     private lateinit var binding: FragmentChatroomMessageListBinding
+    private var typingTimer: CountDownTimer? = null
 
     // props like these are nullable because Activity onDestroy being called on new app start from push notification
     // and causing crashes for unitialised properties before anything actually happens prior to activity restart
@@ -340,10 +343,16 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
                     }
                     is MessageState.Loading -> {
-                        // TODO: stop button? Or do nothing?
+                        // TODO: stop button? Or do nothing? Or just show the queued up messages as invisible and sending WIP?
                     }
                     is MessageState.OnData.MessageCreateResult -> {
                         viewModel.message.setValue(null) // reset msg
+                        // FIXME: Inefficient?
+                        typingTimer = null
+                        serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+                            Constants.ID to activityViewModel.authUser.value?.id,
+                            Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                        ))) // stop typing
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
                         binding.cancelHeader.callOnClick()
@@ -483,11 +492,30 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable) {
-                // TODO: Optimise!
-                serverSocket?.emit(Constants.USER_TYPING, JSONObject(mapOf(
-                    Constants.ID to activityViewModel.authUser.value?.id,
-                    Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
-                )))
+                if(typingTimer == null) {
+                    serverSocket?.emit(Constants.USER_TYPING, JSONObject(mapOf(
+                        Constants.ID to activityViewModel.authUser.value?.id,
+                        Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                    )))
+                    typingTimer = object : CountDownTimer(5000, 5000) {
+                        override fun onFinish() {
+                            typingTimer = null
+                            serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+                                Constants.ID to activityViewModel.authUser.value?.id,
+                                Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                            )))
+                        }
+
+                        override fun onTick(p0: Long) {
+
+                        }
+                    }.apply {
+                        start()
+                    }
+                } else {
+                    typingTimer?.cancel()
+                    typingTimer?.start()
+                }
             }
         })
 

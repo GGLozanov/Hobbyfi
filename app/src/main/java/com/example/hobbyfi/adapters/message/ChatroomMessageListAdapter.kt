@@ -149,10 +149,11 @@ class ChatroomMessageListAdapter(
     // ALWAYS at index 0; invisible if inactive
     private class ChatroomTypingUserMessageViewHolder(
         val typingUserMessageBinding: TypingUserMessageBinding,
-        private val users: List<User>
+        private val users: List<User>,
+        private val usersTyping: Set<Long>
     ): BaseViewHolder<UIMessage>(typingUserMessageBinding.root) {
         companion object {
-            fun getInstance(parent: ViewGroup, users: List<User>): ChatroomTypingUserMessageViewHolder {
+            fun getInstance(parent: ViewGroup, users: List<User>, usersTyping: Set<Long>): ChatroomTypingUserMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
                 val binding: TypingUserMessageBinding =
                     TypingUserMessageBinding.inflate(
@@ -161,7 +162,8 @@ class ChatroomMessageListAdapter(
                     )
                 return ChatroomTypingUserMessageViewHolder(
                     binding,
-                    users
+                    users,
+                    usersTyping
                 )
             }
 
@@ -169,17 +171,16 @@ class ChatroomMessageListAdapter(
         }
 
         override fun bind(model: UIMessage?, position: Int) {
-            val usersTyping: List<Long> = (model as UIMessage.MessageUsersTypingItem?)?.usersIdTyping ?: listOf()
             val areThereUsersTyping = usersTyping.isNotEmpty()
-            var usersTypingText: String? = null
+            var usersTypingText = ""
 
             if(areThereUsersTyping) {
-                val firstThreeTyping = usersTyping.take(3)
+                val firstThreeTyping = usersTyping.take(maxTypingUsers)
                 usersTypingText += users.filter { firstThreeTyping.contains(it.id) }.joinToString { it.name }
                 if(usersTyping.size > maxTypingUsers) {
-                    usersTypingText += ", and ${users.size - 3} others"
+                    usersTypingText += ", and ${users.size - maxTypingUsers} others"
                 }
-                usersTypingText += " are typing..."
+                usersTypingText += " ${if(usersTyping.size == 1) "is" else "are"} typing..."
             }
             typingUserMessageBinding.typingBroadcastText.apply {
                 text = usersTypingText
@@ -220,7 +221,7 @@ class ChatroomMessageListAdapter(
         return try {
             super.onCreateViewHolder(parent, viewType)
         } catch(ex: IllegalArgumentException) {
-            return ChatroomTypingUserMessageViewHolder.getInstance(parent, currentUsers)
+            return ChatroomTypingUserMessageViewHolder.getInstance(parent, currentUsers, _typingUsers)
         }
     }
 

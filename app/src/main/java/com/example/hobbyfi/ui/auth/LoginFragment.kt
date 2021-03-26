@@ -78,10 +78,6 @@ class LoginFragment : AuthFragment() {
         initFacebookLogin()
 
         with(binding) {
-            switchToRegisterSubtitle.setOnClickListener {
-                navController.navigate(R.id.action_loginFragment_to_registerFragment)
-            }
-
             resetPasswordSubtitle.setOnClickListener {
                 navController.navigate(R.id.action_loginFragment_to_resetPasswordFragment)
             }
@@ -220,7 +216,7 @@ class LoginFragment : AuthFragment() {
 
     private fun observeTokenState() {
         lifecycleScope.launch {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatest {
                 when(it) {
                     is TokenState.Idle -> {
 
@@ -343,11 +339,6 @@ class LoginFragment : AuthFragment() {
                 }
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.login_appbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

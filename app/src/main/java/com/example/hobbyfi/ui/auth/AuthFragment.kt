@@ -15,10 +15,6 @@ import com.facebook.AccessToken
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInputValidationOnus {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
 
     private val activityViewModel: AuthActivityViewModel by activityViewModels()
 

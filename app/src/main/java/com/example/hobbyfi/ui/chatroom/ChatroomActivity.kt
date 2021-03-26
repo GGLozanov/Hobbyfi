@@ -467,6 +467,11 @@ class ChatroomActivity : NavigationActivity(),
 
     override fun disconnectServerSocketListeners() {
         sentJoinChatroomSocketEvent = false
+
+        serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+            Constants.ID to viewModel.authUser.value?.id,
+            Constants.CHATROOM_ID to viewModel.authChatroom.value?.id
+        )))
     }
 
     @ExperimentalPagingApi
@@ -700,7 +705,8 @@ class ChatroomActivity : NavigationActivity(),
         // log out of all accounts (use refresh token to authorise properly)
         WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
             prefConfig.getAuthUserTokenRefresh()!!,
-            prefConfig.readDeviceToken(), this)
+            prefConfig.readDeviceToken(), this
+        )
         LoginManager.getInstance().logOut()
         prefConfig.resetToken()
         prefConfig.resetRefreshToken()

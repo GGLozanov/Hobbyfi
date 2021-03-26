@@ -177,11 +177,6 @@ class RegisterFragment : AuthFragment() {
         viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.buttonBar.rightButton))
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.register_appbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         Callbacks.handleImageRequestWithPermission(

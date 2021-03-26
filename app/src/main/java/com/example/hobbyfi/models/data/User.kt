@@ -33,7 +33,7 @@ data class User(
         data[Constants.USERNAME] ?: data[Constants.NAME] ?: error("User username must not be null!"),
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
-        Constants.jsonConverter.fromJson(data[Constants.TAGS]),
+        if(data[Constants.TAGS] != "undefined") Constants.jsonConverter.fromJson(data[Constants.TAGS]) else listOf(),
         Constants.jsonConverter.fromJson(data[Constants.CHATROOM_IDS]),
         Constants.jsonConverter.fromJson(data[Constants.ALLOWED_PUSH_CHATROOM_IDS])
     )
