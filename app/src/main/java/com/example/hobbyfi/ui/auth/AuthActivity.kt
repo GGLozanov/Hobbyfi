@@ -29,6 +29,7 @@ class AuthActivity : NavigationActivity() {
         with(binding) {
             val view = root
             setContentView(view)
+            setSupportActionBar(toolbar)
             initNavController()
 
             toolbar.setupWithNavController(
@@ -37,7 +38,7 @@ class AuthActivity : NavigationActivity() {
             )
 
             navController.addOnDestinationChangedListener { _, destination, _ ->
-                toolbar.isVisible = destination.id != R.id.authWrapperFragment
+                if(destination.id == R.id.authWrapperFragment) supportActionBar?.hide() else supportActionBar?.show()
             }
         }
     }

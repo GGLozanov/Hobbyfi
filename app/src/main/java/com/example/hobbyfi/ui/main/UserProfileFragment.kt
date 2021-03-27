@@ -199,8 +199,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
                     Glide.with(this@UserProfileFragment).load(
                         it.photoUrl!!
-                    ).signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time)))
-                        .placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
+                    ).signature(
+                        ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time))
+                    ).placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
                         .into(binding.profileImage)
                 } else {
                     // load default img (needed if img deletion is added)

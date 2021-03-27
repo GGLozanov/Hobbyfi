@@ -21,6 +21,7 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.UserState
+import com.example.hobbyfi.ui.auth.AuthActivity
 import com.example.hobbyfi.ui.base.*
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
@@ -69,7 +70,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        connectServerSocket()
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
@@ -92,7 +92,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onStart() {
         super.onStart()
-         connectServerSocket()
+        connectServerSocket()
         observeAuthUser()
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
@@ -308,9 +308,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         }
     }
 
-    // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
         if(poppedFromLogoutButton) {
+            // FIXME: Is restarting the activity again good? There shouldn't be any state preserved but this cheats the navcomponent backstack a bit
+            startActivity(Intent(this, AuthActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            })
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
             finish()
         } else {
             if(navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment) {
