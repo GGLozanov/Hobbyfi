@@ -21,10 +21,9 @@ import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomCreateFragmentViewModel(application: Application) : StateIntentViewModel<ChatroomState, ChatroomIntent>(application),
-        NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
+        NameDescriptionBindable by NameDescriptionBindableViewModel(),
+        Base64ImageHolder by Base64ImageHolderViewModel(), TagBundleHolder by TagBundleHolderViewModel() {
     private val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
-
-    var tagBundle: TagBundle = TagBundle()
 
     override val mainStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
         override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)

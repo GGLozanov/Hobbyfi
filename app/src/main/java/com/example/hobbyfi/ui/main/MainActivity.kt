@@ -10,6 +10,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
@@ -137,6 +138,9 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                     )
                 )
             )
+            navController.addOnDestinationChangedListener { _, destination, _ ->
+                binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment && destination.id != R.id.tagSelectionFragment
+            }
         })
     }
 

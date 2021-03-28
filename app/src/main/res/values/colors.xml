@@ -10,4 +10,5 @@
     <color name="colorBackground">#4E558C</color>
     <color name="colorBackgroundDark">#3F4571</color>
     <color name="colorGrey">#9a9a9a</color>
+    <color name="colorDarkGrey">#333333</color>
 </resources>

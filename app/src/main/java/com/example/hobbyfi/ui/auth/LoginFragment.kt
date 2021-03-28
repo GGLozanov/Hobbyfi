@@ -187,6 +187,7 @@ class LoginFragment : AuthFragment() {
                                 .toTypedArray() + it.tags
                         )
                         navController.navigate(action)
+                        viewModel.resetFacebookState()
                     }
                     is FacebookState.Error -> {
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)

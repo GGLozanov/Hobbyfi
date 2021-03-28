@@ -1229,7 +1229,7 @@ class ChatroomActivity : NavigationActivity(),
 
         if (shouldLeave) {
             finish()
-        } else if(shouldExit) {
+        } else if(shouldExit || !prefConfig.isUserAuthenticated()) {
             leaveChatroomWithRestart()
         }
     }

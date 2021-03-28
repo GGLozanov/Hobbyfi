@@ -15,7 +15,6 @@
             app:destination="@id/mainActivity" />
         <action
             android:id="@+id/action_loginFragment_to_tag_nav_graph"
-            app:popUpTo="@id/authWrapperFragment"
             app:destination="@id/tag_nav_graph" >
             <argument
                 android:name="selectedTags"

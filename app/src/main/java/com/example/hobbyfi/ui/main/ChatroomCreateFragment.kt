@@ -33,11 +33,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     private val viewModel: ChatroomCreateFragmentViewModel by viewModels()
     private lateinit var binding: FragmentChatroomCreateBinding
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
-    }
-
     override fun onPrepareOptionsMenu(menu: Menu) {
         menu.clear()
     }
@@ -158,12 +153,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun onStart() {
         super.onStart()
         observePredicateValidators()
-    }
-
-    @ExperimentalPagingApi
-    override fun onDestroyView() {
-        super.onDestroyView()
-        (requireActivity() as MainActivity).binding.bottomNav.isVisible = true // hacky solution but oh well, nested nav graphs do that
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

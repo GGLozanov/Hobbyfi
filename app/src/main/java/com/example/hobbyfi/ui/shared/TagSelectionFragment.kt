@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.shared
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -10,28 +11,26 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.tag.TagSelectionListAdapter
-import com.example.hobbyfi.databinding.FragmentTagSelectionDialogBinding
+import com.example.hobbyfi.databinding.FragmentTagSelectionBinding
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.ui.base.BaseDialogFragment
+import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
-import com.example.hobbyfi.viewmodels.shared.TagSelectionDialogFragmentViewModel
+import com.example.hobbyfi.viewmodels.shared.TagSelectionFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-class TagSelectionDialogFragment : BaseDialogFragment() {
+class TagSelectionFragment : BaseFragment() {
 
     private lateinit var adapter: TagSelectionListAdapter
-    private val args: TagSelectionDialogFragmentArgs by navArgs()
+    private val args: TagSelectionFragmentArgs by navArgs()
 
-    private val viewModel: TagSelectionDialogFragmentViewModel by viewModels(factoryProducer = {
+    private val viewModel: TagSelectionFragmentViewModel by viewModels(factoryProducer = {
         TagListViewModelFactory(requireActivity().application, args.selectedTags.toList())
     })
 
-    private var _binding: FragmentTagSelectionDialogBinding? = null
+    private var _binding: FragmentTagSelectionBinding? = null
     private val binding get() = _binding!!
-
-    private var dismissedFromConfirm = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,7 +38,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     ): View? {
         // Inflate the layout for this fragment
         _binding =
-            FragmentTagSelectionDialogBinding.inflate(inflater, container, false)
+            FragmentTagSelectionBinding.inflate(inflater, container, false)
 
         adapter = TagSelectionListAdapter(
             args.tags.toMutableList(),
@@ -48,7 +47,7 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         )
 
         with(binding) {
-            tagList.addItemDecoration(VerticalSpaceItemDecoration(5))
+            tagList.addItemDecoration(VerticalSpaceItemDecoration(15))
             tagList.adapter = adapter
             return@onCreateView root
         }
@@ -64,9 +63,15 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         }
 
         with(binding) {
-            buttonBar.leftButton.setOnClickListener { dismiss() } // dismiss button
-            buttonBar.rightButton.setOnClickListener { dismissedFromConfirm = true
-                dismiss() } // confirm button
+            buttonBar.leftButton.setOnClickListener {
+                navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey,
+                    viewModel.initialSelectedTags)
+                navController.popBackStack() } // dismiss button
+            buttonBar.rightButton.setOnClickListener {
+                navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey,
+                    if(adapter.getSelectedTags() == viewModel.initialSelectedTags)
+                        viewModel.initialSelectedTags else adapter.getSelectedTags())
+                navController.popBackStack() } // confirm button
         }
 
         with(navController.previousBackStackEntry?.destination) {
@@ -86,6 +91,15 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
         }
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.clear()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState.apply {
             putParcelableArrayList(Constants.TAGS, ArrayList(adapter.getSelectedTags()))
@@ -95,13 +109,5 @@ class TagSelectionDialogFragment : BaseDialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null // nullify the binding (fragment outlives the binding)
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        navController.previousBackStackEntry?.savedStateHandle?.set(Constants.selectedTagsKey,
-            if(adapter.getSelectedTags() == viewModel.initialSelectedTags || !dismissedFromConfirm)
-                viewModel.initialSelectedTags else adapter.getSelectedTags()
-        )
     }
 }
