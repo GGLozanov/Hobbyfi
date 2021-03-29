@@ -9,7 +9,6 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.chatroom.EventSelectionBottomSheetDialogFragment">
 
-
     <RelativeLayout
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"

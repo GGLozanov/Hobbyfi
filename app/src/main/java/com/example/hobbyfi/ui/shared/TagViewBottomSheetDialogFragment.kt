@@ -14,6 +14,7 @@ class TagViewBottomSheetDialogFragment<T: TagBundleHolder> : BottomSheetDialogFr
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // TODO: Observe currentBackStackEntry for tag list which can be updated from multiple places, thereby updating the tags list?
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_tag_view_bottom_sheet_dialog, container, false)
