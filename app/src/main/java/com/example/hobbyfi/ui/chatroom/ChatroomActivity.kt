@@ -31,7 +31,6 @@ import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
@@ -50,6 +49,7 @@ import com.example.hobbyfi.ui.base.ServerSocketAccessor
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.ui.onboard.OnboardingActivity
+import com.example.hobbyfi.ui.shared.ChatroomTagViewBottomSheetDialogFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
@@ -945,20 +945,13 @@ class ChatroomActivity : NavigationActivity(),
                         .into(headerBinding.chatroomImage)
                 }
 
-                // FIXME: Small coderino duperino with ChatroomTagAdapter
-                chatroom.tags?.let {
-                    if (binding.tagsGridView.adapter == null) {
-                        binding.tagsGridView.adapter = TagListAdapter(
-                            it,
-                            this@ChatroomActivity,
-                            R.layout.chatroom_tag_card
-                        )
-                    } else {
-                        (binding.tagsGridView.adapter as TagListAdapter).setTags(it)
-                    }
-
-                    binding.tagsGridView.isVisible = it.isNotEmpty()
-                    binding.tagsGridView.setHeightBasedOnChildren(it.size)
+                headerBinding.tagsViewButton.setOnClickListener {
+                    supportFragmentManager.showDistinctDialog(
+                        "ChatroomSheet" + chatroom.id.toString(),
+                        {
+                            ChatroomTagViewBottomSheetDialogFragment.newInstance(chatroom.name)
+                        }
+                    )
                 }
 
                 headerBinding.chatroomDescription.text =

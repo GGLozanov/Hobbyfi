@@ -25,15 +25,37 @@
             app:civ_border_color="@color/colorSecondary"
             app:civ_border_width="3dp" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/chatroom_description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="@{viewModel.authChatroom.description}"
-            android:textStyle="bold"
-            android:textSize="20sp" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/chatroom_description"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:ellipsize="marquee"
+                android:maxWidth="200dp"
+                android:maxHeight="100dp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tags_view_button"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/stroked_rect"
+                android:fontFamily="@font/rubik"
+                android:text="@string/tags"
+                android:textSize="20sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

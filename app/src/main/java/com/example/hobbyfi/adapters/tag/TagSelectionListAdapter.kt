@@ -31,7 +31,7 @@ class TagSelectionListAdapter(
         val color: Int = try {
             Color.parseColor(tag.colour)
         } catch(ex: IllegalArgumentException) {
-            Log.w("TagListAdapter" , "Invalid color for tag! Reverting to default colour")
+            Log.w("TagSelectionListAdapter" , "Invalid color for tag! Reverting to default colour")
             Color.GREEN // default colour, idk
         }
 
@@ -56,7 +56,7 @@ class TagSelectionListAdapter(
                         ContextCompat.getColor(root.context, R.color.colorGrey)
                     )
                 }
-                Log.i("TagListAdapter", "Tags: ${selectedTags}")
+                Log.i("TagSelectionListAdapter", "Tags: ${selectedTags}")
             }
         }
     }

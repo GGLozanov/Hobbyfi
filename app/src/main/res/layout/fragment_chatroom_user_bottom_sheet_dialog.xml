@@ -116,18 +116,15 @@
                 android:layout_marginBottom="20dp"
                 android:gravity="center">
 
-                <GridView
-                    android:id="@+id/tags_grid_view"
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/tag_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:clickable="false"
-                    android:gravity="center"
-                    android:numColumns="3"
-                    android:stretchMode="columnWidth"
-                    android:verticalSpacing="10dp"
-                    tools:listitem="@layout/chatroom_tag_card">
+                    android:animateLayoutChanges="false"
+                    android:padding="5dp"
+                    android:scrollbars="vertical">
 
-                </GridView>
+                </com.google.android.material.chip.ChipGroup>
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

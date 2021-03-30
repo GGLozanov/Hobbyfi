@@ -13,13 +13,12 @@ import androidx.lifecycle.map
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomUserBottomSheetDialogBinding
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
-import com.example.hobbyfi.shared.setHeightBasedOnChildren
+import com.example.hobbyfi.shared.reinitChipsByTags
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,6 +38,7 @@ class ChatroomUserBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment(
             R.layout.fragment_chatroom_user_bottom_sheet_dialog, container, false)
 
         with(binding) {
+            tagGroup.setChipSpacing(10)
             bottomSheet.apply {
                 BottomSheetBehavior.from(this).apply {
                     state = BottomSheetBehavior.STATE_EXPANDED
@@ -71,20 +71,7 @@ class ChatroomUserBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment(
                     .into(binding.userImage)
             }
 
-            it?.tags?.let { tags ->
-                if (binding.tagsGridView.adapter == null) {
-                    val adapter = TagListAdapter(
-                        tags,
-                        requireContext(),
-                        R.layout.chatroom_tag_card
-                    )
-                    binding.tagsGridView.adapter = adapter
-                } else {
-                    (binding.tagsGridView.adapter as TagListAdapter).setTags(tags)
-                }
-
-                binding.tagsGridView.setHeightBasedOnChildren(tags.size)
-            }
+            binding.tagGroup.reinitChipsByTags(it?.tags)
         })
     }
 

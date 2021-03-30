@@ -21,10 +21,13 @@ import com.example.hobbyfi.adapters.chatroom.BaseChatroomListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomListBinding
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
+import com.example.hobbyfi.ui.chatroom.ChatroomMessageBottomSheetDialogFragment
+import com.example.hobbyfi.ui.shared.TagViewBottomSheetDialogFragment
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.tasks.OnFailureListener
@@ -84,6 +87,15 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
                 navigateToChatroomPerDeepLinkExtras()
             }
         }
+    }
+
+    protected val onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit) = { _: View, chatroom: Chatroom ->
+        parentFragmentManager.showDistinctDialog("ChatroomSheet" + chatroom.id.toString(), {
+            TagViewBottomSheetDialogFragment.newInstance(
+                chatroom.tags,
+                chatroom.name
+            )
+        })
     }
 
     protected abstract val chatroomListAdapter: T

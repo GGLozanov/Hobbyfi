@@ -171,16 +171,22 @@ class ChatroomMessageListAdapter(
         }
 
         override fun bind(model: UIMessage?, position: Int) {
-            val areThereUsersTyping = usersTyping.isNotEmpty()
+            var areThereUsersTyping = usersTyping.isNotEmpty()
             var usersTypingText = ""
 
             if(areThereUsersTyping) {
                 val firstThreeTyping = usersTyping.take(maxTypingUsers)
-                usersTypingText += users.filter { firstThreeTyping.contains(it.id) }.joinToString { it.name }
-                if(usersTyping.size > maxTypingUsers) {
-                    usersTypingText += ", and ${users.size - maxTypingUsers} others"
+                val firstThreeTypingNames = users.filter { firstThreeTyping.contains(it.id) }.joinToString { it.name }
+
+                if(firstThreeTypingNames.isBlank()) {
+                    areThereUsersTyping = false
+                } else {
+                    usersTypingText += firstThreeTypingNames
+                    if(usersTyping.size > maxTypingUsers) {
+                        usersTypingText += ", and ${users.size - maxTypingUsers} others"
+                    }
+                    usersTypingText += " ${if(usersTyping.size == 1) "is" else "are"} typing..."
                 }
-                usersTypingText += " ${if(usersTyping.size == 1) "is" else "are"} typing..."
             }
             typingUserMessageBinding.typingBroadcastText.apply {
                 text = usersTypingText

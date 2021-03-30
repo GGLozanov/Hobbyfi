@@ -17,74 +17,84 @@
         android:fitsSystemWindows="true"
         tools:context=".ui.shared.TagViewBottomSheetDialogFragment">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/bottom_sheet"
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+            android:fadeScrollbars="false"
+            android:fillViewport="false"
+            android:overScrollMode="always"
+            android:visibility="visible"
+            tools:visibility="visible">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/current_events_header"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_centerInParent="true"
-                android:layout_marginStart="5dp"
-                android:padding="5dp"
-                android:text="@{modelTitle}"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@id/tag_list_layout"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-            </com.google.android.material.textview.MaterialTextView>
-
-            <FrameLayout
-                android:id="@+id/tag_list_layout"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/bottom_sheet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/current_events_header">
+                android:orientation="horizontal"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/no_tags_text"
+                    android:id="@+id/tagsHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:padding="20dp"
-                    android:text="@string/no_tags"
-                    android:textSize="40sp"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerInParent="true"
+                    android:layout_marginStart="5dp"
+                    android:padding="5dp"
+                    android:text="@{modelTitle}"
+                    android:textSize="22sp"
                     android:textStyle="bold"
-                    android:visibility="gone">
+                    app:layout_constraintBottom_toTopOf="@id/tag_list_layout"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
 
                 </com.google.android.material.textview.MaterialTextView>
 
-                <androidx.core.widget.NestedScrollView
-                    android:id="@+id/tag_scroll"
+                <FrameLayout
+                    android:id="@+id/tag_list_layout"
                     android:layout_width="match_parent"
-                    android:layout_height="250dp"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
-                    android:fillViewport="true"
-                    android:fitsSystemWindows="true">
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/current_events_header">
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/tag_group"
-                        android:layout_width="match_parent"
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/no_tags_text"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:animateLayoutChanges="false"
-                        android:padding="5dp"
-                        android:scrollbars="vertical">
+                        android:layout_gravity="center"
+                        android:padding="20dp"
+                        android:text="@string/no_tags"
+                        android:textSize="40sp"
+                        android:textStyle="bold"
+                        android:visibility="gone">
 
-                    </com.google.android.material.chip.ChipGroup>
-                </androidx.core.widget.NestedScrollView>
-            </FrameLayout>
+                    </com.google.android.material.textview.MaterialTextView>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/tag_scroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp"
+                        android:layout_gravity="bottom"
+                        android:fillViewport="true"
+                        android:fitsSystemWindows="true">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/tag_group"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:animateLayoutChanges="false"
+                            android:padding="5dp"
+                            android:scrollbars="vertical">
+
+                        </com.google.android.material.chip.ChipGroup>
+                    </androidx.core.widget.NestedScrollView>
+                </FrameLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

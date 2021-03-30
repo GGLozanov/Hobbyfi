@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.app.*
 import android.content.*
 import android.content.Context.ACTIVITY_SERVICE
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -38,15 +39,15 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
-import com.example.hobbyfi.models.data.Chatroom
-import com.example.hobbyfi.models.data.Event
-import com.example.hobbyfi.models.data.Message
-import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -460,6 +461,33 @@ fun android.content.Intent.getEventIdsExtra(): List<Long> {
             Constants.EVENT_IDS
         )
     )!!
+}
+
+fun ChipGroup.reinitChipsByTags(tags: List<Tag>?): Boolean {
+    removeAllViews()
+    return if(tags != null && tags.isNotEmpty()) {
+        tags.toList().forEach { tag ->
+            val chip = Chip(context).apply {
+                text = tag.name
+                isCheckable = false
+                layoutDirection = View.LAYOUT_DIRECTION_LOCALE
+                chipBackgroundColor = ColorStateList(
+                    arrayOf(
+                        IntArray(0)
+                    ),
+                    IntArray(1) {
+                        ColourUtils.getColourOrGreen(tag.colour)
+                    }
+                )
+                setTextColor(ContextCompat.getColor(context, android.R.color.white))
+            }
+
+            addView(chip)
+        }
+        true
+    } else {
+        false
+    }
 }
 
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||

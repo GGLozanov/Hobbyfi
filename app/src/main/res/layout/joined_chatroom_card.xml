@@ -91,38 +91,45 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
+                    android:layout_marginBottom="12dp"
                     android:ellipsize="marquee"
+                    android:maxWidth="200dp"
                     android:text="@{chatroom.description}"
                     android:textSize="14sp" />
 
-                <GridView
-                    android:id="@+id/tags_grid_view"
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/tags_view_join_chatroom_button_bar"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginRight="8dp"
-                    android:layout_gravity="center"
-                    android:clickable="false"
-                    android:numColumns="auto_fit"
-                    android:stretchMode="columnWidth"
-                    android:verticalSpacing="5dp"
-                    android:visibility="@{chatroom.tags == null ? View.GONE : View.VISIBLE}"
-                    tools:listitem="@layout/chatroom_tag_card" />
-
-                <include
-                    android:id="@+id/join_chatroom_button_bar"
-                    layout="@layout/button_bar_pair"
-                    app:leftButtonText="@{@string/chatroom_leave_button_text}"
-                    app:rightButtonText="@{@string/enter}"
-                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_person_remove_24}"
-                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_input_24}"
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="8dp" />
+                    android:orientation="horizontal">
+
+                    <include
+                        android:id="@+id/join_chatroom_button_bar"
+                        layout="@layout/button_bar_pair"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="52dp"
+                        android:layout_marginBottom="8dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/tags_view_button"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:leftButtonStartDrawable="@{@drawable/ic_baseline_person_remove_24}"
+                        app:leftButtonText="@{@string/chatroom_leave_button_text}"
+                        app:rightButtonStartDrawable="@{@drawable/ic_baseline_input_24}"
+                        app:rightButtonText="@{@string/enter}" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/tags_view_button"
+                        android:layout_width="50dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="@null"
+                        android:src="@drawable/ic_baseline_info_24"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.constraintlayout.widget.ConstraintLayout>
 

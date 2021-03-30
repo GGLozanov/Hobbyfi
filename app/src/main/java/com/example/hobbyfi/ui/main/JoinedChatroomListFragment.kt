@@ -24,7 +24,10 @@ import kotlinx.coroutines.launch
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
 class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>() {
-    override val chatroomListAdapter: JoinedChatroomListAdapter = JoinedChatroomListAdapter(onChatroomJoinButton, { _: View, chatroom: Chatroom ->
+    override val chatroomListAdapter: JoinedChatroomListAdapter = JoinedChatroomListAdapter(
+        onChatroomJoinButton,
+        onTagsViewButton,
+        { _: View, chatroom: Chatroom ->
         viewModel.setButtonSelectedChatroom(chatroom)
         lifecycleScope.launch {
             activityViewModel.sendIntent(

@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.*
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
-    override val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter(onChatroomJoinButton)
+    override val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter(onChatroomJoinButton, onTagsViewButton)
 
     override fun observeChatroomEntryState() {
         activityViewModel.joinedChatroom.observe(viewLifecycleOwner, Observer { joined ->

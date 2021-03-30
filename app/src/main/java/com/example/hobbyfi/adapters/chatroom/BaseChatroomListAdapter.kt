@@ -2,7 +2,9 @@ package com.example.hobbyfi.adapters.chatroom
 
 import android.graphics.drawable.Drawable
 import android.view.View
+import android.widget.Button
 import android.widget.GridView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.content.ContextCompat
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingDataAdapter
@@ -12,8 +14,8 @@ import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.base.ImageLoaderViewHolder
-import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.setHeightBasedOnChildren
@@ -25,7 +27,8 @@ import org.kodein.di.android.kodein
 import org.kodein.di.generic.instance
 
 abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
-    protected inline val onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null
+    protected inline val onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+    protected inline val onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit)
 ) : PagingDataAdapter<Chatroom, VH>(DIFF_CALLBACK), KodeinAware {
 
     @ExperimentalPagingApi
@@ -35,31 +38,35 @@ abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
 
     abstract class BaseChatroomViewHolder(
         itemView: View,
-        prefConfig: PrefConfig
+        prefConfig: PrefConfig,
+        private inline val onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)?,
+        private inline val onTagsViewButton: (view: View, chatroom: Chatroom) -> Unit
     ) : ImageLoaderViewHolder<Chatroom>(itemView, prefConfig) {
         override fun bind(model: Chatroom?, position: Int) {
             bindImage(model, position)
-            bindTags(model)
-        }
+            initChatroomButtonListener(model, chatroomJoinButton) {
+                onJoinChatroomButton?.invoke(
+                    tagsViewButton,
+                    model!!
+                )
+            }
 
-        protected fun bindTags(
-            chatroom: Chatroom?,
-        ) {
-            if(chatroom?.tags != null) {
-                val adapter = TagListAdapter(chatroom.tags!!, itemView.context, R.layout.chatroom_tag_card)
-                tagsGridView.setHeightBasedOnChildren(chatroom.tags!!.size)
-
-                tagsGridView.adapter = adapter
+            initChatroomButtonListener(model, tagsViewButton) {
+                onTagsViewButton.invoke(
+                    tagsViewButton,
+                    model!!
+                )
             }
         }
 
-        fun initChatroomJoinButtonListener(
+        private fun initChatroomButtonListener(
             chatroom: Chatroom?,
-            onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)?,
+            button: View,
+            callback: () -> Unit
         ) {
-            chatroomJoinButton.setOnClickListener {
+            button.setOnClickListener {
                 if (chatroom != null) {
-                    onJoinChatroomButton?.invoke(it, chatroom)
+                    callback()
                 }
             }
         }
@@ -76,7 +83,7 @@ abstract class BaseChatroomListAdapter<VH : RecyclerView.ViewHolder>(
             ContextCompat.getDrawable(itemView.context, R.drawable.chatroom_default_pic)!!
         }
 
-        abstract val tagsGridView: GridView
+        abstract val tagsViewButton: AppCompatImageButton
         abstract val chatroomJoinButton: MaterialButton
     }
 

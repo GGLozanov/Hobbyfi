@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridView
 import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.transition.AutoTransition
@@ -12,37 +13,42 @@ import androidx.transition.TransitionManager
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.JoinedChatroomCardBinding
 import com.example.hobbyfi.models.data.Chatroom
+import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.addAllDistinct
 import com.google.android.material.button.MaterialButton
 
 class JoinedChatroomListAdapter(
     onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
-    private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null
-) : BaseChatroomListAdapter<JoinedChatroomListAdapter.JoinedChatroomListViewHolder>(onJoinChatroomButton) {
+    onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit),
+    private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+) : BaseChatroomListAdapter<JoinedChatroomListAdapter.JoinedChatroomListViewHolder>(onJoinChatroomButton, onTagsViewButton) {
 
     private var _userOwnedChatroomIds: MutableList<Long> = mutableListOf()
     val userOwnedChatroomIds: List<Long> get() = _userOwnedChatroomIds
 
     class JoinedChatroomListViewHolder(
         private val binding: JoinedChatroomCardBinding,
-        prefConfig: PrefConfig
-    ) : BaseChatroomViewHolder(binding.root, prefConfig) {
+        prefConfig: PrefConfig,
+        onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+        onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit),
+    ) : BaseChatroomViewHolder(binding.root, prefConfig, onJoinChatroomButton, onTagsViewButton) {
 
         companion object {
-            fun getInstance(parent: ViewGroup, prefConfig: PrefConfig): JoinedChatroomListViewHolder {
+            fun getInstance(parent: ViewGroup, prefConfig: PrefConfig, onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+                            onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit)): JoinedChatroomListViewHolder {
                 val binding: JoinedChatroomCardBinding = DataBindingUtil.inflate(
                     LayoutInflater.from(parent.context),
                     R.layout.joined_chatroom_card,
                     parent, false
                 )
-                return JoinedChatroomListViewHolder(binding, prefConfig)
+                return JoinedChatroomListViewHolder(binding, prefConfig, onJoinChatroomButton, onTagsViewButton)
             }
         }
 
         override val chatroomJoinButton: MaterialButton = binding.joinChatroomButtonBar.rightButton
         override val mainImageView: ImageView = binding.chatroomImage
-        override val tagsGridView: GridView = binding.tagsGridView
+        override val tagsViewButton: AppCompatImageButton = binding.tagsViewButton
 
         override fun bind(model: Chatroom?, position: Int) {
             super.bind(model, position)
@@ -80,7 +86,6 @@ class JoinedChatroomListAdapter(
 
         with(holder) {
             bind(chatroom, position)
-            initChatroomJoinButtonListener(chatroom, onJoinChatroomButton)
             initLeaveChatroomButtonListener(chatroom, onLeaveChatroomButton, _userOwnedChatroomIds)
         }
     }
@@ -89,7 +94,7 @@ class JoinedChatroomListAdapter(
         parent: ViewGroup,
         viewType: Int
     ): JoinedChatroomListViewHolder {
-        return JoinedChatroomListViewHolder.getInstance(parent, prefConfig)
+        return JoinedChatroomListViewHolder.getInstance(parent, prefConfig, onJoinChatroomButton, onTagsViewButton)
     }
 
     fun addDistinctUserOwnedChatroomIds(userOwnedChatroomIds: List<Long>) {
