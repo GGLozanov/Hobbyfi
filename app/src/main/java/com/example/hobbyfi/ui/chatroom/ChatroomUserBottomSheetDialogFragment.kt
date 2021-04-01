@@ -66,7 +66,7 @@ class ChatroomUserBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment(
                     .load(photoUrl)
                     .placeholder(binding.userImage.drawable)
                     .signature(
-                        ObjectKey(R.string.pref_last_chatroom_users_fetch_time)
+                        ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time))
                     )
                     .into(binding.userImage)
             }

@@ -10,6 +10,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navArgs
+import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -24,6 +25,7 @@ import org.kodein.di.generic.instance
 abstract class ChatroomBottomSheetDialogFragment : BottomSheetDialogFragment(), KodeinAware {
     override val kodein: Kodein by kodein()
     protected val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
+    protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
     @ExperimentalCoroutinesApi
     protected val activityViewModel: ChatroomActivityViewModel by activityViewModels(factoryProducer = {
