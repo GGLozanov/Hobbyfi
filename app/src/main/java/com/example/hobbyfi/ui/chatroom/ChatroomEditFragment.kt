@@ -54,7 +54,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 Callbacks.requestImage(this@ChatroomEditFragment)
             }
 
-            viewModel.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage)
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage)
 
             chatroomInfo.buttonBar.rightButton.setOnClickListener {
                 val fieldMap: MutableMap<String, String?> = mutableMapOf()
