@@ -139,7 +139,8 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                 )
             )
             navController.addOnDestinationChangedListener { _, destination, _ ->
-                binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment && destination.id != R.id.tagSelectionFragment
+                binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
+                        destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
             }
         })
     }

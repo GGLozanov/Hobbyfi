@@ -86,7 +86,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         val sendIntent = fcmForegroundBaseIntentForReactivation
         if(sendIntent != null) {
             Log.i("NotificationMService", "Sending FOREGROUND_REACTIVATION_ACTION after foreground resume; base intent: ${sendIntent}")
-            localBroadcastManager.sendBroadcast(Intent(Constants.FOREGROUND_REACTIVIATION_ACTION).apply {
+            localBroadcastManager.sendBroadcast(Intent(Constants.FOREGROUND_REACTIVATION_ACTION).apply {
                 putExtras(sendIntent)
             })
             fcmForegroundBaseIntentForReactivation = null
@@ -194,7 +194,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
         if(title != null) {
             // title/body set => hit a possible push notification
             handlePushMessageForChatroomByLifecycle(
-                Intent(Constants.FOREGROUND_REACTIVIATION_ACTION).apply {
+                Intent(Constants.FOREGROUND_REACTIVATION_ACTION).apply {
                     putExtras(intent)
                 },
                 title,

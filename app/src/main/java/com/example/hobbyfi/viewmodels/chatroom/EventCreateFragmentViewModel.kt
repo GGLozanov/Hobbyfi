@@ -59,7 +59,7 @@ class EventCreateFragmentViewModel(
                 description.value,
                 response.startDate,
                 parsedEventDate,
-                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(response.id)
+                if(base64Image.originalUri != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(response.id)
                         + "/" + response.id + ".jpg" else null,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude,

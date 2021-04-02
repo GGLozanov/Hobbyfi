@@ -16,7 +16,6 @@ import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
@@ -372,7 +371,7 @@ class ChatroomActivity : NavigationActivity(),
             initCalendar()
         }
 
-        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVIATION_ACTION))
+        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVATION_ACTION))
         observeConnectionRefresh(savedInstanceState, refreshConnectivityMonitor)
     }
 

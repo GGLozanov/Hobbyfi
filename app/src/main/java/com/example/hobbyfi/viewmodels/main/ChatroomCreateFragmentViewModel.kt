@@ -65,7 +65,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
                 response!!.id,
                 name.value!!,
                 description.value,
-                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
+                if(base64Image.originalUri != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
                         + "/" + response.id + ".jpg" else null,
                 if(tagBundle.selectedTags.isEmpty()) null else tagBundle.selectedTags,
                 ownerId,

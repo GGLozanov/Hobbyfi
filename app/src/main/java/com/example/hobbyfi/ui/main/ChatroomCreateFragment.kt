@@ -7,10 +7,8 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
@@ -21,11 +19,10 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.ChatroomState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -75,10 +72,13 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.sendIntent(ChatroomIntent.CreateChatroom(activityViewModel.authUser.value!!.id))
                 }
             }
+
+            // load after fragment switch & stuff
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage)
         }
 
         lifecycleScope.launch {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatest {
                 when(it) {
                     is ChatroomState.Idle -> {
 

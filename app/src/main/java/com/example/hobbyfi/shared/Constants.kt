@@ -28,7 +28,7 @@ object Constants {
 
     const val invalidEventInfoError: String = "Please enter information date and set its location!"
     const val reauthError: String = "Logging out! Your session may have expired!"
-    const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
+    const val resourceExistsError: String = "Requested creation already exists! Try a different name/email!"
     const val invalidDataError: String = "Invalid data format!"
     const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
     const val noConnectionOrAuthTaskRootError: String = "Couldn't enter the chatroom! Please check your connection or login again!"
@@ -299,7 +299,7 @@ object Constants {
     const val UPDATED_LOCATION: String = "UPDATED_LOCATION"
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
     const val UPDATED_LOCATION_ACTION: String = "com.example.hobbyfi.UPDATED_LOCATION_ACTION"
-    const val FOREGROUND_REACTIVIATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVIATION_ACTION";
+    const val FOREGROUND_REACTIVATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVATION_ACTION";
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
     const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
     const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"

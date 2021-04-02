@@ -2,6 +2,7 @@ package com.example.hobbyfi.ui.main
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -185,7 +186,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     }
 
     private fun observeAuthUser() {
-        // observe
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 viewModel.description.value = it.description
@@ -197,7 +197,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 if (it.photoUrl != null) {
                     Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
-                    Glide.with(this@UserProfileFragment).load(
+                    Glide.with(requireContext()).load(
                         it.photoUrl!!
                     ).signature(
                         ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time))
@@ -254,4 +254,5 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             viewModel.base64Image.setOriginalUri(data.data!!.toString())
         }
     }
+
 }

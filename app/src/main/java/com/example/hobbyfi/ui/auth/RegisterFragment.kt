@@ -17,7 +17,6 @@ import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
@@ -54,6 +53,8 @@ class RegisterFragment : AuthFragment() {
             profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
                 Callbacks.requestImage(this@RegisterFragment)
             }
+
+            viewModel.base64Image.loadUriIntoWithoutSignature(requireContext(), profileImage)
 
             buttonBar.rightButton.setOnClickListener { // register account
                 buttonBar.rightButton.isEnabled = false
@@ -112,7 +113,7 @@ class RegisterFragment : AuthFragment() {
                                     viewModel.email.value!!,
                                     viewModel.name.value!!,
                                     viewModel.description.value,
-                                    if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
+                                    if(viewModel.base64Image.originalUri != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
                                             + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
                                     viewModel.tagBundle.selectedTags,
                                     null,

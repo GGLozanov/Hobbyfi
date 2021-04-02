@@ -17,10 +17,8 @@ import androidx.lifecycle.map
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
-import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.data.UserGeoPoint
@@ -39,17 +37,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.GeoPoint
-import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
-import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.lang.IllegalStateException
-import java.net.URISyntaxException
 
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity(),
@@ -225,7 +219,7 @@ class EventMapsActivity : MapsActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEventMapsBinding.inflate(layoutInflater)
-        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVIATION_ACTION))
+        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVATION_ACTION))
         setContentView(binding.root)
 
         val mapFragment = supportFragmentManager
