@@ -330,41 +330,9 @@ fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
 @Throws(IOException::class)
 fun Context.downloadAndSaveImage(url: String, name: String) {
     // bitmap code:
-//    val fos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//        val resolver: ContentResolver = contentResolver
-//        val contentValues = ContentValues()
-//        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "$name.jpg")
-//        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-//        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-//        val imageUri: Uri? =
-//            resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-//        Objects.requireNonNull(imageUri)?.let { resolver.openOutputStream(it) }
-//    } else {
-//        val imagesDir: String =
-//            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString()
-//        val image = File(imagesDir, "$name.jpg")
-//        FileOutputStream(image)
-//    }
-//    resource.compress(Bitmap.CompressFormat.JPEG, 100, fos)
-//    Objects.requireNonNull(fos)?.close()
-
     val downloadManagerReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//                    val contentValues = ContentValues()
-//                    val database: ContentResolver = this@downloadAndSaveImage.contentResolver
-//                    contentValues.put(MediaStore.Downloads.DISPLAY_NAME, "$name.jpg")
-//                    contentValues.put(MediaStore.Downloads.MIME_TYPE, mimeType)
-//                    contentValues.put(
-//                        MediaStore.Downloads.RELATIVE_PATH,
-//                        Environment.DIRECTORY_DOWNLOADS + "/Hobbyfi"
-//                    )
-//                    database.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-//                } else {
-//
-//                }
-            } else if(intent.action == DownloadManager.ACTION_NOTIFICATION_CLICKED) {
+            if(intent.action == DownloadManager.ACTION_NOTIFICATION_CLICKED) {
                 val dm = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 }

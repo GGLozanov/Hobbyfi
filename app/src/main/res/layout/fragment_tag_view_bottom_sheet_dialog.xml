@@ -59,7 +59,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/current_events_header">
+                    app:layout_constraintTop_toBottomOf="@id/tagsHeader">
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/no_tags_text"
