@@ -54,7 +54,7 @@ class RegisterFragment : AuthFragment() {
                 Callbacks.requestImage(this@RegisterFragment)
             }
 
-            viewModel.base64Image.loadUriIntoWithoutSignature(requireContext(), profileImage)
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), profileImage)
 
             buttonBar.rightButton.setOnClickListener { // register account
                 buttonBar.rightButton.isEnabled = false

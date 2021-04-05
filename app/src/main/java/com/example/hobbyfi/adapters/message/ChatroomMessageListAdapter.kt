@@ -19,7 +19,7 @@ class ChatroomMessageListAdapter(
     currentUsers: List<User>,
     private var isAuthUserChatroomOwner: Boolean,
     private inline val onMessageLongPress: (View, Message) -> Boolean,
-    private inline val onImageMessagePress: (MessageCardBinding) -> Unit
+    private inline val onImageMessagePress: (String) -> Unit
 ): ChatroomMessageAdapter(currentUsers) {
     private val _typingUsers: MutableSet<Long> = mutableSetOf()
 
@@ -27,7 +27,7 @@ class ChatroomMessageListAdapter(
         rootView: View,
         messageCardBinding: MessageCardBinding,
         protected val onMessageLongPress: (View, Message) -> Boolean,
-        protected val onImageMessagePress: (MessageCardBinding) -> Unit,
+        protected val onImageMessagePress: (String) -> Unit,
         users: List<User>,
         protected val isAuthUserChatroomOwner: Boolean,
         prefConfig: PrefConfig,
@@ -48,7 +48,7 @@ class ChatroomMessageListAdapter(
         override fun loadMessageImage(messageUrl: String, glide: RequestManager) {
             super.loadMessageImage(messageUrl, glide)
             messageCardBinding.messageCardLayout.setOnClickListener {
-                onImageMessagePress(messageCardBinding)
+                onImageMessagePress(messageUrl)
             }
         }
     }
@@ -57,7 +57,7 @@ class ChatroomMessageListAdapter(
     private class ChatroomSendMessageViewHolder(
         binding: MessageCardSendBinding,
         onMessageLongPress: (View, Message) -> Boolean,
-        onImageMessagePress: (MessageCardBinding) -> Unit,
+        onImageMessagePress: (String) -> Unit,
         users: List<User>,
         isAuthUserChatroomOwner: Boolean,
         prefConfig: PrefConfig,
@@ -67,7 +67,7 @@ class ChatroomMessageListAdapter(
     ) {
         companion object {
             fun getInstance(
-                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean, onImageMessagePress: (MessageCardBinding) -> Unit,
+                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean, onImageMessagePress: (String) -> Unit,
                 users: List<User>, isAuthUserChatroomOwner: Boolean, prefConfig: PrefConfig
             ): ChatroomSendMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)
@@ -84,7 +84,7 @@ class ChatroomMessageListAdapter(
     private class ChatroomReceiveMessageViewHolder(
         binding: MessageCardReceiveBinding,
         onMessageLongPress: (View, Message) -> Boolean,
-        onImageMessagePress: (MessageCardBinding) -> Unit,
+        onImageMessagePress: (String) -> Unit,
         users: List<User>,
         isAuthUserChatroomOwner: Boolean,
         prefConfig: PrefConfig,
@@ -95,7 +95,7 @@ class ChatroomMessageListAdapter(
         companion object {
             //get instance of the ViewHolder
             fun getInstance(
-                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean, onImageMessagePress: (MessageCardBinding) -> Unit,
+                parent: ViewGroup, onMessageLongPress: (View, Message) -> Boolean, onImageMessagePress: (String) -> Unit,
                 users: List<User>, isAuthUserChatroomOwner: Boolean, prefConfig: PrefConfig
             ): ChatroomReceiveMessageViewHolder {
                 val inflater = LayoutInflater.from(parent.context)

@@ -114,7 +114,8 @@ abstract class ChatroomMessageAdapter(
 
             // DATA BINDING GO BRRRRRR????
             messageCardBinding.userName.text = userSentMessage?.name ?: "[Unknown User]"
-            messageCardBinding.userMessage.text = message?.message
+            messageCardBinding.userMessage.text =
+                message?.message?.let { Constants.imageRegex.replace(it, "") }
             handleImageMessageBind(message, userSentMessage, position)
         }
 
@@ -124,14 +125,22 @@ abstract class ChatroomMessageAdapter(
         ) {
             val isMessageImage = Constants.imageRegex
                 .matches(message?.message!!)
+            val innerFirstImage = Constants.imageRegex.find(message.message)
+            val containsInnerImage = innerFirstImage != null && !isMessageImage
 
             val glide = Glide.with(itemView.context)
             if(isMessageImage) {
                 loadMessageImage(message.message, glide)
+
+
+            } else {
+                innerFirstImage?.let {
+                    loadMessageImage(it.value, glide)
+                }
             }
 
-            messageCardBinding.userImage.isVisible = isMessageImage
-            messageCardBinding.userMessage.isVisible = !isMessageImage
+            messageCardBinding.userImage.isVisible = isMessageImage || containsInnerImage
+            messageCardBinding.userMessage.isVisible = !isMessageImage || containsInnerImage
 
             loadUserMessageImage(userSentMessage?.photoUrl, position, glide)
         }

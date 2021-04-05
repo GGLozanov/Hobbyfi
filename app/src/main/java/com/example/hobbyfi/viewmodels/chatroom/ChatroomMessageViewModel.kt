@@ -47,6 +47,8 @@ abstract class ChatroomMessageViewModel(
 
     val areCurrentMessagesNull get() = _currentMessages == null
 
+    protected abstract val listBeginningItem: UIMessage.MessageUsersTypingItem?
+
     override val mainStateIntent: StateIntent<MessageListState, MessageListIntent> = object : StateIntent<MessageListState, MessageListIntent>() {
         override val _state: MutableStateFlow<MessageListState> = MutableStateFlow(MessageListState.Idle)
     }
@@ -85,7 +87,7 @@ abstract class ChatroomMessageViewModel(
 
                         if (before == null) {
                             // beginning of the list
-                            return@insertSeparators UIMessage.MessageUsersTypingItem
+                            return@insertSeparators listBeginningItem
                         }
 
                         // check between 2 items

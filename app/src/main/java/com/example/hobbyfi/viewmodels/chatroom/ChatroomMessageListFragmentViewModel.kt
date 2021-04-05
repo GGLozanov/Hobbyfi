@@ -10,6 +10,7 @@ import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.models.data.StateIntent
+import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PredicateMutableLiveData
 import com.example.hobbyfi.shared.isCritical
@@ -18,6 +19,7 @@ import com.example.hobbyfi.state.MessageState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.lang.Exception
+import java.lang.IllegalArgumentException
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -41,6 +43,9 @@ class ChatroomMessageListFragmentViewModel(
     }
 
     private val searchDeferredMessages: MutableList<Message> = mutableListOf()
+
+    override val listBeginningItem: UIMessage.MessageUsersTypingItem
+        get() = UIMessage.MessageUsersTypingItem
 
     fun addSearchDeferredMessage(message: Message) {
         searchDeferredMessages.add(message)
@@ -71,20 +76,37 @@ class ChatroomMessageListFragmentViewModel(
                     is MessageIntent.CreateMessage -> {
                         viewModelScope.launch {
                             createMessage(
-                                it.message ?: message.value!!,
                                 it.userSentId,
-                                it.chatroomSentId
+                                it.chatroomSentId,
+                                it.message ?: message.value!!,
                             )
                         }
                     }
                     is MessageIntent.CreateMessageImages -> {
-                        it.base64s.forEach { base64Mesage ->
+                        // do it just like Discord!
+
+                        if(it.base64s.size > 1 && message.value != null) {
                             viewModelScope.launch {
                                 createMessage(
-                                    base64Mesage,
                                     it.userSentId,
                                     it.chatroomSentId,
-                                    true
+                                    message.value,
+                                )
+                            }
+                            message.value = null
+                        }
+
+                        it.base64s.forEachIndexed { index, base64Mesage ->
+                            viewModelScope.launch {
+                                createMessage(
+                                    it.userSentId,
+                                    it.chatroomSentId,
+                                    if(index == 0 && message.value != null && it.base64s.size == 1) {
+                                        val msg = message.value
+                                        message.value = null
+                                        msg
+                                    } else null,
+                                    base64Mesage
                                 )
                             }
                         }
@@ -94,7 +116,7 @@ class ChatroomMessageListFragmentViewModel(
                     }
                     is MessageIntent.UpdateMessage -> {
                         viewModelScope.launch {
-                            updateMessage(it.messageUpdateFields)
+                            updateMessage(it.messageUpdateFields, it.editedMessageOriginal)
                         }
                     }
                     is MessageIntent.UpdateMessageCache -> {
@@ -117,23 +139,27 @@ class ChatroomMessageListFragmentViewModel(
         handleIntent()
     }
 
-    private suspend fun createMessage(message: String, userSentId: Long,
-                                      chatroomSentId: Long, imageMessage: Boolean = false) {
+    private suspend fun createMessage(userSentId: Long,
+                                      chatroomSentId: Long, message: String? = null, base64Image: String? = null) {
+        if(message == null && base64Image == null) {
+            throw IllegalArgumentException("Both message & message image cannot be null!")
+        }
+
         messageStateIntent.setState(MessageState.Loading)
 
         messageStateIntent.setState(
             try {
                 val state = MessageState.OnData.MessageCreateResult(
-                    messageRepository.createMessage(chatroomSentId, message, imageMessage)
+                    messageRepository.createMessage(chatroomSentId, message, base64Image)
                 )
 
                 saveNewMessage(
                     Message(
                         state.response!!.id,
-                        if(imageMessage)
-                            BuildConfig.BASE_URL + "uploads/" + Constants.chatroomMessagesProfileImageDir(
+                        if(base64Image != null)
+                            (message ?: "") + " " + BuildConfig.BASE_URL + "uploads/" + Constants.chatroomMessagesProfileImageDir(
                                 chatroomSentId
-                            ) + "/" + state.response.id + ".jpg" else message,
+                            ) + "/" + state.response.id + ".jpg" else message!!,
                         state.response.createTime,
                         userSentId,
                         chatroomSentId
@@ -150,7 +176,7 @@ class ChatroomMessageListFragmentViewModel(
         )
     }
 
-    private suspend fun updateMessage(messageUpdateFields: Map<String, String?>) {
+    private suspend fun updateMessage(messageUpdateFields: Map<String, String?>, originalMessage: Message) {
         messageStateIntent.setState(MessageState.Loading)
 
         messageStateIntent.setState(try {
@@ -158,7 +184,15 @@ class ChatroomMessageListFragmentViewModel(
                 messageRepository.editMessage(messageUpdateFields)
             )
 
-            updateAndSaveMessage(messageUpdateFields)
+            val originalMessageImageUrl = Constants.imageRegex.find(originalMessage.message)?.value
+            if(originalMessageImageUrl != null) {
+                messageUpdateFields.toMutableMap().run {
+                    put(Constants.MESSAGE, get(Constants.MESSAGE) + " ${originalMessageImageUrl}")
+                    updateAndSaveMessage(this)
+                }
+            } else {
+                updateAndSaveMessage(messageUpdateFields)
+            }
 
             state
         } catch(ex: Exception) {

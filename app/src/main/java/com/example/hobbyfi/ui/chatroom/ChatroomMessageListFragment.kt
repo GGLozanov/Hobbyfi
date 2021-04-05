@@ -80,10 +80,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 })
                 return@ChatroomMessageListAdapter true
             },
-        ) { messageB ->
+        ) { messageUrl ->
             navController.navigate(
                 ChatroomMessageListFragmentDirections
-                    .actionChatroomMessageListFragmentToImageViewFragment(messageB.userMessage.text.toString())
+                    .actionChatroomMessageListFragmentToImageViewFragment(messageUrl)
             )
         }
     }
@@ -100,11 +100,13 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-    private val onEditSendMessage = { editedMessage: Message ->
+    private val onEditSendMessage = { editedMessageOriginal: Message ->
         View.OnClickListener {
             val messageMap = mutableMapOf<String, String?>()
 
-            if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
+            // slightly inoptimal
+            if(Constants.imageRegex.replace(editedMessageOriginal.message, "") !=
+                    viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
             } else {
                 Toast.makeText(
@@ -115,12 +117,13 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 return@OnClickListener
             }
 
-            messageMap[Constants.ID] = editedMessage.id.toString()
+            messageMap[Constants.ID] = editedMessageOriginal.id.toString()
 
             lifecycleScope.launch {
                 viewModel.sendMessageIntent(
                     MessageIntent.UpdateMessage(
-                        messageMap
+                        messageMap,
+                        editedMessageOriginal
                     )
                 )
             }
@@ -263,9 +266,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             }
 
             sendMessageButton.setOnClickListener(onNormalSendMessage)
-            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(
-                onNormalSendMessage
-            )
+            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(onNormalSendMessage)
                 viewModel!!.message.setValue(null)
                 editMessageOptionsLayout.isVisible = false
             }
@@ -636,7 +637,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             "onEditMessageSelect triggered in message list fragment for $message!"
         )
 
-        viewModel.message.setValue(message.message) // set to edit current message from bottom sheet
+        viewModel.message.setValue(Constants.imageRegex.replace(message.message, "")) // set to edit current message from bottom sheet
         with(binding) {
             messageInputField.editText?.setSelection(binding.messageInputField.editText!!.text.length)
             sendMessageButton.setOnClickListener(onEditSendMessage(message))
