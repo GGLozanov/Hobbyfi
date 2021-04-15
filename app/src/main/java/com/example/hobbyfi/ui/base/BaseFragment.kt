@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.findLoadingDestinationAwareNavController
 import com.example.hobbyfi.utils.ImageUtils
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -26,13 +27,14 @@ abstract class BaseFragment : Fragment(), KodeinAware,
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
         // no need for weakreference this time because PrefConfig will use appContext!
+
     protected lateinit var navController: NavController
     override val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
     protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        navController = findNavController()
+        navController = findLoadingDestinationAwareNavController()
     }
 
     override fun onRequestPermissionsResult(

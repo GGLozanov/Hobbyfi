@@ -426,12 +426,9 @@ class ChatroomActivity : NavigationActivity(),
         if(!viewModel.shownSocketError) {
             viewModel.setShownSocketError(true)
             runOnUiThread {
-                Toast.makeText(
-                    this,
-                    Constants.socketConnectionError,
-                    Toast.LENGTH_LONG
-                ).show()
-                // leaveChatroom()
+                buildYesNoAlertDialog(getString(R.string.socket_connection_fail), { _: DialogInterface, _: Int ->
+                    leaveChatroom()
+                }, null)
             }
         }
     }
@@ -573,13 +570,11 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeChatroomState() {
         lifecycleScope.launchWhenStarted {
-            viewModel.chatroomState.collect {
+            viewModel.chatroomState.collectLatestWithLoading(navController,
+                    R.id.action_chatroomEditFragment_to_loading_nav_graph, ChatroomState.Loading::class,) {
                 when (it) {
                     is ChatroomState.Idle -> {
 
-                    }
-                    is ChatroomState.Loading -> {
-                        // TODO: Loading
                     }
                     is ChatroomState.OnData.ChatroomResult -> {
                         viewModel.resetChatroomState()
@@ -701,14 +696,16 @@ class ChatroomActivity : NavigationActivity(),
         Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
             .show()
 
-        // log out of all accounts (use refresh token to authorise properly)
-        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
-            prefConfig.getAuthUserTokenRefresh()!!,
-            prefConfig.readDeviceToken(), this
-        )
-        LoginManager.getInstance().logOut()
-        prefConfig.resetToken()
-        prefConfig.resetRefreshToken()
+        // log out of all accounts if logged in (use refresh token to authorise properly)
+        if(prefConfig.isUserAuthenticated()) {
+            WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
+                prefConfig.getAuthUserTokenRefresh()!!,
+                prefConfig.readDeviceToken(), this
+            )
+            LoginManager.getInstance().logOut()
+            prefConfig.resetToken()
+            prefConfig.resetRefreshToken()
+        }
 
         leaveChatroom(linkParams, leaveDestination = leaveDestination)
     }

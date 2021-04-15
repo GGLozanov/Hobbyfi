@@ -16,6 +16,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
 import com.example.hobbyfi.shared.ViewReverseEnablerObserver
+import com.example.hobbyfi.shared.collectLatestWithLoading
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.auth.ResetPasswordFragmentViewModel
@@ -50,24 +51,23 @@ class ResetPasswordFragment : AuthFragment() {
                     viewModel!!.sendIntent(TokenIntent.ResetPassword)
                 }
             }
-
-            observeResetPasswordState()
-
             return@onCreateView root
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeResetPasswordState()
+    }
 
     @ExperimentalCoroutinesApi
     private fun observeResetPasswordState() {
         lifecycleScope.launch {
-            viewModel.mainState.collectLatest {
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    R.id.action_resetPasswordFragment_to_loading_nav_graph, TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
-                    }
-                    is TokenState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is TokenState.ResetPasswordSuccess -> {
                         Toast.makeText(requireContext(), "Successfully sent password reset e-mail!", Toast.LENGTH_LONG)

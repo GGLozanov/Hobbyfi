@@ -18,6 +18,7 @@ import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
+import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
@@ -80,13 +81,11 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
 
     private fun observeEventState() {
         lifecycleScope.launch {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    R.id.action_global_loading_nav_graph, EventState.Loading::class) {
                 when(it) {
                     EventState.Idle -> {
 
-                    }
-                    EventState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is EventState.OnData.EventCreateResult -> {
                         viewModel.base64Image.originalUri?.let { image ->

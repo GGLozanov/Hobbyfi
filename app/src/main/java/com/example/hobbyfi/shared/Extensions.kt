@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.forEach
 import androidx.core.util.set
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -35,12 +36,14 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.ui.shared.LoadingFragment
 import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.google.android.gms.maps.model.LatLng
@@ -52,9 +55,12 @@ import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import org.json.JSONObject
 import java.io.IOException
 import java.lang.reflect.Field
+import kotlin.reflect.KClass
 
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
@@ -164,7 +170,7 @@ fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
 
 fun Context.buildYesNoAlertDialog(
     dialogMessage: String,
-    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener,
+    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener?,
     onDismiss: DialogInterface.OnDismissListener? = null
 ) {
     val dialogBuilder = AlertDialog.Builder(this)
@@ -288,6 +294,48 @@ fun Context.convertDrawableResToBitmap(@DrawableRes drawableId: Int, width: Int?
 fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
 
 fun comeFromAuthDeepLink(intent: Intent): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
+
+private fun addLoadingAwareNavListener(navController: NavController, activity: AppCompatActivity): NavController {
+    navController.addOnDestinationChangedListener { _, destination, _ ->
+        activity.supportActionBar?.title = destination.label // reaffirm due to config changes
+        if(destination.id == R.id.loadingFragment ||
+            destination.id == R.id.authWrapperFragment) activity.supportActionBar?.hide() else activity.supportActionBar?.show()
+    }
+    return navController
+}
+
+fun AppCompatActivity.findLoadingDestinationAwareNavController(): NavController? =
+    try {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        addLoadingAwareNavListener(navHostFragment.navController, this)
+    } catch(ex: ClassCastException) {
+        Log.w("NavigationActivity", "User has triggered ClassCastException on Activity restart from onStart(), possibly because they've nav'd to a fragment whose behaviour is not managed by Android Navigation.")
+        null
+    }
+
+fun Fragment.findLoadingDestinationAwareNavController(): NavController {
+    val navController = findNavController()
+    return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
+}
+
+suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, destId: Int,
+                                                           loadingCls: KClass<*>, loadingDisabledViews: List<View>? = null, action: suspend (value: T) -> Unit) {
+    collectLatest {
+        navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
+        val loading = loadingCls == it::class
+        loadingDisabledViews?.forEach { v ->
+            v.isVisible = !loading
+        }
+
+        if(loading) {
+            if(navController.currentDestination?.id != R.id.loadingFragment) {
+                navController.navigate(destId)
+            }
+            navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
+        } else action(it)
+    }
+}
+
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
 fun <T> Context.isServiceForegrounded(service: Class<T>) =

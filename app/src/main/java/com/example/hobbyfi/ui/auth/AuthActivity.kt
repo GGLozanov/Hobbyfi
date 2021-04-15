@@ -36,11 +36,6 @@ class AuthActivity : NavigationActivity() {
                 navController,
                 AppBarConfiguration(setOf(R.id.authWrapperFragment))
             )
-
-            navController.addOnDestinationChangedListener { _, destination, _ ->
-                supportActionBar?.title = destination.label // reaffirm due to config changes
-                if(destination.id == R.id.authWrapperFragment) supportActionBar?.hide() else supportActionBar?.show()
-            }
         }
     }
 }

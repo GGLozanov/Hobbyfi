@@ -523,8 +523,14 @@ class EventMapsActivity : MapsActivity(),
     }
 
     override fun onConnectedServerSocketFail() {
-        runOnUiThread {
-            emergencyActivityExit()
+        Log.w("EventMapsActivity", "Socket connection from current auth user for event maps activity failed!")
+        if(!viewModel.shownSocketError) {
+            viewModel.setShownSocketError(true)
+            runOnUiThread {
+                buildYesNoAlertDialog(getString(R.string.socket_connection_fail), { _: DialogInterface, _: Int ->
+                    emergencyActivityExit()
+                }, null)
+            }
         }
     }
 

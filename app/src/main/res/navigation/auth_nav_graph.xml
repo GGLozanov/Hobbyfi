@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_loginFragment_to_resetPasswordFragment"
             app:destination="@id/resetPasswordFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" />
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
@@ -47,6 +50,9 @@
                 android:name="tags"
                 app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
+        <action
+            android:id="@+id/action_registerFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" />
     </fragment>
 
     <activity
@@ -66,7 +72,11 @@
         android:id="@+id/resetPasswordFragment"
         android:name="com.example.hobbyfi.ui.auth.ResetPasswordFragment"
         android:label="Reset Password"
-        tools:layout="@layout/fragment_reset_password" />
+        tools:layout="@layout/fragment_reset_password" >
+        <action
+            android:id="@+id/action_resetPasswordFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" />
+    </fragment>
     <fragment
         android:id="@+id/authWrapperFragment"
         android:name="com.example.hobbyfi.ui.auth.AuthWrapperFragment"
@@ -79,4 +89,5 @@
             android:id="@+id/action_authWrapperFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
     </fragment>
+    <include app:graph="@navigation/loading_nav_graph" />
 </navigation>

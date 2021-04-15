@@ -23,6 +23,7 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.shared.LoadingFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
@@ -156,14 +157,11 @@ class LoginFragment : AuthFragment() {
 
     private fun observeFacebookState() {
         lifecycleScope.launch {
-            viewModel.facebookState.collectLatest {
+            viewModel.facebookState.collectLatestWithLoading(navController,
+                    R.id.action_loginFragment_to_loading_nav_graph, FacebookState.Loading::class) {
                 when(it) {
                     is FacebookState.Idle -> {
 
-                    }
-                    is FacebookState.Loading -> {
-                        // TODO: Progressbar
-                        Log.i("LoginFragment", "Facebook state loading")
                     }
                     is FacebookState.OnData.ExistenceResultReceived -> {
                         if (it.exists) {
@@ -217,13 +215,11 @@ class LoginFragment : AuthFragment() {
 
     private fun observeTokenState() {
         lifecycleScope.launch {
-            viewModel.mainState.collectLatest {
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    R.id.action_loginFragment_to_loading_nav_graph, TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
-                    }
-                    is TokenState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is TokenState.Error -> {
                         // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d

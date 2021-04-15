@@ -15,6 +15,7 @@ import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
+import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.TokenUtils
@@ -79,7 +80,8 @@ class RegisterFragment : AuthFragment() {
         }
 
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    R.id.action_registerFragment_to_loading_nav_graph, TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
                     }
@@ -87,9 +89,6 @@ class RegisterFragment : AuthFragment() {
                         binding.buttonBar.rightButton.isEnabled = true
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
                             .show()
-                    }
-                    is TokenState.Loading -> {
-                        // TODO: Show a progress indicator or something
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)

@@ -78,13 +78,11 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         }
 
         lifecycleScope.launch {
-            viewModel.mainState.collectLatest {
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    R.id.action_chatroomCreateFragment_to_loading_nav_graph, ChatroomState.Loading::class) {
                 when(it) {
                     is ChatroomState.Idle -> {
 
-                    }
-                    is ChatroomState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is ChatroomState.OnData.ChatroomCreateResult -> {
                         activityViewModel.sendIntent(

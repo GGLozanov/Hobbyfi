@@ -99,7 +99,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
             && viewModel.deepLinkExtras == null) intent.extras else null
         )
         Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
-        observeUserState()
     }
 
     override fun onResume() {
@@ -138,6 +137,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                     )
                 )
             )
+            observeUserState()
             navController.addOnDestinationChangedListener { _, destination, _ ->
                 binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
                         destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
@@ -147,13 +147,18 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     private fun observeUserState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+            val loadingAction: Int = when(navController.currentDestination?.id) {
+                R.id.userProfileFragment -> R.id.action_userProfileFragment_to_loading_nav_graph
+                R.id.joinedChatroomListFragment -> R.id.action_joinedChatroomListFragment_to_loading_nav_graph
+                R.id.chatroomListFragment -> R.id.action_chatroomListFragment_to_loading_nav_graph
+                else -> R.id.action_userProfileFragment_to_loading_nav_graph
+            }
+
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    loadingAction, UserState.Loading::class, listOf(binding.bottomNav)) {
                 when(it) {
                     is UserState.Idle, is UserState.OnData.UserResult -> {
 
-                    }
-                    is UserState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is UserState.OnData.UserDeleteResult -> {
                         Toast.makeText(

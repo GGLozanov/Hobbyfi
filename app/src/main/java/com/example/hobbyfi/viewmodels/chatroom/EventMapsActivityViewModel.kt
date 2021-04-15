@@ -46,6 +46,13 @@ class EventMapsActivityViewModel(
     val eventsState: StateFlow<EventListState>
         get() = eventsStateIntent.state
 
+    // FIXME: Code dup w/ ChatroomActivityViewModel (can't be abstractd w/ interface though 'cause encapsulation?)
+    private var _shownSocketError: Boolean = false
+    val shownSocketError: Boolean get() = _shownSocketError
+    fun setShownSocketError(shown: Boolean) {
+        _shownSocketError = shown
+    }
+
     suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
     override fun handleIntent() {
