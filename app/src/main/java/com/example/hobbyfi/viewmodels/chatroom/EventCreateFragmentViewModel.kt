@@ -50,7 +50,8 @@ class EventCreateFragmentViewModel(
                 description.value,
                 parsedEventDate,
                 eventLatLng!!.latitude,
-                eventLatLng!!.longitude
+                eventLatLng!!.longitude,
+                chatroomId
             )
 
             val event = Event(

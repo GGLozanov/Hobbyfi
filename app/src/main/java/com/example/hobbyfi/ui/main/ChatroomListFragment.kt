@@ -4,8 +4,6 @@ import android.app.AlertDialog
 import android.content.DialogInterface
 import android.util.Log
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
@@ -13,12 +11,9 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
 import com.example.hobbyfi.databinding.DialogNoRemindBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.extractListFromCurrentPagingData
 import com.example.hobbyfi.state.ChatroomListState
-import com.example.hobbyfi.ui.chatroom.ChatroomActivity
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
@@ -91,10 +86,10 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
                 Log.i("ChatroomListFragment", "user chatroom ids: ${user.chatroomIds}")
-                
-                val userHasChatroom = user.chatroomIds != null
 
-                loadStateAdapter?.setUserChatroomOwnership(userHasChatroom)
+                loadStateAdapter?.setUserChatroomOwnershipIds(chatroomListAdapter.extractListFromCurrentPagingData().filter {
+                    activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
+                }.mapNotNull { if (it.ownerId == activityViewModel.authUser.value!!.id) it.id else null })
 
                 lifecycleScope.launch {
                     // TODO: Add condition if chatroom ids have changed

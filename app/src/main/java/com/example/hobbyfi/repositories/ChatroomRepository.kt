@@ -141,6 +141,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         return performAuthorisedRequest({
             hobbyfiAPI.deleteChatroom(
                 prefConfig.getAuthUserToken()!!,
+                chatroomId
             )
         }, { deleteChatroom(chatroomId) })
     }
@@ -167,14 +168,15 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }
     }
 
-    suspend fun kickUser(userId: Long): Response? {
+    suspend fun kickUser(userId: Long, chatroomId: Long): Response? {
         Log.i("ChatroomRepository", "kickUser -> kicking user with id: ${userId}")
         return performAuthorisedRequest({
             hobbyfiAPI.kickUser(
                 prefConfig.getAuthUserToken()!!,
-                userId
+                userId,
+                chatroomId
             )
-        }, { kickUser(userId) })
+        }, { kickUser(userId, chatroomId) })
     }
 
     private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =

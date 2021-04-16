@@ -523,13 +523,11 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUserState() {
         userStateCollectJob = lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoading(navController, R.id.action_chatroomMessageListFragment_to_loading_nav_graph,
+                    UserState.Loading::class) {
                 when (it) {
                     is UserState.Idle -> {
 
-                    }
-                    is UserState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
                         checkDeepLinkStatusAndPerform {
@@ -571,7 +569,8 @@ class ChatroomActivity : NavigationActivity(),
     private fun observeChatroomState() {
         lifecycleScope.launchWhenStarted {
             viewModel.chatroomState.collectLatestWithLoading(navController,
-                    R.id.action_chatroomEditFragment_to_loading_nav_graph, ChatroomState.Loading::class,) {
+                    R.id.action_chatroomMessageListFragment_to_loading_nav_graph,
+                    ChatroomState.Loading::class) {
                 when (it) {
                     is ChatroomState.Idle -> {
 

@@ -288,7 +288,7 @@ class ChatroomActivityViewModel(
         eventsStateIntent.setState(EventListState.Loading)
 
         eventsStateIntent.setState(try {
-            val response = eventRepository.deleteOldEvents()
+            val response = eventRepository.deleteOldEvents(authChatroom.value!!.id)
                 ?: throw IllegalStateException(Constants.invalidStateError)
 
             deleteOldEventsCache(response.modelList, false)
@@ -364,7 +364,7 @@ class ChatroomActivityViewModel(
         // no loading here (no fetch)
         viewModelScope.launch {
             usersStateIntent.setState(try {
-                chatroomRepository.kickUser(userId)
+                chatroomRepository.kickUser(userId, authChatroom.value!!.id)
                 UserListState.OnUserKick(userId)
             } catch(e: Exception) {
                 UserListState.Error(

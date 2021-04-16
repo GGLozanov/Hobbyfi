@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -151,6 +152,11 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun onStart() {
         super.onStart()
         observePredicateValidators()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

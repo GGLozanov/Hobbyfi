@@ -239,7 +239,7 @@ class LoginFragment : AuthFragment() {
                     }
                     is TokenState.TokenReceived -> {
                         Log.i("LoginFragment", "${navController.currentBackStackEntry}")
-                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
+                        Callbacks.hideKeyboardFrom(requireContext(), view)
                         login(
                             LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                 null

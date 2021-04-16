@@ -22,9 +22,9 @@ class JoinedChatroomListAdapter(
     onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
     onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit),
     private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
+    private var _userOwnedChatroomIds: MutableList<Long> = mutableListOf()
 ) : BaseChatroomListAdapter<JoinedChatroomListAdapter.JoinedChatroomListViewHolder>(onJoinChatroomButton, onTagsViewButton) {
 
-    private var _userOwnedChatroomIds: MutableList<Long> = mutableListOf()
     val userOwnedChatroomIds: List<Long> get() = _userOwnedChatroomIds
 
     class JoinedChatroomListViewHolder(

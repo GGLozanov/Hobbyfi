@@ -15,11 +15,13 @@ import com.example.hobbyfi.shared.toReadable
 import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.viewmodels.auth.AuthActivityViewModel
 import io.branch.referral.Branch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class AuthActivity : NavigationActivity() {
     private val viewModel: AuthActivityViewModel by viewModels()
     private lateinit var binding: ActivityAuthBinding
 
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("AuthActivity", "intent extras: ${intent.extras?.toReadable()}")

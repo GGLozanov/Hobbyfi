@@ -43,6 +43,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.ui.chatroom.ChatroomActivity
 import com.example.hobbyfi.ui.shared.LoadingFragment
 import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.TokenUtils
@@ -55,6 +56,7 @@ import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import org.json.JSONObject
@@ -295,15 +297,41 @@ fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+cl
 
 fun comeFromAuthDeepLink(intent: Intent): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
 
+@ExperimentalCoroutinesApi
 private fun addLoadingAwareNavListener(navController: NavController, activity: AppCompatActivity): NavController {
     navController.addOnDestinationChangedListener { _, destination, _ ->
-        activity.supportActionBar?.title = destination.label // reaffirm due to config changes
+        if(activity !is ChatroomActivity) {
+            activity.supportActionBar?.title = destination.label // reaffirm due to config changes
+        }
+
         if(destination.id == R.id.loadingFragment ||
             destination.id == R.id.authWrapperFragment) activity.supportActionBar?.hide() else activity.supportActionBar?.show()
     }
     return navController
 }
 
+fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId: Int): Int {
+    fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): Int {
+        Log.i("Loading nav graph", "Current and prev destinations: ${currentDestination?.displayName}, ${previousBackStackEntry?.destination?.displayName}")
+        return when(destinationId) {
+            R.id.loginFragment -> R.id.action_loginFragment_to_loading_nav_graph
+            R.id.registerFragment -> R.id.action_registerFragment_to_loading_nav_graph
+            R.id.chatroomCreateFragment -> R.id.action_chatroomCreateFragment_to_loading_nav_graph
+            R.id.userProfileFragment -> R.id.action_userProfileFragment_to_loading_nav_graph
+            R.id.joinedChatroomListFragment -> R.id.action_joinedChatroomListFragment_to_loading_nav_graph
+            R.id.chatroomListFragment -> R.id.action_chatroomListFragment_to_loading_nav_graph
+            R.id.chatroomEditFragment -> R.id.action_chatroomEditFragment_to_loading_nav_graph
+            R.id.eventCreateFragment -> R.id.action_global_loading_nav_graph
+            R.id.chatroomMessageListFragment -> R.id.action_chatroomMessageListFragment_to_loading_nav_graph
+            R.id.loadingFragment -> getLoadingNavGraphAction(previousBackStackEntry?.destination?.id, recDepth + 1)
+            else -> if(recDepth != 0) defaultActionId else getLoadingNavGraphAction(previousBackStackEntry?.destination?.id, recDepth + 1)
+        }
+    }
+
+    return getLoadingNavGraphAction()
+}
+
+@ExperimentalCoroutinesApi
 fun AppCompatActivity.findLoadingDestinationAwareNavController(): NavController? =
     try {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -313,12 +341,13 @@ fun AppCompatActivity.findLoadingDestinationAwareNavController(): NavController?
         null
     }
 
+@ExperimentalCoroutinesApi
 fun Fragment.findLoadingDestinationAwareNavController(): NavController {
     val navController = findNavController()
     return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
 }
 
-suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, destId: Int,
+suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, defaultActionId: Int,
                                                            loadingCls: KClass<*>, loadingDisabledViews: List<View>? = null, action: suspend (value: T) -> Unit) {
     collectLatest {
         navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
@@ -329,7 +358,7 @@ suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavCon
 
         if(loading) {
             if(navController.currentDestination?.id != R.id.loadingFragment) {
-                navController.navigate(destId)
+                navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
             }
             navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
         } else action(it)

@@ -92,7 +92,7 @@ class RegisterFragment : AuthFragment() {
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
-                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
+                        Callbacks.hideKeyboardFrom(requireContext(), view)
 
                         viewModel.base64Image.originalUri?.let { image ->
                             WorkerUtils.buildAndEnqueueImageUploadWorker(

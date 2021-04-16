@@ -93,6 +93,8 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                     return@setOnClickListener
                 }
 
+                fieldMap[Constants.ID] = activityViewModel.authChatroom.value?.id.toString()
+
                 lifecycleScope.launch {
                     activityViewModel.sendChatroomIntent(ChatroomIntent.UpdateChatroom(fieldMap))
                 }

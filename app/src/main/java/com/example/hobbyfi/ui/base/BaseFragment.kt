@@ -15,6 +15,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.findLoadingDestinationAwareNavController
 import com.example.hobbyfi.utils.ImageUtils
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.kodein
@@ -32,6 +33,7 @@ abstract class BaseFragment : Fragment(), KodeinAware,
     override val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
     protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController = findLoadingDestinationAwareNavController()

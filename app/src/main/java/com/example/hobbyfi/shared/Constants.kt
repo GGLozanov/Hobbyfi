@@ -46,7 +46,7 @@ object Constants {
     const val invalidStateError: String = "Invalid state to call this method in!"
     const val firestoreDeletionError: String = "Couldn't delete remote source records needed to have been deleted!"
     const val firestoreUpdateError: String = "Couldn't update remote source records that needed to have been updated!"
-    const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
+    const val limitReachedError: String = "Not created! Maximum limit may be reached! (100/250)"
     const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
     const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
     const val showShareDialogFail: String = "Couldn't reroute to Facebook share screen! Please try again!"

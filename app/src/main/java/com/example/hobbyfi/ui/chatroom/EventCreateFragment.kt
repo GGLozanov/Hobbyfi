@@ -73,10 +73,14 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                 }
             }
 
-            observeEventState()
-
             return@onCreateView binding.root
         }
+    }
+
+    @ExperimentalCoroutinesApi
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeEventState()
     }
 
     private fun observeEventState() {
@@ -102,7 +106,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                         activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
                         Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
                             .show()
-                        navController.popBackStack()
+                        navController.popBackStack(R.id.chatroomMessageListFragment, false)
                     }
                     is EventState.Error -> {
                         // TODO: Handle shouldReauth
