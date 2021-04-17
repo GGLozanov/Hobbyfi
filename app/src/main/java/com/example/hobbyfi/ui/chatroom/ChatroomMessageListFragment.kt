@@ -354,9 +354,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             Constants.ID to activityViewModel.authUser.value?.id,
                             Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
                         ))) // stop typing
+                        viewModel.resetMessageState()
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
                         binding.cancelHeader.callOnClick()
+                        viewModel.resetMessageState()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
                         Toast.makeText(

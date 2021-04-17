@@ -200,5 +200,5 @@
     <string name="no_tags">No Tags</string>
     <string name="tags">Tags</string>
     <string name="imageViewError">Cannot view image for a message that doesn\'t contain an image!</string>
-    <string name="socket_connection_fail">Couldn\'t connect to the server for realtime capabilities! Do you want to remain until the connection is reestablished or exit?</string>
+    <string name="socket_connection_fail">Couldn\'t connect to the server for realtime capabilities! Do you want to leave and try again later?</string>
 </resources>
