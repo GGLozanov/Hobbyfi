@@ -31,7 +31,6 @@ class LoadingFragment : BaseFragment() {
             ?.observe(viewLifecycleOwner, {
                 if(it) {
                     navController.popBackStack(loadingArgs.poptoId, false)
-                    Log.i("LoadingFragment", "current nav destination: ${navController.currentDestination?.displayName}")
                 }
             })
         view.postDelayed({

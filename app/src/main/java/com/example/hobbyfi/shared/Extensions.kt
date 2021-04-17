@@ -320,7 +320,6 @@ private fun addLoadingAwareNavListener(navController: NavController, activity: A
 
 fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId: NavDirections): NavDirections {
     fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): NavDirections {
-        Log.i("Loading nav graph", "Current and prev destinations: ${currentDestination?.displayName}, ${previousBackStackEntry?.destination?.displayName}")
         return when(destinationId) {
             R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
                 R.id.loginFragment)
@@ -350,7 +349,6 @@ fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId
 
 fun NavController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(defaultActionId: NavDirections?): NavDirections? {
     fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id): NavDirections? {
-        Log.i("Loading nav graph", "Current and prev destinations: ${currentDestination?.displayName}, ${previousBackStackEntry?.destination?.displayName}")
         return when(destinationId) {
             R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
                 R.id.loginFragment)
