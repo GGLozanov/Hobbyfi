@@ -81,7 +81,8 @@ class RegisterFragment : AuthFragment() {
 
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatestWithLoading(navController,
-                    R.id.action_registerFragment_to_loading_nav_graph, TokenState.Loading::class) {
+                    RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(R.id.registerFragment),
+                    TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
                     }

@@ -8,6 +8,7 @@ import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
@@ -130,6 +131,7 @@ class LoginFragment : AuthFragment() {
                                 profile: Profile
                             ) {
                                 stopTracking()
+                                AccessToken.setCurrentAccessToken(loginResult?.accessToken)
                                 Profile.setCurrentProfile(profile)
                                 validateProfileExistence()
                             }
@@ -156,9 +158,10 @@ class LoginFragment : AuthFragment() {
     }
 
     private fun observeFacebookState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.facebookState.collectLatestWithLoading(navController,
-                    R.id.action_loginFragment_to_loading_nav_graph, FacebookState.Loading::class) {
+                    LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
+                    FacebookState.Loading::class) {
                 when(it) {
                     is FacebookState.Idle -> {
 
@@ -208,15 +211,16 @@ class LoginFragment : AuthFragment() {
                             }
                         }
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
     }
 
     private fun observeTokenState() {
-        lifecycleScope.launch {
+        lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatestWithLoading(navController,
-                    R.id.action_loginFragment_to_loading_nav_graph, TokenState.Loading::class) {
+                    LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment), TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
@@ -236,6 +240,7 @@ class LoginFragment : AuthFragment() {
                                     .show() // means we've simply entered incorrect info for the normal login or something else is wrong
                             }
                         }
+                        viewModel.resetTokenState()
                     }
                     is TokenState.TokenReceived -> {
                         Log.i("LoginFragment", "${navController.currentBackStackEntry}")
@@ -312,6 +317,7 @@ class LoginFragment : AuthFragment() {
                                 }
                             }
                         }
+                        viewModel.resetTokenState()
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -320,19 +326,23 @@ class LoginFragment : AuthFragment() {
     }
 
     private fun observePotentialTags() {
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
+            ?.distinctUntilChanged()?.observeOnce(
             viewLifecycleOwner
         ) {
-            viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
-            lifecycleScope.launch {
-                Profile.getCurrentProfile()?.let { profile ->
-                    viewModel.sendIntent(
-                        TokenIntent.FetchFacebookRegisterToken(
-                            AccessToken.getCurrentAccessToken().token,
-                            profile.name,
+            if(!viewModel.sentFbTokenFetch) {
+                viewModel.tagBundle.setSelectedTags(it)
+                viewModel.setSentFbTokenFetch(true)
+                lifecycleScope.launch {
+                    Profile.getCurrentProfile()?.let { profile ->
+                        viewModel.sendIntent(
+                            TokenIntent.FetchFacebookRegisterToken(
+                                AccessToken.getCurrentAccessToken().token,
+                                profile.name,
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

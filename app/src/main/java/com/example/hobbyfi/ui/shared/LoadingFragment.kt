@@ -6,11 +6,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoadingBinding
 import com.example.hobbyfi.ui.base.BaseFragment
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 class LoadingFragment : BaseFragment() {
+
+    private val loadingArgs: LoadingFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -20,15 +24,19 @@ class LoadingFragment : BaseFragment() {
         return binding.root
     }
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData(LOADING_KEY, false)
             ?.observe(viewLifecycleOwner, {
                 if(it) {
-                    navController.popBackStack()
+                    navController.popBackStack(loadingArgs.poptoId, false)
                     Log.i("LoadingFragment", "current nav destination: ${navController.currentDestination?.displayName}")
                 }
             })
+        view.postDelayed({
+            navController.popBackStack(loadingArgs.poptoId, false)
+        }, 15000) // timeout
     }
 
     companion object {

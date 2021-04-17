@@ -157,7 +157,7 @@ interface HobbyfiAPI {
     @DELETE("api/v${API_VERSION}/chatroom/delete")
     suspend fun deleteChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
-        @Field(Constants.ID) chatroomId: Long
+        @Query(Constants.ID) chatroomId: Long
     ): Response?
 
     /**

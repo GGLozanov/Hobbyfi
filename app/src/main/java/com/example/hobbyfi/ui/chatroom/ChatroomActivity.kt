@@ -523,7 +523,8 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUserState() {
         userStateCollectJob = lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(navController, R.id.action_chatroomMessageListFragment_to_loading_nav_graph,
+            viewModel.mainState.collectLatestWithLoading(navController,
+                    ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(R.id.chatroomMessageListFragment),
                     UserState.Loading::class) {
                 when (it) {
                     is UserState.Idle -> {
@@ -569,7 +570,7 @@ class ChatroomActivity : NavigationActivity(),
     private fun observeChatroomState() {
         lifecycleScope.launchWhenStarted {
             viewModel.chatroomState.collectLatestWithLoading(navController,
-                    R.id.action_chatroomMessageListFragment_to_loading_nav_graph,
+                    ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(R.id.chatroomMessageListFragment),
                     ChatroomState.Loading::class) {
                 when (it) {
                     is ChatroomState.Idle -> {
@@ -910,6 +911,7 @@ class ChatroomActivity : NavigationActivity(),
                                         lifecycleScope.launch {
                                             viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
                                         }
+                                        binding.drawerLayout.closeDrawers()
                                         dialogInterface.dismiss()
                                     },
                                     { dialogInterface: DialogInterface, _: Int ->

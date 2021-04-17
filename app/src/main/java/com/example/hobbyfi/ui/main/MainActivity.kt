@@ -137,23 +137,20 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                     )
                 )
             )
-            observeUserState()
             navController.addOnDestinationChangedListener { _, destination, _ ->
-                if(destination.id == R.id.changeEmailDialogFragment || destination.id == R.id.changePasswordDialogFragment) {
-                    binding.toolbar.title = "Your Profile"
-                }
-
                 binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
                         destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
+                            && destination.id != R.id.loadingFragment
             }
+            observeUserState()
         })
     }
 
     private fun observeUserState() {
         lifecycleScope.launchWhenCreated {
             viewModel.mainState.collectLatestWithLoading(navController,
-                    R.id.action_userProfileFragment_to_loading_nav_graph,
-                    UserState.Loading::class, listOf(binding.bottomNav)) {
+                    UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(R.id.userProfileFragment),
+                    UserState.Loading::class) {
                 when(it) {
                     is UserState.Idle, is UserState.OnData.UserResult -> {
 

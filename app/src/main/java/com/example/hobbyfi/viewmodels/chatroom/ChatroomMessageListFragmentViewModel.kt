@@ -142,7 +142,10 @@ class ChatroomMessageListFragmentViewModel(
     private suspend fun createMessage(userSentId: Long,
                                       chatroomSentId: Long, message: String? = null, base64Image: String? = null) {
         if(message == null && base64Image == null) {
-            throw IllegalArgumentException("Both message & message image cannot be null!")
+             messageStateIntent.setState(
+                 MessageState.Error("An issue occurred with parsing your input data! Please, try again.")
+             )
+            return
         }
 
         messageStateIntent.setState(MessageState.Loading)

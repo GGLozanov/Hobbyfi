@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavDirections
+import com.example.hobbyfi.R
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -42,7 +43,13 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
 
             finishAffinity(requireActivity())
             activityViewModel.setRestartedFromDeepLink(false)
-        } else navController.navigate(action)
+        } else {
+            if(navController.currentDestination?.id == R.id.loadingFragment) {
+                navController.popBackStack()
+            }
+
+            navController.navigate(action)
+        }
     }
 
     override fun onStart() {

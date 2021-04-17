@@ -28,7 +28,11 @@
             app:destination="@id/chatroomMessageSearchViewFragment" />
         <action
             android:id="@+id/action_chatroomMessageListFragment_to_loading_nav_graph"
-            app:destination="@id/loading_nav_graph" />
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -47,7 +51,11 @@
         </action>
         <action
             android:id="@+id/action_chatroomEditFragment_to_loading_nav_graph"
-            app:destination="@id/loading_nav_graph" />
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
     </fragment>
     <navigation android:id="@+id/event_create_navigation"
         app:startDestination="@id/eventCreateFragment">
@@ -59,7 +67,11 @@
         <action
             android:id="@+id/action_global_loading_nav_graph"
             app:destination="@id/loading_nav_graph"
-            app:popUpTo="@id/event_create_navigation" />
+            app:popUpTo="@id/event_create_navigation" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
     </navigation>
     <include app:graph="@navigation/tag_nav_graph" />
     <activity

@@ -27,6 +27,12 @@ class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(
         handleIntent()
     }
 
+    private var _sentFbTokenFetch = false
+    fun setSentFbTokenFetch(fetch: Boolean) {
+        _sentFbTokenFetch = fetch
+    }
+    val sentFbTokenFetch get() = _sentFbTokenFetch
+
     private lateinit var facebookStateIntent: StateIntent<FacebookState, FacebookIntent>
 
     fun resetFacebookState() = facebookStateIntent.setState(FacebookState.Idle)

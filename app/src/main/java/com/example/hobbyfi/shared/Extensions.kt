@@ -31,10 +31,9 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.*
 import androidx.navigation.NavController
+import androidx.navigation.NavDirections
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.paging.PagingDataAdapter
@@ -43,7 +42,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.ui.auth.LoginFragmentDirections
+import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
+import com.example.hobbyfi.ui.chatroom.ChatroomEditFragmentDirections
+import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragmentDirections
+import com.example.hobbyfi.ui.chatroom.EventCreateFragmentDirections
+import com.example.hobbyfi.ui.main.ChatroomCreateFragmentDirections
+import com.example.hobbyfi.ui.main.ChatroomListFragmentDirections
+import com.example.hobbyfi.ui.main.JoinedChatroomListFragmentDirections
+import com.example.hobbyfi.ui.main.UserProfileFragmentDirections
 import com.example.hobbyfi.ui.shared.LoadingFragment
 import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.TokenUtils
@@ -310,21 +318,59 @@ private fun addLoadingAwareNavListener(navController: NavController, activity: A
     return navController
 }
 
-fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId: Int): Int {
-    fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): Int {
+fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId: NavDirections): NavDirections {
+    fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): NavDirections {
         Log.i("Loading nav graph", "Current and prev destinations: ${currentDestination?.displayName}, ${previousBackStackEntry?.destination?.displayName}")
         return when(destinationId) {
-            R.id.loginFragment -> R.id.action_loginFragment_to_loading_nav_graph
-            R.id.registerFragment -> R.id.action_registerFragment_to_loading_nav_graph
-            R.id.chatroomCreateFragment -> R.id.action_chatroomCreateFragment_to_loading_nav_graph
-            R.id.userProfileFragment -> R.id.action_userProfileFragment_to_loading_nav_graph
-            R.id.joinedChatroomListFragment -> R.id.action_joinedChatroomListFragment_to_loading_nav_graph
-            R.id.chatroomListFragment -> R.id.action_chatroomListFragment_to_loading_nav_graph
-            R.id.chatroomEditFragment -> R.id.action_chatroomEditFragment_to_loading_nav_graph
-            R.id.eventCreateFragment -> R.id.action_global_loading_nav_graph
-            R.id.chatroomMessageListFragment -> R.id.action_chatroomMessageListFragment_to_loading_nav_graph
+            R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
+                R.id.loginFragment)
+            R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(
+                R.id.registerFragment)
+            R.id.chatroomCreateFragment -> ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(
+                R.id.chatroomCreateFragment)
+            R.id.userProfileFragment -> UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(
+                R.id.userProfileFragment)
+            R.id.joinedChatroomListFragment -> JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToLoadingNavGraph(
+                R.id.joinedChatroomListFragment)
+            R.id.chatroomListFragment -> ChatroomListFragmentDirections.actionChatroomListFragmentToLoadingNavGraph(
+                R.id.chatroomListFragment)
+            R.id.chatroomEditFragment -> ChatroomEditFragmentDirections.actionChatroomEditFragmentToLoadingNavGraph(
+                R.id.chatroomEditFragment)
+            R.id.eventCreateFragment -> EventCreateFragmentDirections.actionGlobalLoadingNavGraph(
+                R.id.eventCreateFragment)
+            R.id.chatroomMessageListFragment -> ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
+                R.id.chatroomMessageListFragment)
             R.id.loadingFragment -> getLoadingNavGraphAction(previousBackStackEntry?.destination?.id, recDepth + 1)
             else -> if(recDepth != 0) defaultActionId else getLoadingNavGraphAction(previousBackStackEntry?.destination?.id, recDepth + 1)
+        }
+    }
+
+    return getLoadingNavGraphAction()
+}
+
+fun NavController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(defaultActionId: NavDirections?): NavDirections? {
+    fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id): NavDirections? {
+        Log.i("Loading nav graph", "Current and prev destinations: ${currentDestination?.displayName}, ${previousBackStackEntry?.destination?.displayName}")
+        return when(destinationId) {
+            R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
+                R.id.loginFragment)
+            R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(
+                R.id.registerFragment)
+            R.id.chatroomCreateFragment -> ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(
+                R.id.chatroomCreateFragment)
+            R.id.userProfileFragment -> UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(
+                R.id.userProfileFragment)
+            R.id.joinedChatroomListFragment -> JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToLoadingNavGraph(
+                R.id.joinedChatroomListFragment)
+            R.id.chatroomListFragment -> ChatroomListFragmentDirections.actionChatroomListFragmentToLoadingNavGraph(
+                R.id.chatroomListFragment)
+            R.id.chatroomEditFragment -> ChatroomEditFragmentDirections.actionChatroomEditFragmentToLoadingNavGraph(
+                R.id.chatroomEditFragment)
+            R.id.eventCreateFragment -> EventCreateFragmentDirections.actionGlobalLoadingNavGraph(
+                R.id.eventCreateFragment)
+            R.id.chatroomMessageListFragment -> ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
+                R.id.chatroomMessageListFragment)
+            else -> defaultActionId
         }
     }
 
@@ -347,17 +393,20 @@ fun Fragment.findLoadingDestinationAwareNavController(): NavController {
     return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
 }
 
-suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, defaultActionId: Int,
+suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, defaultActionId: NavDirections,
                                                            loadingCls: KClass<*>, loadingDisabledViews: List<View>? = null, action: suspend (value: T) -> Unit) {
     collectLatest {
         navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
         val loading = loadingCls == it::class
         loadingDisabledViews?.forEach { v ->
             v.isVisible = !loading
+            v.requestLayout()
         }
 
         if(loading) {
-            if(navController.currentDestination?.id != R.id.loadingFragment) {
+            if(navController.currentDestination?.id != R.id.loadingFragment &&
+                    navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null)
+                            != null) {
                 navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
             }
             navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
@@ -365,6 +414,14 @@ suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavCon
     }
 }
 
+fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
+    observe(lifecycleOwner, object : Observer<T> {
+        override fun onChanged(t: T?) {
+            observer.onChanged(t)
+            removeObserver(this)
+        }
+    })
+}
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
 fun <T> Context.isServiceForegrounded(service: Class<T>) =

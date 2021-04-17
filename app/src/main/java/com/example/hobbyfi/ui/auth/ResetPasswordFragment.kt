@@ -64,7 +64,8 @@ class ResetPasswordFragment : AuthFragment() {
     private fun observeResetPasswordState() {
         lifecycleScope.launch {
             viewModel.mainState.collectLatestWithLoading(navController,
-                    R.id.action_resetPasswordFragment_to_loading_nav_graph, TokenState.Loading::class) {
+                    ResetPasswordFragmentDirections.actionResetPasswordFragmentToLoadingNavGraph(
+                        R.id.resetPasswordFragment), TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 

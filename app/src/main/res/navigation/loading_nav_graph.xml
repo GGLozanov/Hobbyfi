@@ -8,5 +8,9 @@
         android:id="@+id/loadingFragment"
         android:name="com.example.hobbyfi.ui.shared.LoadingFragment"
         android:label="fragment_loading"
-        tools:layout="@layout/fragment_loading" />
+        tools:layout="@layout/fragment_loading" >
+        <argument
+            android:name="poptoId"
+            app:argType="reference" />
+    </fragment>
 </navigation>
