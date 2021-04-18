@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.data.Chatroom
@@ -61,7 +62,7 @@ abstract class AuthChatroomHolderViewModel(
             chatroomStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is ChatroomIntent.FetchChatroom -> {
-                        fetchChatroom()
+                        fetchChatroom(it.currentDestinationId)
                     }
                     is ChatroomIntent.DeleteChatroom -> {
                         deleteChatroom()
@@ -86,8 +87,11 @@ abstract class AuthChatroomHolderViewModel(
         }
     }
 
-    private suspend fun fetchChatroom() {
-        chatroomStateIntent.setState(ChatroomState.Loading)
+    private suspend fun fetchChatroom(currentDestinationId: Int?) {
+        // ehhhhhhh, this kinda shouldn't be here
+        if(currentDestinationId != null && currentDestinationId == R.id.chatroomMessageListFragment) {
+            chatroomStateIntent.setState(ChatroomState.Loading)
+        }
 
         chatroomRepository.getChatroom().catch { e ->
             chatroomStateIntent.setState(

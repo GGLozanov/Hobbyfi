@@ -394,6 +394,8 @@ fun Fragment.findLoadingDestinationAwareNavController(): NavController {
 suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, defaultActionId: NavDirections,
                                                            loadingCls: KClass<*>, loadingDisabledViews: List<View>? = null, action: suspend (value: T) -> Unit) {
     collectLatest {
+        Log.i("Extensions", "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}")
+
         navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
         val loading = loadingCls == it::class
         loadingDisabledViews?.forEach { v ->

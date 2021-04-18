@@ -54,6 +54,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
 
     private suspend fun createChatroom(ownerId: Long) {
         mainStateIntent.setState(ChatroomState.Loading)
+
         mainStateIntent.setState(try {
             val response = chatroomRepository.createChatroom(
                 name.value!!,

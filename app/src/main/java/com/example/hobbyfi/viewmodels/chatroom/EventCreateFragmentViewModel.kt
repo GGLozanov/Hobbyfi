@@ -10,6 +10,7 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -23,9 +24,7 @@ class EventCreateFragmentViewModel(
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.CreateEvent -> {
-                        viewModelScope.launch { // again, potential img upload, blah blah
-                            createEvent(it.chatroomId)
-                        }
+                        createEvent(it.chatroomId)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -68,6 +67,8 @@ class EventCreateFragmentViewModel(
             )
 
             EventState.OnData.EventCreateResult(event)
+        } catch(ex: CancellationException) {
+            throw ex // swallow cancellation exceptions (request is performed successfully most of the time either way)
         } catch(ex: Exception) {
             EventState.Error(
                 ex.message,

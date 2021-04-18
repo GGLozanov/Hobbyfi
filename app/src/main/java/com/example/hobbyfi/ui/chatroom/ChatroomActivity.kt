@@ -341,7 +341,7 @@ class ChatroomActivity : NavigationActivity(),
         headerBinding.viewModel = viewModel
 
         initNavController()
-        initDynamicToolbarTitle()
+        initDynamicToolbarTitleAndDrawerLock()
         initPushNotificationToggleSwitch()
 
         Log.i("ChatroomActivity", "intent extras: ${intent.extras?.toReadable()}")
@@ -376,8 +376,14 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     // need to do this because it bugs out with up navigation
-    private fun initDynamicToolbarTitle() {
+    private fun initDynamicToolbarTitleAndDrawerLock() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
+            if(destination.id == R.id.loadingFragment) {
+                binding.drawerLayout.closeDrawers()
+                binding.drawerLayout.setDrawerLockMode(
+                    DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+            } else binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+
             setLabelOnDestination(destination)
         }
     }
@@ -408,7 +414,7 @@ class ChatroomActivity : NavigationActivity(),
 
         connectServerSocket()
         Branch.sessionBuilder(this).withCallback(branchReferralInitListener)
-            .withData(if (intent != null) intent.data else null).init()
+            .withData(intent?.data).init()
 
         observeChatroomState()
         observeChatroom()
@@ -526,6 +532,7 @@ class ChatroomActivity : NavigationActivity(),
             viewModel.mainState.collectLatestWithLoading(navController,
                     ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(R.id.chatroomMessageListFragment),
                     UserState.Loading::class) {
+                Log.i("ChatroomActivity", "Current UserState in Flow collect: ${it.toString()}")
                 when (it) {
                     is UserState.Idle -> {
 
@@ -568,16 +575,13 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun observeChatroomState() {
-        lifecycleScope.launchWhenStarted {
+        lifecycleScope.launchWhenCreated {
             viewModel.chatroomState.collectLatestWithLoading(navController,
                     ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(R.id.chatroomMessageListFragment),
                     ChatroomState.Loading::class) {
                 when (it) {
-                    is ChatroomState.Idle -> {
+                    is ChatroomState.Idle, is ChatroomState.OnData.ChatroomResult -> {
 
-                    }
-                    is ChatroomState.OnData.ChatroomResult -> {
-                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
                         Toast.makeText(
@@ -711,7 +715,7 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun observeUsers() {
-        viewModel.chatroomUsers.observe(this, Observer {
+        viewModel.chatroomUsers.distinctUntilChanged().observe(this, Observer {
             Log.i("ChatroomActivity", "auth user in users observe: ${viewModel.authUser.value}")
             Log.i("ChatroomActivity", "observed users: $it")
             if (it.isNotEmpty() && !it.contains(viewModel.authUser.value)) {
@@ -727,14 +731,11 @@ class ChatroomActivity : NavigationActivity(),
         lifecycleScope.launchWhenStarted {
             viewModel.usersState.collect {
                 when (it) {
-                    is UserListState.Idle -> {
+                    is UserListState.Idle, is UserListState.OnData.UsersResult -> {
 
                     }
                     is UserListState.Loading -> {
                         // TODO: Progressbar on RecyclerView
-                    }
-                    is UserListState.OnData.UsersResult -> {
-                        viewModel.resetUserListState()
                     }
                     is UserListState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
@@ -911,7 +912,6 @@ class ChatroomActivity : NavigationActivity(),
                                         lifecycleScope.launch {
                                             viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
                                         }
-                                        binding.drawerLayout.closeDrawers()
                                         dialogInterface.dismiss()
                                     },
                                     { dialogInterface: DialogInterface, _: Int ->
@@ -995,7 +995,7 @@ class ChatroomActivity : NavigationActivity(),
                 UserListIntent.FetchUsers
             )
             viewModel.sendChatroomIntent(
-                ChatroomIntent.FetchChatroom
+                ChatroomIntent.FetchChatroom(navController.currentDestination?.id)
             )
 
             if (viewModel.authChatroom.value?.eventIds != null) {
@@ -1328,7 +1328,7 @@ class ChatroomActivity : NavigationActivity(),
     private fun sendChatroomFetchIntentOnCurrentNull() {
         if (viewModel.authChatroom.value == null) {
             lifecycleScope.launch {
-                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
+                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom(navController.currentDestination?.id))
             }
         }
     }
