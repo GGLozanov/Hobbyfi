@@ -55,6 +55,7 @@ class ResetPasswordFragment : AuthFragment() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeResetPasswordState()
@@ -63,9 +64,9 @@ class ResetPasswordFragment : AuthFragment() {
     @ExperimentalCoroutinesApi
     private fun observeResetPasswordState() {
         lifecycleScope.launch {
-            viewModel.mainState.collectLatestWithLoading(navController,
+            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
                     ResetPasswordFragmentDirections.actionResetPasswordFragmentToLoadingNavGraph(
-                        R.id.resetPasswordFragment), TokenState.Loading::class) {
+                        R.id.resetPasswordFragment), TokenState.Loading::class, viewModel::resetTokenState) {
                 when(it) {
                     is TokenState.Idle -> {
 

@@ -9,6 +9,8 @@ import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.text.SimpleDateFormat
@@ -198,18 +200,33 @@ object Constants {
 
     const val locationReset: String = "Location successfuly reset!"
 
-    const val userProfileImageDir = "user_pfps"
-    fun chatroomProfileImageDir(chatroomId: Long): String {
-        return "chatroom_imgs_$chatroomId"
-    }
-    fun chatroomMessagesProfileImageDir(chatroomId: Long) = chatroomProfileImageDir(chatroomId) + "/messages"
-    fun eventProfileImageDir(eventId: Long): String {
-        return "events_imgs_$eventId"
+    fun userImageBucket(title: String): String {
+        return "users/$title.jpg"
     }
 
-    const val chatroomTopicPrefix = "chatroom_"
-    fun chatroomTopic(chatroomId: Long): String {
-        return chatroomTopicPrefix + chatroomId
+    fun eventImageBucket(title: String): String {
+        return "events/$title.jpg"
+    }
+
+    fun chatroomImageBucket(chatroomId: Long, title: String): String {
+        return "chatroom_$chatroomId/$title.jpg"
+    }
+
+    fun messageImageBucket(chatroomId: Long, title: String): String {
+        return "chatroom_$chatroomId/messages/$title.jpg"
+    }
+
+    fun getFirebaseStorageUrlForLocation(location: String, onSuccess: (link: String) -> Unit, onFailure: (() -> Unit)? = null) {
+        FirebaseStorage.getInstance().reference.child(location).downloadUrl.addOnSuccessListener {
+            onSuccess(it.toString())
+        }.addOnFailureListener {
+            if(onFailure != null) {
+                onFailure()
+            } else {
+                Log.w("Constants", "Couldn't fetch image URL")
+                // TODO: better error handling (? ? ?)
+            }
+        }
     }
 
     // dupped from API and whenever that changes, this needs to as well, but...
@@ -267,8 +284,9 @@ object Constants {
     class ImageFetchException(message: String? = null) : Exception(message)
 
     val imageRegex = Regex(
-        Regex.escape(BuildConfig.BASE_URL) +
-                "uploads\\/[^.]+\\.jpg"
+        "(${Regex.escape("https://storage.googleapis.com/")}|${Regex.escape(
+            "https://firebasestorage.googleapis.com/v0/b/${FirebaseStorage.getInstance().reference.bucket}/o/")})" +
+                "[^.]+\\.jpg"
     )
 
     const val searchMessage: String = "searchMessage"

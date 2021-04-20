@@ -250,4 +250,11 @@ class EventRepository(
             }
         return observer
     }
+
+    suspend fun setEventPhotoUrl(id: Long, photoUrl: String) {
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_events_fetch_time)
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.eventDao().updateEventPhotoUrl(id, photoUrl)
+        }
+    }
 }

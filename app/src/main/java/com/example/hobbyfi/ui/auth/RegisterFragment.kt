@@ -80,9 +80,9 @@ class RegisterFragment : AuthFragment() {
         }
 
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(navController,
+            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
                     RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(R.id.registerFragment),
-                    TokenState.Loading::class) {
+                    TokenState.Loading::class, viewModel::resetTokenState) {
                 when(it) {
                     is TokenState.Idle -> {
                     }
@@ -113,12 +113,11 @@ class RegisterFragment : AuthFragment() {
                                     viewModel.email.value!!,
                                     viewModel.name.value!!,
                                     viewModel.description.value,
-                                    if(viewModel.base64Image.originalUri != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
-                                            + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
+                                    null,
                                     viewModel.tagBundle.selectedTags,
                                     null,
                                     null
-                                )
+                                ) // image upload schema dependent on WorkManager, repo modifications, & SSOT refetches (which is why URL is null here)
                             ),
                             it.token?.jwt,
                             it.token?.refreshJwt

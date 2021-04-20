@@ -318,6 +318,7 @@ private fun addLoadingAwareNavListener(navController: NavController, activity: A
     return navController
 }
 
+// yes, this does look weird, but due to possible race conditions w/ navController instances, previous destinations are directly passed as references
 fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId: NavDirections): NavDirections {
     fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): NavDirections {
         return when(destinationId) {
@@ -391,22 +392,26 @@ fun Fragment.findLoadingDestinationAwareNavController(): NavController {
     return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
 }
 
-suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(navController: NavController, defaultActionId: NavDirections,
-                                                           loadingCls: KClass<*>, loadingDisabledViews: List<View>? = null, action: suspend (value: T) -> Unit) {
+suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+                                                           loadingCls: KClass<*>, onDestinationPop: () -> Unit,
+                                                           action: suspend (value: T) -> Unit) {
     collectLatest {
         Log.i("Extensions", "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}")
 
         navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
         val loading = loadingCls == it::class
-        loadingDisabledViews?.forEach { v ->
-            v.isVisible = !loading
-            v.requestLayout()
-        }
-
+        
         if(loading) {
             if(navController.currentDestination?.id != R.id.loadingFragment &&
                     navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null)
                             != null) {
+                navController.currentBackStackEntry?.savedStateHandle
+                    ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(lifecycleOwner, Observer { backed ->
+                        Log.i("Extensions", "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}")
+                        if(backed) {
+                            onDestinationPop()
+                        }
+                    })
                 navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
             }
             navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)

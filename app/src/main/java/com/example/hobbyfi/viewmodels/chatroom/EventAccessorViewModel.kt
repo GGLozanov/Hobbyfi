@@ -24,6 +24,11 @@ abstract class EventAccessorViewModel(
         override val _state: MutableStateFlow<EventState> = MutableStateFlow(EventState.Idle)
     }
 
+    // Gnaaaaaaaaaah, generic State...!!!!
+    fun resetState() {
+        mainStateIntent.setState(EventState.Idle)
+    }
+
     protected var _eventDate: Date? = null
     val eventDate get() = _eventDate
     var eventLatLng: LatLng? = null

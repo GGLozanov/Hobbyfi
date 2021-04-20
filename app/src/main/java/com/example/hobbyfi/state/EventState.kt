@@ -2,6 +2,7 @@ package com.example.hobbyfi.state
 
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.responses.Response
+import kotlinx.coroutines.flow.StateFlow
 
 sealed class EventState : State {
     object Idle : EventState()

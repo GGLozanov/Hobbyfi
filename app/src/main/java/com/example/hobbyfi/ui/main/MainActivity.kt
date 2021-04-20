@@ -148,9 +148,9 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     private fun observeUserState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(navController,
+            viewModel.mainState.collectLatestWithLoading(this@MainActivity, navController,
                     UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(R.id.userProfileFragment),
-                    UserState.Loading::class) {
+                    UserState.Loading::class, viewModel::resetState) {
                 when(it) {
                     is UserState.Idle, is UserState.OnData.UserResult -> {
 

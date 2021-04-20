@@ -62,12 +62,13 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
                 tagBundle.selectedTags
             )
 
+            // image uploaded by WorkManager (provided there is one),
+            // after which associated repo entity is modified in repo & refetched from SSOT on upload success
             val chatroom = Chatroom(
                 response!!.id,
                 name.value!!,
                 description.value,
-                if(base64Image.originalUri != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
-                        + "/" + response.id + ".jpg" else null,
+                null,
                 if(tagBundle.selectedTags.isEmpty()) null else tagBundle.selectedTags,
                 ownerId,
                 null

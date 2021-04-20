@@ -156,18 +156,32 @@ class ChatroomMessageListFragmentViewModel(
                     messageRepository.createMessage(chatroomSentId, message, base64Image)
                 )
 
-                saveNewMessage(
-                    Message(
-                        state.response!!.id,
-                        if(base64Image != null)
-                            (message ?: "") + " " + BuildConfig.BASE_URL + "uploads/" + Constants.chatroomMessagesProfileImageDir(
-                                chatroomSentId
-                            ) + "/" + state.response.id + ".jpg" else message!!,
-                        state.response.createTime,
-                        userSentId,
-                        chatroomSentId
+                if(base64Image == null) {
+                    saveNewMessage(
+                        Message(
+                            state.response!!.id,
+                            message!!,
+                            state.response.createTime,
+                            userSentId,
+                            chatroomSentId
+                        )
                     )
-                )
+                } else {
+                    Constants.getFirebaseStorageUrlForLocation(Constants.messageImageBucket(chatroomSentId, state.response!!.id.toString()),
+                        { link ->
+                        viewModelScope.launch {
+                            saveNewMessage(
+                                Message(
+                                    state.response.id, link,
+                                    state.response.createTime,
+                                    userSentId,
+                                    chatroomSentId
+                                )
+                            )
+                        }
+                    })
+                }
+
 
                 state
             } catch (ex: Exception) {

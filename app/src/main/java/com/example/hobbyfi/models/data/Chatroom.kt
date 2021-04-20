@@ -50,7 +50,10 @@ data class Chatroom(
                         .fromJson(value)
                 }
                 Constants.IMAGE -> {
-                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(id) + "/" + id + ".jpg"
+                    Constants.getFirebaseStorageUrlForLocation(Constants.chatroomImageBucket(this.id, this.id.toString()),
+                        { link ->
+                            photoUrl = link
+                        })
                 }
                 Constants.EVENT_IDS, Constants.EVENT_IDS + "[]" -> {
                     eventIds = Constants

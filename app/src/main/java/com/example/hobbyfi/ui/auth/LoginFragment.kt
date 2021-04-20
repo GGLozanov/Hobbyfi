@@ -159,9 +159,9 @@ class LoginFragment : AuthFragment() {
 
     private fun observeFacebookState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.facebookState.collectLatestWithLoading(navController,
+            viewModel.facebookState.collectLatestWithLoading(viewLifecycleOwner, navController,
                     LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
-                    FacebookState.Loading::class) {
+                    FacebookState.Loading::class, viewModel::resetFacebookState) {
                 when(it) {
                     is FacebookState.Idle -> {
 
@@ -200,7 +200,7 @@ class LoginFragment : AuthFragment() {
                         }
 
                         if(connectivityManager.isConnected()) {
-                            if (it.error != Constants.serverConnectionError) {
+                            if (it.error != Constants.serverConnectionError || it.error.contains("failed to connect to")) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                     viewModel.tagBundle.selectedTags.toTypedArray(),
@@ -210,6 +210,7 @@ class LoginFragment : AuthFragment() {
                                 navController.navigate(action)
                             }
                         }
+                        viewModel.resetFacebookState()
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -219,8 +220,9 @@ class LoginFragment : AuthFragment() {
 
     private fun observeTokenState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(navController,
-                    LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment), TokenState.Loading::class) {
+            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
+                    LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
+                    TokenState.Loading::class, viewModel::resetTokenState) {
                 when(it) {
                     is TokenState.Idle -> {
 
@@ -306,8 +308,7 @@ class LoginFragment : AuthFragment() {
                                                 viewModel.email.value,
                                                 profile.name,
                                                 null,
-                                                BuildConfig.BASE_URL + "uploads/" +
-                                                        Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                                null,
                                                 viewModel.tagBundle.selectedTags,
                                                 null,
                                                 null

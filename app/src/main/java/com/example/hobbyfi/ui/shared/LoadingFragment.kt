@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoadingBinding
@@ -27,6 +28,11 @@ class LoadingFragment : BaseFragment() {
     @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            Log.i("LoadingFragment", "onBackPressedDispatcher callback initiated")
+            navController.previousBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
+        }
+
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData(LOADING_KEY, false)
             ?.observe(viewLifecycleOwner, {
                 if(it) {
@@ -35,10 +41,12 @@ class LoadingFragment : BaseFragment() {
             })
         view.postDelayed({
             navController.popBackStack(loadingArgs.poptoId, false)
-        }, 15000) // timeout
+            navController.previousBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
+        }, 40000) // timeout
     }
 
     companion object {
         const val LOADING_KEY = "job_loading"
+        const val BACK_KEY = "back_press"
     }
 }

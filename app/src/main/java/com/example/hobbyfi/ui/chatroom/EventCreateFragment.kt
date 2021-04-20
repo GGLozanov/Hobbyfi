@@ -85,9 +85,9 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
 
     private fun observeEventState() {
         lifecycleScope.launch {
-            viewModel.mainState.collectLatestWithLoading(navController,
+            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
                     EventCreateFragmentDirections.actionGlobalLoadingNavGraph(R.id.eventCreateFragment),
-                    EventState.Loading::class) {
+                    EventState.Loading::class, viewModel::resetState) {
                 when(it) {
                     EventState.Idle -> {
 

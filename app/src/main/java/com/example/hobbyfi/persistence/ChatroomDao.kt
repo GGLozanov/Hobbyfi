@@ -34,4 +34,7 @@ abstract class ChatroomDao : BaseDao<Chatroom>() {
 
     @Query("SELECT * FROM chatrooms WHERE id = :id")
     abstract fun getChatroomById(id: Long): Flow<Chatroom?>
+
+    @Query("UPDATE chatrooms SET photoUrl = :photoUrl WHERE id = :id")
+    abstract suspend fun updateChatroomPhotoUrl(id: Long, photoUrl: String): Int
 }

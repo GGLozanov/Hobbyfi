@@ -21,4 +21,7 @@ abstract class EventDao : BaseDao<Event>() {
 
     @Query("DELETE FROM events")
     abstract suspend fun deleteEvents(): Int
+
+    @Query("UPDATE events SET photoUrl = :photoUrl WHERE id = :id")
+    abstract suspend fun updateEventPhotoUrl(id: Long, photoUrl: String): Int
 }

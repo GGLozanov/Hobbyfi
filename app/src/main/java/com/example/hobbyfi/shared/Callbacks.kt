@@ -153,41 +153,6 @@ object Callbacks {
         imm.hideSoftInputFromWindow(view?.windowToken, 0)
     }
 
-    fun subscribeToChatroomTopicByCurrentConnectivity(
-        block: (() -> Unit)?,
-        chatroomId: Long,
-        fcmTopicFallback: OnFailureListener,
-        connectivityManager: ConnectivityManager
-    ) {
-        val subscriptionTask = FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(chatroomId))
-            .addOnFailureListener(fcmTopicFallback)
-
-        if(!connectivityManager.isConnected()) {
-            block?.invoke()
-        } else {
-            subscriptionTask.addOnCompleteListener {
-                block?.invoke()
-            }
-        }
-    }
-
-    fun unsubscribeToChatroomTopicByCurrentConnectivity(
-        block: () -> Unit,
-        chatroomId: Long,
-        fcmTopicFallback: OnFailureListener,
-        connectivityManager: ConnectivityManager
-    ) {
-        val unsubscriptionTask = FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(chatroomId))
-            .addOnFailureListener(fcmTopicFallback)
-
-        if(!connectivityManager.isConnected()) {
-            block()
-        } else {
-            unsubscriptionTask.addOnCompleteListener {
-                block()
-            }
-        }
-    }
 
     @ExperimentalCoroutinesApi
     fun initDateTimeDatePickerDialog(

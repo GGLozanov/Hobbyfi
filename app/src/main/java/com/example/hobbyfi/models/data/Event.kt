@@ -52,8 +52,11 @@ data class Event(
                     description = value
                 }
                 Constants.PHOTO_URL -> {
-                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
-                    // no need to update it generally because it's always the same but we need to wake up observer and reload it?
+                    Constants.getFirebaseStorageUrlForLocation(Constants.eventImageBucket(this.id.toString()),
+                        { link ->
+                            photoUrl = link
+                        })
+                // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.DATE -> {
                     date = value!!

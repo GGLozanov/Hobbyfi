@@ -24,4 +24,7 @@ abstract class UserDao : BaseDao<User>() {
 
     @Query("SELECT chatroomIds FROM users WHERE id = :userId")
     abstract fun getUserChatroomIds(userId: Long): Flow<String>
+
+    @Query("UPDATE users SET photoUrl = :photoUrl WHERE id = :userId")
+    abstract suspend fun updateUserPhotoUrl(userId: Long, photoUrl: String): Int
 }

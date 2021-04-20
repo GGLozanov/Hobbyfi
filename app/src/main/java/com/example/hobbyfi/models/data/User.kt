@@ -5,6 +5,7 @@ import androidx.room.*
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
+import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
@@ -55,7 +56,10 @@ data class User(
                         .fromJson(value!!)
                 }
                 Constants.IMAGE -> {
-                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
+                    Constants.getFirebaseStorageUrlForLocation(Constants.userImageBucket(this.id.toString()),
+                        { link ->
+                            photoUrl = link
+                    })
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_IDS, Constants.CHATROOM_IDS + "[]" -> {

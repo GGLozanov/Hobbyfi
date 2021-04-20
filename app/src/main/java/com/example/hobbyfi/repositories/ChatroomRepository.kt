@@ -156,6 +156,13 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         }
     }
 
+    suspend fun setChatroomPhotoUrl(chatroomId: Long, photoUrl: String) {
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.chatroomDao().updateChatroomPhotoUrl(chatroomId, photoUrl)
+        }
+    }
+
     suspend fun deleteChatroomCache(chatroom: Chatroom): Boolean {
         Log.i("ChatroomRepository", "deleteChatroomCache -> deleting auth chatroom with owner id: ${chatroom.ownerId} and id: ${chatroom.id}")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)

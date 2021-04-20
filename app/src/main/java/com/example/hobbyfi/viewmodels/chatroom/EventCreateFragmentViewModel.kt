@@ -12,7 +12,10 @@ import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -53,20 +56,17 @@ class EventCreateFragmentViewModel(
                 chatroomId
             )
 
-            val event = Event(
+            EventState.OnData.EventCreateResult(Event(
                 response!!.id,
                 name.value!!,
                 description.value,
                 response.startDate,
                 parsedEventDate,
-                if(base64Image.originalUri != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(response.id)
-                        + "/" + response.id + ".jpg" else null,
+                null,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude,
                 chatroomId
-            )
-
-            EventState.OnData.EventCreateResult(event)
+            )) // image uploaded through WorkManager on success
         } catch(ex: CancellationException) {
             throw ex // swallow cancellation exceptions (request is performed successfully most of the time either way)
         } catch(ex: Exception) {

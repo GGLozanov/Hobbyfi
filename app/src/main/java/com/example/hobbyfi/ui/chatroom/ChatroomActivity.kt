@@ -529,9 +529,9 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUserState() {
         userStateCollectJob = lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(navController,
+            viewModel.mainState.collectLatestWithLoading(this@ChatroomActivity, navController,
                     ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(R.id.chatroomMessageListFragment),
-                    UserState.Loading::class) {
+                    UserState.Loading::class, viewModel::resetUserState) {
                 Log.i("ChatroomActivity", "Current UserState in Flow collect: ${it.toString()}")
                 when (it) {
                     is UserState.Idle -> {
@@ -576,9 +576,9 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeChatroomState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.chatroomState.collectLatestWithLoading(navController,
+            viewModel.chatroomState.collectLatestWithLoading(this@ChatroomActivity, navController,
                     ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(R.id.chatroomMessageListFragment),
-                    ChatroomState.Loading::class) {
+                    ChatroomState.Loading::class, viewModel::resetChatroomState) {
                 when (it) {
                     is ChatroomState.Idle, is ChatroomState.OnData.ChatroomResult -> {
 
