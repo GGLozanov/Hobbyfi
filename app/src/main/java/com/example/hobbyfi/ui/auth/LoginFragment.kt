@@ -191,8 +191,10 @@ class LoginFragment : AuthFragment() {
                         viewModel.resetFacebookState()
                     }
                     is FacebookState.Error -> {
-                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                            .show()
+                        if(it.error?.isBlank() == false) {
+                            Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
+                                .show()
+                        }
 
                         // don't log out if only the email couldn't have been fetched
                         if(!it.error.equals(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)) {
@@ -200,7 +202,8 @@ class LoginFragment : AuthFragment() {
                         }
 
                         if(connectivityManager.isConnected()) {
-                            if (it.error != Constants.serverConnectionError || it.error.contains("failed to connect to")) {
+                            if ((it.error?.isNotBlank() == true) &&
+                                it.error != Constants.serverConnectionError && !it.error.contains("failed to connect to") && !it.error.contains("Software connection caused")) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                     viewModel.tagBundle.selectedTags.toTypedArray(),

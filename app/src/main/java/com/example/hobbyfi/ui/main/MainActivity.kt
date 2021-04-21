@@ -18,6 +18,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
+import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
@@ -32,12 +33,16 @@ import com.facebook.login.LoginManager
 import io.socket.client.Socket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import org.json.JSONObject
 
 
 @ExperimentalCoroutinesApi
 class MainActivity : NavigationActivity(), OnAuthStateReset,
-        ServerSocketAccessor {
+        ServerSocketAccessor, ImageUploadContinuation {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
         AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
     })
@@ -98,6 +103,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
         )
+        EventBus.getDefault().register(this)
         Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
     }
 
@@ -332,6 +338,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
     override fun onStop() {
         disconnectServerSocket()
         super.onStop()
+        EventBus.getDefault().unregister(this)
     }
 
     override fun onDestroy() {
@@ -345,5 +352,16 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    override fun onImageUploadEvent(event: WorkerUtils.ImageUploadEvent) {
+        if(event.type == Constants.USERS || event.type == Constants.EDIT_USER_TYPE) {
+            lifecycleScope.launch {
+                viewModel.sendIntent(
+                    UserIntent.UpdateUserCache(mapOf(Constants.IMAGE to event.response))
+                )
+            }
+        }
     }
 }

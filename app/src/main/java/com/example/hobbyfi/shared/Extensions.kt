@@ -405,6 +405,7 @@ suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(lifecycleOwner: Lifec
             if(navController.currentDestination?.id != R.id.loadingFragment &&
                     navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null)
                             != null) {
+                navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
                 navController.currentBackStackEntry?.savedStateHandle
                     ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(lifecycleOwner, Observer { backed ->
                         Log.i("Extensions", "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}")
@@ -412,7 +413,6 @@ suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(lifecycleOwner: Lifec
                             onDestinationPop()
                         }
                     })
-                navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
             }
             navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
         } else action(it)

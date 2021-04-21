@@ -172,7 +172,9 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
             resultCode,
             data
         ) {
-            binding.chatroomInfo.chatroomImage.setImageBitmap(it)
+            Glide.with(requireContext())
+                .load(it)
+                .into(binding.chatroomInfo.chatroomImage)
             viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
         }
     }

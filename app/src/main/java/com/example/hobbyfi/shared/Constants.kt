@@ -284,9 +284,9 @@ object Constants {
     class ImageFetchException(message: String? = null) : Exception(message)
 
     val imageRegex = Regex(
-        "(${Regex.escape("https://storage.googleapis.com/")}|${Regex.escape(
+        "(${Regex.escape("https://storage.googleapis.com/${FirebaseStorage.getInstance().reference.bucket}")}|${Regex.escape(
             "https://firebasestorage.googleapis.com/v0/b/${FirebaseStorage.getInstance().reference.bucket}/o/")})" +
-                "[^.]+\\.jpg"
+                "[^.]+" + Regex.escape(".jpg") + ".*"
     )
 
     const val searchMessage: String = "searchMessage"

@@ -99,6 +99,7 @@ abstract class AuthUserHolderViewModel(
             )
         }.collect {
             if(it != null) {
+                Log.i("AuthUserHolderVM", "Collecting new non-null auth user: ${it}")
                 setUser(it)
                 mainStateIntent.setState(UserState.OnData.UserResult(it))
             }

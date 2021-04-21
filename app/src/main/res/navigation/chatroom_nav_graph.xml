@@ -66,8 +66,7 @@
             tools:layout="@layout/fragment_event_create"/>
         <action
             android:id="@+id/action_global_loading_nav_graph"
-            app:destination="@id/loading_nav_graph"
-            app:popUpTo="@id/event_create_navigation" >
+            app:destination="@id/loading_nav_graph" >
             <argument
                 android:name="poptoId"
                 app:argType="reference" />

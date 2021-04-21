@@ -56,10 +56,7 @@ data class User(
                         .fromJson(value!!)
                 }
                 Constants.IMAGE -> {
-                    Constants.getFirebaseStorageUrlForLocation(Constants.userImageBucket(this.id.toString()),
-                        { link ->
-                            photoUrl = link
-                    })
+                    photoUrl = value
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_IDS, Constants.CHATROOM_IDS + "[]" -> {

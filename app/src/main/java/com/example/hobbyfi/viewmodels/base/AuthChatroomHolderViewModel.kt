@@ -102,6 +102,7 @@ abstract class AuthChatroomHolderViewModel(
             )
         }.collect {
             if(it != null) {
+                Log.i("AuthChatroomHolderVM", "Collecting new non-null auth chatroom: ${it}")
                 setChatroom(it)
                 chatroomStateIntent.setState(ChatroomState.OnData.ChatroomResult(it))
             }

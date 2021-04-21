@@ -30,7 +30,7 @@ class LoadingFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         val callback = requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
             Log.i("LoadingFragment", "onBackPressedDispatcher callback initiated")
-            navController.previousBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
+            navController.currentBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
         }
 
         navController.currentBackStackEntry?.savedStateHandle?.getLiveData(LOADING_KEY, false)
@@ -41,7 +41,7 @@ class LoadingFragment : BaseFragment() {
             })
         view.postDelayed({
             navController.popBackStack(loadingArgs.poptoId, false)
-            navController.previousBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
+            navController.currentBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
         }, 40000) // timeout
     }
 

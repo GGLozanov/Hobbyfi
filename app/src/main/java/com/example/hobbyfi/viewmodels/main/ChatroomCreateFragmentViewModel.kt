@@ -58,7 +58,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
         mainStateIntent.setState(try {
             val response = chatroomRepository.createChatroom(
                 name.value!!,
-                description.value!!,
+                description.value,
                 tagBundle.selectedTags
             )
 

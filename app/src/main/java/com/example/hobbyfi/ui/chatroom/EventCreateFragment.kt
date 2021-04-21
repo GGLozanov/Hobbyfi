@@ -107,7 +107,10 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                         activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
                         Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
                             .show()
-                        navController.popBackStack(R.id.chatroomMessageListFragment, false)
+
+                        if(navController.currentDestination?.id == R.id.eventCreateFragment) {
+                            navController.popBackStack(R.id.chatroomMessageListFragment, false)
+                        }
                     }
                     is EventState.Error -> {
                         // TODO: Handle shouldReauth
