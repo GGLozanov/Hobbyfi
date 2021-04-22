@@ -39,6 +39,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
@@ -61,6 +64,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.navigation.NavigationView
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
+import com.google.firebase.storage.StorageReference
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
@@ -568,6 +574,23 @@ fun android.content.Intent.getEventIdsExtra(): List<Long> {
             Constants.EVENT_IDS
         )
     )!!
+}
+
+fun RequestManager.loadReferenceWithMetadataSignature(ref: StorageReference, metadata: StorageMetadata): RequestBuilder<Drawable> {
+    return load(ref)
+        .signature(ObjectKey(metadata.creationTimeMillis))
+}
+
+fun String.asFirebaseStorageReference(): StorageReference? {
+    return try {
+        FirebaseStorage.getInstance().getReferenceFromUrl(this)
+    } catch(ex: Exception) {
+        null
+    }
+}
+
+fun String.asFirebaseStorageReferenceEx(): StorageReference {
+    return FirebaseStorage.getInstance().getReferenceFromUrl(this)
 }
 
 fun ChipGroup.reinitChipsByTags(tags: List<Tag>?): Boolean {

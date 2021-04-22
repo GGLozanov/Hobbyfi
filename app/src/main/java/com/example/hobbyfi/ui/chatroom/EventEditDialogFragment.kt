@@ -67,11 +67,14 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
 
             val event: Event = requireArguments().getParcelable(Constants.EVENT)!!
             event.photoUrl?.let {
-                Glide.with(this@EventEditDialogFragment)
-                    .load(it)
-                    .placeholder(eventInfo.eventImage.drawable)
-                    .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time))) // TODO: Change
-                    .into(eventInfo.eventImage)
+                it.asFirebaseStorageReference()?.let { ref ->
+                    ref.metadata.addOnSuccessListener { metadata ->
+                        Glide.with(this@EventEditDialogFragment)
+                            .loadReferenceWithMetadataSignature(ref, metadata)
+                            .placeholder(eventInfo.eventImage.drawable)
+                            .into(eventInfo.eventImage)
+                    }
+                }
             }
 
             eventInfo.eventInfoButtonBar.leftButton.setOnClickListener {

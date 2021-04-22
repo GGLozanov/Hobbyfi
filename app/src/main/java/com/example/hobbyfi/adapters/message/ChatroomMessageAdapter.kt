@@ -21,6 +21,7 @@ import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.asFirebaseStorageReference
 import com.example.hobbyfi.utils.GlideUtils
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -167,8 +168,14 @@ abstract class ChatroomMessageAdapter(
         }
 
         protected open fun loadMessageImage(messageUrl: String, glide: RequestManager) {
-            glide
-                .load(messageUrl)
+            val reqManager = try {
+                glide
+                    .load(messageUrl.asFirebaseStorageReference())
+            } catch(ex: Exception) {
+                null
+            }
+
+            (reqManager ?: Glide.with(itemView.context).asDrawable())
                 .placeholder(R.drawable.ic_baseline_image_42)
                 .into(messageCardBinding.userImage)
         }

@@ -16,9 +16,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomUserBottomSheetDialogBinding
 import com.example.hobbyfi.intents.UserListIntent
 import com.example.hobbyfi.models.data.User
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.buildYesNoAlertDialog
-import com.example.hobbyfi.shared.reinitChipsByTags
+import com.example.hobbyfi.shared.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -62,13 +60,14 @@ class ChatroomUserBottomSheetDialogFragment : ChatroomBottomSheetDialogFragment(
             binding.user = it
 
             it?.photoUrl?.let { photoUrl ->
-                Glide.with(requireContext())
-                    .load(photoUrl)
-                    .placeholder(binding.userImage.drawable)
-                    .signature(
-                        ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time))
-                    )
-                    .into(binding.userImage)
+                photoUrl.asFirebaseStorageReference()?.let { ref ->
+                    ref.metadata.addOnSuccessListener { metadata ->
+                        Glide.with(requireContext())
+                            .loadReferenceWithMetadataSignature(ref, metadata)
+                            .placeholder(binding.userImage.drawable)
+                            .into(binding.userImage)
+                    }
+                }
             }
 
             binding.tagGroup.reinitChipsByTags(it?.tags)

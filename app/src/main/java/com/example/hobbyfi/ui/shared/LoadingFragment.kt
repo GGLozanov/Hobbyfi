@@ -7,11 +7,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoadingBinding
 import com.example.hobbyfi.ui.base.BaseFragment
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 class LoadingFragment : BaseFragment() {
 
@@ -39,10 +43,14 @@ class LoadingFragment : BaseFragment() {
                     navController.popBackStack(loadingArgs.poptoId, false)
                 }
             })
-        view.postDelayed({
+        viewLifecycleOwner.lifecycleScope.launchWhenResumed {
+            withContext(Dispatchers.IO) {
+                delay(40000)
+            }
+
             navController.popBackStack(loadingArgs.poptoId, false)
             navController.currentBackStackEntry?.savedStateHandle?.set(BACK_KEY, true)
-        }, 40000) // timeout
+        } // timeout
     }
 
     companion object {

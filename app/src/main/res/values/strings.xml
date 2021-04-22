@@ -14,15 +14,19 @@
     <string name="pref_last_user_fetch_time">com.example.preference_last_user_fetch_time</string>
     <string name="pref_last_user_image_fetch_time">com.example.preference_last_user_image_fetch_time</string>
     <string name="pref_last_events_fetch_time">com.example.preference_last_events_fetch_time</string>
+
     <string name="pref_last_chatrooms_fetch_time">com.example.preference_last_chatrooms_fetch_time</string>
     <string name="pref_last_chatroom_image_fetch_time">com.example.preference_last_chatroom_image_fetch_time</string>
+
     <string name="pref_last_chatroom_users_fetch_time">com.example.preference_last_chatroom_users_fetch_time</string>
     <string name="pref_last_chatroom_messages_fetch_time">com.example.preference_last_chatroom_messages_fetch_time</string>
+
     <string name="pref_chatroom_join_remember_navigate">com.example.preference_chatroom_join_remember_navigate</string>
     <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
     <string name="pref_requesting_location_updates">com.example.preference_requesting_location_updates</string>
     <string name="pref_restarted_from_chatroom_task_root">com.example.preference_restarted_from_chatroom_task_root</string>
     <string name="pref_request_location_service_running">com.example.preference_request_location_service_running</string>
+
     <string name="pref_first_app_boot">com.example.first_app_boot</string>
     <string name="pref_reached_bottom_messages_after_search">com.example.preference_reached_bottom_messages_after_search</string>
     <string name="pref_current_token_uploaded">com.example.preference_current_token_uploaded</string>

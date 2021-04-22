@@ -598,7 +598,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             try {
                                 ImageUtils.getEncodedImageFromUri(
                                     requireActivity().contentResolver,
-                                    it
+                                    it, ImageUtils.CompressType.MESSAGE_PICTURE
                                 )
                             } catch (ex: FileNotFoundException) {
                                 Toast.makeText(

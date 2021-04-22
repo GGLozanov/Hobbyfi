@@ -9,4 +9,10 @@
     <dimen name="peekHeight">150dp</dimen>
     <dimen name="columnSize">100dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="circle_pic_width">175dp</dimen>
+    <dimen name="circle_pic_height">135dp</dimen>
+
+    <dimen name="flat_pic_width">150dp</dimen>
+    <dimen name="flat_pic_height">150dp</dimen>
 </resources>

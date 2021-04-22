@@ -967,13 +967,14 @@ class ChatroomActivity : NavigationActivity(),
                 }
 
                 chatroom.photoUrl?.let {
-                    Glide.with(this@ChatroomActivity)
-                        .load(it)
-                        .placeholder(headerBinding.chatroomImage.drawable)
-                        .signature(
-                            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
-                        )
-                        .into(headerBinding.chatroomImage)
+                    it.asFirebaseStorageReference()?.let { ref ->
+                        ref.metadata.addOnSuccessListener { metadata ->
+                            Glide.with(this@ChatroomActivity)
+                                .loadReferenceWithMetadataSignature(ref, metadata)
+                                .placeholder(headerBinding.chatroomImage.drawable)
+                                .into(headerBinding.chatroomImage)
+                        }
+                    }
                 }
 
                 headerBinding.tagsViewButton.setOnClickListener {

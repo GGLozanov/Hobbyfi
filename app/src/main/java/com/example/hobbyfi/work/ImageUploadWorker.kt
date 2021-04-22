@@ -41,7 +41,9 @@ class ImageUploadWorker(
             val response = hobbyfiAPI.uploadImage(
                 authToken,
                 modelId,
-                ImageUtils.getEncodedImageFromUri(context.contentResolver, Uri.parse(image)),
+                ImageUtils.getEncodedImageFromUri(context.contentResolver,
+                    Uri.parse(image),
+                        ImageUtils.CompressType.PROFILE_PICTURE),
                 type,
                 chatroomId
             )

@@ -176,10 +176,12 @@ class LoginFragment : AuthFragment() {
                         } else {
                             viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserEmail)
                         }
+                        viewModel.resetFacebookState()
                     }
                     is FacebookState.OnData.EmailReceived -> {
                         it.email?.let { it1 -> viewModel.email.setValue(it1) }
                         viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
+                        viewModel.resetFacebookState()
                     }
                     is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
                         val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(

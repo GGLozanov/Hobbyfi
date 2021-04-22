@@ -29,13 +29,10 @@ import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.models.data.UserGeoPoint
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.combineWith
 import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.example.hobbyfi.models.data.User
-import com.example.hobbyfi.shared.isConnected
-import com.example.hobbyfi.shared.setParamsBasedOnScreenOrientation
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
 import com.example.hobbyfi.ui.base.DeviceRotationViewAware
@@ -332,11 +329,14 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     viewModel.setEvent(it)
                     binding.executePendingBindings()
                     it.photoUrl?.let { photoUrl ->
-                        Glide.with(requireContext())
-                            .load(photoUrl)
-                            .placeholder(binding.eventImage.drawable)
-                            .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time))) // TODO: Change
-                            .into(binding.eventImage)
+                        photoUrl.asFirebaseStorageReference()?.let { ref ->
+                            ref.metadata.addOnSuccessListener { metadata ->
+                                Glide.with(requireContext())
+                                    .loadReferenceWithMetadataSignature(ref, metadata)
+                                    .placeholder(binding.eventImage.drawable)
+                                    .into(binding.eventImage)
+                            }
+                        }
                     }
                     setCalendarDateData()
                     map?.let { m -> setMapsData(m) }

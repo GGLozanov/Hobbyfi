@@ -15,7 +15,8 @@
             app:destination="@id/mainActivity" />
         <action
             android:id="@+id/action_loginFragment_to_tag_nav_graph"
-            app:destination="@id/tag_nav_graph" >
+            app:destination="@id/tag_nav_graph"
+            app:popUpTo="@id/loginFragment">
             <argument
                 android:name="selectedTags"
                 app:argType="com.example.hobbyfi.models.data.Tag[]" />

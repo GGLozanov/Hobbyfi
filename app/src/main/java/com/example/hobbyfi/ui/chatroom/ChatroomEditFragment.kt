@@ -17,10 +17,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomEditBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.data.Tag
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
-import com.example.hobbyfi.shared.ViewReverseEnablerObserver
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.WorkerUtils
@@ -110,13 +107,15 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                     }
 
                     if (it.photoUrl != null) {
-                        Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
-                        Glide.with(this@ChatroomEditFragment).load(
-                            it.photoUrl!!
-                        ).signature(
-                            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
-                        ).placeholder(chatroomInfo.chatroomImage.drawable)
-                        .into(chatroomInfo.chatroomImage)
+                        Log.i("ChatroomEditFragment", "User photo url: ${it.photoUrl}")
+                        it.photoUrl!!.asFirebaseStorageReference()?.let { ref ->
+                            ref.metadata.addOnSuccessListener { metadata ->
+                                Glide.with(this@ChatroomEditFragment).loadReferenceWithMetadataSignature(
+                                    ref, metadata
+                                ).placeholder(chatroomInfo.chatroomImage.drawable)
+                                    .into(chatroomInfo.chatroomImage)
+                            }
+                        }
                     } else {
                         // load default img (needed if image deletion is added because image will be sent null/"0" or whatever)
                     }

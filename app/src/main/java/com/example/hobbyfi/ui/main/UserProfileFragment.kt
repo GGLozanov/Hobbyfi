@@ -197,12 +197,15 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 if (it.photoUrl != null) {
                     Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
-                    Glide.with(requireContext()).load(
-                        it.photoUrl!!
-                    ).signature(
-                        ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time))
-                    ).placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
-                        .into(binding.profileImage)
+                    it.photoUrl!!.asFirebaseStorageReference()?.let { ref ->
+                        ref.metadata.addOnSuccessListener { metadata ->
+                            Log.i("UserProfileFragment", "metadata create time: ${metadata.creationTimeMillis}")
+                            Glide.with(requireContext()).loadReferenceWithMetadataSignature(
+                                ref, metadata
+                            ).placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
+                                .into(binding.profileImage)
+                        }
+                    }
                 } else {
                     // load default img (needed if img deletion is added)
                 }
