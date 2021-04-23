@@ -154,9 +154,11 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     private fun observeUserState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(this@MainActivity, navController,
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(UserState.Idle::class, UserState.OnData.UserResult::class),
+                    viewModel::resetState,
+                    this@MainActivity, navController,
                     UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(R.id.userProfileFragment),
-                    UserState.Loading::class, viewModel::resetState) {
+                    UserState.Loading::class) {
                 when(it) {
                     is UserState.Idle, is UserState.OnData.UserResult -> {
 
@@ -188,6 +190,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                         if (hasJoinedChatroom || hasLeftChatroom) {
                             // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
                             lateinit var userChatroomFields: Map<String, String?>
+
                             if (hasJoinedChatroom) {
                                 userChatroomFields = mapOf(
                                     Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
@@ -198,6 +201,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                                 viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                                 viewModel.setJoinedChatroom(hasJoinedChatroom)
                             }
+
                             if (hasLeftChatroom) {
                                 userChatroomFields = mapOf(
                                     Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
@@ -224,7 +228,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                                 Toast.LENGTH_LONG
                             ).show()
                         }
-                        viewModel.resetState()
+
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                     is UserState.Error -> {
@@ -236,7 +240,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                         if (it.shouldReauth) {
                             logout()
                         }
-                        viewModel.resetState()
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                 }

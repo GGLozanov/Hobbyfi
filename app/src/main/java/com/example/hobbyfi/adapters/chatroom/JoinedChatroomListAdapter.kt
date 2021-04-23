@@ -20,7 +20,7 @@ import com.google.android.material.button.MaterialButton
 
 class JoinedChatroomListAdapter(
     onJoinChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
-    onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit),
+    onTagsViewButton: (view: View, chatroom: Chatroom) -> Unit,
     private inline val onLeaveChatroomButton: ((view: View, chatroom: Chatroom) -> Unit)? = null,
     private var _userOwnedChatroomIds: MutableList<Long> = mutableListOf()
 ) : BaseChatroomListAdapter<JoinedChatroomListAdapter.JoinedChatroomListViewHolder>(onJoinChatroomButton, onTagsViewButton) {

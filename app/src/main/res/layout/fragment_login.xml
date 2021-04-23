@@ -154,19 +154,51 @@
                 </androidx.appcompat.widget.LinearLayoutCompat>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <View
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/divider"
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginLeft="20dp"
-                android:layout_marginEnd="20dp"
-                android:layout_marginRight="20dp"
-                android:background="@color/cardview_light_background"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="1"
                 app:layout_constraintBottom_toTopOf="@id/facebook_button"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/main_login_form" />
+                app:layout_constraintTop_toBottomOf="@id/main_login_form"
+                app:layout_constraintVertical_bias="0.0">
+
+                <View
+                    android:id="@+id/divider_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="2dp"
+                    android:layout_weight="0.3"
+                    android:background="@color/cardview_light_background"
+                    app:layout_constraintBottom_toTopOf="@id/facebook_button"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/main_login_form" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/or"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="5dp"
+                    android:text="@string/or"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:id="@+id/divider_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="2dp"
+                    android:layout_weight="0.3"
+                    android:background="@color/cardview_light_background" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
             <com.facebook.login.widget.LoginButton
                 android:id="@+id/facebook_button"

@@ -554,12 +554,12 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUserState() {
         userStateCollectJob = lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(UserState.Idle::class), viewModel::resetUserState,
                 this@ChatroomActivity, navController,
                 ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
                     R.id.chatroomMessageListFragment
                 ),
-                UserState.Loading::class, viewModel::resetUserState
+                UserState.Loading::class
             ) {
                 Log.i("ChatroomActivity", "Current UserState in Flow collect: ${it.toString()}")
                 when (it) {
@@ -586,13 +586,11 @@ class ChatroomActivity : NavigationActivity(),
                                 ).show()
                                 leaveChatroom(sendExtrasBack = true)
                             }
-                            viewModel.resetUserState()
                         }
                     }
                     is UserState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldReauth) {
                             handleAuthActionableError(it.error, true, it.shouldReauth)
-                            viewModel.resetUserState()
                         }
                     }
                     else -> throw State.InvalidStateException()
@@ -605,12 +603,13 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeChatroomState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.chatroomState.collectLatestWithLoading(
+            viewModel.chatroomState.collectLatestWithLoadingAndNonIdleReset(
+                listOf(ChatroomState.Idle::class, ChatroomState.OnData.ChatroomResult::class), viewModel::resetChatroomState,
                 this@ChatroomActivity, navController,
                 ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
                     R.id.chatroomMessageListFragment
                 ),
-                ChatroomState.Loading::class, viewModel::resetChatroomState
+                ChatroomState.Loading::class
             ) {
                 when (it) {
                     is ChatroomState.Idle, is ChatroomState.OnData.ChatroomResult -> {
@@ -623,7 +622,6 @@ class ChatroomActivity : NavigationActivity(),
                             Toast.LENGTH_LONG
                         ).show()
                         leaveDeletedChatroom()
-                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
                         Toast.makeText(
@@ -633,7 +631,6 @@ class ChatroomActivity : NavigationActivity(),
                             Toast.LENGTH_LONG
                         ).show()
                         leaveDeletedChatroom()
-                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
                         if (it.fieldMap.containsKey(Constants.IMAGE)) {
@@ -652,12 +649,10 @@ class ChatroomActivity : NavigationActivity(),
                             "Successfully updated chatroom!",
                             Toast.LENGTH_LONG
                         ).show()
-                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldExit) {
                             handleAuthActionableError(it.error, true, it.shouldExit)
-                            viewModel.resetChatroomState()
                         }
                     }
                     else -> throw State.InvalidStateException()

@@ -398,32 +398,67 @@ fun Fragment.findLoadingDestinationAwareNavController(): NavController {
     return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
 }
 
+suspend fun<T: Any> StateFlow<T>.collectLatestWithNonIdleReset(idleClsses: List<KClass<*>>, reset: () -> Unit,
+                                                               action: suspend (value: T) -> Unit) {
+    collectLatest {
+        action(it)
+
+        Log.i("Extensions", "${it::class.simpleName} is in ${idleClsses.map { cl -> cl.simpleName } }? ${idleClsses.contains(it::class)}")
+        if(!idleClsses.contains(it::class)) {
+            reset()
+        }
+    }
+}
+
+private suspend fun<T : Any> StateFlow<T>.parseLatestWithLoading(it: T,
+    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+    loadingCls: KClass<*>, onDestinationPop: () -> Unit,
+    action: suspend (value: T) -> Unit
+) {
+    Log.i("Extensions", "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}")
+
+    navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
+    val loading = loadingCls == it::class
+
+    if(loading) {
+        if(navController.currentDestination?.id != R.id.loadingFragment &&
+            navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null)
+            != null) {
+            navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
+            navController.currentBackStackEntry?.savedStateHandle
+                ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(lifecycleOwner, Observer { backed ->
+                    Log.i("Extensions", "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}")
+                    if(backed) {
+                        onDestinationPop()
+                    }
+                })
+        }
+        navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
+    } else action(it)
+}
+
 suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
                                                            loadingCls: KClass<*>, onDestinationPop: () -> Unit,
                                                            action: suspend (value: T) -> Unit) {
     collectLatest {
         Log.i("Extensions", "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}")
 
-        navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
-        val loading = loadingCls == it::class
-        
-        if(loading) {
-            if(navController.currentDestination?.id != R.id.loadingFragment &&
-                    navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null)
-                            != null) {
-                navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
-                navController.currentBackStackEntry?.savedStateHandle
-                    ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(lifecycleOwner, Observer { backed ->
-                        Log.i("Extensions", "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}")
-                        if(backed) {
-                            onDestinationPop()
-                        }
-                    })
-            }
-            navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
-        } else action(it)
+        parseLatestWithLoading(it, lifecycleOwner, navController,
+            defaultActionId, loadingCls, onDestinationPop, action)
     }
 }
+
+suspend fun<T : Any> StateFlow<T>.collectLatestWithLoadingAndNonIdleReset(idleClsses: List<KClass<*>>, reset: () -> Unit,
+                                                    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+                                                    loadingCls: KClass<*>,
+                                                    action: suspend (value: T) -> Unit) {
+    // onDestinationPop == reset here
+    collectLatestWithNonIdleReset(idleClsses + listOf(loadingCls), reset) {
+        parseLatestWithLoading(it, lifecycleOwner, navController, defaultActionId,
+            loadingCls, reset, action)
+    }
+}
+
 
 fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
     observe(lifecycleOwner, object : Observer<T> {

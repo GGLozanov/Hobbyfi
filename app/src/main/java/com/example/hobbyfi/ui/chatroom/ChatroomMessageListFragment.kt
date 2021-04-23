@@ -338,7 +338,8 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     private fun observeMessageState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.messageState.collectLatest {
+            viewModel.messageState.collectLatestWithNonIdleReset(
+                    listOf(MessageState.Idle::class, MessageState.Loading::class), viewModel::resetMessageState) {
                 when(it) {
                     is MessageState.Idle -> {
 
@@ -354,11 +355,9 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             Constants.ID to activityViewModel.authUser.value?.id,
                             Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
                         ))) // stop typing
-                        viewModel.resetMessageState()
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
                         binding.cancelHeader.callOnClick()
-                        viewModel.resetMessageState()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
                         Toast.makeText(
@@ -366,7 +365,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             "Successfully deleted message!",
                             Toast.LENGTH_LONG
                         ).show()
-                        viewModel.resetMessageState()
                     }
                     is MessageState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
@@ -374,7 +372,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             it.shouldExit,
                             context = requireContext()
                         )
-                        viewModel.resetMessageState()
                     }
                 }
             }

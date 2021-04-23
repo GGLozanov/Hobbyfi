@@ -80,9 +80,10 @@ class RegisterFragment : AuthFragment() {
         }
 
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(TokenState.Idle::class),
+                        viewModel::resetTokenState, viewLifecycleOwner, navController,
                     RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(R.id.registerFragment),
-                    TokenState.Loading::class, viewModel::resetTokenState) {
+                    TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
                     }
@@ -122,7 +123,6 @@ class RegisterFragment : AuthFragment() {
                             it.token?.jwt,
                             it.token?.refreshJwt
                         )
-                        viewModel.resetTokenState()
                     }
                     else -> throw State.InvalidStateException()
                 }

@@ -159,9 +159,10 @@ class LoginFragment : AuthFragment() {
 
     private fun observeFacebookState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.facebookState.collectLatestWithLoading(viewLifecycleOwner, navController,
+            viewModel.facebookState.collectLatestWithLoadingAndNonIdleReset(listOf(FacebookState.Idle::class),
+                        viewModel::resetFacebookState, viewLifecycleOwner, navController,
                     LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
-                    FacebookState.Loading::class, viewModel::resetFacebookState) {
+                    FacebookState.Loading::class) {
                 when(it) {
                     is FacebookState.Idle -> {
 
@@ -225,9 +226,10 @@ class LoginFragment : AuthFragment() {
 
     private fun observeTokenState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(TokenState.Idle::class),
+                        viewModel::resetTokenState, viewLifecycleOwner, navController,
                     LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
-                    TokenState.Loading::class, viewModel::resetTokenState) {
+                    TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
@@ -247,7 +249,6 @@ class LoginFragment : AuthFragment() {
                                     .show() // means we've simply entered incorrect info for the normal login or something else is wrong
                             }
                         }
-                        viewModel.resetTokenState()
                     }
                     is TokenState.TokenReceived -> {
                         Log.i("LoginFragment", "${navController.currentBackStackEntry}")
@@ -259,7 +260,6 @@ class LoginFragment : AuthFragment() {
                             it.token?.jwt,
                             it.token?.refreshJwt,
                         )
-                        viewModel.resetTokenState()
                     }
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
@@ -323,7 +323,6 @@ class LoginFragment : AuthFragment() {
                                 }
                             }
                         }
-                        viewModel.resetTokenState()
                     }
                     else -> throw State.InvalidStateException()
                 }

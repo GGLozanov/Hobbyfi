@@ -13,10 +13,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentResetPasswordBinding
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
-import com.example.hobbyfi.shared.ViewReverseEnablerObserver
-import com.example.hobbyfi.shared.collectLatestWithLoading
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.auth.ResetPasswordFragmentViewModel
@@ -64,9 +61,11 @@ class ResetPasswordFragment : AuthFragment() {
     @ExperimentalCoroutinesApi
     private fun observeResetPasswordState() {
         lifecycleScope.launch {
-            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(TokenState.Idle::class),
+                    viewModel::resetTokenState,
+                viewLifecycleOwner, navController,
                     ResetPasswordFragmentDirections.actionResetPasswordFragmentToLoadingNavGraph(
-                        R.id.resetPasswordFragment), TokenState.Loading::class, viewModel::resetTokenState) {
+                        R.id.resetPasswordFragment), TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
@@ -74,7 +73,6 @@ class ResetPasswordFragment : AuthFragment() {
                     is TokenState.ResetPasswordSuccess -> {
                         Toast.makeText(requireContext(), "Successfully sent password reset e-mail!", Toast.LENGTH_LONG)
                             .show()// TODO: Reformat to actual message in fragment
-                        viewModel.resetTokenState()
                         navController.popBackStack()
                     }
                     is TokenState.Error -> {
@@ -96,7 +94,6 @@ class ResetPasswordFragment : AuthFragment() {
                             else -> Toast.makeText(requireContext(), Constants.emailSendFail, Toast.LENGTH_LONG)
                                 .show()// TODO: Reformat to actual message in fragment
                         }
-                        viewModel.resetTokenState()
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

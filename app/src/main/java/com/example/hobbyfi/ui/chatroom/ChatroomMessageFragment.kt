@@ -9,6 +9,7 @@ import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageAdapter
 import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.collectLatestWithNonIdleReset
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageViewModel
@@ -40,7 +41,10 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
     @ExperimentalPagingApi
     protected fun observeMessagesState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collectLatest {
+            viewModel.mainState.collectLatestWithNonIdleReset(
+                listOf(MessageListState.Idle::class, MessageListState.OnData.MessagesResult::class),
+                viewModel::resetMessageListState
+            ) {
                 when(it) {
                     is MessageListState.Idle -> {
 
@@ -79,7 +83,6 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                             shouldExit = it.shouldExit,
                             context = requireContext()
                         ) // TODO: Might make this a bit too coupled to the activity. . .
-                        viewModel.resetMessageListState()
                     }
                 }
             }

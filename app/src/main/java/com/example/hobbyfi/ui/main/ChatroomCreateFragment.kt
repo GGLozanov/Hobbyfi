@@ -79,9 +79,11 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         }
 
         lifecycleScope.launch {
-            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(ChatroomState.Idle::class),
+                    viewModel::resetState,
+                    viewLifecycleOwner, navController,
                     ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(R.id.chatroomCreateFragment),
-                    ChatroomState.Loading::class, viewModel::resetState) {
+                    ChatroomState.Loading::class) {
                 when(it) {
                     is ChatroomState.Idle -> {
 
@@ -112,7 +114,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                             activityViewModel.authUser.value,
                             it.response
                         ))
-                        viewModel.resetState()
                     }
                     is ChatroomState.Error -> {
                         Toast.makeText(context, it.error, Toast.LENGTH_LONG)
