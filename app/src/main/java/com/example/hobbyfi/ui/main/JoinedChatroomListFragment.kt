@@ -12,6 +12,7 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractListFromCurrentPagingData
+import com.example.hobbyfi.shared.safeNavigate
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -127,7 +128,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomJListFragment", "Navigating to ChatroomActivity. Chatroom selected: ${viewModel.buttonSelectedChatroom}")
-        navController.navigate(
+        navController.safeNavigate(
             JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomActivity(
                 activityViewModel.authUser.value,
                 viewModel.buttonSelectedChatroom,
@@ -137,7 +138,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
     }
 
     override fun navigateToChatroomCreate() {
-        navController.navigate(
+        navController.safeNavigate(
             JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomCreateNavGraph(
                 activityViewModel.authUser.value!!
             )

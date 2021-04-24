@@ -62,7 +62,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         super.onViewCreated(view, savedInstanceState)
         with(binding) {
             chatroomInfo.buttonBar.leftButton.setOnClickListener { // tag select button
-                navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToTagNavGraph(
+                navController.safeNavigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToTagNavGraph(
                     viewModel!!.tagBundle.selectedTags.toTypedArray(),
                     viewModel!!.tagBundle.tags.toTypedArray(),
                 ))
@@ -110,7 +110,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
 
                         activityViewModel.setJoinedChatroom(true)
                         prefConfig.writeLastEnteredChatroomId(it.response.id)
-                        navController.navigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
+                        navController.safeNavigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
                             activityViewModel.authUser.value,
                             it.response
                         ))

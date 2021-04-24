@@ -13,6 +13,7 @@ import com.example.hobbyfi.databinding.DialogNoRemindBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractListFromCurrentPagingData
+import com.example.hobbyfi.shared.safeNavigate
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -139,7 +140,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
-        navController.navigate(
+        navController.safeNavigate(
             ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
                 activityViewModel.authUser.value,
                 viewModel.buttonSelectedChatroom,
@@ -149,7 +150,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
     }
 
     override fun navigateToChatroomCreate() {
-        navController.navigate(
+        navController.safeNavigate(
             ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
                 activityViewModel.authUser.value!!
             ))

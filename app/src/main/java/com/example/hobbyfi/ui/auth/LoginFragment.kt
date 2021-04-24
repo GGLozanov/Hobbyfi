@@ -81,7 +81,7 @@ class LoginFragment : AuthFragment() {
 
         with(binding) {
             resetPasswordSubtitle.setOnClickListener {
-                navController.navigate(R.id.action_loginFragment_to_resetPasswordFragment)
+                navController.safeNavigate(R.id.action_loginFragment_to_resetPasswordFragment)
             }
         }
 
@@ -190,7 +190,7 @@ class LoginFragment : AuthFragment() {
                             viewModel.tagBundle.tags
                                 .toTypedArray() + it.tags
                         )
-                        navController.navigate(action)
+                        navController.safeNavigate(action)
                         viewModel.resetFacebookState()
                     }
                     is FacebookState.Error -> {
@@ -213,7 +213,7 @@ class LoginFragment : AuthFragment() {
                                     viewModel.tagBundle.tags
                                         .toTypedArray()
                                 )
-                                navController.navigate(action)
+                                navController.safeNavigate(action)
                             }
                         }
                         viewModel.resetFacebookState()

@@ -91,11 +91,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             if (!Constants.isFacebookUserAuthd()) {
                 authButtonBar.leftButton.setOnClickListener { // change email button
-                    navController.navigate(R.id.action_global_changeEmailDialogFragment)
+                    navController.safeNavigate(R.id.action_global_changeEmailDialogFragment)
                 }
 
                 authButtonBar.rightButton.setOnClickListener { // change password button
-                    navController.navigate(R.id.action_global_changePasswordDialogFragment)
+                    navController.safeNavigate(R.id.action_global_changePasswordDialogFragment)
                 }
             } else {
                 authButtonBar.leftButton.visibility = View.GONE
@@ -107,7 +107,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.tagBundle.selectedTags.toTypedArray(),
                     viewModel!!.tagBundle.tags.toTypedArray()
                 )
-                navController.navigate(action)
+                navController.safeNavigate(action)
             }
 
             lifecycleScope.launch {

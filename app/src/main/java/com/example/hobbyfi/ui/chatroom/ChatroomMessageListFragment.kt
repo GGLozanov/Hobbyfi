@@ -81,7 +81,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 return@ChatroomMessageListAdapter true
             },
         ) { messageUrl ->
-            navController.navigate(
+            navController.safeNavigate(
                 ChatroomMessageListFragmentDirections
                     .actionChatroomMessageListFragmentToImageViewFragment(messageUrl)
             )

@@ -887,7 +887,7 @@ class ChatroomActivity : NavigationActivity(),
                     val deepLinkedEvent = it.find { event -> event.id == eventId }
                     if (deepLinkedEvent != null) {
                         if (supportFragmentManager.currentNavigationFragment !is EventDetailsFragment) {
-                            navController.navigate(
+                            navController.safeNavigate(
                                 ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToEventDetailsFragment(
                                     deepLinkedEvent
                                 )
@@ -1214,7 +1214,7 @@ class ChatroomActivity : NavigationActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_search -> {
-                navController.navigate(R.id.action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment)
+                navController.safeNavigate(R.id.action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment)
             }
             R.id.action_info -> {
                 binding.drawerLayout.openDrawer(GravityCompat.END)

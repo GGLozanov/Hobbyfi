@@ -76,7 +76,7 @@ class RegisterFragment : AuthFragment() {
                 viewModel.tagBundle.selectedTags.toTypedArray(),
                 viewModel.tagBundle.tags.toTypedArray()
             )
-            navController.navigate(action)
+            navController.safeNavigate(action)
         }
 
         lifecycleScope.launchWhenCreated {

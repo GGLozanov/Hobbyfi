@@ -14,6 +14,7 @@ import com.example.hobbyfi.adapters.tag.TagSelectionListAdapter
 import com.example.hobbyfi.databinding.FragmentTagSelectionBinding
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
+import com.example.hobbyfi.shared.safeNavigate
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionFragmentViewModel
@@ -83,7 +84,7 @@ class TagSelectionFragment : BaseFragment() {
                             .show()
                         return@setOnClickListener
                     }
-                    navController.navigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)
+                    navController.safeNavigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)
                 }
             } else {
                 binding.customTagCreateButton.visibility = View.GONE // can't create custom tags in editing/other places

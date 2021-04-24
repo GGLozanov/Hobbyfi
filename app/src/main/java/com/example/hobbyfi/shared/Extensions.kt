@@ -20,6 +20,7 @@ import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
 import androidx.annotation.DrawableRes
+import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -33,6 +34,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.lifecycle.*
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -422,9 +424,8 @@ private suspend fun<T : Any> StateFlow<T>.parseLatestWithLoading(it: T,
 
     if(loading) {
         if(navController.currentDestination?.id != R.id.loadingFragment &&
-            navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null)
-            != null) {
-            navController.navigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
+            navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null) != null) {
+            navController.safeNavigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
             navController.currentBackStackEntry?.savedStateHandle
                 ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(lifecycleOwner, Observer { backed ->
                     Log.i("Extensions", "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}")
@@ -467,6 +468,22 @@ fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observ
             removeObserver(this)
         }
     })
+}
+
+fun NavController.safeNavigate(@IdRes idRes: Int) {
+    val action = currentDestination?.getAction(idRes) ?: return
+
+    if(currentDestination?.id != action.destinationId) {
+        navigate(idRes)
+    }
+}
+
+fun NavController.safeNavigate(direction: NavDirections) {
+    val action = currentDestination?.getAction(direction.actionId) ?: return
+
+    if(currentDestination?.id != action.destinationId) {
+        navigate(direction)
+    }
 }
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho

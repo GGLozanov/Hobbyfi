@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentAuthWrapperBinding
+import com.example.hobbyfi.shared.safeNavigate
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.auth.AuthActivityViewModel
 
@@ -26,11 +27,11 @@ class AuthWrapperFragment : BaseFragment() {
 
         with(binding) {
             signUpButton.setOnClickListener {
-                navController.navigate(R.id.action_authWrapperFragment_to_registerFragment)
+                navController.safeNavigate(R.id.action_authWrapperFragment_to_registerFragment)
             }
 
             loginButton.setOnClickListener {
-                navController.navigate(R.id.action_authWrapperFragment_to_loginFragment)
+                navController.safeNavigate(R.id.action_authWrapperFragment_to_loginFragment)
             }
 
             appNameHeader.text = SpannableString(getString(R.string.app_name)).apply {

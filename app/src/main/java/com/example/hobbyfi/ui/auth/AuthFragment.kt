@@ -5,6 +5,7 @@ import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavDirections
 import com.example.hobbyfi.R
+import com.example.hobbyfi.shared.safeNavigate
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.ui.base.OnAuthStateChanged
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
@@ -48,7 +49,7 @@ abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInput
                 navController.popBackStack()
             }
 
-            navController.navigate(action)
+            navController.safeNavigate(action)
         }
     }
 

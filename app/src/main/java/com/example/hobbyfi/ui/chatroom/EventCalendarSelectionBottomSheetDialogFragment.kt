@@ -18,6 +18,7 @@ import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.safeNavigate
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
@@ -51,7 +52,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
             { v: View, event: Event ->
                 v.isEnabled = false
 
-                navController.navigate(
+                navController.safeNavigate(
                     ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToEventDetailsFragment(
                         event
                     )

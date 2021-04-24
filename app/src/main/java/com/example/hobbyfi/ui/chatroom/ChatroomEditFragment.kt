@@ -135,7 +135,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
         })
 
         binding.chatroomInfo.buttonBar.leftButton.setOnClickListener {
-            navController.navigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
+            navController.safeNavigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
                 viewModel.tagBundle.selectedTags.toTypedArray(),
                 viewModel.tagBundle.tags.toTypedArray()
             ))
