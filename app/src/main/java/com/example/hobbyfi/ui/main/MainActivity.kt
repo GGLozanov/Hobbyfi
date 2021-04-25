@@ -164,11 +164,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
                     }
                     is UserState.OnData.UserDeleteResult -> {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Successfully deleted account!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showSuccessSnackbar(getString(R.string.delete_account_success))
                         logout()
                     }
                     is UserState.OnData.UserUpdateResult -> {
@@ -222,21 +218,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                             viewModel.sendIntent(
                                 UserIntent.UpdateUserCache(it.userFields)
                             )
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Successfully updated fields!",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            binding.root.showSuccessSnackbar(getString(R.string.update_fields_success))
                         }
 
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                     is UserState.Error -> {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Something went wrong! ${it.error}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showFailureSnackbar(getString(R.string.something_wrong) + " $it.error")
                         if (it.shouldReauth) {
                             logout()
                         }

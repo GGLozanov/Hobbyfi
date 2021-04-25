@@ -16,6 +16,7 @@ import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.shared.showDistinctDialog
+import com.example.hobbyfi.shared.showWarningSnackbar
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -71,8 +72,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
                             activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEvents)
                         }
                     } else {
-                        Toast.makeText(requireContext(), "No old events to delete!", Toast.LENGTH_LONG)
-                            .show()
+                        view?.showWarningSnackbar(getString(R.string.no_old_event_delete))
                     }
                     dialogInterface.dismiss()
                 },

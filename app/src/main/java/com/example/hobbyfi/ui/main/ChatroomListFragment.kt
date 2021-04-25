@@ -14,6 +14,7 @@ import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractListFromCurrentPagingData
 import com.example.hobbyfi.shared.safeNavigate
+import com.example.hobbyfi.shared.showFailureSnackbar
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -39,7 +40,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                             val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
                             val dialog = AlertDialog.Builder(requireContext())
                                 .setView(dialogBinding.root)
-                                .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
+                                .setPositiveButton(getString(R.string.take_me_there)) { dialogInterface: DialogInterface, _: Int ->
                                     prefConfig.writeChatroomJoinRememberNavigate(
                                         if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
                                         else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
@@ -48,7 +49,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                     dialogInterface.dismiss()
                                     navigateToChatroomPerDeepLinkExtras()
                                 }
-                                .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
+                                .setNegativeButton(getString(R.string.no_please)) { dialogInterface: DialogInterface, _: Int ->
                                     prefConfig.writeChatroomJoinRememberNavigate(
                                         if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
                                         else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
@@ -128,8 +129,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                             (requireActivity() as MainActivity).logout()
                         }
 
-                        Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG)
-                            .show()
+                        view?.showFailureSnackbar(state.error ?: getString(R.string.something_wrong))
                     }
                 }
             }

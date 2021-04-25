@@ -306,7 +306,7 @@ class NotificationMessagingService : FirebaseMessagingService(), LifecycleObserv
                             R.color.colorBackground
                         )
                         setContentTitle(pushTitle)
-                        setContentText(Constants.tapToViewImage)
+                        setContentText(getString(R.string.tap_to_view_image))
                         priority = NotificationCompat.PRIORITY_DEFAULT
                         setContentIntent(resultPendingIntent)
                         setSmallIcon(applicationInfo.icon)

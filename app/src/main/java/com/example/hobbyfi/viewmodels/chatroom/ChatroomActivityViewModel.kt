@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.*
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
@@ -341,7 +343,7 @@ class ChatroomActivityViewModel(
         if(setState) {
             eventsStateIntent.setState(if(success)
                 EventListState.OnData.DeleteEventsCacheResult(eventIds)
-            else EventListState.Error(Constants.cacheDeletionError))
+            else EventListState.Error(getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error)))
         }
     }
 
@@ -352,9 +354,10 @@ class ChatroomActivityViewModel(
 
         if(setState) {
             eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
-                else EventState.Error(Constants.cacheDeletionError))
+                else EventState.Error(getApplication<MainApplication>().applicationContext.getString(
+                R.string.cache_deletion_error)))
         } else if(!success) {
-            throw Exception(Constants.cacheDeletionError)
+            throw Exception(getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error))
         }
 
         return true
@@ -368,7 +371,7 @@ class ChatroomActivityViewModel(
                 UserListState.OnUserKick(userId)
             } catch(e: Exception) {
                 UserListState.Error(
-                    Constants.userKickFail,
+                    getApplication<MainApplication>().applicationContext.getString(R.string.kick_user_fail),
                     shouldReauth = e.isCritical
                 )
             })

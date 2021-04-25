@@ -116,8 +116,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         ))
                     }
                     is ChatroomState.Error -> {
-                        Toast.makeText(context, it.error, Toast.LENGTH_LONG)
-                            .show()
+                        view.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
                         if(it.shouldExit) {
                             (requireActivity() as MainActivity).logout()
                         }
@@ -138,12 +137,12 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun observePredicateValidators() {
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 

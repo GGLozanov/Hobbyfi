@@ -105,8 +105,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                         }
 
                         activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
-                        Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
-                            .show()
+                        view?.showSuccessSnackbar(getString(R.string.event_create_success))
 
                         if(navController.currentDestination?.id == R.id.eventCreateFragment) {
                             navController.popBackStack(R.id.chatroomMessageListFragment, false)
@@ -114,8 +113,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                     }
                     is EventState.Error -> {
                         // TODO: Handle shouldReauth
-                        Toast.makeText(requireContext(), "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
-                            .show()
+                        view?.showFailureSnackbar(getString(R.string.something_wrong) + " ${it.error}")
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -129,12 +127,12 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         // with the preset predicate/error pairs
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 

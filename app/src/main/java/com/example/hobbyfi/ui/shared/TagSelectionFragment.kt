@@ -15,6 +15,7 @@ import com.example.hobbyfi.databinding.FragmentTagSelectionBinding
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.safeNavigate
+import com.example.hobbyfi.shared.showWarningSnackbar
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionFragmentViewModel
@@ -80,8 +81,7 @@ class TagSelectionFragment : BaseFragment() {
             if(targetFragmentId == R.id.registerFragment || targetFragmentId == R.id.chatroomCreateFragment) {
                 binding.customTagCreateButton.setOnClickListener {
                     if(viewModel.customTagCreateCounter >= 3) {
-                        Toast.makeText(context, "Too many custom tags created!", Toast.LENGTH_LONG)
-                            .show()
+                        view?.showWarningSnackbar(getString(R.string.too_many_custom_tags))
                         return@setOnClickListener
                     }
                     navController.safeNavigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)

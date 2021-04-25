@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.intents.ChatroomIntent
@@ -146,9 +147,9 @@ abstract class AuthChatroomHolderViewModel(
 
         if(setState) {
             chatroomStateIntent.setState(if(success) ChatroomState.OnData.DeleteChatroomCacheResult(kicked)
-                else ChatroomState.Error(Constants.cacheDeletionError))
+                else ChatroomState.Error(getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error)))
         } else if(!success) {
-            throw Exception(Constants.cacheDeletionError)
+            throw Exception(getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error))
         }
     }
 

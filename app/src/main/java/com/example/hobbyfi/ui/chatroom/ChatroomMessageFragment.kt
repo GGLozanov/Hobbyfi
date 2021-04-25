@@ -5,12 +5,11 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
+import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.message.ChatroomMessageAdapter
 import com.example.hobbyfi.models.ui.UIMessage
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.collectLatestWithNonIdleReset
-import com.example.hobbyfi.shared.isCritical
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.MessageListState
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageViewModel
 import kotlinx.coroutines.CancellationException
@@ -54,8 +53,7 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                             it.messages.catch { e ->
                                 e.printStackTrace()
                                 if(e.isCritical) {
-                                    Toast.makeText(requireContext(), Constants.reauthError, Toast.LENGTH_LONG)
-                                        .show()
+                                    view?.showFailureSnackbar(getString(R.string.reauth_error))
                                     (requireActivity() as ChatroomActivity).handleAuthActionableError(
                                         e.message,
                                         false,
@@ -64,8 +62,7 @@ abstract class ChatroomMessageFragment : ChatroomFragment() {
                                     )
                                 } else if(e !is CancellationException) {
                                     Log.i("ChatroomMListFragment", "it.messages collect() received a normal exception: $e")
-                                    Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                                        .show()
+                                    view?.showFailureSnackbar(e.message ?: getString(R.string.something_wrong))
                                 }
                             }.collectLatest { data ->
                                 Log.i("ChatroomMessageFragment", "Collecting message paging data ${data}")

@@ -11,4 +11,5 @@
     <color name="colorBackgroundDark">#3F4571</color>
     <color name="colorGrey">#9a9a9a</color>
     <color name="colorDarkGrey">#333333</color>
+    <color name="yellow">#FFEB3B</color>
 </resources>

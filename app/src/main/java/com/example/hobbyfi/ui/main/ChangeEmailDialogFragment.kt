@@ -13,10 +13,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChangeEmailDialogBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.TextInputLayoutFocusObserver
-import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
-import com.example.hobbyfi.shared.ViewReverseEnablerObserver
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.FieldUtils
@@ -55,8 +52,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 val originalEmail = (requireActivity() as MainActivity).viewModel.authUser.value?.email
 
                 if(newEmail == originalEmail) {
-                    Toast.makeText(requireContext(), "Emails must not be the same! Please enter a new, unique e-mail!", Toast.LENGTH_LONG)
-                        .show()
+                    view?.showWarningSnackbar(getString(R.string.same_email_validation))
                     return@setOnClickListener
                 }
 
@@ -86,8 +82,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                             dismiss()
                         }
                         is TokenState.Error -> {
-                            Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                                .show()
+                            view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
                             dismiss()
                         }
                         else -> throw State.InvalidStateException()
@@ -103,16 +98,16 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
         with(viewModel) {
             email.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.newEmailInputField, Constants.emailInputError)
+                TextInputLayoutFocusValidatorObserver(binding.newEmailInputField, getString(R.string.email_input_error))
             )
 
             password.invalidity.observe(
                 viewLifecycleOwner,
                 object : TextInputLayoutFocusObserver<Boolean>(binding.passwordInputField) {
                     override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                        textInputLayout.error = if(t) Constants.passwordInputError else null
+                        textInputLayout.error = if(t) getString(R.string.password_input_error) else null
                         binding.confirmPasswordInputField.error =
-                            if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
+                            if(t && confirmPassword.invalidity.value == true) getString(R.string.confirm_password_input_error) else null
                     }
                 }
             )
@@ -121,9 +116,9 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 viewLifecycleOwner,
                 object : TextInputLayoutFocusObserver<Boolean>(binding.confirmPasswordInputField) {
                     override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                        textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
+                        textInputLayout.error = if(t) getString(R.string.confirm_password_input_error) else null
                         binding.passwordInputField.error =
-                            if(t && password.invalidity.value == true) Constants.passwordInputError else null
+                            if(t && password.invalidity.value == true) getString(R.string.password_input_error) else null
                     }
                 }
             )

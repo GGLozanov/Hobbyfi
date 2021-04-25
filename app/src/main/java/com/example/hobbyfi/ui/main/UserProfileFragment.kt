@@ -68,7 +68,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
             settingsButtonBar.leftButton.setOnClickListener { // delete account button
                 requireContext().buildYesNoAlertDialog(
-                    Constants.confirmAccountDeletionMessage,
+                    getString(R.string.confirm_acc_deletion),
                     { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {
                             activityViewModel.sendIntent(UserIntent.DeleteUser)
@@ -140,8 +140,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
                 if (fieldMap.isEmpty()) {
-                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
-                        .show()
+                    view.showWarningSnackbar(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -223,12 +222,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(viewModel) {
             name.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, Constants.nameInputError)
+                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, getString(R.string.name_input_error))
             )
 
             description.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, Constants.descriptionInputError)
+                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, getString(R.string.description_input_error))
             )
         }
     }

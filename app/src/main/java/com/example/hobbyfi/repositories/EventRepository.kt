@@ -1,5 +1,6 @@
 package com.example.hobbyfi.repositories
 
+import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -246,7 +247,7 @@ class EventRepository(
                 observer.value = UserGeoPoint(username, chatroomIds, eventIds, location)
             }
             .addOnFailureListener {
-                throw FirebaseException(Constants.firestoreUpdateError)
+                throw FirebaseException(Resources.getSystem().getString(R.string.firestore_update_error))
             }
         return observer
     }

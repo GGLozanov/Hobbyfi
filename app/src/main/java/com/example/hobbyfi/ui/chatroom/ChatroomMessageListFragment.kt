@@ -41,6 +41,7 @@ import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
 import io.socket.client.Socket
@@ -109,11 +110,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
             } else {
-                Toast.makeText(
-                    requireContext(),
-                    "You can't edit a message with the same message!",
-                    Toast.LENGTH_LONG
-                ).show()
+                view?.showWarningSnackbar(getString(R.string.dup_message_edit))
                 return@OnClickListener
             }
 
@@ -360,11 +357,9 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         binding.cancelHeader.callOnClick()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
-                        Toast.makeText(
-                            requireContext(),
-                            "Successfully deleted message!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        view?.showSuccessSnackbar(
+                            getString(R.string.delete_messages),
+                        )
                     }
                     is MessageState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
@@ -598,11 +593,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                                     it, ImageUtils.CompressType.MESSAGE_PICTURE
                                 )
                             } catch (ex: FileNotFoundException) {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "File for sending not found! Please verify it exists!",
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                view?.showWarningSnackbar(getString(R.string.file_not_found))
                                 null
                             }
                         }
@@ -619,7 +610,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             viewLifecycleOwner,
             TextInputLayoutFocusValidatorObserver(
                 binding.messageInputField,
-                Constants.messageInputError
+                getString(R.string.message_input_error)
             )
         )
     }

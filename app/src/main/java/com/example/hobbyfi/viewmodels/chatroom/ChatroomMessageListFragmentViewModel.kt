@@ -7,6 +7,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.paging.ExperimentalPagingApi
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.MessageIntent
 import com.example.hobbyfi.models.data.Message
 import com.example.hobbyfi.models.data.StateIntent
@@ -252,20 +254,13 @@ class ChatroomMessageListFragmentViewModel(
     // code duuuuuuup because generics and blablabla go brr
     private suspend fun deleteMessageCache(id: Long) {
         messageRepository.deleteMessageCache(id)
-
-        // DEAD CODE because this gave problems
-//        if(setState) {
-//            messageStateIntent.setState(if(success) MessageState.OnData.DeleteMessageCacheResult
-//                else MessageState.Error(Constants.cacheDeletionError))
-//        } else if(!success) {
-//            throw Exception(Constants.cacheDeletionError)
-//        }
     }
 
     // might not need this method because Room foreign keys & oncascade deletion
     // TODO: Use for cache cleanup
     private suspend fun deleteMessagesCache(chatroomId: Long) {
-        var state: MessageListState = MessageListState.Error(Constants.cacheDeletionError)
+        var state: MessageListState = MessageListState.Error(
+            getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error))
 
         // deletes other cached chatrooms (not auth'd) for user
         if(viewModelScope.async {

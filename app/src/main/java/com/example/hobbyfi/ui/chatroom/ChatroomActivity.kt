@@ -95,11 +95,9 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private val socketEventErrorFallback = { _: Exception ->
-        Toast.makeText(
-            this@ChatroomActivity,
-            Constants.socketEmissionError,
-            Toast.LENGTH_LONG
-        ).show()
+        binding.root.showFailureSnackbar(
+            getString(R.string.socket_emission_fail),
+        )
         // leaveChatroom()
     }
     
@@ -579,11 +577,9 @@ class ChatroomActivity : NavigationActivity(),
                                 prefConfig.writeLastEnteredChatroomId(deepLinkChatroomId)
                                 sendChatroomFetchIntentOnCurrentNull()
                             } else {
-                                Toast.makeText(
-                                    this@ChatroomActivity,
-                                    Constants.notJoinedChatroomError,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                binding.root.showFailureSnackbar(
+                                    getString(R.string.not_joined_chatroom_error)
+                                )
                                 leaveChatroom(sendExtrasBack = true)
                             }
                         }
@@ -616,20 +612,16 @@ class ChatroomActivity : NavigationActivity(),
 
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Successfully deleted chatroom!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showSuccessSnackbar(
+                            getString(R.string.chatroom_delete_success)
+                        )
                         leaveDeletedChatroom()
                     }
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            if (it.kicked) Constants.chatroomKickedMessage
-                            else Constants.chatroomDeletedMessage,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showSuccessSnackbar(
+                            getString(if(it.kicked) R.string.chatroom_kicked_message
+                                else R.string.chatroom_deleted_message)
+                        )
                         leaveDeletedChatroom()
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
@@ -644,11 +636,9 @@ class ChatroomActivity : NavigationActivity(),
                             )
                         }
 
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Successfully updated chatroom!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showSuccessSnackbar(
+                            getString(R.string.chatroom_updated),
+                        )
                     }
                     is ChatroomState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldExit) {
@@ -720,13 +710,12 @@ class ChatroomActivity : NavigationActivity(),
 
     // for deeplink & shouldExit errors
     private fun leaveChatroomWithRestart(
-        exitMsg: String = Constants.invalidAccessError,
+        exitMsg: String = getString(R.string.invalid_access_error),
         linkParams: JSONObject? = viewModel.currentLinkProperties,
         leaveDestination: Class<*> = AuthActivity::class.java
     ) {
         // TODO: More graceful way to show this error... like a separate screen? Activity?
-        Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
-            .show()
+        binding.root.showWarningSnackbar(exitMsg)
 
         // log out of all accounts if logged in (use refresh token to authorise properly)
         if(prefConfig.isUserAuthenticated()) {
@@ -775,10 +764,7 @@ class ChatroomActivity : NavigationActivity(),
                                 (frag as DialogFragment).dismiss()
                             }
 
-                        Toast.makeText(
-                            this@ChatroomActivity, Constants.userKickSuccess,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showSuccessSnackbar(getString(R.string.user_kick_success))
                         viewModel.resetUserListState()
                     }
                 }
@@ -805,11 +791,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is EventListState.OnData.DeleteOldEventsResult -> {
                         Log.i("ChatroomActivity", "Received DeleteOldEventsResult state!")
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Successfully deleted old events!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        binding.root.showSuccessSnackbar(getString(R.string.delete_old_events_success))
                         navController.popBackStack(R.id.chatroomMessageListFragment, false)
                         viewModel.resetEventListState()
                     }
@@ -842,7 +824,8 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeEventState() {
         lifecycleScope.launchWhenStarted {
-            viewModel.eventState.collect {
+            viewModel.eventState.collectLatestWithNonIdleReset(
+                    listOf(EventState.Idle::class, EventState.Loading::class), viewModel::resetEventState) {
                 when(it) {
                     is EventState.Idle -> {
 
@@ -851,17 +834,13 @@ class ChatroomActivity : NavigationActivity(),
                         // TODO: Progressbar? Somewhere?
                     }
                     is EventState.OnData.EventDeleteResult -> {
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Event successfully deleted!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        viewModel.resetEventState()
+                        binding.root.showSuccessSnackbar(
+                            getString(R.string.event_delete_success)
+                        )
                     }
                     is EventState.Error -> {
                         // TODO: Handle error
                         handleAuthActionableError(it.error, it.shouldReauth)
-                        viewModel.resetEventState()
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -894,8 +873,7 @@ class ChatroomActivity : NavigationActivity(),
                             )
                         }
                     } else {
-                        Toast.makeText(this, Constants.eventAlreadyDeleted, Toast.LENGTH_LONG)
-                            .show()
+                        binding.root.showWarningSnackbar(getString(R.string.event_deleted))
                     }
                     viewModel.setConsumedEventDeepLink(true)
                 }
@@ -936,7 +914,7 @@ class ChatroomActivity : NavigationActivity(),
                         navViewAdmin.menu.findItem(R.id.action_delete_chatroom)
                             .setOnMenuItemClickListener {
                                 this@ChatroomActivity.buildYesNoAlertDialog(
-                                    Constants.confirmChatroomDeletionMessage,
+                                    getString(R.string.confirm_chatroom_delete),
                                     { dialogInterface: DialogInterface, _: Int ->
                                         lifecycleScope.launch {
                                             viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
@@ -1109,7 +1087,7 @@ class ChatroomActivity : NavigationActivity(),
         if (isTaskRoot) {
             if(!prefConfig.isUserAuthenticated()) {
                 // CANNOT access this without auth
-                leaveChatroomWithRestart(Constants.noConnectionOrAuthTaskRootError)
+                leaveChatroomWithRestart(getString(R.string.no_connection_or_root_auth_error))
                 return true
             }
 
@@ -1243,10 +1221,9 @@ class ChatroomActivity : NavigationActivity(),
         shouldLeave: Boolean, shouldExit: Boolean = shouldLeave,
         context: Context? = null
     ) {
-        Toast.makeText(
-            context ?: this@ChatroomActivity,
-            "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG
-        ).show()
+        binding.root.showFailureSnackbar(
+            getString(R.string.something_wrong) + " $error"
+        )
 
         if (shouldLeave) {
             finish()
@@ -1283,10 +1260,9 @@ class ChatroomActivity : NavigationActivity(),
                         } catch (ex: Exception) {
                             if (!emittedErrorForEventParsingAlready) {
                                 emittedErrorForEventParsingAlready = true
-                                Toast.makeText(
-                                    this@ChatroomActivity,
-                                    Constants.eventParsingError, Toast.LENGTH_LONG
-                                ).show()
+                                binding.root.showFailureSnackbar(
+                                    getString(R.string.event_date_parse_fail)
+                                )
                             }
                             null
                         }

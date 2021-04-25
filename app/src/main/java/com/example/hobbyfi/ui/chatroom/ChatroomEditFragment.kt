@@ -75,8 +75,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
 
                 Log.i("ChatroomEditDFragment", "FieldMap update: ${fieldMap}")
                 if(fieldMap.isEmpty()) {
-                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
-                        .show()
+                    view?.showWarningSnackbar(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -145,12 +144,12 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
     override fun observePredicateValidators() {
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 

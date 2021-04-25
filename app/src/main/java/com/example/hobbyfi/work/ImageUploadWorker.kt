@@ -1,12 +1,14 @@
 package com.example.hobbyfi.work
 
 import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.example.hobbyfi.R
 import com.example.hobbyfi.repositories.ChatroomRepository
 import com.example.hobbyfi.repositories.EventRepository
 import com.example.hobbyfi.repositories.UserRepository
@@ -50,7 +52,7 @@ class ImageUploadWorker(
 
             // yes, this shouldn't be here, but we have context, so why not abuse it?
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, Constants.imageUploadSuccess, Toast.LENGTH_LONG)
+                Toast.makeText(context, Resources.getSystem().getString(R.string.image_upload_success), Toast.LENGTH_LONG)
                     .show()
             }
             prefConfig.writeLastPrefFetchTimeNow(prefId)
@@ -60,7 +62,7 @@ class ImageUploadWorker(
         } catch(ex: Exception) {
             Log.w("DeviceTokenWorker", "Hobbyfi image upload request =>>> FAIL")
             withContext(Dispatchers.Main) {
-                Toast.makeText(context, Constants.imageUploadFail, Toast.LENGTH_LONG)
+                Toast.makeText(context, Resources.getSystem().getString(R.string.image_upload_fail), Toast.LENGTH_LONG)
                     .show()
             }
             return if(ex !is IllegalArgumentException &&

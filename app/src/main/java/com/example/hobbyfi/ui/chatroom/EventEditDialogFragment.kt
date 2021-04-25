@@ -126,8 +126,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                 }
 
                 if(fieldMap.isEmpty()) {
-                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
-                        .show()
+                    view?.showWarningSnackbar(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -171,12 +170,12 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         // with the preset predicate/error pairs
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 

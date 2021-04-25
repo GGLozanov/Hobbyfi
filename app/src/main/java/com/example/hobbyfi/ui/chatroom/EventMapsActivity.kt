@@ -92,8 +92,7 @@ class EventMapsActivity : MapsActivity(),
         try {
             prefConfig.getAuthUserIdFromToken()
         } catch(e: Exception) {
-            Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
-                .show()
+            binding.root.showFailureSnackbar(getString(R.string.reauth_error))
             emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
             null
         }
@@ -131,11 +130,7 @@ class EventMapsActivity : MapsActivity(),
     }
 
     private val socketEventErrorFallback = { _: Exception ->
-        Toast.makeText(
-            this@EventMapsActivity,
-            Constants.socketEmissionError,
-            Toast.LENGTH_LONG
-        ).show()
+        binding.root.showFailureSnackbar(getString(R.string.socket_emission_fail))
         emergencyActivityExit(Constants.RESULT_REAUTH)
     }
 
@@ -277,21 +272,18 @@ class EventMapsActivity : MapsActivity(),
         with(binding) {
             disableLocationUpdatesFab.setOnClickListener {
                 locationUpdatesService?.removeLocationUpdates()
-                Toast.makeText(this@EventMapsActivity, "Location updates disabled!", Toast.LENGTH_LONG)
-                    .show()
+                binding.root.showSnackbar(getString(R.string.location_updates_disabled))
             }
 
             enableLocationUpdatesFab.setOnClickListener {
                 if(enableLocationUpdates()) {
-                    Toast.makeText(this@EventMapsActivity, "Location updates enabled!", Toast.LENGTH_LONG)
-                        .show()
+                    binding.root.showSnackbar(getString(R.string.location_updates_enabled))
                 }
             }
 
             resetLocationFab.setOnClickListener {
                 if(prefConfig.readRequestingLocationUpdates()) {
-                    Toast.makeText(this@EventMapsActivity, Constants.canOnlyResetOnNoUpdate, Toast.LENGTH_LONG)
-                        .show()
+                    binding.root.showWarningSnackbar(getString(R.string.no_update_reset_only))
                     return@setOnClickListener
                 }
 
@@ -372,8 +364,7 @@ class EventMapsActivity : MapsActivity(),
 
                                 // TODO: Replace with null check
                                 if(geoPoint.geoPoint.latitude == 0.0 && geoPoint.geoPoint.longitude == 0.0) {
-                                    Toast.makeText(this@EventMapsActivity, Constants.locationReset, Toast.LENGTH_LONG)
-                                        .show()
+                                    binding.root.showSuccessSnackbar(getString(R.string.location_reset))
                                 }
                             } else {
                                 viewModel.setUserGeoPoints(arrayListOf())
@@ -677,8 +668,7 @@ class EventMapsActivity : MapsActivity(),
     }
 
     private fun handleStateError(error: String?, shouldReauth: Boolean) {
-        Toast.makeText(this@EventMapsActivity, error, Toast.LENGTH_LONG)
-            .show()
+        binding.root.showFailureSnackbar(error ?: getString(R.string.something_wrong))
         if(shouldReauth) {
             emergencyActivityExit(Constants.RESULT_REAUTH)
         }

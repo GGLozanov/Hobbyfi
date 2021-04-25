@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
+import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
@@ -13,6 +14,7 @@ import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractListFromCurrentPagingData
 import com.example.hobbyfi.shared.safeNavigate
+import com.example.hobbyfi.shared.showFailureSnackbar
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -82,8 +84,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                             (requireActivity() as MainActivity).logout()
                         }
 
-                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                            .show()
+                        view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
                     }
                 }
             }

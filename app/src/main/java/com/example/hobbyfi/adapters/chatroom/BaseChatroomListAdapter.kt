@@ -18,7 +18,6 @@ import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
-import com.example.hobbyfi.shared.setHeightBasedOnChildren
 import com.example.hobbyfi.utils.GlideUtils
 import com.google.android.material.button.MaterialButton
 import org.kodein.di.Kodein

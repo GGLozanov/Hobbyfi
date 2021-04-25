@@ -1,6 +1,8 @@
 package com.example.hobbyfi.repositories
 
+import android.content.res.Resources
 import android.util.Log
+import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.responses.Response
@@ -66,7 +68,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
             try {
                 response.jsonObject.getString(Constants.EMAIL)
             } catch(ex: JSONException) {
-                throw Exception(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)
+                throw Exception(Resources.getSystem().getString(R.string.facebook_email_fail_error))
             }
         }
     }
@@ -100,7 +102,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
 
                 tags
             } catch(ex: JSONException) {
-                throw Exception(Constants.FACEBOOK_TAGS_FAILED_EXCEPTION)
+                throw Exception(Resources.getSystem().getString(R.string.facebook_tag_fetch_error))
             }
         }
     }

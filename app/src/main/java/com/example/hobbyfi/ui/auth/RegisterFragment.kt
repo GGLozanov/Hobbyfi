@@ -89,8 +89,7 @@ class RegisterFragment : AuthFragment() {
                     }
                     is TokenState.Error -> {
                         binding.buttonBar.rightButton.isEnabled = true
-                        Toast.makeText(context, it.error, Toast.LENGTH_LONG)
-                            .show()
+                        view.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
@@ -140,35 +139,37 @@ class RegisterFragment : AuthFragment() {
         with(viewModel) {
             email.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
+                TextInputLayoutFocusValidatorObserver(binding.emailInputField, getString(R.string.email_input_error))
             )
 
             password.invalidity
                 .observe(viewLifecycleOwner, object : TextInputLayoutFocusObserver<Boolean>(binding.passwordInputField) {
                 override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                    textInputLayout.error = if(t) Constants.passwordInputError else null
+                    textInputLayout.error = if(t) getString(R.string.password_input_error) else null
                     binding.confirmPasswordInputField.error =
-                        if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
+                        if(t && confirmPassword.invalidity.value == true) getString(R.string.confirm_password_input_error) else null
                 }
             })
 
             confirmPassword.invalidity
                 .observe(viewLifecycleOwner, object : TextInputLayoutFocusObserver<Boolean>(binding.confirmPasswordInputField) {
                 override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                    textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
+                    textInputLayout.error = if(t) getString(R.string.confirm_password_input_error) else null
                     binding.passwordInputField.error =
-                        if(t && password.invalidity.value == true) Constants.passwordInputError else null
+                        if(t && password.invalidity.value == true) getString(R.string.password_input_error) else null
                 }
             })
 
             name.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, Constants.nameInputError)
+                TextInputLayoutFocusValidatorObserver(binding.usernameInputField,
+                    getString(R.string.username_input_error))
             )
 
             description.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, Constants.descriptionInputError)
+                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField,
+                    getString(R.string.description_input_error))
             )
         }
     }

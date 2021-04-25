@@ -51,14 +51,12 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
 
     protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
         e.printStackTrace()
-        if(e.isCritical) {
-            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                .show()
-            (requireActivity() as MainActivity).logout()
-        } else if(e !is CancellationException) {
+        if(e !is CancellationException) {
             Log.i("ChatroomListFragment", "state.chatrooms collect() received a normal exception: $e")
-            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                .show()
+            binding.root.showFailureSnackbar(e.message ?: getString(R.string.something_wrong))
+            if(e.isCritical) {
+                (requireActivity() as MainActivity).logout()
+            }
         }
     }
 

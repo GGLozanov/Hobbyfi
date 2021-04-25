@@ -1,8 +1,11 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.data.Event
@@ -40,7 +43,8 @@ class EventCreateFragmentViewModel(
 
         if(_eventDate == null || eventLatLng == null) {
             mainStateIntent.setState(EventState.Error(
-                Constants.invalidEventInfoError
+                getApplication<MainApplication>().applicationContext.getString(
+                    R.string.invalid_event_info_error)
             ))
             return
         }

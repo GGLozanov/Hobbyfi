@@ -1,5 +1,7 @@
 package com.example.hobbyfi.shared
 
+import android.content.res.Resources
+import com.example.hobbyfi.R
 import com.google.android.material.textfield.TextInputLayout
 
 class TextInputLayoutFocusValidatorObserver(
@@ -17,7 +19,8 @@ class TextInputLayoutFocusValidatorObserver(
     class TextInputLayoutFocusValidatorObserverBuilder(textInputLayout: TextInputLayout) :
             TextInputLayoutFocusObserverBuilder<Boolean>(textInputLayout) {
         override val instance: TextInputLayoutFocusValidatorObserver
-            get() = TextInputLayoutFocusValidatorObserver(textInputLayout, Constants.invalidCredentialsError) // general error
+            get() = TextInputLayoutFocusValidatorObserver(textInputLayout,
+                Resources.getSystem().getString(R.string.invalid_credentials)) // general error
 
         fun setError(errorText: String): TextInputLayoutFocusValidatorObserverBuilder {
             instance.setErrorText(errorText)

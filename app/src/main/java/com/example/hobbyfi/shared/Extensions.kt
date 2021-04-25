@@ -19,6 +19,8 @@ import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
+import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
@@ -66,6 +68,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.google.firebase.storage.StorageReference
@@ -79,6 +83,10 @@ import org.json.JSONObject
 import java.io.IOException
 import java.lang.reflect.Field
 import kotlin.reflect.KClass
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+
+
+
 
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
@@ -331,25 +339,40 @@ fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId
     fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): NavDirections {
         return when(destinationId) {
             R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
-                R.id.loginFragment)
+                R.id.loginFragment
+            )
             R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(
-                R.id.registerFragment)
+                R.id.registerFragment
+            )
             R.id.chatroomCreateFragment -> ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(
-                R.id.chatroomCreateFragment)
+                R.id.chatroomCreateFragment
+            )
             R.id.userProfileFragment -> UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(
-                R.id.userProfileFragment)
+                R.id.userProfileFragment
+            )
             R.id.joinedChatroomListFragment -> JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToLoadingNavGraph(
-                R.id.joinedChatroomListFragment)
+                R.id.joinedChatroomListFragment
+            )
             R.id.chatroomListFragment -> ChatroomListFragmentDirections.actionChatroomListFragmentToLoadingNavGraph(
-                R.id.chatroomListFragment)
+                R.id.chatroomListFragment
+            )
             R.id.chatroomEditFragment -> ChatroomEditFragmentDirections.actionChatroomEditFragmentToLoadingNavGraph(
-                R.id.chatroomEditFragment)
+                R.id.chatroomEditFragment
+            )
             R.id.eventCreateFragment -> EventCreateFragmentDirections.actionGlobalLoadingNavGraph(
-                R.id.eventCreateFragment)
+                R.id.eventCreateFragment
+            )
             R.id.chatroomMessageListFragment -> ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
-                R.id.chatroomMessageListFragment)
-            R.id.loadingFragment -> getLoadingNavGraphAction(previousBackStackEntry?.destination?.id, recDepth + 1)
-            else -> if(recDepth != 0) defaultActionId else getLoadingNavGraphAction(previousBackStackEntry?.destination?.id, recDepth + 1)
+                R.id.chatroomMessageListFragment
+            )
+            R.id.loadingFragment -> getLoadingNavGraphAction(
+                previousBackStackEntry?.destination?.id,
+                recDepth + 1
+            )
+            else -> if(recDepth != 0) defaultActionId else getLoadingNavGraphAction(
+                previousBackStackEntry?.destination?.id,
+                recDepth + 1
+            )
         }
     }
 
@@ -360,23 +383,32 @@ fun NavController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(defaultAct
     fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id): NavDirections? {
         return when(destinationId) {
             R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
-                R.id.loginFragment)
+                R.id.loginFragment
+            )
             R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(
-                R.id.registerFragment)
+                R.id.registerFragment
+            )
             R.id.chatroomCreateFragment -> ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(
-                R.id.chatroomCreateFragment)
+                R.id.chatroomCreateFragment
+            )
             R.id.userProfileFragment -> UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(
-                R.id.userProfileFragment)
+                R.id.userProfileFragment
+            )
             R.id.joinedChatroomListFragment -> JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToLoadingNavGraph(
-                R.id.joinedChatroomListFragment)
+                R.id.joinedChatroomListFragment
+            )
             R.id.chatroomListFragment -> ChatroomListFragmentDirections.actionChatroomListFragmentToLoadingNavGraph(
-                R.id.chatroomListFragment)
+                R.id.chatroomListFragment
+            )
             R.id.chatroomEditFragment -> ChatroomEditFragmentDirections.actionChatroomEditFragmentToLoadingNavGraph(
-                R.id.chatroomEditFragment)
+                R.id.chatroomEditFragment
+            )
             R.id.eventCreateFragment -> EventCreateFragmentDirections.actionGlobalLoadingNavGraph(
-                R.id.eventCreateFragment)
+                R.id.eventCreateFragment
+            )
             R.id.chatroomMessageListFragment -> ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
-                R.id.chatroomMessageListFragment)
+                R.id.chatroomMessageListFragment
+            )
             else -> defaultActionId
         }
     }
@@ -389,8 +421,11 @@ fun AppCompatActivity.findLoadingDestinationAwareNavController(): NavController?
     try {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         addLoadingAwareNavListener(navHostFragment.navController, this)
-    } catch(ex: ClassCastException) {
-        Log.w("NavigationActivity", "User has triggered ClassCastException on Activity restart from onStart(), possibly because they've nav'd to a fragment whose behaviour is not managed by Android Navigation.")
+    } catch (ex: ClassCastException) {
+        Log.w(
+            "NavigationActivity",
+            "User has triggered ClassCastException on Activity restart from onStart(), possibly because they've nav'd to a fragment whose behaviour is not managed by Android Navigation."
+        )
         null
     }
 
@@ -400,24 +435,36 @@ fun Fragment.findLoadingDestinationAwareNavController(): NavController {
     return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
 }
 
-suspend fun<T: Any> StateFlow<T>.collectLatestWithNonIdleReset(idleClsses: List<KClass<*>>, reset: () -> Unit,
-                                                               action: suspend (value: T) -> Unit) {
+suspend fun <T : Any> StateFlow<T>.collectLatestWithNonIdleReset(
+    idleClsses: List<KClass<*>>, reset: () -> Unit,
+    action: suspend (value: T) -> Unit
+) {
     collectLatest {
         action(it)
 
-        Log.i("Extensions", "${it::class.simpleName} is in ${idleClsses.map { cl -> cl.simpleName } }? ${idleClsses.contains(it::class)}")
+        Log.i(
+            "Extensions",
+            "${it::class.simpleName} is in ${idleClsses.map { cl -> cl.simpleName }}? ${
+                idleClsses.contains(
+                    it::class
+                )
+            }")
         if(!idleClsses.contains(it::class)) {
             reset()
         }
     }
 }
 
-private suspend fun<T : Any> StateFlow<T>.parseLatestWithLoading(it: T,
+private suspend fun <T : Any> StateFlow<T>.parseLatestWithLoading(
+    it: T,
     lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
     loadingCls: KClass<*>, onDestinationPop: () -> Unit,
     action: suspend (value: T) -> Unit
 ) {
-    Log.i("Extensions", "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}")
+    Log.i(
+        "Extensions",
+        "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}"
+    )
 
     navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
     val loading = loadingCls == it::class
@@ -425,38 +472,61 @@ private suspend fun<T : Any> StateFlow<T>.parseLatestWithLoading(it: T,
     if(loading) {
         if(navController.currentDestination?.id != R.id.loadingFragment &&
             navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null) != null) {
-            navController.safeNavigate(navController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId))
+            navController.safeNavigate(
+                navController.getCurrentDestinationToLoadingNavGraphActionId(
+                    defaultActionId
+                )
+            )
             navController.currentBackStackEntry?.savedStateHandle
-                ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(lifecycleOwner, Observer { backed ->
-                    Log.i("Extensions", "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}")
-                    if(backed) {
-                        onDestinationPop()
-                    }
-                })
+                ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(
+                    lifecycleOwner,
+                    Observer { backed ->
+                        Log.i(
+                            "Extensions",
+                            "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}"
+                        )
+                        if (backed) {
+                            onDestinationPop()
+                        }
+                    })
         }
-        navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, false)
+        navController.currentBackStackEntry?.savedStateHandle?.set(
+            LoadingFragment.LOADING_KEY,
+            false
+        )
     } else action(it)
 }
 
-suspend fun<T : Any> StateFlow<T>.collectLatestWithLoading(lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
-                                                           loadingCls: KClass<*>, onDestinationPop: () -> Unit,
-                                                           action: suspend (value: T) -> Unit) {
+suspend fun <T : Any> StateFlow<T>.collectLatestWithLoading(
+    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+    loadingCls: KClass<*>, onDestinationPop: () -> Unit,
+    action: suspend (value: T) -> Unit
+) {
     collectLatest {
-        Log.i("Extensions", "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}")
+        Log.i(
+            "Extensions",
+            "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}"
+        )
 
-        parseLatestWithLoading(it, lifecycleOwner, navController,
-            defaultActionId, loadingCls, onDestinationPop, action)
+        parseLatestWithLoading(
+            it, lifecycleOwner, navController,
+            defaultActionId, loadingCls, onDestinationPop, action
+        )
     }
 }
 
-suspend fun<T : Any> StateFlow<T>.collectLatestWithLoadingAndNonIdleReset(idleClsses: List<KClass<*>>, reset: () -> Unit,
-                                                    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
-                                                    loadingCls: KClass<*>,
-                                                    action: suspend (value: T) -> Unit) {
+suspend fun <T : Any> StateFlow<T>.collectLatestWithLoadingAndNonIdleReset(
+    idleClsses: List<KClass<*>>, reset: () -> Unit,
+    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+    loadingCls: KClass<*>,
+    action: suspend (value: T) -> Unit
+) {
     // onDestinationPop == reset here
     collectLatestWithNonIdleReset(idleClsses + listOf(loadingCls), reset) {
-        parseLatestWithLoading(it, lifecycleOwner, navController, defaultActionId,
-            loadingCls, reset, action)
+        parseLatestWithLoading(
+            it, lifecycleOwner, navController, defaultActionId,
+            loadingCls, reset, action
+        )
     }
 }
 
@@ -486,6 +556,65 @@ fun NavController.safeNavigate(direction: NavDirections) {
     }
 }
 
+fun View.showSnackbar(
+    content: String, anchorView: View? = null,
+    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
+    @ColorInt bgColor: Int? = null, @ColorInt textColor: Int =
+        ContextCompat.getColor(this.context, android.R.color.white)
+) {
+    val snackbar = Snackbar.make(this, content, duration)
+        .setTextColor(textColor)
+
+    val param: FrameLayout.LayoutParams = snackbar.getView().getLayoutParams() as CoordinatorLayout
+    params.bottomMargin = 40
+    snackbar.getView().setLayoutParams(params)
+
+    anchorView?.let {
+        snackbar.setAnchorView(anchorView)
+    }
+
+    bgColor?.let {
+        snackbar.setBackgroundTint(bgColor)
+    }
+
+    snackbar.show()
+}
+
+fun View.showSuccessSnackbar(
+    content: String,
+    anchorView: View? = null,
+    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
+    @ColorInt textColor: Int =
+        ContextCompat.getColor(this.context, android.R.color.white)
+) {
+    showSnackbar(
+        content, anchorView,
+        duration, ContextCompat.getColor(this.context, android.R.color.holo_green_light), textColor
+    )
+}
+
+fun View.showFailureSnackbar(
+    content: String, anchorView: View? = null,
+    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
+    @ColorInt textColor: Int =
+        ContextCompat.getColor(this.context, android.R.color.white)
+) {
+    showSnackbar(
+        content, anchorView,
+        duration, ContextCompat.getColor(this.context, android.R.color.holo_red_light), textColor
+    )
+}
+
+fun View.showWarningSnackbar(
+    content: String,
+    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
+    @ColorInt textColor: Int =
+        ContextCompat.getColor(this.context, android.R.color.white)
+) {
+    showSnackbar(content, duration, ContextCompat.getColor(this.context, R.color.yellow), textColor)
+}
+
+
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
 fun <T> Context.isServiceForegrounded(service: Class<T>) =
     (getSystemService(ACTIVITY_SERVICE) as? ActivityManager)
@@ -493,40 +622,8 @@ fun <T> Context.isServiceForegrounded(service: Class<T>) =
         ?.find { it.service.className == service.name }
         ?.foreground == true
 
-// credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
-fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
-    val gridViewAdapter = adapter ?: return // adapter is not set yet
-    var totalHeight: Int //total height to set on grid view
-    val items = gridViewAdapter.count //no. of items in the grid
-    val rows: Int //no. of rows in grid
-    val listItem: View = gridViewAdapter.getView(0, null, this)
-    listItem.measure(0, 0)
-    totalHeight = listItem.measuredHeight
-    val x: Float
-    if (items > noOfColumns) {
-        x = (items / noOfColumns).toFloat()
-
-        //Check if exact no. of rows of rows are available, if not adding 1 extra row
-        rows = if (items % noOfColumns != 0) {
-            (x + 1).toInt()
-        } else {
-            x.toInt()
-        }
-        totalHeight *= rows
-
-        //Adding any vertical space set on grid view
-        totalHeight += verticalSpacing * rows
-    }
-
-    //Setting height on grid view
-    val params = layoutParams
-    params.height = totalHeight
-    layoutParams = params
-}
-
 @Throws(IOException::class)
 fun Context.downloadAndSaveImage(url: String, name: String) {
-    // bitmap code:
     val downloadManagerReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if(intent.action == DownloadManager.ACTION_NOTIFICATION_CLICKED) {
@@ -628,7 +725,10 @@ fun android.content.Intent.getEventIdsExtra(): List<Long> {
     )!!
 }
 
-fun RequestManager.loadReferenceWithMetadataSignature(ref: StorageReference, metadata: StorageMetadata): RequestBuilder<Drawable> {
+fun RequestManager.loadReferenceWithMetadataSignature(
+    ref: StorageReference,
+    metadata: StorageMetadata
+): RequestBuilder<Drawable> {
     return load(ref)
         .signature(ObjectKey(metadata.creationTimeMillis))
 }
@@ -636,7 +736,7 @@ fun RequestManager.loadReferenceWithMetadataSignature(ref: StorageReference, met
 fun String.asFirebaseStorageReference(): StorageReference? {
     return try {
         FirebaseStorage.getInstance().getReferenceFromUrl(this)
-    } catch(ex: Exception) {
+    } catch (ex: Exception) {
         null
     }
 }

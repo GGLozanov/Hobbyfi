@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -30,6 +31,7 @@ import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
+import com.google.android.material.snackbar.BaseTransientBottomBar
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -94,12 +96,12 @@ class LoginFragment : AuthFragment() {
         with(viewModel) {
             password.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
+                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, getString(R.string.password_input_error))
             )
 
             email.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
+                TextInputLayoutFocusValidatorObserver(binding.emailInputField, getString(R.string.email_input_error))
             )
         }
     }
@@ -142,16 +144,15 @@ class LoginFragment : AuthFragment() {
                 }
 
                 override fun onCancel() {
-                    Toast.makeText(context, "Facebook login cancelled!", Toast.LENGTH_LONG)
-                        .show()
+                    view?.showWarningSnackbar(
+                        getString(R.string.facebook_login_cancel),
+                    )
                 }
 
                 override fun onError(exception: FacebookException) {
-                    Toast.makeText(
-                        context,
-                        "Facebook login error! ${exception.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    view?.showFailureSnackbar(
+                        getString(R.string.facebook_login_error) + " ${exception.message}"
+                    )
                 }
             })
         }
@@ -195,18 +196,18 @@ class LoginFragment : AuthFragment() {
                     }
                     is FacebookState.Error -> {
                         if(it.error?.isBlank() == false) {
-                            Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                                .show()
+                            view?.showFailureSnackbar(it.error)
                         }
 
                         // don't log out if only the email couldn't have been fetched
-                        if(!it.error.equals(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)) {
+                        if(!it.error.equals(Resources.getSystem().getString(R.string.facebook_email_fail_error))) {
                             LoginManager.getInstance().logOut()
                         }
 
                         if(connectivityManager.isConnected()) {
                             if ((it.error?.isNotBlank() == true) &&
-                                it.error != Constants.serverConnectionError && !it.error.contains("failed to connect to") && !it.error.contains("Software connection caused")) {
+                                it.error != getString(R.string.server_connection_error) &&
+                                    !it.error.contains("failed to connect to") && !it.error.contains("Software connection caused")) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                     viewModel.tagBundle.selectedTags.toTypedArray(),
@@ -238,15 +239,15 @@ class LoginFragment : AuthFragment() {
                         // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
                         LoginManager.getInstance().logOut()
                         when (it.error) {
-                            Constants.missingDataError -> {
+                            getString(R.string.missing_data_error) -> {
                                 Log.wtf(
                                     LoginFragment.tag,
                                     "Should never reach here if everything is ok, wtf"
                                 )
                             }
                             else -> {
-                                Toast.makeText(context, it.error, Toast.LENGTH_LONG)
-                                    .show() // means we've simply entered incorrect info for the normal login or something else is wrong
+                                view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                                   // means we've simply entered incorrect info for the normal login or something else is wrong
                             }
                         }
                     }
