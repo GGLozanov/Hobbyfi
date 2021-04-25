@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.util.Base64.DEFAULT
 import android.util.Log
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
@@ -20,8 +21,8 @@ import java.util.*
 
 
 object TokenUtils {
-    class InvalidStoredTokenException(message: String = Resources.getSystem().getString(R.string.unathorised_access) + " "
-            + Resources.getSystem().getString(R.string.reauth_error)) : Exception(message)
+    class InvalidStoredTokenException(message: String = MainApplication.applicationContext.resources.getString(R.string.unathorised_access) + " "
+            + MainApplication.applicationContext.resources.getString(R.string.reauth_error)) : Exception(message)
 
     /**
      * Decodes a given JWT and returns the value of the 'userId' field in the payload

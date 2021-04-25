@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:lines="2"
-            android:maxWidth="150dp"
+            android:maxWidth="290dp"
             android:textAlignment="center"
             app:layout_constraintBottom_toTopOf="@id/center_icon"
             app:layout_constraintEnd_toEndOf="parent"
@@ -62,6 +62,7 @@
             android:layout_height="wrap_content"
             android:maxWidth="175dp"
             android:visibility="gone"
+            android:textColor="@color/colorBackground"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">

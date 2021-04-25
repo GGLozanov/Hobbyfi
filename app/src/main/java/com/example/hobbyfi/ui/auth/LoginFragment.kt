@@ -200,7 +200,7 @@ class LoginFragment : AuthFragment() {
                         }
 
                         // don't log out if only the email couldn't have been fetched
-                        if(!it.error.equals(Resources.getSystem().getString(R.string.facebook_email_fail_error))) {
+                        if(!it.error.equals(getString(R.string.facebook_email_fail_error))) {
                             LoginManager.getInstance().logOut()
                         }
 

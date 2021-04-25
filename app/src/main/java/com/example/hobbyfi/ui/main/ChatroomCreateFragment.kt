@@ -116,7 +116,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         ))
                     }
                     is ChatroomState.Error -> {
-                        view.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                        binding.root.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
                         if(it.shouldExit) {
                             (requireActivity() as MainActivity).logout()
                         }

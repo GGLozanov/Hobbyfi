@@ -1,6 +1,7 @@
 package com.example.hobbyfi.repositories
 
 import android.content.res.Resources
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.responses.TokenResponse
@@ -54,7 +55,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
         // always throws an exception
         fun dissectExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
             ex.printStackTrace()
-            val res = Resources.getSystem()
+            val res = MainApplication.applicationContext.resources
             when(ex) {
                 is HobbyfiAPI.NoConnectivityException, is FirebaseException ->
                     throw Exception(res.getString(R.string.no_connection_error))
@@ -93,7 +94,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
                     else ReauthenticationException(res.getString(R.string.expired_token_error))
                 }
                 is ReauthenticationException,
-                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
+                TokenUtils.InvalidStoredTokenException(), is InstantiationException, is CancellationException -> throw ex
                 else -> throw if(ex is SocketTimeoutException)
                     ReauthenticationException(res.getString(R.string.server_connection_error))
                 else UnknownErrorException(res.getString(R.string.something_wrong) + " $ex.message")

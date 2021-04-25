@@ -84,10 +84,8 @@ import java.io.IOException
 import java.lang.reflect.Field
 import kotlin.reflect.KClass
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-
-
-
-
+import android.widget.FrameLayout
+import android.view.Gravity
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -564,10 +562,7 @@ fun View.showSnackbar(
 ) {
     val snackbar = Snackbar.make(this, content, duration)
         .setTextColor(textColor)
-
-    val param: FrameLayout.LayoutParams = snackbar.getView().getLayoutParams() as CoordinatorLayout
-    params.bottomMargin = 40
-    snackbar.getView().setLayoutParams(params)
+    snackbar.getView().setTranslationY(-80.0f)
 
     anchorView?.let {
         snackbar.setAnchorView(anchorView)
@@ -606,12 +601,12 @@ fun View.showFailureSnackbar(
 }
 
 fun View.showWarningSnackbar(
-    content: String,
+    content: String, anchorView: View? = null,
     @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
     @ColorInt textColor: Int =
         ContextCompat.getColor(this.context, android.R.color.white)
 ) {
-    showSnackbar(content, duration, ContextCompat.getColor(this.context, R.color.yellow), textColor)
+    showSnackbar(content, anchorView, duration, ContextCompat.getColor(this.context, R.color.yellow), textColor)
 }
 
 

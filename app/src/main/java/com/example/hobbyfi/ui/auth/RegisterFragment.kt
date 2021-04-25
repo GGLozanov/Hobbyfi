@@ -89,7 +89,7 @@ class RegisterFragment : AuthFragment() {
                     }
                     is TokenState.Error -> {
                         binding.buttonBar.rightButton.isEnabled = true
-                        view.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                        binding.root.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)

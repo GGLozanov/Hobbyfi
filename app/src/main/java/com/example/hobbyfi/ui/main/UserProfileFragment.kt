@@ -140,7 +140,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
                 if (fieldMap.isEmpty()) {
-                    view.showWarningSnackbar(getString(R.string.no_fields))
+                    binding.root.showWarningSnackbar(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(

@@ -9,47 +9,51 @@
             type="com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel" />
     </data>
 
-    <ScrollView
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fadeScrollbars="false"
-        android:fillViewport="false"
-        android:overScrollMode="always"
-        android:background="@drawable/background_secondary_gradient">
+        android:layout_height="match_parent">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fadeScrollbars="false"
+            android:fillViewport="false"
+            android:overScrollMode="always"
+            android:background="@drawable/background_secondary_gradient">
 
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="24dp"
-            android:layout_marginLeft="24dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="24dp"
-            android:layout_marginRight="24dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/rounded_container"
-            android:orientation="vertical">
-
-            <include
-                android:id="@+id/event_info"
-                layout="@layout/event_info_layout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:eventHeaderText="@{@string/event_create_header}"
-                app:viewModel="@{viewModel}" />
-
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/confirm_button"
-                android:text="@string/confirm"
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/event_info_button_bar">
+                android:layout_marginStart="24dp"
+                android:layout_marginLeft="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginRight="24dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/rounded_container"
+                android:orientation="vertical">
 
-            </com.google.android.material.button.MaterialButton>
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </ScrollView>
+                <include
+                    android:id="@+id/event_info"
+                    layout="@layout/event_info_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:eventHeaderText="@{@string/event_create_header}"
+                    app:viewModel="@{viewModel}" />
+
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/confirm_button"
+                    android:text="@string/confirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/event_info_button_bar">
+
+                </com.google.android.material.button.MaterialButton>
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </ScrollView>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
