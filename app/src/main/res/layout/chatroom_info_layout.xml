@@ -32,13 +32,12 @@
 
         </com.google.android.material.textview.MaterialTextView>
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <include
             android:id="@+id/chatroom_image"
-            android:layout_width="@dimen/circle_pic_width"
-            android:layout_height="@dimen/circle_pic_height"
-            android:src="@drawable/chatroom_default_pic"
-            app:civ_border_color="@color/colorSecondary"
-            app:civ_border_width="3dp"
+            layout="@layout/camera_gallery_circle_image"
+            app:defaultDrawable="@{@drawable/chatroom_default_pic}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/name_input_field"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

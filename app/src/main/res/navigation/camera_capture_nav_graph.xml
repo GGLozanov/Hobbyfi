@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/camera_capture_nav_graph"
+    app:startDestination="@id/cameraCaptureFragment">
+
+    <fragment
+        android:id="@+id/cameraCaptureFragment"
+        android:name="com.example.hobbyfi.ui.shared.CameraCaptureFragment"
+        android:label="Capture Photo"
+        tools:layout="@layout/fragment_camera_capture" />
+</navigation>

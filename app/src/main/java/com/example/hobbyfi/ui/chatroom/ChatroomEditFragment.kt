@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -47,11 +48,15 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
         with(binding) {
             lifecycleOwner = this@ChatroomEditFragment
 
-            chatroomInfo.chatroomImage.setOnClickListener {
+            chatroomInfo.chatroomImage.galleryOption.setOnClickListener {
                 Callbacks.requestImage(this@ChatroomEditFragment)
             }
 
-            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage)
+            chatroomInfo.chatroomImage.cameraOption.setOnClickListener {
+                navController.navigate(R.id.action_chatroomEditFragment_to_camera_capture_nav_graph)
+            }
+
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage.image)
 
             chatroomInfo.buttonBar.rightButton.setOnClickListener {
                 val fieldMap: MutableMap<String, String?> = mutableMapOf()
@@ -111,8 +116,8 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                             ref.metadata.addOnSuccessListener { metadata ->
                                 Glide.with(this@ChatroomEditFragment).loadReferenceWithMetadataSignature(
                                     ref, metadata
-                                ).placeholder(chatroomInfo.chatroomImage.drawable)
-                                    .into(chatroomInfo.chatroomImage)
+                                ).placeholder(chatroomInfo.chatroomImage.image.drawable)
+                                    .into(chatroomInfo.chatroomImage.image)
                             }
                         }
                     } else {
@@ -132,6 +137,11 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 viewModel.tagBundle.setSelectedTags(it)
                 viewModel.tagBundle.appendNewSelectedTagsToTags(it)
         })
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer {
+                binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+            })
 
         binding.chatroomInfo.buttonBar.leftButton.setOnClickListener {
             navController.safeNavigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
@@ -170,10 +180,9 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
             resultCode,
             data
         ) {
-            Glide.with(requireContext())
-                .load(it)
-                .into(binding.chatroomInfo.chatroomImage)
-            viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
+            binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(
+                data!!.data!!, viewModel.base64Image
+            )
         }
     }
 }

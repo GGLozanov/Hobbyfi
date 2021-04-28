@@ -16,6 +16,12 @@ import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI

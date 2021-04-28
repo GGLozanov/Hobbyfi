@@ -33,6 +33,9 @@
                 android:name="poptoId"
                 app:argType="reference" />
         </action>
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
     </fragment>
     <fragment
         android:id="@+id/chatroomEditFragment"
@@ -56,6 +59,9 @@
                 android:name="poptoId"
                 app:argType="reference" />
         </action>
+        <action
+            android:id="@+id/action_chatroomEditFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
     </fragment>
     <navigation android:id="@+id/event_create_navigation"
         app:startDestination="@id/eventCreateFragment">
@@ -71,6 +77,9 @@
                 android:name="poptoId"
                 app:argType="reference" />
         </action>
+        <action
+            android:id="@+id/action_global_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
     </navigation>
     <include app:graph="@navigation/tag_nav_graph" />
     <activity
@@ -108,4 +117,5 @@
         android:label="Search Messages"
         tools:layout="@layout/fragment_message_search_view" />
     <include app:graph="@navigation/loading_nav_graph" />
+    <include app:graph="@navigation/camera_capture_nav_graph" />
 </navigation>

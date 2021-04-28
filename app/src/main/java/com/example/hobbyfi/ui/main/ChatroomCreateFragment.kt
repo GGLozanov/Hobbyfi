@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.main
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.hobbyfi.R
@@ -50,8 +52,12 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
         observeCombinedObserversInvalidity()
 
         with(binding) {
-            chatroomInfo.chatroomImage.setOnClickListener {
+            chatroomInfo.chatroomImage.galleryOption.setOnClickListener {
                 Callbacks.requestImage(this@ChatroomCreateFragment)
+            }
+
+            chatroomInfo.chatroomImage.cameraOption.setOnClickListener {
+                navController.navigate(R.id.action_chatroomCreateFragment_to_camera_capture_nav_graph)
             }
 
             return@onCreateView root
@@ -75,7 +81,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             }
 
             // load after fragment switch & stuff
-            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage)
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage.image)
         }
 
         lifecycleScope.launch {
@@ -132,6 +138,11 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                 viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
                 viewModel.tagBundle.setSelectedTags(selectedTags)
             }
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer {
+                binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+            })
     }
 
     override fun observePredicateValidators() {
@@ -169,10 +180,9 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
             data
         ) {
             // FIXME: Small code dup on the callback with the other Fragments...
-            Glide.with(requireContext())
-                .load(data!!.data!!)
-                .into(binding.chatroomInfo.chatroomImage)
-            viewModel.base64Image.setOriginalUri(data.data!!.toString())
+            binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(
+                data!!.data!!, viewModel.base64Image
+            )
         }
     }
 }

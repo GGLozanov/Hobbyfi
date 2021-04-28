@@ -3,6 +3,7 @@ package com.example.hobbyfi.ui.main
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -62,8 +63,13 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
 
-            profileImage.setOnClickListener {
+            // FIXME: Code dup w/ other profile selection Fragments
+            profileImage.galleryOption.setOnClickListener {
                 Callbacks.requestImage(this@UserProfileFragment)
+            }
+
+            profileImage.cameraOption.setOnClickListener {
+                navController.navigate(R.id.action_userProfileFragment_to_camera_capture_nav_graph)
             }
 
             settingsButtonBar.leftButton.setOnClickListener { // delete account button
@@ -171,6 +177,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
                     viewModel!!.tagBundle.setSelectedTags(selectedTags)
                 }
+
+            navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+                ?.observe(viewLifecycleOwner) { uri ->
+                    binding.profileImage.image
+                        .loadUriIntoGlideAndSaveInImageHolder(uri, viewModel!!.base64Image)
+                }
         }
     }
 
@@ -201,8 +213,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                             Log.i("UserProfileFragment", "metadata create time: ${metadata.creationTimeMillis}")
                             Glide.with(requireContext()).loadReferenceWithMetadataSignature(
                                 ref, metadata
-                            ).placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
-                                .into(binding.profileImage)
+                            ).placeholder(binding.profileImage.image.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
+                                .into(binding.profileImage.image)
                         }
                     }
                 } else {
@@ -250,10 +262,8 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             resultCode,
             data
         ) {
-            Glide.with(requireContext())
-                .load(data!!.data!!)
-                .into(binding.profileImage)
-            viewModel.base64Image.setOriginalUri(data.data!!.toString())
+            binding.profileImage.image
+                .loadUriIntoGlideAndSaveInImageHolder(data!!.data!!, viewModel.base64Image)
         }
     }
 

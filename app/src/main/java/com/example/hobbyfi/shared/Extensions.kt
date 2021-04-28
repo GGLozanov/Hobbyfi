@@ -86,6 +86,8 @@ import kotlin.reflect.KClass
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import android.widget.FrameLayout
 import android.view.Gravity
+import android.widget.ImageView
+import com.bumptech.glide.Glide
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -313,6 +315,13 @@ fun <T> MutableLiveData<T>.forceObserve() {
 fun Context.convertDrawableResToBitmap(@DrawableRes drawableId: Int, width: Int?, height: Int?): Bitmap {
     val d: Drawable = ContextCompat.getDrawable(this, drawableId) ?: throw Resources.NotFoundException()
     return d.toBitmap(width ?: d.intrinsicWidth, height ?: d.intrinsicHeight)
+}
+
+fun ImageView.loadUriIntoGlideAndSaveInImageHolder(uri: Uri, imageHolder: Base64Image) {
+    Glide.with(this.context)
+        .load(uri)
+        .into(this)
+    imageHolder.setOriginalUri(uri.toString())
 }
 
 fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true

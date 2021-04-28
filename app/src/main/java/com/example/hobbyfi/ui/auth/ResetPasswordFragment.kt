@@ -23,7 +23,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ResetPasswordFragment : AuthFragment() {
+class ResetPasswordFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         fun newInstance() = ResetPasswordFragment()
@@ -52,6 +52,12 @@ class ResetPasswordFragment : AuthFragment() {
             }
             return@onCreateView root
         }
+    }
+
+    @ExperimentalCoroutinesApi
+    override fun onStart() {
+        super.onStart()
+        observePredicateValidators()
     }
 
     @ExperimentalCoroutinesApi

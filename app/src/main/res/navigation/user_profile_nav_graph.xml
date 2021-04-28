@@ -43,6 +43,10 @@
                 android:name="poptoId"
                 app:argType="reference" />
         </action>
+        <action
+            android:id="@+id/action_userProfileFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
     </fragment>
     <include app:graph="@navigation/loading_nav_graph" />
+    <include app:graph="@navigation/camera_capture_nav_graph" />
 </navigation>

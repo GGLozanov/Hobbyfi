@@ -84,9 +84,9 @@
 
                         <com.google.android.material.chip.ChipGroup
                             android:id="@+id/tag_group"
+                            android:animateLayoutChanges="true"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:animateLayoutChanges="false"
                             android:padding="5dp"
                             android:scrollbars="vertical">
 

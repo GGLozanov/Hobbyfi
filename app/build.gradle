@@ -74,9 +74,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     def lifecycle_version = "2.3.1"
-    def room_version = "2.3.0-rc01"
-    def paging_version = "3.0.0-beta03"
+    def room_version = "2.4.0-alpha01"
+    def paging_version = "3.0.0-rc01"
     def nav_version = "2.3.5"
+    def camerax_version = "1.0.0-rc05"
     def work_version = "2.5.0"
 
     // MultiDex
@@ -146,7 +147,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-location:18.0.0"
 
     // Google Maps
-    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.1'
 
     // Facebook SDK
     implementation 'com.facebook.android:facebook-login:8.1.0'
@@ -207,6 +208,16 @@ dependencies {
 
     // FirebaseUI Storage
     implementation 'com.firebaseui:firebase-ui-storage:6.4.0'
+
+    // Vertical Stepper Form
+    implementation 'com.ernestoyaquello.stepperform:vertical-stepper-form:2.4.1'
+
+    // CameraX
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-view:1.0.0-alpha24"
+    implementation "androidx.camera:camera-extensions:1.0.0-alpha24"
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 

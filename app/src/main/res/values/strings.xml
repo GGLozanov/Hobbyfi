@@ -81,6 +81,7 @@
     <string name="message_hint">Enter a message</string>
     <string name="profile">Your Profile</string>
     <string name="read_external_storage_rationale">We need to access your storage for you to select your profile picture.</string>
+    <string name="camera_rationale">We need to access your camera for you to select your profile picture using it.</string>
     <string name="chatrooms">Chatrooms</string>
     <string name="list_error_text">Something went wrong? Try again!</string>
     <string name="create_chatroom_header">Or… just create your own Chatroom!</string>
@@ -285,4 +286,13 @@
     <string name="take_me_there">Get me in the room!</string>
     <string name="no_please">Nah, let me browse.</string>
     <string name="confirm_chatroom_delete">Are you ABSOLUTELY sure you want to delete the chatroom? This will delete ALL messages and content!</string>
+
+    <string name="email">Email</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="description">Description</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="photo_capture_success">Photo capture succeeded!</string>
+    <string name="photo_capture_failed">Photo capture failed!</string>
 </resources>

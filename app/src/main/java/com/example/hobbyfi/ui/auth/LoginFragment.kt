@@ -25,6 +25,7 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.ui.shared.LoadingFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
@@ -40,7 +41,7 @@ import java.io.File
 
 
 @ExperimentalCoroutinesApi
-class LoginFragment : AuthFragment() {
+class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         val tag: String = "LoginFragment"
@@ -90,6 +91,11 @@ class LoginFragment : AuthFragment() {
         observeFacebookState()
         observeTokenState()
         observePotentialTags()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        observePredicateValidators()
     }
 
     override fun observePredicateValidators() {

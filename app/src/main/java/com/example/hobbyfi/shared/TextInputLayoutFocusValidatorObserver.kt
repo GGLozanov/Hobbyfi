@@ -7,10 +7,12 @@ import com.google.android.material.textfield.TextInputLayout
 
 class TextInputLayoutFocusValidatorObserver(
     textInputLayout: TextInputLayout,
-    private var errorText: String
+    private var errorText: String,
+    private val focusStateChangedContinuation: (() -> Unit)? = null
 ) : TextInputLayoutFocusObserver<Boolean>(textInputLayout) {
     override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
         textInputLayout.error = if(t) errorText else null
+        focusStateChangedContinuation?.invoke()
     }
 
     fun setErrorText(errorText: String) {

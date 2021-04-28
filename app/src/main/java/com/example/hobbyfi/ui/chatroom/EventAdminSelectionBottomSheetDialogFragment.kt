@@ -72,7 +72,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
                             activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEvents)
                         }
                     } else {
-                        view?.showWarningSnackbar(getString(R.string.no_old_event_delete))
+                        view.showWarningSnackbar(getString(R.string.no_old_event_delete))
                     }
                     dialogInterface.dismiss()
                 },

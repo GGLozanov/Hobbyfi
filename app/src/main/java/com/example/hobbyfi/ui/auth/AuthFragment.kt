@@ -16,45 +16,42 @@ import com.example.hobbyfi.work.DeviceTokenUploadWorker
 import com.facebook.AccessToken
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-abstract class AuthFragment : BaseFragment(), OnAuthStateChanged, TextFieldInputValidationOnus {
+abstract class AuthFragment : BaseFragment(), OnAuthStateChanged {
 
     private val activityViewModel: AuthActivityViewModel by activityViewModels()
 
     @ExperimentalCoroutinesApi
     override fun login(action: NavDirections, token: String?, refreshToken: String?) {
-        if(token != null) {
+        if (token != null) {
             prefConfig.writeToken(token)
         }
 
-        if(!prefConfig.readCurrentDeviceTokenUploaded()) {
+        if (!prefConfig.readCurrentDeviceTokenUploaded()) {
             WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenUploadWorker>(
-                token ?: AccessToken.getCurrentAccessToken().token, // not pref because pref write is async
+                token
+                    ?: AccessToken.getCurrentAccessToken().token, // not pref because pref write is async
                 prefConfig.readDeviceToken(), requireContext()
             )
         }
 
-        if(refreshToken != null) {
+        if (refreshToken != null) {
             prefConfig.writeRefreshToken(refreshToken)
         }
 
-        if(activityViewModel.restartedFromDeepLink) {
-            startActivity(android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
-                putExtras(requireActivity().intent)
-            })
+        if (activityViewModel.restartedFromDeepLink) {
+            startActivity(
+                android.content.Intent(requireContext(), ChatroomActivity::class.java).apply {
+                    putExtras(requireActivity().intent)
+                })
 
             finishAffinity(requireActivity())
             activityViewModel.setRestartedFromDeepLink(false)
         } else {
-            if(navController.currentDestination?.id == R.id.loadingFragment) {
+            if (navController.currentDestination?.id == R.id.loadingFragment) {
                 navController.popBackStack()
             }
 
             navController.safeNavigate(action)
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        observePredicateValidators()
     }
 }

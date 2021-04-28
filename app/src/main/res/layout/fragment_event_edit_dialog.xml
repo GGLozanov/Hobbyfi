@@ -6,7 +6,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel" />
+            type="com.example.hobbyfi.viewmodels.chatroom.EventEditDialogFragmentViewModel" />
     </data>
 
     <ScrollView

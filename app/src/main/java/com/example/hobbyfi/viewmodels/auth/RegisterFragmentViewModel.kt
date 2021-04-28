@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 class RegisterFragmentViewModel(application: Application) : AuthConfirmationViewModel(application),
     NameDescriptionBindable by NameDescriptionBindableViewModel(),
     Base64ImageHolder by Base64ImageHolderViewModel(), TagBundleHolder by TagBundleHolderViewModel() {
-
+    
     init {
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
     }

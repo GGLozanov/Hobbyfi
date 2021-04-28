@@ -23,8 +23,11 @@ object Constants {
     const val invalidStateError: String = "Invalid state to call this method in!"
     const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
 
+    const val CAMERA_URI = "CAMERA_URI"
+
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777
+    const val cameraPermissionsRequestCode = 499
 
     const val locationPermissionsRequestCode: Int = 888
 
@@ -129,18 +132,6 @@ object Constants {
 
     const val profileImageWidth = 175
     const val profileImageHeight = 135
-
-    fun userImageBucket(title: String): String {
-        return "users/$title.jpg"
-    }
-
-    fun eventImageBucket(title: String): String {
-        return "events/$title.jpg"
-    }
-
-    fun chatroomImageBucket(chatroomId: Long, title: String): String {
-        return "chatroom_$chatroomId/$title.jpg"
-    }
 
     fun messageImageBucket(chatroomId: Long, title: String): String {
         return "chatroom_$chatroomId/messages/$title.jpg"
@@ -249,9 +240,6 @@ object Constants {
     const val UPDATED_LOCATION_ACTION: String = "com.example.hobbyfi.UPDATED_LOCATION_ACTION"
     const val FOREGROUND_REACTIVATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVATION_ACTION";
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
-    const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
-    const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
-    const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
     const val JOIN_CHATROOM: String = "join_chatroom"
     const val ENTER_MAIN: String = "enter_main"

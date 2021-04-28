@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.DatePicker
@@ -11,6 +12,7 @@ import android.widget.TimePicker
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
@@ -52,19 +54,26 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         with(binding) {
             lifecycleOwner = this@EventCreateFragment
 
-            eventInfo.eventInfoButtonBar.leftButton.setOnClickListener { // select event date
-                Callbacks.initDateTimeDatePickerDialog(
-                    requireContext(),
-                    this@EventCreateFragment, viewModel!!
-                )
-            }
+            with(eventInfo) {
+                eventInfoButtonBar.leftButton.setOnClickListener { // select event date
+                    Callbacks.initDateTimeDatePickerDialog(
+                        requireContext(),
+                        this@EventCreateFragment, this@EventCreateFragment.viewModel
+                    )
+                }
 
-            eventInfo.eventInfoButtonBar.rightButton.setOnClickListener { // select location
-                Callbacks.startChooseEventLocationMapsActivity(this@EventCreateFragment, viewModel!!)
-            }
+                eventInfoButtonBar.rightButton.setOnClickListener { // select location
+                    Callbacks.startChooseEventLocationMapsActivity(this@EventCreateFragment,
+                        this@EventCreateFragment.viewModel)
+                }
 
-            eventInfo.eventImage.setOnClickListener {
-                Callbacks.requestImage(this@EventCreateFragment)
+                eventInfo.eventImage.galleryOption.setOnClickListener {
+                    Callbacks.requestImage(this@EventCreateFragment)
+                }
+
+                eventInfo.eventImage.cameraOption.setOnClickListener {
+                    navController.navigate(R.id.action_global_camera_capture_nav_graph)
+                }
             }
 
             confirmButton.setOnClickListener {
@@ -81,6 +90,11 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeEventState()
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer {
+                binding.eventInfo.eventImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+            })
     }
 
     private fun observeEventState() {
@@ -165,8 +179,8 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
             resultCode,
             data
         ) {
-            binding.eventInfo.eventImage.setImageBitmap(it)
-            viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
+            binding.eventInfo.eventImage.image
+                .loadUriIntoGlideAndSaveInImageHolder(data!!.data!!, viewModel.base64Image)
         }
     }
 }

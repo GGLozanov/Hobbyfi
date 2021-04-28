@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class EventEditFragmentViewModel(
+class EventEditDialogFragmentViewModel(
     application: Application,
     private val _event: Event
 ) : EventAccessorViewModel(application), Base64ImageHolder by Base64ImageHolderViewModel() {

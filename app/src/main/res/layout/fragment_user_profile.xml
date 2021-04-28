@@ -27,13 +27,11 @@
                 android:background="@drawable/rounded_container"
                 android:padding="20dp">
 
-                <de.hdodenhof.circleimageview.CircleImageView
+                <include
                     android:id="@+id/profile_image"
-                    android:layout_width="@dimen/circle_pic_width"
-                    android:layout_height="@dimen/circle_pic_height"
-                    android:src="@drawable/user_default_pic"
-                    app:civ_border_color="@color/colorSecondary"
-                    app:civ_border_width="3dp"
+                    layout="@layout/camera_gallery_circle_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     app:layout_constraintBottom_toTopOf="@id/username_input_field"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -104,35 +102,40 @@
                     layout="@layout/button_bar_pair"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:visibility="visible"
-                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_delete_forever_24}"
-                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_tag_faces_24}"
-                    app:leftButtonText="@{@string/delete_account}"
-                    app:rightButtonText="@{@string/select_tags}"
                     app:layout_constraintBottom_toTopOf="@id/auth_button_bar"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/description_input_field" />
+                    app:layout_constraintTop_toBottomOf="@id/description_input_field"
+                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_delete_forever_24}"
+                    app:leftButtonText="@{@string/delete_account}"
+                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_tag_faces_24}"
+                    app:rightButtonText="@{@string/select_tags}" />
 
                 <include
                     android:id="@+id/auth_button_bar"
                     layout="@layout/button_bar_pair"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
                     android:visibility="visible"
-                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_email_white_24}"
-                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_password_24}"
-                    app:leftButtonText="@{@string/change_email}"
-                    app:rightButtonText="@{@string/change_password}"
                     app:layout_constraintBottom_toTopOf="@id/confirm_button"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/settings_button_bar" />
+                    app:layout_constraintTop_toBottomOf="@id/settings_button_bar"
+                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_email_white_24}"
+                    app:leftButtonText="@{@string/change_email}"
+                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_password_24}"
+                    app:rightButtonText="@{@string/change_password}" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/confirm_button"
-                    android:text="@string/confirm"
-                    android:background="@drawable/rounded_rect"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/rounded_rect"
+                    android:text="@string/confirm"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
