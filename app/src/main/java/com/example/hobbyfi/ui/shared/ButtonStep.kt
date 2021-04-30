@@ -1,6 +1,7 @@
 package com.example.hobbyfi.ui.shared
 
 import android.view.View
+import com.example.hobbyfi.R
 import com.example.hobbyfi.models.ui.StepperButtonInput
 import com.google.android.material.button.MaterialButton
 import ernestoyaquello.com.verticalstepperform.Step
@@ -19,7 +20,7 @@ class ButtonStep(
     override fun getStepData() {}
 
     override fun getStepDataAsHumanReadableString(): String {
-        return if(buttonClicked) "" else emptyHint
+        return if(buttonClicked) context.getString(R.string.checked) else emptyHint
     }
 
     override fun restoreStepData(data: Unit?) {}

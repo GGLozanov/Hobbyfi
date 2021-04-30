@@ -146,7 +146,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
             navController.addOnDestinationChangedListener { _, destination, _ ->
                 binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
                         destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
-                            && destination.id != R.id.loadingFragment
+                            && destination.id != R.id.loadingFragment && destination.id != R.id.cameraCaptureFragment
             }
             observeUserState()
         })
@@ -224,7 +224,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                     is UserState.Error -> {
-                        binding.root.showFailureSnackbar(getString(R.string.something_wrong) + " $it.error")
+                        binding.root.showFailureSnackbar(getString(R.string.something_wrong) + " ${it.error}")
                         if (it.shouldReauth) {
                             logout()
                         }

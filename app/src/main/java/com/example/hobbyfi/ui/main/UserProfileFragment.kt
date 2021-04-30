@@ -178,10 +178,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.tagBundle.setSelectedTags(selectedTags)
                 }
 
-            navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri?>(Constants.CAMERA_URI)
                 ?.observe(viewLifecycleOwner) { uri ->
-                    binding.profileImage.image
-                        .loadUriIntoGlideAndSaveInImageHolder(uri, viewModel!!.base64Image)
+                    uri?.let {
+                        binding.profileImage.image
+                            .loadUriIntoGlideAndSaveInImageHolder(it, viewModel!!.base64Image)
+                    }
                 }
         }
     }
@@ -206,18 +208,20 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
                 }
 
-                if (it.photoUrl != null) {
+                if (it.photoUrl != null && navController.currentBackStackEntry
+                        ?.savedStateHandle?.get<Uri?>(Constants.CAMERA_URI) == null) {
                     Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
                     it.photoUrl!!.asFirebaseStorageReference()?.let { ref ->
                         ref.metadata.addOnSuccessListener { metadata ->
                             Log.i("UserProfileFragment", "metadata create time: ${metadata.creationTimeMillis}")
                             Glide.with(requireContext()).loadReferenceWithMetadataSignature(
                                 ref, metadata
-                            ).placeholder(binding.profileImage.image.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
+                            ).placeholder(binding.profileImage.image.drawable)
                                 .into(binding.profileImage.image)
                         }
                     }
                 } else {
+                    // receivedCameraImageCapture = false
                     // load default img (needed if img deletion is added)
                 }
             }
@@ -253,6 +257,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         observePredicateValidators()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        navController.currentBackStackEntry
+            ?.savedStateHandle?.set(Constants.CAMERA_URI, null)
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

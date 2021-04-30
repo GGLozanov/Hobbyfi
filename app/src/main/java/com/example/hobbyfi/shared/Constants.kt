@@ -24,6 +24,7 @@ object Constants {
     const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
 
     const val CAMERA_URI = "CAMERA_URI"
+    const val CAMERA_CAPTURE: String = "CAMERA_CAPTURE"
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777
@@ -34,9 +35,11 @@ object Constants {
     const val eventLocationRequestCode: Int = 999
     const val eventMapsRequestCode: Int = 666
     const val externalStorageWriteCode = 323
+    const val cameraRequestCode: Int = 100
     const val RESULT_CHATROOM_DELETE: Int = 423
     const val RESULT_KICKED: Int = 246
     const val RESULT_REAUTH: Int = 111
+    const val CAMERA_RESULT: Int = 221
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(

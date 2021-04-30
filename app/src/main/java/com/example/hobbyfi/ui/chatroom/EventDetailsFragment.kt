@@ -301,13 +301,14 @@ class EventDetailsFragment : ChatroomModelFragment() {
             binding.eventViewButtonBar.leftButton.isVisible = false
             binding.eventViewButtonBar.rightButton.isVisible = false
             binding.daysLeftHeader.text = String.format(
-                Locale.ENGLISH, "Event has already concluded."
+                Locale.ENGLISH, getString(R.string.event_concluded)
             )
             return true
         }
 
         binding.daysLeftHeader.text = String.format(
-            Locale.ENGLISH, "%d days, %d hours, and %d minutes left", diff.toDays(),
+            Locale.ENGLISH, "%d ${getString(R.string.days)}, %d ${getString(R.string.hours)}, ${getString(R.string.and)} %d " +
+                    "${getString(R.string.minutes)} ${getString(R.string.left)}", diff.toDays(),
             diff.toHours() % 24, diff.toMinutes() % 60
         )
         return false

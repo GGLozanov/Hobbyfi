@@ -184,12 +184,10 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         } else {
                             viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserEmail)
                         }
-                        viewModel.resetFacebookState()
                     }
                     is FacebookState.OnData.EmailReceived -> {
                         it.email?.let { it1 -> viewModel.email.setValue(it1) }
                         viewModel.sendFacebookIntent(FacebookIntent.FetchFacebookUserTags)
-                        viewModel.resetFacebookState()
                     }
                     is FacebookState.OnData.TagsReceived -> { // if user cancels tags, just don't register them with tags
                         val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
@@ -198,7 +196,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 .toTypedArray() + it.tags
                         )
                         navController.safeNavigate(action)
-                        viewModel.resetFacebookState()
                     }
                     is FacebookState.Error -> {
                         if(it.error?.isBlank() == false) {
@@ -223,7 +220,6 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 navController.safeNavigate(action)
                             }
                         }
-                        viewModel.resetFacebookState()
                     }
                     else -> throw State.InvalidStateException()
                 }

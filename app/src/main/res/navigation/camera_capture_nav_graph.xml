@@ -9,5 +9,6 @@
         android:id="@+id/cameraCaptureFragment"
         android:name="com.example.hobbyfi.ui.shared.CameraCaptureFragment"
         android:label="Capture Photo"
-        tools:layout="@layout/fragment_camera_capture" />
+        tools:layout="@layout/camera_capture_layout" >
+    </fragment>
 </navigation>

@@ -26,6 +26,8 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
+import com.example.hobbyfi.ui.shared.CameraCaptureActivity
+import com.example.hobbyfi.ui.shared.CameraCaptureFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventEditDialogFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
@@ -156,7 +158,9 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
             }
 
             eventInfo.eventImage.cameraOption.setOnClickListener {
-                navController.navigate(R.id.action_chatroomMessageListFragment_to_camera_capture_nav_graph) // hacky? eh
+                Intent(requireContext(), CameraCaptureActivity::class.java).run {
+                    startActivityForResult(this, Constants.cameraRequestCode)
+                }
             }
 
             observeEventState()
@@ -249,6 +253,13 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         if(requestCode == Constants.eventLocationRequestCode) {
             if(resultCode == Activity.RESULT_OK) {
                 viewModel.eventLatLng = data?.extras?.get(Constants.EVENT_LOCATION) as LatLng
+            }
+        }
+
+        if(requestCode == Constants.cameraRequestCode) {
+            if(resultCode == Activity.RESULT_OK) {
+                binding.eventInfo.eventImage.image.loadUriIntoGlideAndSaveInImageHolder(
+                    data!!.extras!![Constants.CAMERA_URI] as Uri, viewModel.base64Image)
             }
         }
 

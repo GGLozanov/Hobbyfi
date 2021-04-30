@@ -32,9 +32,8 @@ import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.google.android.material.textfield.TextInputLayout
 import ernestoyaquello.com.verticalstepperform.listener.StepperFormListener
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 
 @ExperimentalCoroutinesApi
@@ -73,21 +72,21 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_password_24)
                     ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_PASSWORD_TOGGLE,
-                InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
                 viewModel.password as PredicateMutableLiveData<String?>
-            )
+            ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
         )
 
-    private val confirmPasswordStep: FormStep get() =
+    private val confirmPasswordStep: FormStep get  () =
         FormStep(getString(R.string.confirm_password), viewLifecycleOwner, getString(R.string.confirm_password_input_error),
             StepperFormInput(
                 getString(R.string.confirm_password_hint),
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_password_24)
                     ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_PASSWORD_TOGGLE,
-                InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
                 viewModel.confirmPassword as PredicateMutableLiveData<String?>
-            )
+            ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
         )
 
     private val descriptionStep: FormStep get() =
@@ -127,8 +126,6 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
         with(binding) {
             lifecycleOwner = this@RegisterFragment
 
-            val view = root
-
             profileImage.galleryOption.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
                 Callbacks.requestImage(this@RegisterFragment)
             }
@@ -143,9 +140,11 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
                 .setup(this@RegisterFragment,
                     emailStep, usernameStep, passwordStep,
                     confirmPasswordStep, descriptionStep, tagsStep)
+                .allowNonLinearNavigation(true)
+                .allowStepOpeningOnHeaderClick(true)
                 .init()
 
-            return view
+            return@onCreateView root
         }
     }
 
@@ -161,7 +160,15 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
                     is TokenState.Idle -> {
                     }
                     is TokenState.Error -> {
-                        binding.root.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                        // bit of a hack due to race condition on RegisterFragment view w/ LoadingFragment pop from backstack
+                        lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                delay(1500)
+                            }
+
+                            this@RegisterFragment.view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                            binding.stepperForm.cancelFormCompletionOrCancellationAttempt()
+                        }
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
@@ -214,14 +221,25 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
     }
 
     override fun onCompletedForm() {
-        Log.i("RegisterFragment", "Completed form w/ data: ${viewModel.email}")
+        Log.i("RegisterFragment", "Completed form w/ data")
 
         lifecycleScope.launch {
             viewModel.sendIntent(TokenIntent.FetchRegisterToken)
         }
     }
 
-    override fun onCancelledForm() {}
+    override fun onCancelledForm() {
+        navController.popBackStack(R.id.authWrapperFragment, false)
+    }
+
+//    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+//        emailStep.restoreStepData(null)
+//        usernameStep.restoreStepData(null)
+//        passwordStep.restoreStepData(null)
+//        confirmPasswordStep.restoreStepData(null)
+//        descriptionStep.restoreStepData(null)
+//        super.onViewStateRestored(savedInstanceState)
+//    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

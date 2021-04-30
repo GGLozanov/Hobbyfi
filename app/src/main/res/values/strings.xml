@@ -295,4 +295,12 @@
     <string name="take_photo">Take Photo</string>
     <string name="photo_capture_success">Photo capture succeeded!</string>
     <string name="photo_capture_failed">Photo capture failed!</string>
+    <string name="checked">Checked</string>
+    <string name="filled">Filled</string>
+    <string name="event_concluded">Event has already concluded.</string>
+    <string name="days">days</string>
+    <string name="hours">hours</string>
+    <string name="and">and</string>
+    <string name="minutes">minutes</string>
+    <string name="left">left</string>
 </resources>

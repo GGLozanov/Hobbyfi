@@ -29,9 +29,7 @@ class RegisterFragmentViewModel(application: Application) : AuthConfirmationView
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is TokenIntent.FetchRegisterToken -> {
-                        viewModelScope.launch { // another coroutine in case of img upload not to slow down UI
-                            fetchRegisterToken()
-                        }
+                        fetchRegisterToken()
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

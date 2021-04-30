@@ -30,7 +30,7 @@
                     layout="@layout/camera_gallery_circle_image"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
+                    android:layout_marginTop="60dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -52,7 +52,9 @@
                         app:form_circle_background_color="@color/colorPrimary"
                         app:form_circle_text_color="@android:color/white"
                         app:form_close_last_step_on_completion="true"
+                        app:form_confirmation_step_title_text="@string/register"
                         app:form_display_bottom_navigation="false"
+                        app:form_display_cancel_button_in_last_step="true"
                         app:form_next_button_background_color="@color/colorPrimary"
                         app:form_next_button_pressed_background_color="@color/colorPrimaryDark"
                         app:form_next_button_pressed_text_color="@android:color/white"

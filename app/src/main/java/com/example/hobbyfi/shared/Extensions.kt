@@ -87,7 +87,13 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import android.widget.FrameLayout
 import android.view.Gravity
 import android.widget.ImageView
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
 import com.bumptech.glide.Glide
+import android.provider.MediaStore
+import androidx.camera.core.ImageCaptureException
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -306,6 +312,67 @@ fun Marker.animateMarker(newLatLng: LatLng) {
         position = LatLng(animatedValue[0], animatedValue[1])
     } // lerp the anim
     latLngAnimator.start()
+}
+
+fun androidx.camera.view.PreviewView.startCamera(lifecycleOwner: LifecycleOwner): LiveData<ImageCapture?> {
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+    val imageCapObservable = MutableLiveData<ImageCapture?>(null)
+
+    cameraProviderFuture.addListener(Runnable {
+        val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+        val preview = Preview.Builder()
+            .build()
+            .also {
+                it.setSurfaceProvider(surfaceProvider)
+            }
+
+        val imageCapture = ImageCapture.Builder()
+            .setTargetRotation(display.rotation)
+            .build()
+        imageCapObservable.value = imageCapture
+
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+        try {
+            cameraProvider.unbindAll()
+
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner, cameraSelector, preview, imageCapture)
+
+        } catch(exc: Exception) {
+            Log.e("CameraCapture", "Use case binding failed", exc)
+        }
+    }, ContextCompat.getMainExecutor(context))
+    return imageCapObservable
+}
+
+fun ImageCapture.takePhoto(context: Context,
+                           onImageCaptureSuccess: (output: ImageCapture.OutputFileResults) -> Unit, onImageCaptureFail: () -> Unit) {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, "${System.currentTimeMillis()}.jpg")
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+    }
+
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(
+        context.contentResolver,
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        contentValues
+    ).build()
+
+    takePicture(
+        outputOptions, ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageSavedCallback {
+            override fun onError(exc: ImageCaptureException) {
+                Log.e("CameraCapture", "Photo capture failed! ${exc.message}", exc)
+                onImageCaptureFail()
+            }
+
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                Log.i("CameraCapture", "Photo capture succeeded! ${output.savedUri}")
+                onImageCaptureSuccess(output)
+            }
+        })
 }
 
 fun <T> MutableLiveData<T>.forceObserve() {
