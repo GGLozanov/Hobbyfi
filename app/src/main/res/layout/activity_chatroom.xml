@@ -52,9 +52,7 @@
                 android:background="@color/colorPrimary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:navigationIconTint="@android:color/white"
-                app:titleTextColor="@android:color/white" />
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -65,9 +63,7 @@
             android:layout_gravity="start"
             android:background="@color/colorPrimary"
             app:headerLayout="@layout/nav_header_admin"
-            app:menu="@menu/chatroom_admin_nav_drawer_menu"
-            app:itemIconTint="@android:color/white"
-            app:itemTextColor="@android:color/white">
+            app:menu="@menu/chatroom_admin_nav_drawer_menu" >
 
         </com.google.android.material.navigation.NavigationView>
 
@@ -125,7 +121,6 @@
                         android:showText="true"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@android:color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
 

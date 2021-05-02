@@ -17,6 +17,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/center_icon"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toTopOf="@id/top_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </androidx.appcompat.widget.AppCompatImageView>
+
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/top_text"
             android:layout_width="wrap_content"
@@ -25,23 +37,13 @@
             android:lines="2"
             android:maxWidth="290dp"
             android:textAlignment="center"
-            app:layout_constraintBottom_toTopOf="@id/center_icon"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@id/bottom_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/center_icon">
 
         </com.google.android.material.textview.MaterialTextView>
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/center_icon"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/top_text">
-
-        </androidx.appcompat.widget.AppCompatImageView>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/bottom_text"
@@ -52,7 +54,7 @@
             android:textAlignment="center"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/center_icon">
+            app:layout_constraintTop_toBottomOf="@id/top_text">
 
         </com.google.android.material.textview.MaterialTextView>
 
@@ -61,8 +63,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxWidth="175dp"
-            android:visibility="gone"
             android:textColor="@color/colorBackground"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">

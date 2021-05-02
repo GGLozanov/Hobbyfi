@@ -101,8 +101,6 @@
                     android:fitsSystemWindows="true"
                     app:elevation="0dp"
                     android:visibility="@{canChatroomAdminUseActions ? View.VISIBLE : View.GONE}"
-                    app:itemIconTint="@android:color/white"
-                    app:itemTextColor="@android:color/white"
                     app:menu="@menu/chatroom_user_admin_menu">
 
                 </com.google.android.material.navigation.NavigationView>

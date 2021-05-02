@@ -303,4 +303,5 @@
     <string name="and">and</string>
     <string name="minutes">minutes</string>
     <string name="left">left</string>
+    <string name="reset_ask_chatrooms">Confirm immediate Chatroom joins?</string>
 </resources>

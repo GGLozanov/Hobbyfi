@@ -12,6 +12,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <ScrollView
             android:id="@+id/login_scroll"
             android:layout_width="match_parent"
@@ -29,132 +30,143 @@
                 android:layout_gravity="center"
                 tools:context=".ui.auth.LoginFragment">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/main_login_form"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    android:background="@drawable/rounded_container"
-                    android:clipChildren="false"
-                    android:elevation="20dp"
-                    android:padding="20dp"
+                    android:padding="10dp"
+                    app:cardBackgroundColor="@color/colorBackground"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="8dp"
                     app:layout_constraintBottom_toBottomOf="@+id/divider"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
 
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/login_header"
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/login"
-                        android:textSize="36sp"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toTopOf="@id/email_input_field"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
-
-                    </com.google.android.material.textview.MaterialTextView>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/email_input_field"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="8dp"
-                        android:hint="@string/email_hint"
-                        app:endIconMode="clear_text"
-                        app:errorEnabled="true"
-                        app:hintEnabled="true"
-                        app:layout_constraintBottom_toTopOf="@+id/password_input_field"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/login_header"
-                        app:startIconDrawable="@drawable/ic_baseline_email_white_24">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/text_input_email"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:includeFontPadding="true"
-                            android:inputType="textEmailAddress"
-                            android:lines="2"
-                            android:singleLine="true"
-                            android:text="@={viewModel.email}"
-                            tools:layout_conversion_absoluteHeight="45dp"
-                            tools:layout_conversion_absoluteWidth="20dp"
-                            tools:layout_editor_absoluteX="4dp"
-                            tools:layout_editor_absoluteY="4dp" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/password_input_field"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="8dp"
-                        android:hint="@string/password_hint"
-                        app:errorEnabled="true"
-                        app:hintEnabled="true"
-                        app:endIconMode="password_toggle"
-                        app:layout_constraintBottom_toTopOf="@id/login_button"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/email_input_field"
-                        app:startIconDrawable="@drawable/ic_baseline_security_24">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/text_input_password"
-                            android:layout_width="200dp"
-                            android:layout_height="wrap_content"
-                            android:includeFontPadding="true"
-                            android:inputType="textPassword"
-                            android:singleLine="true"
-                            android:text="@={viewModel.password}"
-                            tools:layout_conversion_absoluteHeight="45dp"
-                            tools:layout_conversion_absoluteWidth="20dp"
-                            tools:layout_editor_absoluteX="4dp"
-                            tools:layout_editor_absoluteY="4dp" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/login_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/login"
-                        app:layout_constraintBottom_toTopOf="@id/reset_pass_switch_page_layout"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/password_input_field">
-
-                    </com.google.android.material.button.MaterialButton>
-
-                    <androidx.appcompat.widget.LinearLayoutCompat
-                        android:id="@+id/reset_pass_switch_page_layout"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/login_button">
+                        android:clipChildren="false">
 
                         <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/reset_password_subtitle"
+                            android:id="@+id/login_header"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="@string/reset_password_hint"
-                            android:textSize="18sp"
-                            android:textStyle="bold" />
-                    </androidx.appcompat.widget.LinearLayoutCompat>
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                            android:text="@string/login"
+                            android:textSize="36sp"
+                            android:textStyle="bold"
+                            app:layout_constraintBottom_toTopOf="@id/email_input_field"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                        </com.google.android.material.textview.MaterialTextView>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/email_input_field"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/email_hint"
+                            app:endIconMode="clear_text"
+                            app:errorEnabled="true"
+                            app:hintEnabled="true"
+                            app:layout_constraintBottom_toTopOf="@+id/password_input_field"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/login_header"
+                            app:startIconDrawable="@drawable/ic_baseline_email_white_24">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/text_input_email"
+                                android:layout_width="200dp"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="true"
+                                android:inputType="textEmailAddress"
+                                android:lines="2"
+                                android:singleLine="true"
+                                android:text="@={viewModel.email}"
+                                tools:layout_conversion_absoluteHeight="45dp"
+                                tools:layout_conversion_absoluteWidth="20dp"
+                                tools:layout_editor_absoluteX="4dp"
+                                tools:layout_editor_absoluteY="4dp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/password_input_field"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginTop="8dp"
+                            android:hint="@string/password_hint"
+                            app:endIconMode="password_toggle"
+                            app:errorEnabled="true"
+                            app:hintEnabled="true"
+                            app:layout_constraintBottom_toTopOf="@id/login_button"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/email_input_field"
+                            app:startIconDrawable="@drawable/ic_baseline_security_24">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/text_input_password"
+                                android:layout_width="200dp"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="true"
+                                android:inputType="textPassword"
+                                android:singleLine="true"
+                                android:text="@={viewModel.password}"
+                                tools:layout_conversion_absoluteHeight="45dp"
+                                tools:layout_conversion_absoluteWidth="20dp"
+                                tools:layout_editor_absoluteX="4dp"
+                                tools:layout_editor_absoluteY="4dp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/login_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/login"
+                            app:layout_constraintBottom_toTopOf="@id/reset_pass_switch_page_layout"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/password_input_field">
+
+                        </com.google.android.material.button.MaterialButton>
+
+                        <androidx.appcompat.widget.LinearLayoutCompat
+                            android:id="@+id/reset_pass_switch_page_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginBottom="16dp"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/login_button">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/reset_password_subtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="@string/reset_password_hint"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+                        </androidx.appcompat.widget.LinearLayoutCompat>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </com.google.android.material.card.MaterialCardView>
 
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:id="@+id/divider"

@@ -87,6 +87,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 )
             }
 
+            askSwitch.setOnCheckedChangeListener { _, checked ->
+                prefConfig.writeChatroomJoinRememberNavigate(if(checked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
+                    else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal)
+            }
+
             return@onCreateView root
         }
     }
