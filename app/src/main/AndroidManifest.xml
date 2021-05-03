@@ -27,7 +27,6 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
-        <activity android:name=".ui.shared.CameraCaptureActivity"></activity>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -104,11 +103,12 @@
         <activity
             android:name=".ui.onboard.OnboardingActivity"
             android:label="@string/title_activity_onboarding"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.auth.AuthActivity"
             android:label="@string/auth"
-            android:windowSoftInputMode="adjustPan"></activity>
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".ui.shared.CameraCaptureActivity" />
         <activity
             android:name=".ui.chatroom.ChatroomActivity"
             android:label="@string/title_activity_chatroom"

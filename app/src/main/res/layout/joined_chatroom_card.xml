@@ -15,7 +15,7 @@
         android:id="@+id/card_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="12dp"
+        app:cardElevation="12dp"
         android:orientation="vertical"
         app:cardCornerRadius="5dp">
 
@@ -82,7 +82,6 @@
                 android:id="@+id/sub_card_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/colorPrimary"
                 android:orientation="vertical"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"

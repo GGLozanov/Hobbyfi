@@ -94,6 +94,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import com.bumptech.glide.Glide
 import android.provider.MediaStore
 import androidx.camera.core.ImageCaptureException
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -205,7 +206,7 @@ fun Context.buildYesNoAlertDialog(
     onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener?,
     onDismiss: DialogInterface.OnDismissListener? = null
 ) {
-    val dialogBuilder = AlertDialog.Builder(this)
+    val dialogBuilder = MaterialAlertDialogBuilder(this)
         .setMessage(dialogMessage)
         .setPositiveButton(getString(R.string.yes), onConfirm)
         .setNegativeButton(getString(R.string.no), onCancel)
@@ -214,10 +215,8 @@ fun Context.buildYesNoAlertDialog(
         dialogBuilder.setOnDismissListener(it)
     }
 
-    dialogBuilder.create().apply {
-        window!!.setBackgroundDrawableResource(R.color.colorBackground)
-        show()
-    }
+    dialogBuilder.create()
+        .show()
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -832,7 +831,6 @@ fun ChipGroup.reinitChipsByTags(tags: List<Tag>?): Boolean {
                         ColourUtils.getColourOrGreen(tag.colour)
                     }
                 )
-                setTextColor(ContextCompat.getColor(context, android.R.color.white))
             }
 
             addView(chip)

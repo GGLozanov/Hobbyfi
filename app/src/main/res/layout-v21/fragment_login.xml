@@ -17,7 +17,6 @@
             android:id="@+id/login_scroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/background_secondary_gradient"
             android:fadeScrollbars="false"
             android:fillViewport="false"
             android:overScrollMode="always"
@@ -36,7 +35,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:padding="10dp"
-                    app:cardBackgroundColor="@color/colorBackground"
                     app:cardCornerRadius="8dp"
                     app:cardElevation="8dp"
                     app:layout_constraintBottom_toBottomOf="@+id/divider"
@@ -190,7 +188,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="2dp"
                         android:layout_weight="0.3"
-                        android:background="@color/cardview_light_background"
+                        android:background="@color/colorOnSurface"
                         app:layout_constraintBottom_toTopOf="@id/facebook_button"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -211,7 +209,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="2dp"
                         android:layout_weight="0.3"
-                        android:background="@color/cardview_light_background" />
+                        android:background="@color/colorOnSurface" />
                 </androidx.appcompat.widget.LinearLayoutCompat>
 
                 <com.facebook.login.widget.LoginButton
@@ -219,6 +217,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:backgroundTintMode="add"
                     android:paddingTop="15dp"
                     android:paddingBottom="15dp"
                     app:layout_constraintBottom_toBottomOf="parent"

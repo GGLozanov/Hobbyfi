@@ -18,6 +18,7 @@ import com.example.hobbyfi.shared.showFailureSnackbar
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -38,7 +39,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                     when(prefConfig.readChatroomJoinRememberNavigate()) {
                         Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
                             val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
-                            val dialog = AlertDialog.Builder(requireContext())
+                            val dialog = MaterialAlertDialogBuilder(requireContext())
                                 .setView(dialogBinding.root)
                                 .setPositiveButton(getString(R.string.take_me_there)) { dialogInterface: DialogInterface, _: Int ->
                                     prefConfig.writeChatroomJoinRememberNavigate(

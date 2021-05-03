@@ -14,7 +14,7 @@
     <color name="onError">#FFFFFF</color>
     <color name="colorError">#B00020</color>
 
-    <color name="colorControlNormal">#656565</color>
+    <color name="colorControlNormal">#FFFFFF</color>
 
     <color name="colorGrey">#9a9a9a</color>
     <color name="colorDarkGrey">#333333</color>

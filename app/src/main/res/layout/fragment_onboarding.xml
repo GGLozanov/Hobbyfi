@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_secondary_gradient"
-    tools:context=".ui.onboard.OnboardingFragment"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    tools:context=".ui.onboard.OnboardingFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,15 +16,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/extra_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="175dp"
+            android:textColor="@color/colorBackground"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/center_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </com.google.android.material.textview.MaterialTextView>
+
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/center_icon"
             android:layout_width="250dp"
             android:layout_height="250dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toTopOf="@id/top_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/extra_text">
 
         </androidx.appcompat.widget.AppCompatImageView>
 
@@ -37,6 +53,7 @@
             android:lines="2"
             android:maxWidth="290dp"
             android:textAlignment="center"
+            android:textColor="@color/colorSecondary"
             android:textSize="18sp"
             app:layout_constraintBottom_toTopOf="@id/bottom_text"
             app:layout_constraintEnd_toEndOf="parent"
@@ -52,22 +69,10 @@
             android:layout_marginTop="32dp"
             android:maxWidth="150dp"
             android:textAlignment="center"
+            android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/top_text">
-
-        </com.google.android.material.textview.MaterialTextView>
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/extra_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxWidth="175dp"
-            android:textColor="@color/colorBackground"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
 
         </com.google.android.material.textview.MaterialTextView>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -80,6 +85,7 @@
         android:layout_alignParentBottom="false"
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="32dp"
+        android:textColor="@color/colorAccent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 

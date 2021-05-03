@@ -14,14 +14,14 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/chatroom_card"
             android:layout_width="250dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_horizontal"
             app:cardCornerRadius="8dp"
             app:cardElevation="8dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -31,8 +31,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/chatroom_card_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/rounded_container_layered">
+                android:layout_height="wrap_content">
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/chatroom_name"
@@ -140,6 +139,6 @@
                         android:text="@string/chatroom_join_button_text" />
                 </androidx.appcompat.widget.LinearLayoutCompat>
             </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
     </androidx.appcompat.widget.LinearLayoutCompat>
 </layout>

@@ -41,17 +41,18 @@
                     app:eventHeaderText="@{@string/event_edit_header}"
                     app:viewModel="@{viewModel}" />
 
-
                 <include
                     android:id="@+id/event_edit_dialog_button_bar"
                     layout="@layout/button_bar_pair"
-                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_cancel_24}"
-                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_check_24}"
-                    app:leftButtonText="@{@string/cancel}"
-                    app:rightButtonText="@{@string/confirm}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center" />
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_cancel_24}"
+                    app:leftButtonText="@{@string/cancel}"
+                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_check_24}"
+                    app:rightButtonText="@{@string/confirm}" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 

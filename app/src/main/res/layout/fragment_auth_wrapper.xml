@@ -5,7 +5,6 @@
     android:id="@+id/login_scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_secondary_gradient"
     android:fadeScrollbars="false"
     android:fillViewport="true"
     android:overScrollMode="always"
@@ -30,8 +29,8 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="160dp"
-                android:layout_height="120dp"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
                 app:srcCompat="@drawable/hobbyfi_icon">
 
             </androidx.appcompat.widget.AppCompatImageView>
@@ -42,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:text="@string/app_name"
-                android:textSize="32sp"
+                android:textSize="42sp"
                 android:textStyle="bold">
 
             </com.google.android.material.textview.MaterialTextView>

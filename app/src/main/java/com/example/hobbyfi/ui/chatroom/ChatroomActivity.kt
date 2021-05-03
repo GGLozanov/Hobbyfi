@@ -1036,12 +1036,6 @@ class ChatroomActivity : NavigationActivity(),
                     DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                     GravityCompat.START
                 )
-                binding.toolbar.setNavigationIconTint(
-                    ContextCompat.getColor(
-                        this@ChatroomActivity,
-                        android.R.color.white
-                    )
-                )
             }
             toolbar.setupWithNavController(
                 navController,
@@ -1176,7 +1170,6 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun setToolbarAdminIconOnOwnership(owner: Boolean) {
         with(binding.toolbar) {
-            setNavigationIconTint(android.graphics.Color.WHITE)
             navigationIcon = if (owner) androidx.core.content.ContextCompat.getDrawable(
                 this@ChatroomActivity,
                 com.example.hobbyfi.R.drawable.ic_baseline_admin_panel_settings_24

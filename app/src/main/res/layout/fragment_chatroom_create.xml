@@ -18,8 +18,7 @@
             android:layout_height="match_parent"
             android:fadeScrollbars="false"
             android:fillViewport="false"
-            android:overScrollMode="always"
-            android:background="@drawable/background_secondary_gradient">
+            android:overScrollMode="always">
 
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="wrap_content"

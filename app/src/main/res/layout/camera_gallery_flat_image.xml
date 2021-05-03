@@ -41,7 +41,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:src="@drawable/ic_baseline_image_42"
-                android:tint="@color/colorBackground">
+                android:background="@null">
 
             </androidx.appcompat.widget.AppCompatImageButton>
 
@@ -51,6 +51,7 @@
                 android:layout_height="40dp"
                 android:layout_marginStart="5dp"
                 android:backgroundTint="@color/colorBackground"
+                android:background="@null"
                 android:src="@drawable/ic_menu_camera">
 
             </androidx.appcompat.widget.AppCompatImageButton>

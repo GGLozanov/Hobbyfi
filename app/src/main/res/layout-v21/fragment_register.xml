@@ -15,7 +15,6 @@
             android:id="@+id/register_scroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/background_secondary_gradient"
             android:fadeScrollbars="false"
             android:fillViewport="true"
             android:visibility="visible"
@@ -50,15 +49,12 @@
                         android:layout_marginStart="5dp"
                         android:orientation="vertical"
                         app:form_circle_background_color="@color/colorPrimary"
-                        app:form_circle_text_color="@android:color/white"
                         app:form_close_last_step_on_completion="true"
                         app:form_confirmation_step_title_text="@string/register"
                         app:form_display_bottom_navigation="false"
                         app:form_display_cancel_button_in_last_step="true"
                         app:form_next_button_background_color="@color/colorPrimary"
-                        app:form_next_button_pressed_background_color="@color/colorPrimaryDark"
-                        app:form_next_button_pressed_text_color="@android:color/white"
-                        app:form_title_text_color="@android:color/white" />
+                        app:form_next_button_pressed_background_color="@color/colorPrimaryDark" />
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
             </androidx.constraintlayout.widget.ConstraintLayout>
