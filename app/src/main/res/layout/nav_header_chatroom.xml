@@ -50,6 +50,7 @@
                 android:layout_height="45dp"
                 android:layout_margin="8dp"
                 android:fontFamily="@font/rubik"
+                android:background="@color/colorPrimaryDark"
                 android:text="@string/tags"
                 android:textSize="20sp"
                 app:layout_constraintBottom_toBottomOf="parent"

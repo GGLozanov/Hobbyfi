@@ -40,11 +40,11 @@ class OnboardingViewPagerAdapter(
                 lastFragment
             )
             2 -> OnboardingFragment.newInstance(
-                context.getString(R.string.chatrooms_explanation),
-                context.convertDrawableResToBitmap(R.drawable.chatroom_default_pic, 200, 200),
                 context.getString(R.string.app_description_outro),
+                context.convertDrawableResToBitmap(R.drawable.chatroom_default_pic, 200, 200),
+                context.getString(R.string.closing_onboarding),
                 lastFragment,
-                context.getString(R.string.closing_onboarding)
+                context.getString(R.string.chatrooms_explanation),
             )
             else -> throw IllegalStateException("Invalid position for ViewPager!")
         }

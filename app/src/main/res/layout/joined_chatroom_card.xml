@@ -15,6 +15,8 @@
         android:id="@+id/card_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
         app:cardElevation="12dp"
         android:orientation="vertical"
         app:cardCornerRadius="5dp">
@@ -28,8 +30,6 @@
                 android:id="@+id/card_header_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
                 android:background="@color/colorBackground"
                 app:layout_constraintBottom_toTopOf="@id/sub_card_layout"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -139,9 +139,11 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                 viewModel.tagBundle.setSelectedTags(selectedTags)
             }
 
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
-            ?.observe(viewLifecycleOwner, Observer {
-                binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri?>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer { uri ->
+                uri?.let {
+                    binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+                }
             })
     }
 
@@ -164,11 +166,6 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
     override fun onStart() {
         super.onStart()
         observePredicateValidators()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (requireActivity() as MainActivity).binding.bottomNav.isVisible = false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

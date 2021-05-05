@@ -39,6 +39,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                     when(prefConfig.readChatroomJoinRememberNavigate()) {
                         Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
                             val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
+                            dialogBinding.headerText = getString(R.string.no_remind_header)
                             val dialog = MaterialAlertDialogBuilder(requireContext())
                                 .setView(dialogBinding.root)
                                 .setPositiveButton(getString(R.string.take_me_there)) { dialogInterface: DialogInterface, _: Int ->

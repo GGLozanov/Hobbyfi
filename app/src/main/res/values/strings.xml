@@ -303,5 +303,6 @@
     <string name="and">and</string>
     <string name="minutes">minutes</string>
     <string name="left">left</string>
-    <string name="reset_ask_chatrooms">Confirm immediate Chatroom joining?</string>
+    <string name="reset_ask_chatrooms">Skip confirmation on Chatroom joining?</string>
+    <string name="no_remind_header">Do you want to immediately join this Chatroom?</string>
 </resources>
