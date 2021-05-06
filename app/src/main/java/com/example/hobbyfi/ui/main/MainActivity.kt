@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
@@ -18,7 +17,6 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
-import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
@@ -32,7 +30,6 @@ import com.example.hobbyfi.work.DeviceTokenDeleteWorker
 import com.facebook.login.LoginManager
 import io.socket.client.Socket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -164,7 +161,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
                     }
                     is UserState.OnData.UserDeleteResult -> {
-                        binding.root.showSuccessSnackbar(getString(R.string.delete_account_success))
+                        this@MainActivity.showSuccessToast(getString(R.string.delete_account_success))
                         logout()
                     }
                     is UserState.OnData.UserUpdateResult -> {
@@ -218,13 +215,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                             viewModel.sendIntent(
                                 UserIntent.UpdateUserCache(it.userFields)
                             )
-                            binding.root.showSuccessSnackbar(getString(R.string.update_fields_success))
+                            this@MainActivity.showSuccessToast(getString(R.string.update_fields_success))
                         }
 
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                     is UserState.Error -> {
-                        binding.root.showFailureSnackbar(getString(R.string.something_wrong) + " ${it.error}")
+                        this@MainActivity.showFailureToast(getString(R.string.something_wrong) + " ${it.error}")
                         if (it.shouldReauth) {
                             logout()
                         }

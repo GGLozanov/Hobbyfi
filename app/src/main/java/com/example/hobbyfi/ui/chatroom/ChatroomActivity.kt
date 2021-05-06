@@ -11,7 +11,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
@@ -28,7 +27,6 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
@@ -95,7 +93,7 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private val socketEventErrorFallback = { _: Exception ->
-        binding.root.showFailureSnackbar(
+        showFailureToast(
             getString(R.string.socket_emission_fail),
         )
         // leaveChatroom()
@@ -577,7 +575,7 @@ class ChatroomActivity : NavigationActivity(),
                                 prefConfig.writeLastEnteredChatroomId(deepLinkChatroomId)
                                 sendChatroomFetchIntentOnCurrentNull()
                             } else {
-                                binding.root.showFailureSnackbar(
+                                this@ChatroomActivity.showFailureToast(
                                     getString(R.string.not_joined_chatroom_error)
                                 )
                                 leaveChatroom(sendExtrasBack = true)
@@ -612,13 +610,13 @@ class ChatroomActivity : NavigationActivity(),
 
                     }
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
-                        binding.root.showSuccessSnackbar(
+                        this@ChatroomActivity.showSuccessToast(
                             getString(R.string.chatroom_delete_success)
                         )
                         leaveDeletedChatroom()
                     }
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
-                        binding.root.showSuccessSnackbar(
+                        this@ChatroomActivity.showSuccessToast(
                             getString(if(it.kicked) R.string.chatroom_kicked_message
                                 else R.string.chatroom_deleted_message)
                         )
@@ -636,7 +634,7 @@ class ChatroomActivity : NavigationActivity(),
                             )
                         }
 
-                        binding.root.showSuccessSnackbar(
+                        this@ChatroomActivity.showSuccessToast(
                             getString(R.string.chatroom_updated),
                         )
                     }
@@ -715,7 +713,7 @@ class ChatroomActivity : NavigationActivity(),
         leaveDestination: Class<*> = AuthActivity::class.java
     ) {
         // TODO: More graceful way to show this error... like a separate screen? Activity?
-        binding.root.showWarningSnackbar(exitMsg)
+        this@ChatroomActivity.showWarningToast(exitMsg)
 
         // log out of all accounts if logged in (use refresh token to authorise properly)
         if(prefConfig.isUserAuthenticated()) {
@@ -764,7 +762,7 @@ class ChatroomActivity : NavigationActivity(),
                                 (frag as DialogFragment).dismiss()
                             }
 
-                        binding.root.showSuccessSnackbar(getString(R.string.user_kick_success))
+                        this@ChatroomActivity.showSuccessToast(getString(R.string.user_kick_success))
                         viewModel.resetUserListState()
                     }
                 }
@@ -791,7 +789,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is EventListState.OnData.DeleteOldEventsResult -> {
                         Log.i("ChatroomActivity", "Received DeleteOldEventsResult state!")
-                        binding.root.showSuccessSnackbar(getString(R.string.delete_old_events_success))
+                        this@ChatroomActivity.showSuccessToast(getString(R.string.delete_old_events_success))
                         navController.popBackStack(R.id.chatroomMessageListFragment, false)
                         viewModel.resetEventListState()
                     }
@@ -834,7 +832,7 @@ class ChatroomActivity : NavigationActivity(),
                         // TODO: Progressbar? Somewhere?
                     }
                     is EventState.OnData.EventDeleteResult -> {
-                        binding.root.showSuccessSnackbar(
+                        this@ChatroomActivity.showSuccessToast(
                             getString(R.string.event_delete_success)
                         )
                     }
@@ -873,7 +871,7 @@ class ChatroomActivity : NavigationActivity(),
                             )
                         }
                     } else {
-                        binding.root.showWarningSnackbar(getString(R.string.event_deleted))
+                        this@ChatroomActivity.showWarningToast(getString(R.string.event_deleted))
                     }
                     viewModel.setConsumedEventDeepLink(true)
                 }
@@ -1214,7 +1212,7 @@ class ChatroomActivity : NavigationActivity(),
         shouldLeave: Boolean, shouldExit: Boolean = shouldLeave,
         context: Context? = null
     ) {
-        binding.root.showFailureSnackbar(
+        showFailureToast(
             getString(R.string.something_wrong) + " $error"
         )
 
@@ -1253,7 +1251,7 @@ class ChatroomActivity : NavigationActivity(),
                         } catch (ex: Exception) {
                             if (!emittedErrorForEventParsingAlready) {
                                 emittedErrorForEventParsingAlready = true
-                                binding.root.showFailureSnackbar(
+                                this@ChatroomActivity.showFailureToast(
                                     getString(R.string.event_date_parse_fail)
                                 )
                             }

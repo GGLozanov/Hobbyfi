@@ -8,8 +8,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -205,7 +203,7 @@ class EventDetailsFragment : ChatroomModelFragment() {
                     )
                 )
             } catch (ex: IllegalArgumentException) {
-                view?.showFailureSnackbar(getString(R.string.event_date_parse_fail))
+                context?.showFailureToast(getString(R.string.event_date_parse_fail))
             }
         }
     }
@@ -235,14 +233,14 @@ class EventDetailsFragment : ChatroomModelFragment() {
                     rightButton.setOnClickListener {
                         lifecycleScope.launch innerLaunch@ {
                             if(calculateEventDayDifference()) {
-                                view?.showFailureSnackbar(
+                                context?.showFailureToast(
                                     getString(R.string.event_already_concluded),
                                 )
                                 return@innerLaunch
                             }
 
                             if(!connectivityManager.isConnected()) {
-                                view?.showFailureSnackbar(
+                                context?.showFailureToast(
                                     getString(R.string.no_connection_error),
                                 )
                                 return@innerLaunch
@@ -393,7 +391,7 @@ class EventDetailsFragment : ChatroomModelFragment() {
                         observeEventUsers(it.userGeoPoints)
                     }
                     is UserGeoPointState.Error -> {
-                        view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                        context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                         if (it.shouldReauth) {
                             navController.popBackStack()
                         }
@@ -446,7 +444,7 @@ class EventDetailsFragment : ChatroomModelFragment() {
                         "EventDetailsFragment",
                         "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!"
                     )
-                    view?.showFailureSnackbar(getString(R.string.event_suddenly_deleted))
+                    context?.showFailureToast(getString(R.string.event_suddenly_deleted))
                     navController.popBackStack()
                 }
             }

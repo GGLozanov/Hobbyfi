@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -41,13 +40,11 @@ import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collectLatest
 import org.json.JSONObject
 import java.io.FileNotFoundException
 import java.util.*
@@ -110,7 +107,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
             } else {
-                view?.showWarningSnackbar(getString(R.string.dup_message_edit))
+                context?.showWarningToast(getString(R.string.dup_message_edit))
                 return@OnClickListener
             }
 
@@ -357,7 +354,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         binding.cancelHeader.callOnClick()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
-                        view?.showSuccessSnackbar(
+                        context?.showSuccessToast(
                             getString(R.string.delete_messages),
                         )
                     }
@@ -593,7 +590,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                                     it, ImageUtils.CompressType.MESSAGE_PICTURE
                                 )
                             } catch (ex: FileNotFoundException) {
-                                view?.showWarningSnackbar(getString(R.string.file_not_found))
+                                context?.showWarningToast(getString(R.string.file_not_found))
                                 null
                             }
                         }

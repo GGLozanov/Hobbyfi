@@ -7,20 +7,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomEditBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
@@ -80,7 +77,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
 
                 Log.i("ChatroomEditDFragment", "FieldMap update: ${fieldMap}")
                 if(fieldMap.isEmpty()) {
-                    view?.showWarningSnackbar(getString(R.string.no_fields))
+                    context?.showWarningToast(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(

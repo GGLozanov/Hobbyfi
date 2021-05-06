@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
@@ -16,7 +15,7 @@ import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.shared.buildYesNoAlertDialog
 import com.example.hobbyfi.shared.showDistinctDialog
-import com.example.hobbyfi.shared.showWarningSnackbar
+import com.example.hobbyfi.shared.showWarningToast
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -72,7 +71,7 @@ class EventAdminSelectionBottomSheetDialogFragment : EventSelectionBottomSheetDi
                             activityViewModel.sendEventsIntent(EventListIntent.DeleteOldEvents)
                         }
                     } else {
-                        view.showWarningSnackbar(getString(R.string.no_old_event_delete))
+                        context?.showWarningToast(getString(R.string.no_old_event_delete))
                     }
                     dialogInterface.dismiss()
                 },

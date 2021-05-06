@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentResetPasswordBinding
@@ -17,10 +15,7 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.auth.ResetPasswordFragmentViewModel
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class ResetPasswordFragment : AuthFragment(), TextFieldInputValidationOnus {
@@ -79,7 +74,7 @@ class ResetPasswordFragment : AuthFragment(), TextFieldInputValidationOnus {
 
                     }
                     is TokenState.ResetPasswordSuccess -> {
-                        view?.showSuccessSnackbar(getString(R.string.sent_password_email))
+                        context?.showSuccessToast(getString(R.string.sent_password_email))
                         navController.popBackStack()
                     }
                     is TokenState.Error -> {
@@ -87,17 +82,17 @@ class ResetPasswordFragment : AuthFragment(), TextFieldInputValidationOnus {
                         // FIXME: not string errorsssssss nor should error transformation happen hereeeee
                         when(it.error) {
                             getString(R.string.resource_not_found_error) -> {
-                                view?.showFailureSnackbar(getString(R.string.user_email_not_found))
+                                context?.showFailureToast(getString(R.string.user_email_not_found))
                             }
                             getString(R.string.invalid_data) -> {
-                                view?.showFailureSnackbar(getString(R.string.email_send_fail))
+                                context?.showFailureToast(getString(R.string.email_send_fail))
                             // TODO: Reformat to actual message in fragment
                             }
                             getString(R.string.resource_exists_error) -> {
-                                view?.showFailureSnackbar(getString(R.string.facebook_user_reset_password_email))
+                                context?.showFailureToast(getString(R.string.facebook_user_reset_password_email))
                             // TODO: Reformat to actual message in fragment
                             }
-                            else -> view?.showFailureSnackbar(getString(R.string.email_send_fail))
+                            else -> context?.showFailureToast(getString(R.string.email_send_fail))
                             // TODO: Reformat to actual message in fragment
                         }
                     }

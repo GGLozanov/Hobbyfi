@@ -2,7 +2,6 @@ package com.example.hobbyfi.ui.main
 
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
@@ -14,7 +13,7 @@ import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractListFromCurrentPagingData
 import com.example.hobbyfi.shared.safeNavigate
-import com.example.hobbyfi.shared.showFailureSnackbar
+import com.example.hobbyfi.shared.showFailureToast
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -84,7 +83,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                             (requireActivity() as MainActivity).logout()
                         }
 
-                        view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                        context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                     }
                 }
             }

@@ -126,7 +126,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                 }
 
                 if(fieldMap.isEmpty()) {
-                    view?.showWarningSnackbar(getString(R.string.no_fields))
+                    context?.showWarningToast(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(

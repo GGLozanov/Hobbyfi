@@ -9,7 +9,7 @@ import androidx.camera.core.ImageCapture
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.CameraCaptureLayoutBinding
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.showSuccessSnackbar
+import com.example.hobbyfi.shared.showSuccessToast
 import com.example.hobbyfi.shared.startCamera
 import com.example.hobbyfi.shared.takePhoto
 import pub.devrel.easypermissions.EasyPermissions
@@ -26,13 +26,13 @@ class CameraCaptureActivity : AppCompatActivity() {
 
         binding.cameraCaptureButton.setOnClickListener {
             imageCapture?.takePhoto(it.context, { output ->
-                binding.root.showSuccessSnackbar(getString(R.string.photo_capture_success))
+                this@CameraCaptureActivity.showSuccessToast(getString(R.string.photo_capture_success))
                 setResult(Activity.RESULT_OK, Intent().apply {
                     putExtra(Constants.CAMERA_URI, output.savedUri)
                 })
                 finish()
             }, {
-                binding.root.showSuccessSnackbar(getString(R.string.photo_capture_failed))
+                this@CameraCaptureActivity.showSuccessToast(getString(R.string.photo_capture_failed))
             })
         }
 

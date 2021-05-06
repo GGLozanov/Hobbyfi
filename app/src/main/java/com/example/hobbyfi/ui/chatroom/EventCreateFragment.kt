@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.view.*
 import android.widget.DatePicker
 import android.widget.TimePicker
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -20,15 +19,12 @@ import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
-import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -119,7 +115,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                         }
 
                         activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
-                        view?.showSuccessSnackbar(getString(R.string.event_create_success))
+                        context?.showSuccessToast(getString(R.string.event_create_success))
 
                         if(navController.currentDestination?.id == R.id.eventCreateFragment) {
                             navController.popBackStack(R.id.chatroomMessageListFragment, false)
@@ -127,7 +123,7 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                     }
                     is EventState.Error -> {
                         // TODO: Handle shouldReauth
-                        view?.showFailureSnackbar(getString(R.string.something_wrong) + " ${it.error}")
+                        context?.showFailureToast(getString(R.string.something_wrong) + " ${it.error}")
                     }
                     else -> throw State.InvalidStateException()
                 }

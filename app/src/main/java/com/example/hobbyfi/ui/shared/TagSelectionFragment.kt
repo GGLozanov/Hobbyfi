@@ -1,12 +1,10 @@
 package com.example.hobbyfi.ui.shared
 
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.example.hobbyfi.R
@@ -15,7 +13,7 @@ import com.example.hobbyfi.databinding.FragmentTagSelectionBinding
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.safeNavigate
-import com.example.hobbyfi.shared.showWarningSnackbar
+import com.example.hobbyfi.shared.showWarningToast
 import com.example.hobbyfi.ui.base.BaseFragment
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
 import com.example.hobbyfi.viewmodels.shared.TagSelectionFragmentViewModel
@@ -81,7 +79,7 @@ class TagSelectionFragment : BaseFragment() {
             if(targetFragmentId == R.id.registerFragment || targetFragmentId == R.id.chatroomCreateFragment) {
                 binding.customTagCreateButton.setOnClickListener {
                     if(viewModel.customTagCreateCounter >= 3) {
-                        view?.showWarningSnackbar(getString(R.string.too_many_custom_tags))
+                        context?.showWarningToast(getString(R.string.too_many_custom_tags))
                         return@setOnClickListener
                     }
                     navController.safeNavigate(R.id.action_tagSelectionDialogFragment_to_customTagCreateDialogFragment)

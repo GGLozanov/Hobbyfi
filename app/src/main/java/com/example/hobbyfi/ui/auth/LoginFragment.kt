@@ -1,12 +1,10 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
-import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.distinctUntilChanged
@@ -14,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
 import com.example.hobbyfi.intents.FacebookIntent
@@ -26,16 +23,12 @@ import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.ui.shared.LoadingFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.google.android.material.snackbar.BaseTransientBottomBar
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import org.kodein.di.generic.instance
 import java.io.File
 
@@ -150,13 +143,13 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                 }
 
                 override fun onCancel() {
-                    view?.showWarningSnackbar(
+                    context?.showWarningToast(
                         getString(R.string.facebook_login_cancel),
                     )
                 }
 
                 override fun onError(exception: FacebookException) {
-                    view?.showFailureSnackbar(
+                    context?.showFailureToast(
                         getString(R.string.facebook_login_error) + " ${exception.message}"
                     )
                 }
@@ -199,7 +192,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                     }
                     is FacebookState.Error -> {
                         if(it.error?.isBlank() == false) {
-                            view?.showFailureSnackbar(it.error)
+                            context?.showFailureToast(it.error)
                         }
 
                         // don't log out if only the email couldn't have been fetched
@@ -248,7 +241,7 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                                 )
                             }
                             else -> {
-                                view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                                context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                                    // means we've simply entered incorrect info for the normal login or something else is wrong
                             }
                         }

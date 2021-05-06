@@ -7,12 +7,9 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomCreateBinding
 import com.example.hobbyfi.intents.ChatroomIntent
@@ -25,7 +22,6 @@ import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.main.ChatroomCreateFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -122,7 +118,7 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         ))
                     }
                     is ChatroomState.Error -> {
-                        binding.root.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                        context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                         if(it.shouldExit) {
                             (requireActivity() as MainActivity).logout()
                         }

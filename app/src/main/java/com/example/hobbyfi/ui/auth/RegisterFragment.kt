@@ -6,14 +6,10 @@ import android.os.Bundle
 import android.text.InputType
 import android.util.Log
 import android.view.*
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.map
-import com.bumptech.glide.Glide
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
@@ -22,7 +18,6 @@ import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.ui.StepperButtonInput
 import com.example.hobbyfi.models.ui.StepperFormInput
 import com.example.hobbyfi.shared.*
-import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.shared.ButtonStep
@@ -33,7 +28,6 @@ import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.google.android.material.textfield.TextInputLayout
 import ernestoyaquello.com.verticalstepperform.listener.StepperFormListener
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 
 
 @ExperimentalCoroutinesApi
@@ -166,7 +160,7 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
                                 delay(1500)
                             }
 
-                            this@RegisterFragment.view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                            this@RegisterFragment.context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                             binding.stepperForm.cancelFormCompletionOrCancellationAttempt()
                         }
                     }

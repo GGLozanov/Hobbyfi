@@ -4,10 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChangeEmailDialogBinding
@@ -16,9 +14,7 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.utils.FieldUtils
 import com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel
-import com.example.hobbyfi.viewmodels.main.ChangePasswordDialogFragmentViewModel
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collectLatest
@@ -52,7 +48,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                 val originalEmail = (requireActivity() as MainActivity).viewModel.authUser.value?.email
 
                 if(newEmail == originalEmail) {
-                    view?.showWarningSnackbar(getString(R.string.same_email_validation))
+                    context?.showWarningToast(getString(R.string.same_email_validation))
                     return@setOnClickListener
                 }
 
@@ -82,7 +78,7 @@ class ChangeEmailDialogFragment : AuthChangeDialogFragment() {
                             dismiss()
                         }
                         is TokenState.Error -> {
-                            view?.showFailureSnackbar(it.error ?: getString(R.string.something_wrong))
+                            context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                             dismiss()
                         }
                         else -> throw State.InvalidStateException()

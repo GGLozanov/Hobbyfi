@@ -49,7 +49,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             buttonBar.leftButton.setOnClickListener { dismiss() }
             buttonBar.rightButton.setOnClickListener {
                 if(viewModel!!.password.value == viewModel!!.newPassword.value) {
-                    view?.showWarningSnackbar(getString(R.string.password_uniqeness))
+                    context?.showWarningToast(getString(R.string.password_uniqeness))
                     return@setOnClickListener
                 }
 
@@ -79,7 +79,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                             dismiss()
                         }
                         is TokenState.Error -> {
-                            view?.showWarningSnackbar(getString(R.string.enter_original_password))
+                            context?.showWarningToast(getString(R.string.enter_original_password))
                         }
                         else -> throw State.InvalidStateException()
                     }

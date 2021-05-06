@@ -629,59 +629,36 @@ fun NavController.safeNavigate(direction: NavDirections) {
     }
 }
 
-fun View.showSnackbar(
-    content: String, anchorView: View? = null,
-    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
-    @ColorInt bgColor: Int? = null, @ColorInt textColor: Int =
-        ContextCompat.getColor(this.context, android.R.color.white)
-) {
-    val snackbar = Snackbar.make(this, content, duration)
-        .setTextColor(textColor)
-    snackbar.getView().setTranslationY(-80.0f)
-
-    anchorView?.let {
-        snackbar.setAnchorView(anchorView)
-    }
-
-    bgColor?.let {
-        snackbar.setBackgroundTint(bgColor)
-    }
-
-    snackbar.show()
-}
-
-fun View.showSuccessSnackbar(
+fun Context.showSecondaryColourBackgroundToast(
     content: String,
-    anchorView: View? = null,
-    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
-    @ColorInt textColor: Int =
-        ContextCompat.getColor(this.context, android.R.color.white)
+    @ColorInt bgColor: Int = ContextCompat.getColor(this, R.color.colorSecondary),
 ) {
-    showSnackbar(
-        content, anchorView,
-        duration, ContextCompat.getColor(this.context, android.R.color.holo_green_light), textColor
+    Toast.makeText(this, content, Toast.LENGTH_LONG).apply {
+        view?.backgroundTintList = ColorStateList.valueOf(bgColor)
+    }.show()
+}
+
+fun Context.showSuccessToast(
+    content: String
+) {
+    showSecondaryColourBackgroundToast(
+        content, ContextCompat.getColor(this, android.R.color.holo_green_light)
     )
 }
 
-fun View.showFailureSnackbar(
-    content: String, anchorView: View? = null,
-    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
-    @ColorInt textColor: Int =
-        ContextCompat.getColor(this.context, android.R.color.white)
+fun Context.showFailureToast(
+    content: String,
 ) {
-    showSnackbar(
-        content, anchorView,
-        duration, ContextCompat.getColor(this.context, android.R.color.holo_red_light), textColor
+    showSecondaryColourBackgroundToast(
+        content, ContextCompat.getColor(this, android.R.color.holo_red_light),
     )
 }
 
-fun View.showWarningSnackbar(
-    content: String, anchorView: View? = null,
-    @BaseTransientBottomBar.Duration duration: Int = BaseTransientBottomBar.LENGTH_LONG,
-    @ColorInt textColor: Int =
-        ContextCompat.getColor(this.context, android.R.color.white)
+fun Context.showWarningToast(
+    content: String,
 ) {
-    showSnackbar(content, anchorView, duration, ContextCompat.getColor(this.context, R.color.yellow), textColor)
+    showSecondaryColourBackgroundToast(
+        content, ContextCompat.getColor(this, R.color.yellow))
 }
 
 
