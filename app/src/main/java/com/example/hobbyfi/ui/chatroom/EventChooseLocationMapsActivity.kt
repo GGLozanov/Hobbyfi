@@ -19,6 +19,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 @ExperimentalCoroutinesApi
 class EventChooseLocationMapsActivity : MapsActivity() {
@@ -160,7 +161,7 @@ class EventChooseLocationMapsActivity : MapsActivity() {
 
     override fun onBackPressed() {
         if(!exitFromConfirm) {
-            val dialog = AlertDialog.Builder(this)
+            val dialog = MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.back_event_choose_maps)
                 .setNegativeButtonIcon(ContextCompat.getDrawable(this, R.drawable.ic_baseline_cancel_24))
                 .setPositiveButtonIcon(ContextCompat.getDrawable(this, R.drawable.ic_baseline_check_24))

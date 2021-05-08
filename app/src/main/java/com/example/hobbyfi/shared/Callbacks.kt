@@ -11,10 +11,17 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
+import android.os.Build
 import android.text.format.DateFormat
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
@@ -127,47 +134,31 @@ object Callbacks {
         }
     }
 
+    fun requestExternalWriteForBelowQ(
+        activity: Activity,
+        permissionRequestCode: Int = Constants.externalStorageWriteCode
+    ): Boolean {
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q || EasyPermissions.hasPermissions(
+                activity,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            true
+        } else {
+            EasyPermissions.requestPermissions(
+                activity,
+                activity.getString(R.string.access_fine_location_rationale),
+                permissionRequestCode,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            false
+        }
+    }
+
     fun hideKeyboardFrom(context: Context, view: View?) {
         val imm: InputMethodManager =
             context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view?.windowToken, 0)
     }
 
-    fun subscribeToChatroomTopicByCurrentConnectivity(
-        block: (() -> Unit)?,
-        chatroomId: Long,
-        fcmTopicFallback: OnFailureListener,
-        connectivityManager: ConnectivityManager
-    ) {
-        val subscriptionTask = FirebaseMessaging.getInstance().subscribeToTopic(Constants.chatroomTopic(chatroomId))
-            .addOnFailureListener(fcmTopicFallback)
-
-        if(!connectivityManager.isConnected()) {
-            block?.invoke()
-        } else {
-            subscriptionTask.addOnCompleteListener {
-                block?.invoke()
-            }
-        }
-    }
-
-    fun unsubscribeToChatroomTopicByCurrentConnectivity(
-        block: () -> Unit,
-        chatroomId: Long,
-        fcmTopicFallback: OnFailureListener,
-        connectivityManager: ConnectivityManager
-    ) {
-        val unsubscriptionTask = FirebaseMessaging.getInstance().unsubscribeFromTopic(Constants.chatroomTopic(chatroomId))
-            .addOnFailureListener(fcmTopicFallback)
-
-        if(!connectivityManager.isConnected()) {
-            block()
-        } else {
-            unsubscriptionTask.addOnCompleteListener {
-                block()
-            }
-        }
-    }
 
     @ExperimentalCoroutinesApi
     fun initDateTimeDatePickerDialog(

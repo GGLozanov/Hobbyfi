@@ -14,7 +14,6 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/background_secondary_gradient"
         android:fadeScrollbars="false"
         android:fillViewport="true"
         android:visibility="visible"
@@ -23,7 +22,6 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/background_secondary_gradient"
             tools:context=".ui.chatroom.EventDetailsFragment">
 
             <com.google.android.material.card.MaterialCardView
@@ -217,6 +215,7 @@
                         <include
                             android:id="@+id/event_view_button_bar"
                             layout="@layout/button_bar_pair"
+                            app:orientation="@{1}"
                             app:leftButtonText="@{@string/leave_event}"
                             app:rightButtonText="@{@string/join_event}"
                             app:leftButtonStartDrawable="@{@drawable/ic_baseline_tag_faces_24}"

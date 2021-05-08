@@ -22,7 +22,7 @@
                 android:right="5dp"
                 android:top="5dp" />
 
-            <solid android:color="@color/colorBackground" />
+            <solid android:color="@color/colorPrimaryDark" />
         </shape>
     </item>
 </layer-list>

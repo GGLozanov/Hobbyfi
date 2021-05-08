@@ -31,7 +31,7 @@ data class Chatroom(
                 data[Constants.NAME] ?: error("Chatroom name must not be null!"),
                 data[Constants.DESCRIPTION],
                 data[Constants.PHOTO_URL],
-                Constants.jsonConverter.fromJson(data[Constants.TAGS]),
+                if(data[Constants.TAGS] != "undefined") Constants.jsonConverter.fromJson(data[Constants.TAGS]) else listOf(),
                 (data[Constants.OWNER_ID] ?: error("Chatroom owner ID must not be null!")).toLong(),
                 Constants.jsonConverter.fromJson(data[Constants.EVENT_IDS])
             )
@@ -50,7 +50,7 @@ data class Chatroom(
                         .fromJson(value)
                 }
                 Constants.IMAGE -> {
-                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(id) + "/" + id + ".jpg"
+                    photoUrl = value
                 }
                 Constants.EVENT_IDS, Constants.EVENT_IDS + "[]" -> {
                     eventIds = Constants

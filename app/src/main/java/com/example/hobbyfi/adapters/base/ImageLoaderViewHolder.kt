@@ -7,6 +7,10 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.models.data.ExpandedModel
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.asFirebaseStorageReference
+import com.example.hobbyfi.shared.asFirebaseStorageReferenceEx
+import com.example.hobbyfi.shared.loadReferenceWithMetadataSignature
+import com.google.firebase.storage.FirebaseStorage
 
 abstract class ImageLoaderViewHolder<in T: ExpandedModel>(
     itemView: View,
@@ -17,15 +21,21 @@ abstract class ImageLoaderViewHolder<in T: ExpandedModel>(
     }
 
     protected fun bindImage(model: ExpandedModel?, position: Int) {
-        if(model?.photoUrl != null) {
-            Glide.with(itemView.context)
-                .load(model.photoUrl)
-                .placeholder(defaultPicDrawable)
-                .signature(
-                    signatureGenerator(position)
-                ) // calculate current page based on item position
-                .into(mainImageView)
-        } else {
+        try {
+            if(model?.photoUrl == null) {
+                throw IllegalArgumentException()
+            }
+
+            model.photoUrl!!.asFirebaseStorageReferenceEx().apply {
+                metadata.addOnSuccessListener { metadata ->
+                    Glide.with(itemView.context)
+                        .loadReferenceWithMetadataSignature(this, metadata)
+                        .placeholder(defaultPicDrawable)
+                        .into(mainImageView)
+                }
+            }
+        } catch(ex: Exception) {
+            ex.printStackTrace()
             Glide.with(itemView.context)
                 .load(defaultPicDrawable)
                 .into(mainImageView)

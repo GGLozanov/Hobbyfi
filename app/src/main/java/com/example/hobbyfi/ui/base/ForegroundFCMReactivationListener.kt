@@ -19,7 +19,7 @@ interface ForegroundFCMReactivationListener {
     ) : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == Constants.FOREGROUND_REACTIVIATION_ACTION) {
+            if(intent.action == Constants.FOREGROUND_REACTIVATION_ACTION) {
                 onForegroundReactivation(intent)
             } else {
                 Log.w(context::class.simpleName, "Foreground reactivation for App Standby broadcastreceiver called with incorrect action!")

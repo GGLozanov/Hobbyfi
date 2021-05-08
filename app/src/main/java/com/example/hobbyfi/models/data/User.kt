@@ -5,6 +5,7 @@ import androidx.room.*
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.fromJson
+import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
@@ -33,7 +34,7 @@ data class User(
         data[Constants.USERNAME] ?: data[Constants.NAME] ?: error("User username must not be null!"),
         data[Constants.DESCRIPTION],
         data[Constants.PHOTO_URL],
-        Constants.jsonConverter.fromJson(data[Constants.TAGS]),
+        if(data[Constants.TAGS] != "undefined") Constants.jsonConverter.fromJson(data[Constants.TAGS]) else listOf(),
         Constants.jsonConverter.fromJson(data[Constants.CHATROOM_IDS]),
         Constants.jsonConverter.fromJson(data[Constants.ALLOWED_PUSH_CHATROOM_IDS])
     )
@@ -55,7 +56,7 @@ data class User(
                         .fromJson(value!!)
                 }
                 Constants.IMAGE -> {
-                    photoUrl = BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir + "/" + id + ".jpg"
+                    photoUrl = value
                         // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.CHATROOM_IDS, Constants.CHATROOM_IDS + "[]" -> {

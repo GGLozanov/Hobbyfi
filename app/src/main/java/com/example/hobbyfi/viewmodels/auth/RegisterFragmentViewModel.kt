@@ -17,9 +17,9 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 @Suppress("DELEGATED_MEMBER_HIDES_SUPERTYPE_OVERRIDE")
 class RegisterFragmentViewModel(application: Application) : AuthConfirmationViewModel(application),
-    NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
-    var tagBundle: TagBundle = TagBundle()
-
+    NameDescriptionBindable by NameDescriptionBindableViewModel(),
+    Base64ImageHolder by Base64ImageHolderViewModel(), TagBundleHolder by TagBundleHolderViewModel() {
+    
     init {
         handleIntent() // need to redeclare this method call in each viewModel due to handleIntent() accessing state on an unititialised object
     }
@@ -29,9 +29,7 @@ class RegisterFragmentViewModel(application: Application) : AuthConfirmationView
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is TokenIntent.FetchRegisterToken -> {
-                        viewModelScope.launch { // another coroutine in case of img upload not to slow down UI
-                            fetchRegisterToken()
-                        }
+                        fetchRegisterToken()
                     }
                     else -> throw Intent.InvalidIntentException()
                 }

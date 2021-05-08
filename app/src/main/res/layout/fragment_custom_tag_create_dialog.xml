@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:background="@color/browser_actions_divider_color"
+        android:background="@drawable/rounded_container_layered"
         android:foregroundGravity="center"
         tools:context=".ui.shared.CustomTagCreateDialogFragment">
 
@@ -94,19 +94,19 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/cancel_button"
-                android:text="@string/cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
-                android:layout_marginRight="10dp">
+                android:layout_marginRight="10dp"
+                android:text="@string/cancel">
 
             </com.google.android.material.button.MaterialButton>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/confirm_custom_tag_button"
-                android:text="@string/confirm"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:text="@string/confirm">
 
             </com.google.android.material.button.MaterialButton>
         </androidx.appcompat.widget.LinearLayoutCompat>

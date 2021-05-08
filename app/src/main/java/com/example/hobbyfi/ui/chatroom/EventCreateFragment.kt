@@ -4,13 +4,14 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.*
 import android.widget.DatePicker
 import android.widget.TimePicker
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventCreateBinding
@@ -20,12 +21,10 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.EventCreateFragmentViewModel
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -51,19 +50,26 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         with(binding) {
             lifecycleOwner = this@EventCreateFragment
 
-            eventInfo.eventInfoButtonBar.leftButton.setOnClickListener { // select event date
-                Callbacks.initDateTimeDatePickerDialog(
-                    requireContext(),
-                    this@EventCreateFragment, viewModel!!
-                )
-            }
+            with(eventInfo) {
+                eventInfoButtonBar.leftButton.setOnClickListener { // select event date
+                    Callbacks.initDateTimeDatePickerDialog(
+                        requireContext(),
+                        this@EventCreateFragment, this@EventCreateFragment.viewModel
+                    )
+                }
 
-            eventInfo.eventInfoButtonBar.rightButton.setOnClickListener { // select location
-                Callbacks.startChooseEventLocationMapsActivity(this@EventCreateFragment, viewModel!!)
-            }
+                eventInfoButtonBar.rightButton.setOnClickListener { // select location
+                    Callbacks.startChooseEventLocationMapsActivity(this@EventCreateFragment,
+                        this@EventCreateFragment.viewModel)
+                }
 
-            eventInfo.eventImage.setOnClickListener {
-                Callbacks.requestImage(this@EventCreateFragment)
+                eventInfo.eventImage.galleryOption.setOnClickListener {
+                    Callbacks.requestImage(this@EventCreateFragment)
+                }
+
+                eventInfo.eventImage.cameraOption.setOnClickListener {
+                    navController.navigate(R.id.action_global_camera_capture_nav_graph)
+                }
             }
 
             confirmButton.setOnClickListener {
@@ -72,21 +78,29 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                 }
             }
 
-            observeEventState()
-
             return@onCreateView binding.root
         }
     }
 
+    @ExperimentalCoroutinesApi
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeEventState()
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer {
+                binding.eventInfo.eventImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+            })
+    }
+
     private fun observeEventState() {
         lifecycleScope.launch {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoading(viewLifecycleOwner, navController,
+                    EventCreateFragmentDirections.actionGlobalLoadingNavGraph(R.id.eventCreateFragment),
+                    EventState.Loading::class, viewModel::resetState) {
                 when(it) {
                     EventState.Idle -> {
 
-                    }
-                    EventState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is EventState.OnData.EventCreateResult -> {
                         viewModel.base64Image.originalUri?.let { image ->
@@ -101,14 +115,15 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
                         }
 
                         activityViewModel.sendEventsIntent(EventListIntent.AddAnEventCache(it.event))
-                        Toast.makeText(requireContext(), "Event successfully created!", Toast.LENGTH_LONG)
-                            .show()
-                        navController.popBackStack()
+                        context?.showSuccessToast(getString(R.string.event_create_success))
+
+                        if(navController.currentDestination?.id == R.id.eventCreateFragment) {
+                            navController.popBackStack(R.id.chatroomMessageListFragment, false)
+                        }
                     }
                     is EventState.Error -> {
                         // TODO: Handle shouldReauth
-                        Toast.makeText(requireContext(), "Something went wrong! ${it.error}", Toast.LENGTH_LONG)
-                            .show()
+                        context?.showFailureToast(getString(R.string.something_wrong) + " ${it.error}")
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -122,12 +137,12 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
         // with the preset predicate/error pairs
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 
@@ -160,8 +175,8 @@ class EventCreateFragment : ChatroomModelFragment(), TextFieldInputValidationOnu
             resultCode,
             data
         ) {
-            binding.eventInfo.eventImage.setImageBitmap(it)
-            viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
+            binding.eventInfo.eventImage.image
+                .loadUriIntoGlideAndSaveInImageHolder(data!!.data!!, viewModel.base64Image)
         }
     }
 }

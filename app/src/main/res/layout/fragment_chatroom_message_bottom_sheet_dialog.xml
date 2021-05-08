@@ -12,8 +12,6 @@
         app:menu="@menu/message_bottom_sheet_menu"
         android:layout_gravity="start"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:itemIconTint="@android:color/white"
-        app:itemTextColor="@android:color/white"
         android:background="@color/colorBackground"
         android:fitsSystemWindows="true"
         app:elevation="0dp" />

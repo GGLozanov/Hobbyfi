@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,12 +12,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.DatePicker
 import android.widget.TimePicker
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentEventEditDialogBinding
 import com.example.hobbyfi.intents.EventIntent
@@ -26,9 +26,10 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.ui.shared.CameraCaptureActivity
+import com.example.hobbyfi.ui.shared.CameraCaptureFragment
 import com.example.hobbyfi.utils.WorkerUtils
-import com.example.hobbyfi.viewmodels.chatroom.EventEditFragmentViewModel
+import com.example.hobbyfi.viewmodels.chatroom.EventEditDialogFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -43,7 +44,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
     private val eventCalendar = Calendar.getInstance()
 
     private lateinit var binding: FragmentEventEditDialogBinding
-    private val viewModel: EventEditFragmentViewModel by viewModels(factoryProducer = {
+    private val viewModel: EventEditDialogFragmentViewModel by viewModels(factoryProducer = {
         EventViewModelFactory(
             requireActivity().application,
             requireArguments().getParcelable(Constants.EVENT)!!
@@ -55,7 +56,6 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        // TODO: Handle expired token error & logout
         binding = DataBindingUtil
             .inflate(layoutInflater, R.layout.fragment_event_edit_dialog, container, false)
 
@@ -67,11 +67,14 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
 
             val event: Event = requireArguments().getParcelable(Constants.EVENT)!!
             event.photoUrl?.let {
-                Glide.with(this@EventEditDialogFragment)
-                    .load(it)
-                    .placeholder(eventInfo.eventImage.drawable)
-                    .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time))) // TODO: Change
-                    .into(eventInfo.eventImage)
+                it.asFirebaseStorageReference()?.let { ref ->
+                    ref.metadata.addOnSuccessListener { metadata ->
+                        Glide.with(this@EventEditDialogFragment)
+                            .loadReferenceWithMetadataSignature(ref, metadata)
+                            .placeholder(eventInfo.eventImage.image.drawable)
+                            .into(eventInfo.eventImage.image)
+                    }
+                }
             }
 
             eventInfo.eventInfoButtonBar.leftButton.setOnClickListener {
@@ -123,8 +126,7 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                 }
 
                 if(fieldMap.isEmpty()) {
-                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
-                        .show()
+                    context?.showWarningToast(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -151,14 +153,29 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                 }
             }
 
-            eventInfo.eventImage.setOnClickListener {
+            eventInfo.eventImage.galleryOption.setOnClickListener {
                 Callbacks.requestImage(this@EventEditDialogFragment)
+            }
+
+            eventInfo.eventImage.cameraOption.setOnClickListener {
+                Intent(requireContext(), CameraCaptureActivity::class.java).run {
+                    startActivityForResult(this, Constants.cameraRequestCode)
+                }
             }
 
             observeEventState()
 
             return@onCreateView root
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer {
+                binding.eventInfo.eventImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+        })
     }
 
     // common ancestor with EventCreateFragment go brrr
@@ -168,12 +185,12 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
         // with the preset predicate/error pairs
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.eventInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 
@@ -238,16 +255,21 @@ class EventEditDialogFragment : ChatroomDialogFragment(), TextFieldInputValidati
                 viewModel.eventLatLng = data?.extras?.get(Constants.EVENT_LOCATION) as LatLng
             }
         }
+
+        if(requestCode == Constants.cameraRequestCode) {
+            if(resultCode == Activity.RESULT_OK) {
+                binding.eventInfo.eventImage.image.loadUriIntoGlideAndSaveInImageHolder(
+                    data!!.extras!![Constants.CAMERA_URI] as Uri, viewModel.base64Image)
+            }
+        }
+
         Callbacks.handleImageRequestWithPermission(
             requireActivity(),
             requestCode,
             resultCode,
             data
         ) {
-            Glide.with(requireContext())
-                .load(data!!.data!!)
-                .into(binding.eventInfo.eventImage)
-            viewModel.base64Image.setOriginalUri(data.data.toString())
+            binding.eventInfo.eventImage.image.loadUriIntoGlideAndSaveInImageHolder(data!!.data!!, viewModel.base64Image)
         }
     }
 

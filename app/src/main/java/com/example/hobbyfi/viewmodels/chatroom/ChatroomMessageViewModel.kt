@@ -47,6 +47,8 @@ abstract class ChatroomMessageViewModel(
 
     val areCurrentMessagesNull get() = _currentMessages == null
 
+    protected abstract val listBeginningItem: UIMessage.MessageUsersTypingItem?
+
     override val mainStateIntent: StateIntent<MessageListState, MessageListIntent> = object : StateIntent<MessageListState, MessageListIntent>() {
         override val _state: MutableStateFlow<MessageListState> = MutableStateFlow(MessageListState.Idle)
     }
@@ -68,8 +70,6 @@ abstract class ChatroomMessageViewModel(
 
     @ExperimentalPagingApi
     protected fun fetchMessages(chatroomId: Long, query: String?, messageId: Long?) {
-        mainStateIntent.setState(MessageListState.Loading)
-
         if(_currentMessages == null || messageId != null || _sentMessageIdFetchRequestPrior) {
             _currentMessages = (if(query == null)
                         messageRepository.getMessages(chatroomId = chatroomId, messageId = messageId)
@@ -87,7 +87,7 @@ abstract class ChatroomMessageViewModel(
 
                         if (before == null) {
                             // beginning of the list
-                            return@insertSeparators null
+                            return@insertSeparators listBeginningItem
                         }
 
                         // check between 2 items

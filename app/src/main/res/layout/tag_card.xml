@@ -12,9 +12,13 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/tag_card"
-        app:cardBackgroundColor="@color/colorGrey"
-        android:layout_width="250dp"
-        android:layout_height="100dp">
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardBackgroundColor="@color/colorDarkGrey"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="8dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/tag_card_layout"
@@ -27,10 +31,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginLeft="16dp"
-                android:text="@{tag.name}"
                 android:ellipsize="marquee"
                 android:maxWidth="125dp"
                 android:singleLine="false"
+                android:text="@{tag.name}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">

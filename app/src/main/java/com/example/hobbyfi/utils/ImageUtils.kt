@@ -12,6 +12,8 @@ import android.util.Base64.DEFAULT
 import android.util.Base64.encodeToString
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -25,13 +27,9 @@ object ImageUtils {
      * Encodes a given bitmap (preferably for an image) to Base64
      * @return String — the encoded Base64 bitmap
      */
-    suspend fun encodeImage(bitmap: Bitmap): String =
+    suspend fun encodeImage(bitmap: Bitmap, compressType: CompressType): String =
         withContext(Dispatchers.IO) {
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            // stream of bytes to represent the bitmap with
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-            // compress bitmap to JPEG w/ best quality possible and pass it into the ByteArrayOutputStream
-            val imageByte: ByteArray = byteArrayOutputStream.toByteArray()
+            val imageByte = compressType.compressBitmap(bitmap)
             val image = Base64.encodeToString(
                 imageByte,
                 DEFAULT
@@ -57,5 +55,33 @@ object ImageUtils {
         }
     }
 
-    suspend fun getEncodedImageFromUri(contentResolver: ContentResolver, uri: Uri) = encodeImage(getBitmapFromUri(contentResolver, uri))
+    suspend fun getEncodedImageFromUri(contentResolver: ContentResolver,
+                                       uri: Uri, compressType: CompressType) =
+        encodeImage(getBitmapFromUri(contentResolver, uri), compressType)
+
+    enum class CompressType(val imageQuality: Int, val width: Float, val height: Float) {
+        PROFILE_PICTURE(75,
+            MainApplication.applicationContext
+                .resources
+                .getDimension(R.dimen.circle_pic_width),
+            MainApplication.applicationContext
+                .resources
+                .getDimension(R.dimen.circle_pic_height)),
+        MESSAGE_PICTURE(85,
+            MainApplication.applicationContext
+                .resources
+                .getDimension(R.dimen.flat_pic_width),
+            MainApplication.applicationContext
+                .resources
+                .getDimension(R.dimen.flat_pic_height));
+
+        fun compressBitmap(bitmap: Bitmap): ByteArray {
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            // stream of bytes to represent the bitmap with
+            val bm = Bitmap.createScaledBitmap(bitmap, width.toInt(), height.toInt(), false)
+            bm.compress(Bitmap.CompressFormat.JPEG, imageQuality, byteArrayOutputStream)
+            // compress bitmap to JPEG w/ best quality possible and pass it into the ByteArrayOutputStream
+            return byteArrayOutputStream.toByteArray()
+        }
+    }
 }

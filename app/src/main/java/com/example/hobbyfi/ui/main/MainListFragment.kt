@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -14,7 +13,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadState
 import androidx.paging.PagingData
-import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.DefaultLoadStateAdapter
 import com.example.hobbyfi.adapters.chatroom.BaseChatroomListAdapter
@@ -25,9 +23,9 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.BaseActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionAware
 import com.example.hobbyfi.ui.chatroom.ChatroomActivity
+import com.example.hobbyfi.ui.shared.TagViewBottomSheetDialogFragment
 import com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
-import com.google.android.gms.tasks.OnFailureListener
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -36,7 +34,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import org.kodein.di.generic.instance
 
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
@@ -48,14 +45,12 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
 
     protected val chatroomFlowCollectExceptionHandler: suspend FlowCollector<PagingData<Chatroom>>.(cause: Throwable) -> Unit = { e: Throwable ->
         e.printStackTrace()
-        if(e.isCritical) {
-            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                .show()
-            (requireActivity() as MainActivity).logout()
-        } else if(e !is CancellationException) {
+        if(e !is CancellationException) {
             Log.i("ChatroomListFragment", "state.chatrooms collect() received a normal exception: $e")
-            Toast.makeText(requireContext(), e.message, Toast.LENGTH_LONG)
-                .show()
+            context?.showFailureToast(e.message ?: getString(R.string.something_wrong))
+            if(e.isCritical) {
+                (requireActivity() as MainActivity).logout()
+            }
         }
     }
 
@@ -84,6 +79,15 @@ abstract class MainListFragment<T: BaseChatroomListAdapter<*>> : MainFragment(),
                 navigateToChatroomPerDeepLinkExtras()
             }
         }
+    }
+
+    protected val onTagsViewButton: ((view: View, chatroom: Chatroom) -> Unit) = { _: View, chatroom: Chatroom ->
+        parentFragmentManager.showDistinctDialog("ChatroomSheet" + chatroom.id.toString(), {
+            TagViewBottomSheetDialogFragment.newInstance(
+                chatroom.tags,
+                chatroom.name
+            )
+        })
     }
 
     protected abstract val chatroomListAdapter: T

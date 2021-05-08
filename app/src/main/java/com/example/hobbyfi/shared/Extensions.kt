@@ -2,52 +2,99 @@ package com.example.hobbyfi.shared
 
 import android.animation.ValueAnimator
 import android.app.*
-import android.content.Context
+import android.content.*
 import android.content.Context.ACTIVITY_SERVICE
-import android.content.DialogInterface
-import android.content.Intent
+import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import android.widget.GridView
+import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.util.forEach
 import androidx.core.util.set
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.*
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDirections
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.repositories.Repository
+import com.example.hobbyfi.ui.auth.LoginFragmentDirections
+import com.example.hobbyfi.ui.auth.RegisterFragmentDirections
+import com.example.hobbyfi.ui.chatroom.ChatroomActivity
+import com.example.hobbyfi.ui.chatroom.ChatroomEditFragmentDirections
+import com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragmentDirections
+import com.example.hobbyfi.ui.chatroom.EventCreateFragmentDirections
+import com.example.hobbyfi.ui.main.ChatroomCreateFragmentDirections
+import com.example.hobbyfi.ui.main.ChatroomListFragmentDirections
+import com.example.hobbyfi.ui.main.JoinedChatroomListFragmentDirections
+import com.example.hobbyfi.ui.main.UserProfileFragmentDirections
+import com.example.hobbyfi.ui.shared.LoadingFragment
+import com.example.hobbyfi.utils.ColourUtils
 import com.example.hobbyfi.utils.TokenUtils
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
+import com.google.firebase.storage.StorageReference
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import org.json.JSONObject
+import java.io.IOException
 import java.lang.reflect.Field
+import kotlin.reflect.KClass
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import android.widget.FrameLayout
+import android.view.Gravity
+import android.widget.ImageView
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import com.bumptech.glide.Glide
+import android.provider.MediaStore
+import androidx.camera.core.ImageCaptureException
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 inline fun <reified T> Gson.fromJson(json: String?) = fromJson<T>(
     json,
@@ -156,10 +203,10 @@ fun NavigationView.clearCurrentMenuAndInflate(menuId: Int) {
 
 fun Context.buildYesNoAlertDialog(
     dialogMessage: String,
-    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener,
+    onConfirm: DialogInterface.OnClickListener, onCancel: DialogInterface.OnClickListener?,
     onDismiss: DialogInterface.OnDismissListener? = null
 ) {
-    val dialogBuilder = AlertDialog.Builder(this)
+    val dialogBuilder = MaterialAlertDialogBuilder(this)
         .setMessage(dialogMessage)
         .setPositiveButton(getString(R.string.yes), onConfirm)
         .setNegativeButton(getString(R.string.no), onCancel)
@@ -168,10 +215,8 @@ fun Context.buildYesNoAlertDialog(
         dialogBuilder.setOnDismissListener(it)
     }
 
-    dialogBuilder.create().apply {
-        window!!.setBackgroundDrawableResource(R.color.colorBackground)
-        show()
-    }
+    dialogBuilder.create()
+        .show()
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -268,6 +313,67 @@ fun Marker.animateMarker(newLatLng: LatLng) {
     latLngAnimator.start()
 }
 
+fun androidx.camera.view.PreviewView.startCamera(lifecycleOwner: LifecycleOwner): LiveData<ImageCapture?> {
+    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+
+    val imageCapObservable = MutableLiveData<ImageCapture?>(null)
+
+    cameraProviderFuture.addListener(Runnable {
+        val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+        val preview = Preview.Builder()
+            .build()
+            .also {
+                it.setSurfaceProvider(surfaceProvider)
+            }
+
+        val imageCapture = ImageCapture.Builder()
+            .setTargetRotation(display.rotation)
+            .build()
+        imageCapObservable.value = imageCapture
+
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+        try {
+            cameraProvider.unbindAll()
+
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner, cameraSelector, preview, imageCapture)
+
+        } catch(exc: Exception) {
+            Log.e("CameraCapture", "Use case binding failed", exc)
+        }
+    }, ContextCompat.getMainExecutor(context))
+    return imageCapObservable
+}
+
+fun ImageCapture.takePhoto(context: Context,
+                           onImageCaptureSuccess: (output: ImageCapture.OutputFileResults) -> Unit, onImageCaptureFail: () -> Unit) {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, "${System.currentTimeMillis()}.jpg")
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+    }
+
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(
+        context.contentResolver,
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        contentValues
+    ).build()
+
+    takePicture(
+        outputOptions, ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageSavedCallback {
+            override fun onError(exc: ImageCaptureException) {
+                Log.e("CameraCapture", "Photo capture failed! ${exc.message}", exc)
+                onImageCaptureFail()
+            }
+
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                Log.i("CameraCapture", "Photo capture succeeded! ${output.savedUri}")
+                onImageCaptureSuccess(output)
+            }
+        })
+}
+
 fun <T> MutableLiveData<T>.forceObserve() {
     this.value = this.value
 }
@@ -277,9 +383,284 @@ fun Context.convertDrawableResToBitmap(@DrawableRes drawableId: Int, width: Int?
     return d.toBitmap(width ?: d.intrinsicWidth, height ?: d.intrinsicHeight)
 }
 
+fun ImageView.loadUriIntoGlideAndSaveInImageHolder(uri: Uri, imageHolder: Base64Image) {
+    Glide.with(this.context)
+        .load(uri)
+        .into(this)
+    imageHolder.setOriginalUri(uri.toString())
+}
+
 fun AppCompatActivity.comeFromAuthDeepLink(): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
 
 fun comeFromAuthDeepLink(intent: Intent): Boolean = (intent.extras?.get("+clicked_branch_link") as String?)?.toBoolean() == true
+
+@ExperimentalCoroutinesApi
+private fun addLoadingAwareNavListener(navController: NavController, activity: AppCompatActivity): NavController {
+    navController.addOnDestinationChangedListener { _, destination, _ ->
+        if(activity !is ChatroomActivity) {
+            activity.supportActionBar?.title = destination.label // reaffirm due to config changes
+        }
+
+        if(destination.id == R.id.loadingFragment ||
+            destination.id == R.id.authWrapperFragment) activity.supportActionBar?.hide() else activity.supportActionBar?.show()
+    }
+    return navController
+}
+
+// yes, this does look weird, but due to possible race conditions w/ navController instances, previous destinations are directly passed as references
+fun NavController.getCurrentDestinationToLoadingNavGraphActionId(defaultActionId: NavDirections): NavDirections {
+    fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id, recDepth: Int = 0): NavDirections {
+        return when(destinationId) {
+            R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
+                R.id.loginFragment
+            )
+            R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(
+                R.id.registerFragment
+            )
+            R.id.chatroomCreateFragment -> ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(
+                R.id.chatroomCreateFragment
+            )
+            R.id.userProfileFragment -> UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(
+                R.id.userProfileFragment
+            )
+            R.id.joinedChatroomListFragment -> JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToLoadingNavGraph(
+                R.id.joinedChatroomListFragment
+            )
+            R.id.chatroomListFragment -> ChatroomListFragmentDirections.actionChatroomListFragmentToLoadingNavGraph(
+                R.id.chatroomListFragment
+            )
+            R.id.chatroomEditFragment -> ChatroomEditFragmentDirections.actionChatroomEditFragmentToLoadingNavGraph(
+                R.id.chatroomEditFragment
+            )
+            R.id.eventCreateFragment -> EventCreateFragmentDirections.actionGlobalLoadingNavGraph(
+                R.id.eventCreateFragment
+            )
+            R.id.chatroomMessageListFragment -> ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
+                R.id.chatroomMessageListFragment
+            )
+            R.id.loadingFragment -> getLoadingNavGraphAction(
+                previousBackStackEntry?.destination?.id,
+                recDepth + 1
+            )
+            else -> if(recDepth != 0) defaultActionId else getLoadingNavGraphAction(
+                previousBackStackEntry?.destination?.id,
+                recDepth + 1
+            )
+        }
+    }
+
+    return getLoadingNavGraphAction()
+}
+
+fun NavController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(defaultActionId: NavDirections?): NavDirections? {
+    fun getLoadingNavGraphAction(destinationId: Int? = currentDestination?.id): NavDirections? {
+        return when(destinationId) {
+            R.id.loginFragment -> LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(
+                R.id.loginFragment
+            )
+            R.id.registerFragment -> RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(
+                R.id.registerFragment
+            )
+            R.id.chatroomCreateFragment -> ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToLoadingNavGraph(
+                R.id.chatroomCreateFragment
+            )
+            R.id.userProfileFragment -> UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(
+                R.id.userProfileFragment
+            )
+            R.id.joinedChatroomListFragment -> JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToLoadingNavGraph(
+                R.id.joinedChatroomListFragment
+            )
+            R.id.chatroomListFragment -> ChatroomListFragmentDirections.actionChatroomListFragmentToLoadingNavGraph(
+                R.id.chatroomListFragment
+            )
+            R.id.chatroomEditFragment -> ChatroomEditFragmentDirections.actionChatroomEditFragmentToLoadingNavGraph(
+                R.id.chatroomEditFragment
+            )
+            R.id.eventCreateFragment -> EventCreateFragmentDirections.actionGlobalLoadingNavGraph(
+                R.id.eventCreateFragment
+            )
+            R.id.chatroomMessageListFragment -> ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
+                R.id.chatroomMessageListFragment
+            )
+            else -> defaultActionId
+        }
+    }
+
+    return getLoadingNavGraphAction()
+}
+
+@ExperimentalCoroutinesApi
+fun AppCompatActivity.findLoadingDestinationAwareNavController(): NavController? =
+    try {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        addLoadingAwareNavListener(navHostFragment.navController, this)
+    } catch (ex: ClassCastException) {
+        Log.w(
+            "NavigationActivity",
+            "User has triggered ClassCastException on Activity restart from onStart(), possibly because they've nav'd to a fragment whose behaviour is not managed by Android Navigation."
+        )
+        null
+    }
+
+@ExperimentalCoroutinesApi
+fun Fragment.findLoadingDestinationAwareNavController(): NavController {
+    val navController = findNavController()
+    return addLoadingAwareNavListener(navController, requireActivity() as AppCompatActivity)
+}
+
+suspend fun <T : Any> StateFlow<T>.collectLatestWithNonIdleReset(
+    idleClsses: List<KClass<*>>, reset: () -> Unit,
+    action: suspend (value: T) -> Unit
+) {
+    collectLatest {
+        action(it)
+
+        Log.i(
+            "Extensions",
+            "${it::class.simpleName} is in ${idleClsses.map { cl -> cl.simpleName }}? ${
+                idleClsses.contains(
+                    it::class
+                )
+            }")
+        if(!idleClsses.contains(it::class)) {
+            reset()
+        }
+    }
+}
+
+private suspend fun <T : Any> StateFlow<T>.parseLatestWithLoading(
+    it: T,
+    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+    loadingCls: KClass<*>, onDestinationPop: () -> Unit,
+    action: suspend (value: T) -> Unit
+) {
+    Log.i(
+        "Extensions",
+        "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}"
+    )
+
+    navController.currentBackStackEntry?.savedStateHandle?.set(LoadingFragment.LOADING_KEY, true)
+    val loading = loadingCls == it::class
+
+    if(loading) {
+        if(navController.currentDestination?.id != R.id.loadingFragment &&
+            navController.getCurrentDestinationToLoadingNavGraphActionIdNoRec(null) != null) {
+            navController.safeNavigate(
+                navController.getCurrentDestinationToLoadingNavGraphActionId(
+                    defaultActionId
+                )
+            )
+            navController.currentBackStackEntry?.savedStateHandle
+                ?.getLiveData(LoadingFragment.BACK_KEY, false)?.observe(
+                    lifecycleOwner,
+                    Observer { backed ->
+                        Log.i(
+                            "Extensions",
+                            "collectLatestWithLoading -> BACK_KEY received w/ backed: ${backed}"
+                        )
+                        if (backed) {
+                            onDestinationPop()
+                        }
+                    })
+        }
+        navController.currentBackStackEntry?.savedStateHandle?.set(
+            LoadingFragment.LOADING_KEY,
+            false
+        )
+    } else action(it)
+}
+
+suspend fun <T : Any> StateFlow<T>.collectLatestWithLoading(
+    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+    loadingCls: KClass<*>, onDestinationPop: () -> Unit,
+    action: suspend (value: T) -> Unit
+) {
+    collectLatest {
+        Log.i(
+            "Extensions",
+            "collectLatestWithLoading -> Current State in Flow collect: ${it.toString()} w/ loadingCls: ${loadingCls.simpleName}"
+        )
+
+        parseLatestWithLoading(
+            it, lifecycleOwner, navController,
+            defaultActionId, loadingCls, onDestinationPop, action
+        )
+    }
+}
+
+suspend fun <T : Any> StateFlow<T>.collectLatestWithLoadingAndNonIdleReset(
+    idleClsses: List<KClass<*>>, reset: () -> Unit,
+    lifecycleOwner: LifecycleOwner, navController: NavController, defaultActionId: NavDirections,
+    loadingCls: KClass<*>,
+    action: suspend (value: T) -> Unit
+) {
+    // onDestinationPop == reset here
+    collectLatestWithNonIdleReset(idleClsses + listOf(loadingCls), reset) {
+        parseLatestWithLoading(
+            it, lifecycleOwner, navController, defaultActionId,
+            loadingCls, reset, action
+        )
+    }
+}
+
+
+fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
+    observe(lifecycleOwner, object : Observer<T> {
+        override fun onChanged(t: T?) {
+            observer.onChanged(t)
+            removeObserver(this)
+        }
+    })
+}
+
+fun NavController.safeNavigate(@IdRes idRes: Int) {
+    val action = currentDestination?.getAction(idRes) ?: return
+
+    if(currentDestination?.id != action.destinationId) {
+        navigate(idRes)
+    }
+}
+
+fun NavController.safeNavigate(direction: NavDirections) {
+    val action = currentDestination?.getAction(direction.actionId) ?: return
+
+    if(currentDestination?.id != action.destinationId) {
+        navigate(direction)
+    }
+}
+
+fun Context.showSecondaryColourBackgroundToast(
+    content: String,
+    @ColorInt bgColor: Int = ContextCompat.getColor(this, R.color.colorSecondary),
+) {
+    Toast.makeText(this, content, Toast.LENGTH_LONG).apply {
+        view?.backgroundTintList = ColorStateList.valueOf(bgColor)
+    }.show()
+}
+
+fun Context.showSuccessToast(
+    content: String
+) {
+    showSecondaryColourBackgroundToast(
+        content, ContextCompat.getColor(this, android.R.color.holo_green_light)
+    )
+}
+
+fun Context.showFailureToast(
+    content: String,
+) {
+    showSecondaryColourBackgroundToast(
+        content, ContextCompat.getColor(this, android.R.color.holo_red_light),
+    )
+}
+
+fun Context.showWarningToast(
+    content: String,
+) {
+    showSecondaryColourBackgroundToast(
+        content, ContextCompat.getColor(this, R.color.yellow))
+}
+
 
 @Suppress("DEPRECATION") // Deprecated for third party apps. Still returns active user services tho
 fun <T> Context.isServiceForegrounded(service: Class<T>) =
@@ -288,35 +669,51 @@ fun <T> Context.isServiceForegrounded(service: Class<T>) =
         ?.find { it.service.className == service.name }
         ?.foreground == true
 
-// credit to Utsav Branwal from SO https://stackoverflow.com/questions/6005245/how-to-have-a-gridview-that-adapts-its-height-when-items-are-added
-fun GridView.setHeightBasedOnChildren(noOfColumns: Int) {
-    val gridViewAdapter = adapter ?: return // adapter is not set yet
-    var totalHeight: Int //total height to set on grid view
-    val items = gridViewAdapter.count //no. of items in the grid
-    val rows: Int //no. of rows in grid
-    val listItem: View = gridViewAdapter.getView(0, null, this)
-    listItem.measure(0, 0)
-    totalHeight = listItem.measuredHeight
-    val x: Float
-    if (items > noOfColumns) {
-        x = (items / noOfColumns).toFloat()
-
-        //Check if exact no. of rows of rows are available, if not adding 1 extra row
-        rows = if (items % noOfColumns != 0) {
-            (x + 1).toInt()
-        } else {
-            x.toInt()
+@Throws(IOException::class)
+fun Context.downloadAndSaveImage(url: String, name: String) {
+    val downloadManagerReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if(intent.action == DownloadManager.ACTION_NOTIFICATION_CLICKED) {
+                val dm = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                this@downloadAndSaveImage.startActivity(dm)
+            } else {
+                Log.w(
+                    "Extensions",
+                    "downloadAndSaveImage -> received broadcast w/ invalid intent action!"
+                )
+            }
+            this@downloadAndSaveImage.unregisterReceiver(this)
         }
-        totalHeight *= rows
-
-        //Adding any vertical space set on grid view
-        totalHeight += verticalSpacing * rows
     }
 
-    //Setting height on grid view
-    val params = layoutParams
-    params.height = totalHeight
-    layoutParams = params
+    registerReceiver(
+        downloadManagerReceiver,
+        IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE).apply {
+            addAction(DownloadManager.ACTION_NOTIFICATION_CLICKED)
+        }
+    )
+
+    val downloadManagerRequest: DownloadManager.Request = DownloadManager.Request(Uri.parse(url))
+        .setAllowedNetworkTypes(
+            DownloadManager.Request.NETWORK_WIFI or
+                    DownloadManager.Request.NETWORK_MOBILE
+        )
+        .setAllowedOverRoaming(false)
+        .setTitle("$name.jpg")
+        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        .setAllowedOverMetered(true)
+        .setDescription("Downloading image...").setMimeType("image/jpg")
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "/Hobbyfi/")
+    val downloadManager: DownloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+    downloadManager.enqueue(downloadManagerRequest)
+}
+
+fun RecyclerView.isLinearFirstVisible(): Boolean {
+    val layoutManager = layoutManager as LinearLayoutManager
+    val pos = layoutManager.findFirstCompletelyVisibleItemPosition()
+    return pos == 0
 }
 
 fun JSONObject.toPlainStringMap(): Map<String, String> = keys().asSequence().associateWith {
@@ -375,11 +772,57 @@ fun android.content.Intent.getEventIdsExtra(): List<Long> {
     )!!
 }
 
+fun RequestManager.loadReferenceWithMetadataSignature(
+    ref: StorageReference,
+    metadata: StorageMetadata
+): RequestBuilder<Drawable> {
+    return load(ref)
+        .signature(ObjectKey(metadata.creationTimeMillis))
+}
+
+fun String.asFirebaseStorageReference(): StorageReference? {
+    return try {
+        FirebaseStorage.getInstance().getReferenceFromUrl(this)
+    } catch (ex: Exception) {
+        null
+    }
+}
+
+fun String.asFirebaseStorageReferenceEx(): StorageReference {
+    return FirebaseStorage.getInstance().getReferenceFromUrl(this)
+}
+
+fun ChipGroup.reinitChipsByTags(tags: List<Tag>?): Boolean {
+    removeAllViews()
+    return if(tags != null && tags.isNotEmpty()) {
+        tags.toList().forEach { tag ->
+            val chip = Chip(context).apply {
+                text = tag.name
+                isCheckable = false
+                layoutDirection = View.LAYOUT_DIRECTION_LOCALE
+                chipBackgroundColor = ColorStateList(
+                    arrayOf(
+                        IntArray(0)
+                    ),
+                    IntArray(1) {
+                        ColourUtils.getColourOrGreen(tag.colour)
+                    }
+                )
+            }
+
+            addView(chip)
+        }
+        true
+    } else {
+        false
+    }
+}
+
 val Throwable.isCritical get() = this is Repository.ReauthenticationException || this is InstantiationException ||
         this is io.jsonwebtoken.lang.InstantiationException || this is Repository.NetworkException ||
         this is Repository.UnknownErrorException || this is TokenUtils.InvalidStoredTokenException
 
-fun <T: Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
+fun <T : Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T> {
     val list = mutableListOf<T>()
     for(i in 0..itemCount) {
         try {
@@ -394,10 +837,10 @@ fun <T: Any> PagingDataAdapter<T, *>.extractListFromCurrentPagingData(): List<T>
     return list
 }
 
-fun <T: Any> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
+fun <T : Any> PagingDataAdapter<T, *>.findItemFromCurrentPagingData(predicate: (T?) -> Boolean): T? =
     snapshot().find(predicate)
 
-fun <T: Any> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
+fun <T : Any> PagingDataAdapter<T, *>.findItemPositionFromCurrentPagingData(item: T): Int? {
     val snapshot = snapshot()
     snapshot.items.forEachIndexed { index, t ->
         Log.i("findIPositionFCPData", "item: ${t}")

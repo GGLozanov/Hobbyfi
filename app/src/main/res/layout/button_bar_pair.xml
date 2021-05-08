@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-
+        <variable
+            name="orientation"
+            type="int" />
         <variable
             name="leftButtonText"
             type="java.lang.String" />
@@ -22,6 +24,7 @@
         android:id="@+id/button_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:orientation="@{orientation}"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,6 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
+            android:background="@drawable/rounded_rect"
             android:text="@{leftButtonText}"
             android:drawableStart="@{leftButtonStartDrawable}">
 
@@ -42,6 +46,7 @@
             android:id="@+id/right_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/rounded_rect"
             android:text="@{rightButtonText}"
             android:drawableStart="@{rightButtonStartDrawable}">
 

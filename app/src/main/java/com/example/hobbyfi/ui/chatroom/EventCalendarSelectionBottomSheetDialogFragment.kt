@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
@@ -16,8 +15,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.event.EventListAdapter
 import com.example.hobbyfi.models.data.Event
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.*
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
@@ -51,7 +49,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
             { v: View, event: Event ->
                 v.isEnabled = false
 
-                navController.navigate(
+                navController.safeNavigate(
                     ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToEventDetailsFragment(
                         event
                     )
@@ -84,8 +82,9 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
 
     private fun generateFacebookEventDeeplink(event: Event) {
         if(!connectivityManager.isConnected()) {
-            Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)
-                .show()
+            context?.showFailureToast(
+                getString(R.string.no_connection_error)
+            )
             return
         }
 
@@ -129,11 +128,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
 
         buo.generateShortUrl(requireContext(), lp) { url: String, error: BranchError? ->
             if (error != null) {
-                Toast.makeText(
-                    requireContext(),
-                    Constants.deepLinkGenFail,
-                    Toast.LENGTH_LONG
-                ).show()
+                context?.showFailureToast(getString(R.string.deep_link_gen_fail))
                 return@generateShortUrl
             }
 
@@ -141,29 +136,17 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
                 val shareDialog = ShareDialog(this)
                 shareDialog.registerCallback(callBackManager, object : FacebookCallback<Sharer.Result> {
                     override fun onSuccess(result: Sharer.Result?) {
-                        Toast.makeText(
-                            requireContext(),
-                            Constants.shareDeepLinkSuccess,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        context?.showSuccessToast(getString(R.string.deep_link_success_share))
                     }
 
                     override fun onCancel() {
-                        Toast.makeText(
-                            requireContext(),
-                            Constants.shareDeepLinkCancel,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        context?.showWarningToast(getString(R.string.deep_link_cancel_share))
                     }
 
                     override fun onError(error: FacebookException?) {
                         error?.printStackTrace()
                         Log.e("EventCalendarSBSDF", "Facebook share exception: ${error?.message}")
-                        Toast.makeText(
-                            requireContext(),
-                            Constants.shareDeepLinkFail,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        context?.showFailureToast(getString(R.string.deep_link_fail_share))
                     }
                 })
                 val linkContent = ShareLinkContent.Builder()
@@ -172,11 +155,7 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
                 Log.i("EventCalendarSBSDF", "Deep link gen: ${linkContent.contentUrl}")
                 shareDialog.show(linkContent)
             } else {
-                Toast.makeText(
-                    requireContext(),
-                    Constants.showShareDialogFail,
-                    Toast.LENGTH_LONG
-                ).show()
+                context?.showFailureToast(getString(R.string.share_dialog_fail))
             }
         }
     }

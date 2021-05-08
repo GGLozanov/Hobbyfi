@@ -8,8 +8,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
@@ -21,6 +21,7 @@ import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.UserState
+import com.example.hobbyfi.ui.auth.AuthActivity
 import com.example.hobbyfi.ui.base.*
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.factories.AuthUserViewModelFactory
@@ -29,13 +30,16 @@ import com.example.hobbyfi.work.DeviceTokenDeleteWorker
 import com.facebook.login.LoginManager
 import io.socket.client.Socket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import org.json.JSONObject
 
 
 @ExperimentalCoroutinesApi
 class MainActivity : NavigationActivity(), OnAuthStateReset,
-        ServerSocketAccessor {
+        ServerSocketAccessor, ImageUploadContinuation {
     val viewModel: MainActivityViewModel by viewModels(factoryProducer = {
         AuthUserViewModelFactory(application, if(intent.extras != null) args.user else null)
     })
@@ -69,7 +73,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        connectServerSocket()
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         Log.i("MainActivity", "intent extras: ${intent.extras?.toReadable()}")
@@ -92,13 +95,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onStart() {
         super.onStart()
-         connectServerSocket()
+        connectServerSocket()
         observeAuthUser()
         viewModel.setDeepLinkExtras(if(comeFromAuthDeepLink()
             && viewModel.deepLinkExtras == null) intent.extras else null
         )
+        EventBus.getDefault().register(this)
         Log.i("MainActivity", "VM deeplink extras: ${viewModel.deepLinkExtras?.toReadable()}")
-        observeUserState()
     }
 
     override fun onResume() {
@@ -137,25 +140,28 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                     )
                 )
             )
+            navController.addOnDestinationChangedListener { _, destination, _ ->
+                binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
+                        destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
+                            && destination.id != R.id.loadingFragment && destination.id != R.id.cameraCaptureFragment
+            }
+            observeUserState()
         })
     }
 
     private fun observeUserState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(UserState.Idle::class, UserState.OnData.UserResult::class),
+                    viewModel::resetState,
+                    this@MainActivity, navController,
+                    UserProfileFragmentDirections.actionUserProfileFragmentToLoadingNavGraph(R.id.userProfileFragment),
+                    UserState.Loading::class) {
                 when(it) {
                     is UserState.Idle, is UserState.OnData.UserResult -> {
 
                     }
-                    is UserState.Loading -> {
-                        // TODO: Progressbar
-                    }
                     is UserState.OnData.UserDeleteResult -> {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Successfully deleted account!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        this@MainActivity.showSuccessToast(getString(R.string.delete_account_success))
                         logout()
                     }
                     is UserState.OnData.UserUpdateResult -> {
@@ -177,6 +183,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                         if (hasJoinedChatroom || hasLeftChatroom) {
                             // if user has updated only their chatroom and not left a room (though ChatroomListFragment)
                             lateinit var userChatroomFields: Map<String, String?>
+
                             if (hasJoinedChatroom) {
                                 userChatroomFields = mapOf(
                                     Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
@@ -187,6 +194,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                                 viewModel.setLatestUserUpdateFields(userChatroomFields) // update later in observers in fragment
                                 viewModel.setJoinedChatroom(hasJoinedChatroom)
                             }
+
                             if (hasLeftChatroom) {
                                 userChatroomFields = mapOf(
                                     Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
@@ -207,25 +215,16 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
                             viewModel.sendIntent(
                                 UserIntent.UpdateUserCache(it.userFields)
                             )
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Successfully updated fields!",
-                                Toast.LENGTH_LONG
-                            ).show()
+                            this@MainActivity.showSuccessToast(getString(R.string.update_fields_success))
                         }
-                        viewModel.resetState()
+
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                     is UserState.Error -> {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Something went wrong! ${it.error}",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        this@MainActivity.showFailureToast(getString(R.string.something_wrong) + " ${it.error}")
                         if (it.shouldReauth) {
                             logout()
                         }
-                        viewModel.resetState()
                         viewModel.setIsUserProfileUpdateButtonEnabled(true)
                     }
                 }
@@ -308,9 +307,13 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         }
     }
 
-    // TODO: Find a way to handle backstack when logout is pressed after register
     override fun onBackPressed() {
         if(poppedFromLogoutButton) {
+            // FIXME: Is restarting the activity again good? There shouldn't be any state preserved but this cheats the navcomponent backstack a bit
+            startActivity(Intent(this, AuthActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            })
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
             finish()
         } else {
             if(navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment) {
@@ -320,9 +323,14 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
         }
     }
 
+    override fun onStop() {
+        disconnectServerSocket()
+        super.onStop()
+        EventBus.getDefault().unregister(this)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        disconnectServerSocket()
         localBroadcastManager.unregisterReceiver(chatroomDeletedReceiver)
     }
 
@@ -332,5 +340,16 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    override fun onImageUploadEvent(event: WorkerUtils.ImageUploadEvent) {
+        if(event.type == Constants.USERS || event.type == Constants.EDIT_USER_TYPE) {
+            lifecycleScope.launch {
+                viewModel.sendIntent(
+                    UserIntent.UpdateUserCache(mapOf(Constants.IMAGE to event.response))
+                )
+            }
+        }
     }
 }

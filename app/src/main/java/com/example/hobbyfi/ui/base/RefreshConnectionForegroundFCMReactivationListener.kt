@@ -18,7 +18,7 @@ interface RefreshConnectionForegroundFCMReactivationListener: ForegroundFCMReact
     ) : ForegroundFCMReactivationListener.ForegroundFCMReactivationReceiver(onForegroundReactivation) {
 
         override fun onReceive(context: Context, intent: Intent) {
-            if(intent.action == Constants.FOREGROUND_REACTIVIATION_ACTION) {
+            if(intent.action == Constants.FOREGROUND_REACTIVATION_ACTION) {
                 onForegroundReactivation(intent)
                 refreshDataProcedure()
             } else {

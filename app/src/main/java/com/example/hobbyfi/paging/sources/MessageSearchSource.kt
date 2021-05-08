@@ -39,6 +39,6 @@ class MessageSearchSource(
         }
 
     companion object {
-        val DEFAULT_PAGE_INDEX = 1
+        const val DEFAULT_PAGE_INDEX = 1
     }
 }

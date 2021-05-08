@@ -58,7 +58,7 @@ class ChatroomMessageBottomSheetDialogFragment : ChatroomBottomSheetDialogFragme
                     state = BottomSheetBehavior.STATE_EXPANDED
                 }
 
-                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex.matches(message.message) &&
+                menu.findItem(R.id.action_edit_message).isVisible = !Constants.imageRegex.matches(message.message.trim()) &&
                         !message.isTimeline && activityViewModel.authUser.value?.id == message.userSentId // TODO: Change when add text to image messages
                 setNavigationItemSelectedListener(this@ChatroomMessageBottomSheetDialogFragment)
             }

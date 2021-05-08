@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/tag_nav_graph"
-    app:startDestination="@id/tagSelectionDialogFragment">
-    <dialog
-        android:id="@+id/tagSelectionDialogFragment"
-        android:name="com.example.hobbyfi.ui.shared.TagSelectionDialogFragment"
+    app:startDestination="@id/tagSelectionFragment">
+    <fragment
+        android:id="@+id/tagSelectionFragment"
+        android:name="com.example.hobbyfi.ui.shared.TagSelectionFragment"
         android:label="Select Tags"
-        tools:layout="@layout/fragment_tag_selection_dialog">
+        tools:layout="@layout/fragment_tag_selection">
         <argument
             android:name="selectedTags"
             app:argType="com.example.hobbyfi.models.data.Tag[]" />
@@ -19,7 +19,7 @@
         <action
             android:id="@+id/action_tagSelectionDialogFragment_to_customTagCreateDialogFragment"
             app:destination="@id/customTagCreateDialogFragment" />
-    </dialog>
+    </fragment>
     <dialog
         android:id="@+id/customTagCreateDialogFragment"
         android:name="com.example.hobbyfi.ui.shared.CustomTagCreateDialogFragment"

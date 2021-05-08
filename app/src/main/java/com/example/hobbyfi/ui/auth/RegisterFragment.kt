@@ -1,36 +1,108 @@
 package com.example.hobbyfi.ui.auth
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
+import android.util.Log
 import android.view.*
-import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.models.ui.StepperButtonInput
+import com.example.hobbyfi.models.ui.StepperFormInput
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
-import com.example.hobbyfi.utils.ImageUtils
+import com.example.hobbyfi.ui.shared.ButtonStep
+import com.example.hobbyfi.ui.shared.FormStep
 import com.example.hobbyfi.utils.TokenUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.RegisterFragmentViewModel
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
+import ernestoyaquello.com.verticalstepperform.listener.StepperFormListener
+import kotlinx.coroutines.*
 
 
 @ExperimentalCoroutinesApi
-class RegisterFragment : AuthFragment() {
+class RegisterFragment : AuthFragment(), StepperFormListener {
     private val viewModel: RegisterFragmentViewModel by viewModels()
     private lateinit var binding: FragmentRegisterBinding
+
+    private val emailStep: FormStep get() =
+        FormStep(getString(R.string.email), viewLifecycleOwner, getString(R.string.email_input_error),
+            StepperFormInput(
+                getString(R.string.email_hint),
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_email_white_24)
+                    ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
+                TextInputLayout.END_ICON_CLEAR_TEXT,
+                InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+                viewModel.email as PredicateMutableLiveData<String?>
+            )
+        )
+
+    private val usernameStep: FormStep get() =
+        FormStep(getString(R.string.username), viewLifecycleOwner, getString(R.string.username_input_error),
+            StepperFormInput(
+                getString(R.string.username_hint),
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_person_24)
+                    ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
+                TextInputLayout.END_ICON_CLEAR_TEXT,
+                InputType.TYPE_TEXT_FLAG_CAP_WORDS,
+                viewModel.name as PredicateMutableLiveData<String?>
+            )
+        )
+
+    private val passwordStep: FormStep get() =
+        FormStep(getString(R.string.password), viewLifecycleOwner, getString(R.string.password_input_error),
+            StepperFormInput(
+                getString(R.string.password_hint),
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_password_24)
+                    ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
+                TextInputLayout.END_ICON_PASSWORD_TOGGLE,
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
+                viewModel.password as PredicateMutableLiveData<String?>
+            ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
+        )
+
+    private val confirmPasswordStep: FormStep get  () =
+        FormStep(getString(R.string.confirm_password), viewLifecycleOwner, getString(R.string.confirm_password_input_error),
+            StepperFormInput(
+                getString(R.string.confirm_password_hint),
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_password_24)
+                    ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
+                TextInputLayout.END_ICON_PASSWORD_TOGGLE,
+                InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
+                viewModel.confirmPassword as PredicateMutableLiveData<String?>
+            ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
+        )
+
+    private val descriptionStep: FormStep get() =
+        FormStep(getString(R.string.description), viewLifecycleOwner, getString(R.string.description_input_error),
+            StepperFormInput(
+                getString(R.string.description_hint),
+                ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
+                TextInputLayout.END_ICON_CLEAR_TEXT,
+                InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,
+                viewModel.description
+            )
+        )
+
+    private val tagsStep: ButtonStep get() =
+        ButtonStep(getString(R.string.tags), {
+            val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
+                viewModel.tagBundle.selectedTags.toTypedArray(),
+                viewModel.tagBundle.tags.toTypedArray()
+            )
+            navController.safeNavigate(action)
+        }, StepperButtonInput(getString(R.string.choose_tags), ContextCompat
+            .getDrawable(requireContext(), R.drawable.ic_baseline_tag_faces_24)!!))
 
     companion object {
         const val tag: String = "RegisterFragment"
@@ -44,55 +116,57 @@ class RegisterFragment : AuthFragment() {
             DataBindingUtil.inflate(inflater, R.layout.fragment_register, container, false)
 
         binding.viewModel = viewModel
-        observeCombinedObserversInvalidity()
 
         with(binding) {
             lifecycleOwner = this@RegisterFragment
 
-            val view = root
-
-            profileImage.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
+            profileImage.galleryOption.setOnClickListener { // viewbinding, WOOO! No Kotlin synthetics here
                 Callbacks.requestImage(this@RegisterFragment)
             }
 
-            buttonBar.rightButton.setOnClickListener { // register account
-                buttonBar.rightButton.isEnabled = false
-
-                lifecycleScope.launch {
-                    viewModel!!.sendIntent(TokenIntent.FetchRegisterToken)
-                }
+            profileImage.cameraOption.setOnClickListener {
+                navController.navigate(R.id.action_registerFragment_to_camera_capture_nav_graph)
             }
 
-            return view
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), profileImage.image)
+
+            stepperForm
+                .setup(this@RegisterFragment,
+                    emailStep, usernameStep, passwordStep,
+                    confirmPasswordStep, descriptionStep, tagsStep)
+                .allowNonLinearNavigation(true)
+                .allowStepOpeningOnHeaderClick(true)
+                .init()
+
+            return@onCreateView root
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.buttonBar.leftButton.setOnClickListener { // select tags
-            val action = RegisterFragmentDirections.actionRegisterFragmentToTagNavGraph(
-                viewModel.tagBundle.selectedTags.toTypedArray(),
-                viewModel.tagBundle.tags.toTypedArray()
-            )
-            navController.navigate(action)
-        }
 
         lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(TokenState.Idle::class),
+                        viewModel::resetTokenState, viewLifecycleOwner, navController,
+                    RegisterFragmentDirections.actionRegisterFragmentToLoadingNavGraph(R.id.registerFragment),
+                    TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
                     }
                     is TokenState.Error -> {
-                        binding.buttonBar.rightButton.isEnabled = true
-                        Toast.makeText(context, it.error, Toast.LENGTH_LONG)
-                            .show()
-                    }
-                    is TokenState.Loading -> {
-                        // TODO: Show a progress indicator or something
+                        // bit of a hack due to race condition on RegisterFragment view w/ LoadingFragment pop from backstack
+                        lifecycleScope.launch {
+                            withContext(Dispatchers.IO) {
+                                delay(1500)
+                            }
+
+                            this@RegisterFragment.context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
+                            binding.stepperForm.cancelFormCompletionOrCancellationAttempt()
+                        }
                     }
                     is TokenState.TokenReceived -> {
                         val id = TokenUtils.getTokenUserIdFromPayload(it.token?.jwt)
-                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
+                        Callbacks.hideKeyboardFrom(requireContext(), view)
 
                         viewModel.base64Image.originalUri?.let { image ->
                             WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -112,17 +186,15 @@ class RegisterFragment : AuthFragment() {
                                     viewModel.email.value!!,
                                     viewModel.name.value!!,
                                     viewModel.description.value,
-                                    if(viewModel.base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.userProfileImageDir
-                                            + "/" + id + ".jpg" else null, // FIXME: Find a better way to do this; exposes API logic...
+                                    null,
                                     viewModel.tagBundle.selectedTags,
                                     null,
                                     null
-                                )
+                                ) // image upload schema dependent on WorkManager, repo modifications, & SSOT refetches (which is why URL is null here)
                             ),
                             it.token?.jwt,
                             it.token?.refreshJwt
                         )
-                        viewModel.resetTokenState()
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -134,53 +206,34 @@ class RegisterFragment : AuthFragment() {
             viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
             viewModel.tagBundle.setSelectedTags(selectedTags)
         }
+
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner) { uri ->
+                binding.profileImage.image
+                    .loadUriIntoGlideAndSaveInImageHolder(uri, viewModel.base64Image)
+            }
     }
 
-    override fun observePredicateValidators() {
-        with(viewModel) {
-            email.invalidity.observe(
-                viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
-            )
+    override fun onCompletedForm() {
+        Log.i("RegisterFragment", "Completed form w/ data")
 
-            password.invalidity
-                .observe(viewLifecycleOwner, object : TextInputLayoutFocusObserver<Boolean>(binding.passwordInputField) {
-                override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                    textInputLayout.error = if(t) Constants.passwordInputError else null
-                    binding.confirmPasswordInputField.error =
-                        if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
-                }
-            })
-
-            confirmPassword.invalidity
-                .observe(viewLifecycleOwner, object : TextInputLayoutFocusObserver<Boolean>(binding.confirmPasswordInputField) {
-                override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                    textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
-                    binding.passwordInputField.error =
-                        if(t && password.invalidity.value == true) Constants.passwordInputError else null
-                }
-            })
-
-            name.invalidity.observe(
-                viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, Constants.nameInputError)
-            )
-
-            description.invalidity.observe(
-                viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, Constants.descriptionInputError)
-            )
+        lifecycleScope.launch {
+            viewModel.sendIntent(TokenIntent.FetchRegisterToken)
         }
     }
 
-    override fun observeCombinedObserversInvalidity() {
-        viewModel.combinedObserversInvalidity.observe(viewLifecycleOwner, ViewReverseEnablerObserver(binding.buttonBar.rightButton))
+    override fun onCancelledForm() {
+        navController.popBackStack(R.id.authWrapperFragment, false)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.register_appbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
-    }
+//    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+//        emailStep.restoreStepData(null)
+//        usernameStep.restoreStepData(null)
+//        passwordStep.restoreStepData(null)
+//        confirmPasswordStep.restoreStepData(null)
+//        descriptionStep.restoreStepData(null)
+//        super.onViewStateRestored(savedInstanceState)
+//    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -190,10 +243,8 @@ class RegisterFragment : AuthFragment() {
             resultCode,
             data
         ) {
-            Glide.with(requireContext())
-                .load(data!!.data!!)
-                .into(binding.profileImage)
-            viewModel.base64Image.setOriginalUri(data.data!!.toString())
+            binding.profileImage.image
+                .loadUriIntoGlideAndSaveInImageHolder(data!!.data!!, viewModel.base64Image)
         }
     }
 }

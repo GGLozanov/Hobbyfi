@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/colorBackground"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:weightSum="3"
+        tools:context=".ui.shared.TagSelectionFragment">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/tag_list"
+            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:clipToPadding="true"
+            app:layoutManager="LinearLayoutManager"
+            android:layout_marginTop="8dp"
+            tools:context=".ui.main.ChatroomListFragment"
+            tools:listitem="@layout/tag_card" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_rect"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/custom_tag_create_button"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_container"
+                android:text="@string/create_custom">
+
+            </com.google.android.material.button.MaterialButton>
+
+            <include
+                android:id="@+id/button_bar"
+                layout="@layout/button_bar_pair"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                app:leftButtonStartDrawable="@{@drawable/ic_baseline_cancel_24}"
+                app:leftButtonText="@{@string/cancel}"
+                app:rightButtonStartDrawable="@{@drawable/ic_baseline_check_24}"
+                app:rightButtonText="@{@string/confirm}" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</layout>

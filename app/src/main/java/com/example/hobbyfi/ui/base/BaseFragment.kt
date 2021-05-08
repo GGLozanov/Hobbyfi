@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.camera.core.ImageCapture
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
@@ -13,25 +14,30 @@ import androidx.navigation.fragment.findNavController
 import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.findLoadingDestinationAwareNavController
 import com.example.hobbyfi.utils.ImageUtils
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
 import org.kodein.di.android.x.kodein
 import org.kodein.di.generic.instance
 import pub.devrel.easypermissions.EasyPermissions
 
-abstract class BaseFragment : Fragment(), KodeinAware, ConnectivityAccessor, EasyPermissions.PermissionCallbacks {
+abstract class BaseFragment : Fragment(), KodeinAware,
+        ConnectivityAccessor, EasyPermissions.PermissionCallbacks {
     override val kodein: Kodein by kodein()
 
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
         // no need for weakreference this time because PrefConfig will use appContext!
+
     protected lateinit var navController: NavController
     override val connectivityManager: ConnectivityManager by instance(tag = "connectivityManager")
     protected val localBroadcastManager: LocalBroadcastManager by instance(tag = "localBroadcastManager")
 
+    @ExperimentalCoroutinesApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        navController = findNavController()
+        navController = findLoadingDestinationAwareNavController()
     }
 
     override fun onRequestPermissionsResult(

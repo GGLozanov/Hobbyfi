@@ -1,11 +1,7 @@
 package com.example.hobbyfi.ui.main
 
-import android.app.AlertDialog
 import android.content.DialogInterface
 import android.util.Log
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.finishAffinity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
@@ -13,19 +9,19 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.ChatroomListAdapter
 import com.example.hobbyfi.databinding.DialogNoRemindBinding
 import com.example.hobbyfi.intents.ChatroomListIntent
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.isConnected
+import com.example.hobbyfi.shared.extractListFromCurrentPagingData
+import com.example.hobbyfi.shared.safeNavigate
+import com.example.hobbyfi.shared.showFailureToast
 import com.example.hobbyfi.state.ChatroomListState
-import com.example.hobbyfi.ui.chatroom.ChatroomActivity
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
 class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
-    override val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter(onChatroomJoinButton)
+    override val chatroomListAdapter: ChatroomListAdapter = ChatroomListAdapter(onChatroomJoinButton, onTagsViewButton)
 
     override fun observeChatroomEntryState() {
         activityViewModel.joinedChatroom.observe(viewLifecycleOwner, Observer { joined ->
@@ -41,9 +37,10 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                     when(prefConfig.readChatroomJoinRememberNavigate()) {
                         Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
                             val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
-                            val dialog = AlertDialog.Builder(requireContext())
+                            dialogBinding.headerText = getString(R.string.no_remind_header)
+                            val dialog = MaterialAlertDialogBuilder(requireContext())
                                 .setView(dialogBinding.root)
-                                .setPositiveButton(Constants.takeMeThere) { dialogInterface: DialogInterface, _: Int ->
+                                .setPositiveButton(getString(R.string.take_me_there)) { dialogInterface: DialogInterface, _: Int ->
                                     prefConfig.writeChatroomJoinRememberNavigate(
                                         if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
                                         else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
@@ -52,7 +49,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                                     dialogInterface.dismiss()
                                     navigateToChatroomPerDeepLinkExtras()
                                 }
-                                .setNegativeButton(Constants.noPlease) { dialogInterface: DialogInterface, _: Int ->
+                                .setNegativeButton(getString(R.string.no_please)) { dialogInterface: DialogInterface, _: Int ->
                                     prefConfig.writeChatroomJoinRememberNavigate(
                                         if(dialogBinding.checkBox.isChecked) Constants.NoRememberDualChoice.REMEMBER_NO.ordinal
                                         else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal
@@ -91,10 +88,10 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer { user ->
             if(user != null) {
                 Log.i("ChatroomListFragment", "user chatroom ids: ${user.chatroomIds}")
-                
-                val userHasChatroom = user.chatroomIds != null
 
-                loadStateAdapter?.setUserChatroomOwnership(userHasChatroom)
+                loadStateAdapter?.setUserChatroomOwnershipIds(chatroomListAdapter.extractListFromCurrentPagingData().filter {
+                    activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
+                }.mapNotNull { if (it.ownerId == activityViewModel.authUser.value!!.id) it.id else null })
 
                 lifecycleScope.launch {
                     // TODO: Add condition if chatroom ids have changed
@@ -132,8 +129,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                             (requireActivity() as MainActivity).logout()
                         }
 
-                        Toast.makeText(requireContext(), state.error, Toast.LENGTH_LONG)
-                            .show()
+                        context?.showFailureToast(state.error ?: getString(R.string.something_wrong))
                     }
                 }
             }
@@ -144,7 +140,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
         super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomListFragment", "Navigating to ChatroomActivity")
-        navController.navigate(
+        navController.safeNavigate(
             ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomActivity(
                 activityViewModel.authUser.value,
                 viewModel.buttonSelectedChatroom,
@@ -154,7 +150,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
     }
 
     override fun navigateToChatroomCreate() {
-        navController.navigate(
+        navController.safeNavigate(
             ChatroomListFragmentDirections.actionChatroomListFragmentToChatroomCreateNavGraph(
                 activityViewModel.authUser.value!!
             ))

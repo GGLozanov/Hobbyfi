@@ -1,28 +1,23 @@
 package com.example.hobbyfi.ui.chatroom
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChatroomEditBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.models.data.Tag
-import com.example.hobbyfi.shared.Callbacks
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
-import com.example.hobbyfi.shared.ViewReverseEnablerObserver
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
-import com.example.hobbyfi.utils.ImageUtils
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomEditFragmentViewModel
 import com.example.hobbyfi.viewmodels.factories.TagListViewModelFactory
@@ -50,9 +45,16 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
         with(binding) {
             lifecycleOwner = this@ChatroomEditFragment
 
-            chatroomInfo.chatroomImage.setOnClickListener {
+            chatroomInfo.chatroomImage.galleryOption.setOnClickListener {
                 Callbacks.requestImage(this@ChatroomEditFragment)
             }
+
+            chatroomInfo.chatroomImage.cameraOption.setOnClickListener {
+                navController.navigate(R.id.action_chatroomEditFragment_to_camera_capture_nav_graph)
+            }
+
+            viewModel!!.base64Image.loadUriIntoWithoutSignature(requireContext(), chatroomInfo.chatroomImage.image)
+
             chatroomInfo.buttonBar.rightButton.setOnClickListener {
                 val fieldMap: MutableMap<String, String?> = mutableMapOf()
 
@@ -75,8 +77,7 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
 
                 Log.i("ChatroomEditDFragment", "FieldMap update: ${fieldMap}")
                 if(fieldMap.isEmpty()) {
-                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
-                        .show()
+                    context?.showWarningToast(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -89,6 +90,8 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                     )
                     return@setOnClickListener
                 }
+
+                fieldMap[Constants.ID] = activityViewModel.authChatroom.value?.id.toString()
 
                 lifecycleScope.launch {
                     activityViewModel.sendChatroomIntent(ChatroomIntent.UpdateChatroom(fieldMap))
@@ -105,13 +108,15 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                     }
 
                     if (it.photoUrl != null) {
-                        Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
-                        Glide.with(this@ChatroomEditFragment).load(
-                            it.photoUrl!!
-                        ).signature(
-                            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
-                        ).placeholder(chatroomInfo.chatroomImage.drawable)
-                        .into(chatroomInfo.chatroomImage)
+                        Log.i("ChatroomEditFragment", "User photo url: ${it.photoUrl}")
+                        it.photoUrl!!.asFirebaseStorageReference()?.let { ref ->
+                            ref.metadata.addOnSuccessListener { metadata ->
+                                Glide.with(this@ChatroomEditFragment).loadReferenceWithMetadataSignature(
+                                    ref, metadata
+                                ).placeholder(chatroomInfo.chatroomImage.image.drawable)
+                                    .into(chatroomInfo.chatroomImage.image)
+                            }
+                        }
                     } else {
                         // load default img (needed if image deletion is added because image will be sent null/"0" or whatever)
                     }
@@ -130,8 +135,13 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
                 viewModel.tagBundle.appendNewSelectedTagsToTags(it)
         })
 
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri>(Constants.CAMERA_URI)
+            ?.observe(viewLifecycleOwner, Observer {
+                binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(it, viewModel.base64Image)
+            })
+
         binding.chatroomInfo.buttonBar.leftButton.setOnClickListener {
-            navController.navigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
+            navController.safeNavigate(ChatroomEditFragmentDirections.actionChatroomEditDialogFragmentToTagNavGraph(
                 viewModel.tagBundle.selectedTags.toTypedArray(),
                 viewModel.tagBundle.tags.toTypedArray()
             ))
@@ -141,12 +151,12 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
     override fun observePredicateValidators() {
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, Constants.nameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.nameInputField, getString(R.string.name_input_error))
         )
 
         viewModel.description.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, Constants.descriptionInputError)
+            TextInputLayoutFocusValidatorObserver(binding.chatroomInfo.descriptionInputField, getString(R.string.description_input_error))
         )
     }
 
@@ -167,8 +177,9 @@ class ChatroomEditFragment : ChatroomModelFragment(), TextFieldInputValidationOn
             resultCode,
             data
         ) {
-            binding.chatroomInfo.chatroomImage.setImageBitmap(it)
-            viewModel.base64Image.setOriginalUri(data!!.data!!.toString())
+            binding.chatroomInfo.chatroomImage.image.loadUriIntoGlideAndSaveInImageHolder(
+                data!!.data!!, viewModel.base64Image
+            )
         }
     }
 }

@@ -5,14 +5,13 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentLoginBinding
 import com.example.hobbyfi.intents.FacebookIntent
@@ -23,20 +22,19 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
+import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.auth.LoginFragmentViewModel
 import com.facebook.*
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import org.kodein.di.generic.instance
 import java.io.File
 
 
 @ExperimentalCoroutinesApi
-class LoginFragment : AuthFragment() {
+class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         val tag: String = "LoginFragment"
@@ -78,12 +76,8 @@ class LoginFragment : AuthFragment() {
         initFacebookLogin()
 
         with(binding) {
-            switchToRegisterSubtitle.setOnClickListener {
-                navController.navigate(R.id.action_loginFragment_to_registerFragment)
-            }
-
             resetPasswordSubtitle.setOnClickListener {
-                navController.navigate(R.id.action_loginFragment_to_resetPasswordFragment)
+                navController.safeNavigate(R.id.action_loginFragment_to_resetPasswordFragment)
             }
         }
 
@@ -92,16 +86,21 @@ class LoginFragment : AuthFragment() {
         observePotentialTags()
     }
 
+    override fun onStart() {
+        super.onStart()
+        observePredicateValidators()
+    }
+
     override fun observePredicateValidators() {
         with(viewModel) {
             password.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
+                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, getString(R.string.password_input_error))
             )
 
             email.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
+                TextInputLayoutFocusValidatorObserver(binding.emailInputField, getString(R.string.email_input_error))
             )
         }
     }
@@ -133,6 +132,7 @@ class LoginFragment : AuthFragment() {
                                 profile: Profile
                             ) {
                                 stopTracking()
+                                AccessToken.setCurrentAccessToken(loginResult?.accessToken)
                                 Profile.setCurrentProfile(profile)
                                 validateProfileExistence()
                             }
@@ -143,31 +143,29 @@ class LoginFragment : AuthFragment() {
                 }
 
                 override fun onCancel() {
-                    Toast.makeText(context, "Facebook login cancelled!", Toast.LENGTH_LONG)
-                        .show()
+                    context?.showWarningToast(
+                        getString(R.string.facebook_login_cancel),
+                    )
                 }
 
                 override fun onError(exception: FacebookException) {
-                    Toast.makeText(
-                        context,
-                        "Facebook login error! ${exception.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    context?.showFailureToast(
+                        getString(R.string.facebook_login_error) + " ${exception.message}"
+                    )
                 }
             })
         }
     }
 
     private fun observeFacebookState() {
-        lifecycleScope.launch {
-            viewModel.facebookState.collectLatest {
+        lifecycleScope.launchWhenCreated {
+            viewModel.facebookState.collectLatestWithLoadingAndNonIdleReset(listOf(FacebookState.Idle::class),
+                        viewModel::resetFacebookState, viewLifecycleOwner, navController,
+                    LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
+                    FacebookState.Loading::class) {
                 when(it) {
                     is FacebookState.Idle -> {
 
-                    }
-                    is FacebookState.Loading -> {
-                        // TODO: Progressbar
-                        Log.i("LoginFragment", "Facebook state loading")
                     }
                     is FacebookState.OnData.ExistenceResultReceived -> {
                         if (it.exists) {
@@ -190,63 +188,67 @@ class LoginFragment : AuthFragment() {
                             viewModel.tagBundle.tags
                                 .toTypedArray() + it.tags
                         )
-                        navController.navigate(action)
+                        navController.safeNavigate(action)
                     }
                     is FacebookState.Error -> {
-                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                            .show()
+                        if(it.error?.isBlank() == false) {
+                            context?.showFailureToast(it.error)
+                        }
 
                         // don't log out if only the email couldn't have been fetched
-                        if(!it.error.equals(Constants.FACEBOOK_EMAIL_FAILED_EXCEPTION)) {
+                        if(!it.error.equals(getString(R.string.facebook_email_fail_error))) {
                             LoginManager.getInstance().logOut()
                         }
 
                         if(connectivityManager.isConnected()) {
-                            if (it.error != Constants.serverConnectionError) {
+                            if ((it.error?.isNotBlank() == true) &&
+                                it.error != getString(R.string.server_connection_error) &&
+                                    !it.error.contains("failed to connect to") && !it.error.contains("Software connection caused")) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                     viewModel.tagBundle.selectedTags.toTypedArray(),
                                     viewModel.tagBundle.tags
                                         .toTypedArray()
                                 )
-                                navController.navigate(action)
+                                navController.safeNavigate(action)
                             }
                         }
                     }
+                    else -> throw State.InvalidStateException()
                 }
             }
         }
     }
 
     private fun observeTokenState() {
-        lifecycleScope.launch {
-            viewModel.mainState.collect {
+        lifecycleScope.launchWhenCreated {
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(TokenState.Idle::class),
+                        viewModel::resetTokenState, viewLifecycleOwner, navController,
+                    LoginFragmentDirections.actionLoginFragmentToLoadingNavGraph(R.id.loginFragment),
+                    TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
-                    }
-                    is TokenState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is TokenState.Error -> {
                         // TODO BIG: Extract into exceptions and change states to receive exceptions, not string texts so that said exceptions can be easily when()'d
                         LoginManager.getInstance().logOut()
                         when (it.error) {
-                            Constants.missingDataError -> {
+                            getString(R.string.missing_data_error) -> {
                                 Log.wtf(
                                     LoginFragment.tag,
                                     "Should never reach here if everything is ok, wtf"
                                 )
                             }
                             else -> {
-                                Toast.makeText(context, it.error, Toast.LENGTH_LONG)
-                                    .show() // means we've simply entered incorrect info for the normal login or something else is wrong
+                                context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
+                                   // means we've simply entered incorrect info for the normal login or something else is wrong
                             }
                         }
                     }
                     is TokenState.TokenReceived -> {
                         Log.i("LoginFragment", "${navController.currentBackStackEntry}")
-                        Callbacks.hideKeyboardFrom(requireContext(), requireView())
+                        Callbacks.hideKeyboardFrom(requireContext(), view)
                         login(
                             LoginFragmentDirections.actionLoginFragmentToMainActivity(
                                 null
@@ -254,7 +256,6 @@ class LoginFragment : AuthFragment() {
                             it.token?.jwt,
                             it.token?.refreshJwt,
                         )
-                        viewModel.resetTokenState()
                     }
                     is TokenState.FacebookRegisterTokenSuccess -> {
                         val profile = Profile.getCurrentProfile()
@@ -308,8 +309,7 @@ class LoginFragment : AuthFragment() {
                                                 viewModel.email.value,
                                                 profile.name,
                                                 null,
-                                                BuildConfig.BASE_URL + "uploads/" +
-                                                        Constants.userProfileImageDir + "/" + profile.id + ".jpg", // FIXME: user PFP isn't in sync; fix in backend and client-side for future
+                                                null,
                                                 viewModel.tagBundle.selectedTags,
                                                 null,
                                                 null
@@ -327,27 +327,26 @@ class LoginFragment : AuthFragment() {
     }
 
     private fun observePotentialTags() {
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)?.observe(
+        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<List<Tag>>(Constants.selectedTagsKey)
+            ?.distinctUntilChanged()?.observeOnce(
             viewLifecycleOwner
         ) {
-            viewModel.tagBundle.setSelectedTags(it)
             Log.i("SavedStateHandle LogFr", "Reached Facebook SavedStateHandle w/ tags $it")
-            lifecycleScope.launch {
-                Profile.getCurrentProfile()?.let { profile ->
-                    viewModel.sendIntent(
-                        TokenIntent.FetchFacebookRegisterToken(
-                            AccessToken.getCurrentAccessToken().token,
-                            profile.name,
+            if(!viewModel.sentFbTokenFetch) {
+                viewModel.tagBundle.setSelectedTags(it)
+                viewModel.setSentFbTokenFetch(true)
+                lifecycleScope.launch {
+                    Profile.getCurrentProfile()?.let { profile ->
+                        viewModel.sendIntent(
+                            TokenIntent.FetchFacebookRegisterToken(
+                                AccessToken.getCurrentAccessToken().token,
+                                profile.name,
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.login_appbar_menu, menu)
-        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

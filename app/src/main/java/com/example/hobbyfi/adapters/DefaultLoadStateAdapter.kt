@@ -15,7 +15,7 @@ import com.example.hobbyfi.databinding.DefaultRefreshListHeaderBinding
 class DefaultLoadStateAdapter(
     private inline val retry: () -> Unit,
     private inline val onCreateChatroomButton: ((view: View) -> Unit)?,
-    private var userIsAChatroomOwner: Boolean = true,
+    private var userOwnedChatroomIds: List<Long> = emptyList(),
     private val showOnlyProgessBar: Boolean = false
 ) : LoadStateAdapter<DefaultLoadStateAdapter.DefaultLoaderViewHolder>() {
 
@@ -37,16 +37,16 @@ class DefaultLoadStateAdapter(
             }
         }
 
-        fun bind(loadState: LoadState, userIsAChatroomOwner: Boolean, showOnlyProgessBar: Boolean) {
+        fun bind(loadState: LoadState, userOwnedChatroomIds: List<Long>, showOnlyProgessBar: Boolean) {
             Log.i("DefaultLoadStateA", "Binding views by loadState: $loadState")
             with(binding) {
                 if(!showOnlyProgessBar) {
                     listErrorHeader.isVisible = loadState !is LoadState.Loading
-                    listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userIsAChatroomOwner)
+                    listErrorHeader.text = itemView.context.resources.getString(if(loadState is LoadState.Error || userOwnedChatroomIds.size > 100)
                         R.string.list_error_text else R.string.list_suggest_text)
 
-                    refreshPageButton.isVisible = loadState is LoadState.Error || userIsAChatroomOwner
-                    chatroomCreateButton.isVisible = !userIsAChatroomOwner
+                    refreshPageButton.isVisible = loadState is LoadState.Error
+                    chatroomCreateButton.isVisible = userOwnedChatroomIds.size < 100
                 } else {
                     // TODO: Maybe add error header and refresh page button on error?
                     listErrorHeader.isVisible = false
@@ -60,7 +60,7 @@ class DefaultLoadStateAdapter(
     }
 
     override fun onBindViewHolder(holder: DefaultLoaderViewHolder, loadState: LoadState) {
-        holder.bind(loadState, userIsAChatroomOwner, showOnlyProgessBar)
+        holder.bind(loadState, userOwnedChatroomIds, showOnlyProgessBar)
         holder.binding.chatroomCreateButton.setOnClickListener {
             onCreateChatroomButton?.invoke(it)
         }
@@ -70,8 +70,8 @@ class DefaultLoadStateAdapter(
         return DefaultLoaderViewHolder.getInstance(parent, retry)
     }
 
-    fun setUserChatroomOwnership(isOwner: Boolean) {
-        userIsAChatroomOwner = isOwner
+    fun setUserChatroomOwnershipIds(ownershipIds: List<Long>) {
+        userOwnedChatroomIds = ownershipIds
         notifyDataSetChanged()
     }
 

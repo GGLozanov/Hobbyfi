@@ -6,4 +6,6 @@ sealed class UIMessage {
     data class MessageItem(val message: Message) : UIMessage()
 
     data class MessageSeparatorItem(val dateText: String) : UIMessage()
+
+    object MessageUsersTypingItem : UIMessage()
 }

@@ -14,10 +14,7 @@ import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentChangePasswordDialogBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.intents.UserIntent
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.TextInputLayoutFocusObserver
-import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
-import com.example.hobbyfi.shared.ViewReverseEnablerObserver
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.utils.FieldUtils
@@ -52,8 +49,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
             buttonBar.leftButton.setOnClickListener { dismiss() }
             buttonBar.rightButton.setOnClickListener {
                 if(viewModel!!.password.value == viewModel!!.newPassword.value) {
-                    Toast.makeText(requireContext(), "Passwords must not be the same! Please enter a new, unique password!", Toast.LENGTH_LONG)
-                        .show()
+                    context?.showWarningToast(getString(R.string.password_uniqeness))
                     return@setOnClickListener
                 }
 
@@ -83,8 +79,7 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                             dismiss()
                         }
                         is TokenState.Error -> {
-                            Toast.makeText(requireContext(), "Invalid access! Please enter the correct origina password!", Toast.LENGTH_LONG)
-                                .show()
+                            context?.showWarningToast(getString(R.string.enter_original_password))
                         }
                         else -> throw State.InvalidStateException()
                     }
@@ -99,16 +94,16 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
         with(viewModel) {
             password.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, Constants.passwordInputError)
+                TextInputLayoutFocusValidatorObserver(binding.passwordInputField, getString(R.string.password_input_error))
             )
 
             newPassword.invalidity.observe(
                 viewLifecycleOwner,
                 object : TextInputLayoutFocusObserver<Boolean>(binding.newPasswordInputField) {
                     override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                        textInputLayout.error = if(t) Constants.passwordInputError else null
+                        textInputLayout.error = if(t) getString(R.string.password_input_error) else null
                         binding.confirmNewPasswordInputField.error =
-                            if(t && confirmPassword.invalidity.value == true) Constants.confirmPasswordInputError else null
+                            if(t && confirmPassword.invalidity.value == true) getString(R.string.confirm_password_input_error) else null
                     }
                 }
             )
@@ -117,9 +112,9 @@ class ChangePasswordDialogFragment : AuthChangeDialogFragment() {
                 viewLifecycleOwner,
                 object : TextInputLayoutFocusObserver<Boolean>(binding.confirmNewPasswordInputField) {
                     override fun onChangedWithFocusState(t: Boolean, textInputLayout: TextInputLayout) {
-                        textInputLayout.error = if(t) Constants.confirmPasswordInputError else null
+                        textInputLayout.error = if(t) getString(R.string.confirm_password_input_error) else null
                         binding.newPasswordInputField.error =
-                            if(t && newPassword.invalidity.value == true) Constants.passwordInputError else null
+                            if(t && newPassword.invalidity.value == true) getString(R.string.password_input_error) else null
                     }
                 }
             )

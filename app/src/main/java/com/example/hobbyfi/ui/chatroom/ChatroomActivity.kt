@@ -11,12 +11,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
@@ -29,9 +27,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupWithNavController
 import androidx.paging.ExperimentalPagingApi
 import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
-import com.example.hobbyfi.adapters.tag.TagListAdapter
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.ActivityChatroomBinding
 import com.example.hobbyfi.databinding.NavHeaderChatroomBinding
@@ -44,12 +40,14 @@ import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.ui.auth.AuthActivity
+import com.example.hobbyfi.ui.base.ImageUploadContinuation
 import com.example.hobbyfi.ui.base.NavigationActivity
 import com.example.hobbyfi.ui.base.RefreshConnectionForegroundFCMReactivationListener
 import com.example.hobbyfi.ui.base.ServerSocketAccessor
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
 import com.example.hobbyfi.ui.main.MainActivity
 import com.example.hobbyfi.ui.onboard.OnboardingActivity
+import com.example.hobbyfi.ui.shared.ChatroomTagViewBottomSheetDialogFragment
 import com.example.hobbyfi.utils.WorkerUtils
 import com.example.hobbyfi.viewmodels.chatroom.ChatroomActivityViewModel
 import com.example.hobbyfi.viewmodels.factories.AuthUserChatroomViewModelFactory
@@ -67,6 +65,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import org.json.JSONObject
 import java.util.*
 
@@ -74,7 +75,7 @@ import java.util.*
 @ExperimentalCoroutinesApi
 class ChatroomActivity : NavigationActivity(),
         ChatroomMessageBottomSheetDialogFragment.OnMessageOptionSelected, ServerSocketAccessor,
-        RefreshConnectionForegroundFCMReactivationListener {
+        RefreshConnectionForegroundFCMReactivationListener, ImageUploadContinuation {
     private val viewModel: ChatroomActivityViewModel by viewModels(factoryProducer = {
         AuthUserChatroomViewModelFactory(application, args.user, args.chatroom)
     })
@@ -92,12 +93,10 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private val socketEventErrorFallback = { _: Exception ->
-        Toast.makeText(
-            this@ChatroomActivity,
-            Constants.socketEmissionError,
-            Toast.LENGTH_LONG
-        ).show()
-        leaveChatroom()
+        showFailureToast(
+            getString(R.string.socket_emission_fail),
+        )
+        // leaveChatroom()
     }
     
     private val userJoinEmitterListener: Emitter.Listener by lazy {
@@ -121,7 +120,7 @@ class ChatroomActivity : NavigationActivity(),
             ::User,
             { user ->
                 lifecycleScope.launchWhenStarted {
-                    if(viewModel.authUser.value?.id != user.id) {
+                    if (viewModel.authUser.value?.id != user.id) {
                         // account for auth user here because they have to receive broadcast but NOT
                         // have their account deleted from cache
                         viewModel.sendUsersIntent(
@@ -134,9 +133,10 @@ class ChatroomActivity : NavigationActivity(),
                             UserIntent.UpdateUserCache(
                                 mapOf(
                                     Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
-                                        viewModel.authUser.value!!.chatroomIds?.filter { id -> (viewModel.authChatroom.value?.id
-                                            ?: error("Leave chatroom Id must not be null in leave user broadcast action for AUTH user!"))
-                                            .toLong() != id
+                                        viewModel.authUser.value!!.chatroomIds?.filter { id ->
+                                            (viewModel.authChatroom.value?.id
+                                                ?: error("Leave chatroom Id must not be null in leave user broadcast action for AUTH user!"))
+                                                .toLong() != id
                                         }
                                     )
                                 )
@@ -167,7 +167,7 @@ class ChatroomActivity : NavigationActivity(),
     private val deleteChatroomEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForDelete(
             {
-                if(viewModel.isAuthUserChatroomOwner.value == false) {
+                if (viewModel.isAuthUserChatroomOwner.value == false) {
                     lifecycleScope.launchWhenStarted {
                         viewModel.sendChatroomIntent(
                             ChatroomIntent.DeleteChatroomCache()
@@ -267,7 +267,10 @@ class ChatroomActivity : NavigationActivity(),
     private val branchReferralInitListener =
         BranchReferralInitListener { linkProperties, error ->
             val comeFromAuthDeepLink = comeFromAuthDeepLink()
-            Log.i("ChatroomActivity", "BranchReferralListener triggered; comeFromAuthDeepLink: $comeFromAuthDeepLink; deepLink props: $linkProperties")
+            Log.i(
+                "ChatroomActivity",
+                "BranchReferralListener triggered; comeFromAuthDeepLink: $comeFromAuthDeepLink; deepLink props: $linkProperties"
+            )
             viewModel.setCurrentLinkProperties(linkProperties)
             if ((linkProperties != null && getClickedBranchLinkFromLinkProps(linkProperties)) ||
                     comeFromAuthDeepLink) {
@@ -342,7 +345,7 @@ class ChatroomActivity : NavigationActivity(),
         headerBinding.viewModel = viewModel
 
         initNavController()
-        initDynamicToolbarTitle()
+        initDynamicToolbarTitleAndDrawerLock()
         initPushNotificationToggleSwitch()
 
         Log.i("ChatroomActivity", "intent extras: ${intent.extras?.toReadable()}")
@@ -372,13 +375,23 @@ class ChatroomActivity : NavigationActivity(),
             initCalendar()
         }
 
-        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVIATION_ACTION))
+        localBroadcastManager.registerReceiver(
+            foregroundFCMReceiver,
+            IntentFilter(Constants.FOREGROUND_REACTIVATION_ACTION)
+        )
         observeConnectionRefresh(savedInstanceState, refreshConnectivityMonitor)
     }
 
     // need to do this because it bugs out with up navigation
-    private fun initDynamicToolbarTitle() {
+    private fun initDynamicToolbarTitleAndDrawerLock() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
+            if(destination.id == R.id.loadingFragment) {
+                binding.drawerLayout.closeDrawers()
+                binding.drawerLayout.setDrawerLockMode(
+                    DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+                )
+            } else binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+
             setLabelOnDestination(destination)
         }
     }
@@ -409,7 +422,7 @@ class ChatroomActivity : NavigationActivity(),
 
         connectServerSocket()
         Branch.sessionBuilder(this).withCallback(branchReferralInitListener)
-            .withData(if (intent != null) intent.data else null).init()
+            .withData(intent?.data).init()
 
         observeChatroomState()
         observeChatroom()
@@ -420,23 +433,33 @@ class ChatroomActivity : NavigationActivity(),
         observeEventsState()
         observeEventState()
         observeEvents()
+
+        EventBus.getDefault().register(this)
     }
 
     override fun onConnectedServerSocketFail() {
-        Log.w("ChatroomActivity", "Socket connection from current auth user: ${viewModel.authUser.value} failed!")
-        runOnUiThread {
-            Toast.makeText(
-                this,
-                Constants.socketConnectionError,
-                Toast.LENGTH_LONG
-            ).show()
-            leaveChatroom()
+        Log.w(
+            "ChatroomActivity",
+            "Socket connection from current auth user: ${viewModel.authUser.value} failed!"
+        )
+        if(!viewModel.shownSocketError) {
+            viewModel.setShownSocketError(true)
+            runOnUiThread {
+                buildYesNoAlertDialog(
+                    getString(R.string.socket_connection_fail),
+                    { _: DialogInterface, _: Int ->
+                        leaveChatroom()
+                    },
+                    null
+                )
+            }
         }
     }
 
     @ExperimentalPagingApi
     override fun connectServerSocketListeners() {
         serverSocket?.on(Socket.EVENT_CONNECT) {
+            viewModel.setShownSocketError(false)
             Log.i("ChatroomActivity", "initial server socket connect: $initialServerSocketConnect")
             if(!initialServerSocketConnect) {
                 refreshDataOnConnectionRefresh()
@@ -463,6 +486,15 @@ class ChatroomActivity : NavigationActivity(),
 
     override fun disconnectServerSocketListeners() {
         sentJoinChatroomSocketEvent = false
+
+        serverSocket?.emit(
+            Constants.USER_CEASE_TYPING, JSONObject(
+                mapOf(
+                    Constants.ID to viewModel.authUser.value?.id,
+                    Constants.CHATROOM_ID to viewModel.authChatroom.value?.id
+                )
+            )
+        )
     }
 
     @ExperimentalPagingApi
@@ -518,13 +550,17 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeUserState() {
         userStateCollectJob = lifecycleScope.launchWhenCreated {
-            viewModel.mainState.collect {
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(UserState.Idle::class), viewModel::resetUserState,
+                this@ChatroomActivity, navController,
+                ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
+                    R.id.chatroomMessageListFragment
+                ),
+                UserState.Loading::class
+            ) {
+                Log.i("ChatroomActivity", "Current UserState in Flow collect: ${it.toString()}")
                 when (it) {
                     is UserState.Idle -> {
 
-                    }
-                    is UserState.Loading -> {
-                        // TODO: Progressbar
                     }
                     is UserState.OnData.UserResult -> {
                         checkDeepLinkStatusAndPerform {
@@ -539,20 +575,16 @@ class ChatroomActivity : NavigationActivity(),
                                 prefConfig.writeLastEnteredChatroomId(deepLinkChatroomId)
                                 sendChatroomFetchIntentOnCurrentNull()
                             } else {
-                                Toast.makeText(
-                                    this@ChatroomActivity,
-                                    Constants.notJoinedChatroomError,
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                this@ChatroomActivity.showFailureToast(
+                                    getString(R.string.not_joined_chatroom_error)
+                                )
                                 leaveChatroom(sendExtrasBack = true)
                             }
-                            viewModel.resetUserState()
                         }
                     }
                     is UserState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldReauth) {
                             handleAuthActionableError(it.error, true, it.shouldReauth)
-                            viewModel.resetUserState()
                         }
                     }
                     else -> throw State.InvalidStateException()
@@ -564,39 +596,34 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     private fun observeChatroomState() {
-        lifecycleScope.launchWhenStarted {
-            viewModel.chatroomState.collect {
+        lifecycleScope.launchWhenCreated {
+            viewModel.chatroomState.collectLatestWithLoadingAndNonIdleReset(
+                listOf(ChatroomState.Idle::class, ChatroomState.OnData.ChatroomResult::class), viewModel::resetChatroomState,
+                this@ChatroomActivity, navController,
+                ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToLoadingNavGraph(
+                    R.id.chatroomMessageListFragment
+                ),
+                ChatroomState.Loading::class
+            ) {
                 when (it) {
-                    is ChatroomState.Idle -> {
+                    is ChatroomState.Idle, is ChatroomState.OnData.ChatroomResult -> {
 
                     }
-                    is ChatroomState.Loading -> {
-                        // TODO: Loading
-                    }
-                    is ChatroomState.OnData.ChatroomResult -> {
-                        viewModel.resetChatroomState()
-                    }
                     is ChatroomState.OnData.ChatroomDeleteResult -> {
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Successfully deleted chatroom!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        this@ChatroomActivity.showSuccessToast(
+                            getString(R.string.chatroom_delete_success)
+                        )
                         leaveDeletedChatroom()
-                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.DeleteChatroomCacheResult -> {
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            if (it.kicked) Constants.chatroomKickedMessage
-                            else Constants.chatroomDeletedMessage,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        this@ChatroomActivity.showSuccessToast(
+                            getString(if(it.kicked) R.string.chatroom_kicked_message
+                                else R.string.chatroom_deleted_message)
+                        )
                         leaveDeletedChatroom()
-                        viewModel.resetChatroomState()
                     }
                     is ChatroomState.OnData.ChatroomUpdateResult -> {
-                        if(it.fieldMap.containsKey(Constants.IMAGE)) {
+                        if (it.fieldMap.containsKey(Constants.IMAGE)) {
                             WorkerUtils.buildAndEnqueueImageUploadWorker(
                                 viewModel.authChatroom.value!!.id,
                                 prefConfig.getAuthUserToken()!!,
@@ -607,17 +634,13 @@ class ChatroomActivity : NavigationActivity(),
                             )
                         }
 
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Successfully updated chatroom!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        viewModel.resetChatroomState()
+                        this@ChatroomActivity.showSuccessToast(
+                            getString(R.string.chatroom_updated),
+                        )
                     }
                     is ChatroomState.Error -> {
                         handleAuthActionableDeepLinkError(it.shouldExit) {
                             handleAuthActionableError(it.error, true, it.shouldExit)
-                            viewModel.resetChatroomState()
                         }
                     }
                     else -> throw State.InvalidStateException()
@@ -685,27 +708,29 @@ class ChatroomActivity : NavigationActivity(),
 
     // for deeplink & shouldExit errors
     private fun leaveChatroomWithRestart(
-        exitMsg: String = Constants.invalidAccessError,
+        exitMsg: String = getString(R.string.invalid_access_error),
         linkParams: JSONObject? = viewModel.currentLinkProperties,
         leaveDestination: Class<*> = AuthActivity::class.java
     ) {
         // TODO: More graceful way to show this error... like a separate screen? Activity?
-        Toast.makeText(applicationContext, exitMsg, Toast.LENGTH_LONG)
-            .show()
+        this@ChatroomActivity.showWarningToast(exitMsg)
 
-        // log out of all accounts (use refresh token to authorise properly)
-        WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
-            prefConfig.getAuthUserTokenRefresh()!!,
-            prefConfig.readDeviceToken(), this)
-        LoginManager.getInstance().logOut()
-        prefConfig.resetToken()
-        prefConfig.resetRefreshToken()
+        // log out of all accounts if logged in (use refresh token to authorise properly)
+        if(prefConfig.isUserAuthenticated()) {
+            WorkerUtils.buildAndEnqueueDeviceTokenWorker<DeviceTokenDeleteWorker>(
+                prefConfig.getAuthUserTokenRefresh()!!,
+                prefConfig.readDeviceToken(), this
+            )
+            LoginManager.getInstance().logOut()
+            prefConfig.resetToken()
+            prefConfig.resetRefreshToken()
+        }
 
         leaveChatroom(linkParams, leaveDestination = leaveDestination)
     }
 
     private fun observeUsers() {
-        viewModel.chatroomUsers.observe(this, Observer {
+        viewModel.chatroomUsers.distinctUntilChanged().observe(this, Observer {
             Log.i("ChatroomActivity", "auth user in users observe: ${viewModel.authUser.value}")
             Log.i("ChatroomActivity", "observed users: $it")
             if (it.isNotEmpty() && !it.contains(viewModel.authUser.value)) {
@@ -721,14 +746,11 @@ class ChatroomActivity : NavigationActivity(),
         lifecycleScope.launchWhenStarted {
             viewModel.usersState.collect {
                 when (it) {
-                    is UserListState.Idle -> {
+                    is UserListState.Idle, is UserListState.OnData.UsersResult -> {
 
                     }
                     is UserListState.Loading -> {
                         // TODO: Progressbar on RecyclerView
-                    }
-                    is UserListState.OnData.UsersResult -> {
-                        viewModel.resetUserListState()
                     }
                     is UserListState.Error -> {
                         handleAuthActionableError(it.error, it.shouldReauth)
@@ -740,10 +762,7 @@ class ChatroomActivity : NavigationActivity(),
                                 (frag as DialogFragment).dismiss()
                             }
 
-                        Toast.makeText(
-                            this@ChatroomActivity, Constants.userKickSuccess,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        this@ChatroomActivity.showSuccessToast(getString(R.string.user_kick_success))
                         viewModel.resetUserListState()
                     }
                 }
@@ -770,11 +789,7 @@ class ChatroomActivity : NavigationActivity(),
                     }
                     is EventListState.OnData.DeleteOldEventsResult -> {
                         Log.i("ChatroomActivity", "Received DeleteOldEventsResult state!")
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Successfully deleted old events!",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        this@ChatroomActivity.showSuccessToast(getString(R.string.delete_old_events_success))
                         navController.popBackStack(R.id.chatroomMessageListFragment, false)
                         viewModel.resetEventListState()
                     }
@@ -807,7 +822,8 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun observeEventState() {
         lifecycleScope.launchWhenStarted {
-            viewModel.eventState.collect {
+            viewModel.eventState.collectLatestWithNonIdleReset(
+                    listOf(EventState.Idle::class, EventState.Loading::class), viewModel::resetEventState) {
                 when(it) {
                     is EventState.Idle -> {
 
@@ -816,17 +832,13 @@ class ChatroomActivity : NavigationActivity(),
                         // TODO: Progressbar? Somewhere?
                     }
                     is EventState.OnData.EventDeleteResult -> {
-                        Toast.makeText(
-                            this@ChatroomActivity,
-                            "Event successfully deleted!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        viewModel.resetEventState()
+                        this@ChatroomActivity.showSuccessToast(
+                            getString(R.string.event_delete_success)
+                        )
                     }
                     is EventState.Error -> {
                         // TODO: Handle error
                         handleAuthActionableError(it.error, it.shouldReauth)
-                        viewModel.resetEventState()
                     }
                     else -> throw State.InvalidStateException()
                 }
@@ -852,15 +864,14 @@ class ChatroomActivity : NavigationActivity(),
                     val deepLinkedEvent = it.find { event -> event.id == eventId }
                     if (deepLinkedEvent != null) {
                         if (supportFragmentManager.currentNavigationFragment !is EventDetailsFragment) {
-                            navController.navigate(
+                            navController.safeNavigate(
                                 ChatroomMessageListFragmentDirections.actionChatroomMessageListFragmentToEventDetailsFragment(
                                     deepLinkedEvent
                                 )
                             )
                         }
                     } else {
-                        Toast.makeText(this, Constants.eventAlreadyDeleted, Toast.LENGTH_LONG)
-                            .show()
+                        this@ChatroomActivity.showWarningToast(getString(R.string.event_deleted))
                     }
                     viewModel.setConsumedEventDeepLink(true)
                 }
@@ -872,8 +883,9 @@ class ChatroomActivity : NavigationActivity(),
     private fun observeChatroom() {
         viewModel.authChatroom.observe(this, Observer { chatroom ->
             if (chatroom != null) {
-                binding.notificationSwitch.isChecked = viewModel.authUser.value?.allowedPushChatroomIds
-                    ?.contains(chatroom.id) == true
+                binding.notificationSwitch.isChecked =
+                    viewModel.authUser.value?.allowedPushChatroomIds
+                        ?.contains(chatroom.id) == true
                 emitJoinChatroomEventOnChatroomObserve(chatroom)
                 Log.i("ChatroomActivity", "Observed chatroom: ${chatroom}")
                 // TODO: Remove
@@ -900,7 +912,7 @@ class ChatroomActivity : NavigationActivity(),
                         navViewAdmin.menu.findItem(R.id.action_delete_chatroom)
                             .setOnMenuItemClickListener {
                                 this@ChatroomActivity.buildYesNoAlertDialog(
-                                    Constants.confirmChatroomDeletionMessage,
+                                    getString(R.string.confirm_chatroom_delete),
                                     { dialogInterface: DialogInterface, _: Int ->
                                         lifecycleScope.launch {
                                             viewModel!!.sendChatroomIntent(ChatroomIntent.DeleteChatroom)
@@ -926,29 +938,23 @@ class ChatroomActivity : NavigationActivity(),
                 }
 
                 chatroom.photoUrl?.let {
-                    Glide.with(this@ChatroomActivity)
-                        .load(it)
-                        .placeholder(headerBinding.chatroomImage.drawable)
-                        .signature(
-                            ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time))
-                        )
-                        .into(headerBinding.chatroomImage)
+                    it.asFirebaseStorageReference()?.let { ref ->
+                        ref.metadata.addOnSuccessListener { metadata ->
+                            Glide.with(this@ChatroomActivity)
+                                .loadReferenceWithMetadataSignature(ref, metadata)
+                                .placeholder(headerBinding.chatroomImage.drawable)
+                                .into(headerBinding.chatroomImage)
+                        }
+                    }
                 }
 
-                // FIXME: Small coderino duperino with ChatroomTagAdapter
-                chatroom.tags?.let {
-                    if (binding.tagsGridView.adapter == null) {
-                        binding.tagsGridView.adapter = TagListAdapter(
-                            it,
-                            this@ChatroomActivity,
-                            R.layout.chatroom_tag_card
-                        )
-                    } else {
-                        (binding.tagsGridView.adapter as TagListAdapter).setTags(it)
-                    }
-
-                    binding.tagsGridView.isVisible = it.isNotEmpty()
-                    binding.tagsGridView.setHeightBasedOnChildren(it.size)
+                headerBinding.tagsViewButton.setOnClickListener {
+                    supportFragmentManager.showDistinctDialog(
+                        "ChatroomSheet" + chatroom.id.toString(),
+                        {
+                            ChatroomTagViewBottomSheetDialogFragment.newInstance(chatroom.name)
+                        }
+                    )
                 }
 
                 headerBinding.chatroomDescription.text =
@@ -995,7 +1001,7 @@ class ChatroomActivity : NavigationActivity(),
                 UserListIntent.FetchUsers
             )
             viewModel.sendChatroomIntent(
-                ChatroomIntent.FetchChatroom
+                ChatroomIntent.FetchChatroom(navController.currentDestination?.id)
             )
 
             if (viewModel.authChatroom.value?.eventIds != null) {
@@ -1028,12 +1034,6 @@ class ChatroomActivity : NavigationActivity(),
                     DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                     GravityCompat.START
                 )
-                binding.toolbar.setNavigationIconTint(
-                    ContextCompat.getColor(
-                        this@ChatroomActivity,
-                        android.R.color.white
-                    )
-                )
             }
             toolbar.setupWithNavController(
                 navController,
@@ -1061,9 +1061,14 @@ class ChatroomActivity : NavigationActivity(),
         prefConfig.writeRestartedFromChatroomTaskRoot(false)
     }
 
+    override fun onStop() {
+        disconnectServerSocket()
+        super.onStop()
+        EventBus.getDefault().unregister(this)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        disconnectServerSocket()
         localBroadcastManager.unregisterReceiver(foregroundFCMReceiver)
         prefConfig.writeRestartedFromChatroomTaskRoot(false)
         prefConfig.writeReachedBottomMessagesAfterSearch(true) // reset on, well, onDestroy
@@ -1074,7 +1079,7 @@ class ChatroomActivity : NavigationActivity(),
         if (isTaskRoot) {
             if(!prefConfig.isUserAuthenticated()) {
                 // CANNOT access this without auth
-                leaveChatroomWithRestart(Constants.noConnectionOrAuthTaskRootError)
+                leaveChatroomWithRestart(getString(R.string.no_connection_or_root_auth_error))
                 return true
             }
 
@@ -1163,7 +1168,6 @@ class ChatroomActivity : NavigationActivity(),
 
     private fun setToolbarAdminIconOnOwnership(owner: Boolean) {
         with(binding.toolbar) {
-            setNavigationIconTint(android.graphics.Color.WHITE)
             navigationIcon = if (owner) androidx.core.content.ContextCompat.getDrawable(
                 this@ChatroomActivity,
                 com.example.hobbyfi.R.drawable.ic_baseline_admin_panel_settings_24
@@ -1179,7 +1183,7 @@ class ChatroomActivity : NavigationActivity(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_search -> {
-                navController.navigate(R.id.action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment)
+                navController.safeNavigate(R.id.action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment)
             }
             R.id.action_info -> {
                 binding.drawerLayout.openDrawer(GravityCompat.END)
@@ -1199,7 +1203,7 @@ class ChatroomActivity : NavigationActivity(),
             }
         }
 
-        return true
+        return false
     }
 
     // by default: sholdLeave => shouldExit
@@ -1208,14 +1212,13 @@ class ChatroomActivity : NavigationActivity(),
         shouldLeave: Boolean, shouldExit: Boolean = shouldLeave,
         context: Context? = null
     ) {
-        Toast.makeText(
-            context ?: this@ChatroomActivity,
-            "Whoops! Looks like something went wrong! $error", Toast.LENGTH_LONG
-        ).show()
+        showFailureToast(
+            getString(R.string.something_wrong) + " $error"
+        )
 
         if (shouldLeave) {
             finish()
-        } else if(shouldExit) {
+        } else if(shouldExit || !prefConfig.isUserAuthenticated()) {
             leaveChatroomWithRestart()
         }
     }
@@ -1242,16 +1245,19 @@ class ChatroomActivity : NavigationActivity(),
             eventCalendar.addDecorator(
                 EventCalendarDecorator(
                     ContextCompat.getColor(this@ChatroomActivity, R.color.colorPrimary),
-                    events.mapNotNull { try { it.calendarDayFromDate
-                    } catch(ex: Exception) {
-                        if(!emittedErrorForEventParsingAlready) {
-                            emittedErrorForEventParsingAlready = true
-                            Toast.makeText(this@ChatroomActivity,
-                                Constants.eventParsingError, Toast.LENGTH_LONG
-                            ).show()
+                    events.mapNotNull {
+                        try {
+                            it.calendarDayFromDate
+                        } catch (ex: Exception) {
+                            if (!emittedErrorForEventParsingAlready) {
+                                emittedErrorForEventParsingAlready = true
+                                this@ChatroomActivity.showFailureToast(
+                                    getString(R.string.event_date_parse_fail)
+                                )
+                            }
+                            null
                         }
-                        null
-                    } }
+                    }
                 )
             )
         }
@@ -1324,7 +1330,7 @@ class ChatroomActivity : NavigationActivity(),
     private fun sendChatroomFetchIntentOnCurrentNull() {
         if (viewModel.authChatroom.value == null) {
             lifecycleScope.launch {
-                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom)
+                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom(navController.currentDestination?.id))
             }
         }
     }
@@ -1345,14 +1351,21 @@ class ChatroomActivity : NavigationActivity(),
                         chatroomId != viewModel.lastSentJoinChatroomSocketEventId) {
                     Log.i("ChatroomActivity", "Emitting join_chatroom event!!!!")
 
-                    serverSocket?.emit(Constants.JOIN_CHATROOM, JSONObject(mapOf(
-                        Constants.ID to userId,
-                        Constants.CHATROOM_ID to chatroomId
-                    )))
+                    serverSocket?.emit(
+                        Constants.JOIN_CHATROOM, JSONObject(
+                            mapOf(
+                                Constants.ID to userId,
+                                Constants.CHATROOM_ID to chatroomId
+                            )
+                        )
+                    )
                     viewModel.setLastSentJoinChatroomSocketEventId(chatroomId)
                     sentJoinChatroomSocketEvent = true
                 } else {
-                    Log.w("ChatroomActivity", "Not emitting join_chatroom event due to it already having been emitted")
+                    Log.w(
+                        "ChatroomActivity",
+                        "Not emitting join_chatroom event due to it already having been emitted"
+                    )
                 }
             }
         }
@@ -1402,6 +1415,39 @@ class ChatroomActivity : NavigationActivity(),
             }
         } else {
             super.onBackPressed()
+        }
+    }
+
+    // WorkManager worker used to only update repo but since Chatroom/User/Event isn't constantly being collected from both network & db
+    // then the propagation of the update to the VM was nonexistent, and the Chatroom/User/Event instances remained with the old photo urls
+    // so I just used EventBus from a WorkManager Worker :P
+    // FIXME: Also slight code dup
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    override fun onImageUploadEvent(event: WorkerUtils.ImageUploadEvent) {
+        Log.i("ChatroomActivity", "Received onImageUploadEvent w/ event: ${event}")
+        when(event.type) {
+            Constants.CHATROOMS, Constants.EDIT_CHATROOM_TYPE -> {
+                lifecycleScope.launch {
+                    viewModel.sendChatroomIntent(
+                        ChatroomIntent.UpdateChatroomCache(mapOf(Constants.IMAGE to event.response))
+                    )
+                }
+            }
+            Constants.EVENTS, Constants.EDIT_EVENT_TYPE -> {
+                lifecycleScope.launch {
+                    viewModel.sendEventsIntent(
+                        EventListIntent.UpdateAnEventCache(mapOf(
+                            Constants.ID to event.modelId.toString(), Constants.PHOTO_URL to event.response))
+                    )
+                }
+            }
+            Constants.USERS, Constants.EDIT_USER_TYPE -> {
+                lifecycleScope.launch {
+                    viewModel.sendIntent(
+                        UserIntent.UpdateUserCache(mapOf(Constants.IMAGE to event.response))
+                    )
+                }
+            }
         }
     }
 }

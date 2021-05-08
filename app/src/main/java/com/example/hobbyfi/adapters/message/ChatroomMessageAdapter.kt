@@ -21,6 +21,7 @@ import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.ui.UIMessage
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.asFirebaseStorageReference
 import com.example.hobbyfi.utils.GlideUtils
 import org.kodein.di.Kodein
 import org.kodein.di.KodeinAware
@@ -36,7 +37,7 @@ abstract class ChatroomMessageAdapter(
     protected val prefConfig: PrefConfig by instance(tag = "prefConfig")
 
     protected enum class MessageType {
-        SEND, RECEIVE, TIMELINE, SEPARATOR
+        SEND, RECEIVE, TIMELINE, SEPARATOR, USER_TYPING
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<UIMessage> {
@@ -114,7 +115,12 @@ abstract class ChatroomMessageAdapter(
 
             // DATA BINDING GO BRRRRRR????
             messageCardBinding.userName.text = userSentMessage?.name ?: "[Unknown User]"
-            messageCardBinding.userMessage.text = message?.message
+
+            val messageContent = message?.message?.let {
+                Constants.imageRegex.replace(it, "")
+            }
+            messageCardBinding.userMessage.text = if(messageContent == " ") "" else messageContent
+
             handleImageMessageBind(message, userSentMessage, position)
         }
 
@@ -124,14 +130,20 @@ abstract class ChatroomMessageAdapter(
         ) {
             val isMessageImage = Constants.imageRegex
                 .matches(message?.message!!)
+            val innerFirstImage = Constants.imageRegex.find(message.message)
+            val containsInnerImage = innerFirstImage != null && !isMessageImage
 
             val glide = Glide.with(itemView.context)
             if(isMessageImage) {
                 loadMessageImage(message.message, glide)
+            } else {
+                innerFirstImage?.let {
+                    loadMessageImage(it.value, glide)
+                }
             }
 
-            messageCardBinding.userImage.isVisible = isMessageImage
-            messageCardBinding.userMessage.isVisible = !isMessageImage
+            messageCardBinding.userImage.isVisible = isMessageImage || containsInnerImage
+            messageCardBinding.userMessage.isVisible = !isMessageImage || containsInnerImage
 
             loadUserMessageImage(userSentMessage?.photoUrl, position, glide)
         }
@@ -156,8 +168,14 @@ abstract class ChatroomMessageAdapter(
         }
 
         protected open fun loadMessageImage(messageUrl: String, glide: RequestManager) {
-            glide
-                .load(messageUrl)
+            val reqManager = try {
+                glide
+                    .load(messageUrl.asFirebaseStorageReference())
+            } catch(ex: Exception) {
+                null
+            }
+
+            (reqManager ?: Glide.with(itemView.context).asDrawable())
                 .placeholder(R.drawable.ic_baseline_image_42)
                 .into(messageCardBinding.userImage)
         }

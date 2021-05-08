@@ -14,9 +14,9 @@
         android:id="@+id/swiperefresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"
-        android:animateLayoutChanges="false"
-        android:background="@drawable/background_secondary_gradient">
+        android:background="?android:attr/colorBackground"
+        android:layout_marginTop="5dp"
+        android:animateLayoutChanges="false">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/chatroom_list"

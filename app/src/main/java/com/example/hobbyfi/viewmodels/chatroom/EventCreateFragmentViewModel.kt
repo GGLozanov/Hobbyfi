@@ -1,8 +1,11 @@
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
+
 import androidx.lifecycle.viewModelScope
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.EventIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.data.Event
@@ -10,8 +13,12 @@ import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isCritical
 import com.example.hobbyfi.state.EventState
 import com.example.hobbyfi.viewmodels.base.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
@@ -23,9 +30,7 @@ class EventCreateFragmentViewModel(
             mainStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is EventIntent.CreateEvent -> {
-                        viewModelScope.launch { // again, potential img upload, blah blah
-                            createEvent(it.chatroomId)
-                        }
+                        createEvent(it.chatroomId)
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -38,7 +43,8 @@ class EventCreateFragmentViewModel(
 
         if(_eventDate == null || eventLatLng == null) {
             mainStateIntent.setState(EventState.Error(
-                Constants.invalidEventInfoError
+                getApplication<MainApplication>().applicationContext.getString(
+                    R.string.invalid_event_info_error)
             ))
             return
         }
@@ -50,23 +56,23 @@ class EventCreateFragmentViewModel(
                 description.value,
                 parsedEventDate,
                 eventLatLng!!.latitude,
-                eventLatLng!!.longitude
+                eventLatLng!!.longitude,
+                chatroomId
             )
 
-            val event = Event(
+            EventState.OnData.EventCreateResult(Event(
                 response!!.id,
                 name.value!!,
                 description.value,
                 response.startDate,
                 parsedEventDate,
-                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.eventProfileImageDir(response.id)
-                        + "/" + response.id + ".jpg" else null,
+                null,
                 eventLatLng!!.latitude,
                 eventLatLng!!.longitude,
                 chatroomId
-            )
-
-            EventState.OnData.EventCreateResult(event)
+            )) // image uploaded through WorkManager on success
+        } catch(ex: CancellationException) {
+            throw ex // swallow cancellation exceptions (request is performed successfully most of the time either way)
         } catch(ex: Exception) {
             EventState.Error(
                 ex.message,

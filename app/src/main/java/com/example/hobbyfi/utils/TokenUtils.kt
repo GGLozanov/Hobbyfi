@@ -1,8 +1,11 @@
 package com.example.hobbyfi.utils
 
+import android.content.res.Resources
 import android.util.Base64.DEFAULT
 import android.util.Log
 import com.example.hobbyfi.BuildConfig
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import io.jsonwebtoken.ExpiredJwtException
@@ -18,8 +21,8 @@ import java.util.*
 
 
 object TokenUtils {
-    object InvalidStoredTokenException : Exception(Constants.unauthorisedAccessError + " "
-            + Constants.reauthError)
+    class InvalidStoredTokenException(message: String = MainApplication.applicationContext.resources.getString(R.string.unathorised_access) + " "
+            + MainApplication.applicationContext.resources.getString(R.string.reauth_error)) : Exception(message)
 
     /**
      * Decodes a given JWT and returns the value of the 'userId' field in the payload
@@ -29,7 +32,7 @@ object TokenUtils {
     @Throws(ExpiredJwtException::class, MalformedJwtException::class, InvalidStoredTokenException::class)
     fun getTokenUserIdFromPayload(jwtToken: String?): Long {
         if(jwtToken == Constants.INVALID_TOKEN) {
-            throw InvalidStoredTokenException
+            throw InvalidStoredTokenException()
         }
 
         // FIXME: Random zip error that yeets the app
@@ -59,7 +62,7 @@ object TokenUtils {
         return try {
             prefConfig.readToken().let {
                 if(it != Constants.INVALID_TOKEN) getTokenUserIdFromPayload(it)
-                    else throw InvalidStoredTokenException
+                    else throw InvalidStoredTokenException()
             }
         } catch (e: Exception) {
             when(e) {
@@ -73,7 +76,7 @@ object TokenUtils {
                     return try {
                         prefConfig.readRefreshToken().let {
                             if(it != Constants.INVALID_TOKEN) getTokenUserIdFromPayload(it)
-                                else throw InvalidStoredTokenException
+                                else throw InvalidStoredTokenException()
                         }
                     } catch (x: ExpiredJwtException) {
                         Log.w(

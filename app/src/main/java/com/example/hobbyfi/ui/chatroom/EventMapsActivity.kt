@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -17,10 +16,8 @@ import androidx.lifecycle.map
 import com.example.hobbyfi.BuildConfig
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityEventMapsBinding
-import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
-import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.Event
 import com.example.hobbyfi.models.data.User
 import com.example.hobbyfi.models.data.UserGeoPoint
@@ -39,17 +36,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.firestore.GeoPoint
-import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
-import io.socket.engineio.client.transports.WebSocket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.lang.IllegalStateException
-import java.net.URISyntaxException
 
 @ExperimentalCoroutinesApi
 class EventMapsActivity : MapsActivity(),
@@ -98,8 +91,7 @@ class EventMapsActivity : MapsActivity(),
         try {
             prefConfig.getAuthUserIdFromToken()
         } catch(e: Exception) {
-            Toast.makeText(this@EventMapsActivity, Constants.reauthError, Toast.LENGTH_LONG)
-                .show()
+            showFailureToast(getString(R.string.reauth_error))
             emergencyActivityExit(RESULT_OK) // reauth will trigger after attempted fetch fail
             null
         }
@@ -137,11 +129,7 @@ class EventMapsActivity : MapsActivity(),
     }
 
     private val socketEventErrorFallback = { _: Exception ->
-        Toast.makeText(
-            this@EventMapsActivity,
-            Constants.socketEmissionError,
-            Toast.LENGTH_LONG
-        ).show()
+        showFailureToast(getString(R.string.socket_emission_fail))
         emergencyActivityExit(Constants.RESULT_REAUTH)
     }
 
@@ -225,7 +213,7 @@ class EventMapsActivity : MapsActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEventMapsBinding.inflate(layoutInflater)
-        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVIATION_ACTION))
+        localBroadcastManager.registerReceiver(foregroundFCMReceiver, IntentFilter(Constants.FOREGROUND_REACTIVATION_ACTION))
         setContentView(binding.root)
 
         val mapFragment = supportFragmentManager
@@ -283,21 +271,18 @@ class EventMapsActivity : MapsActivity(),
         with(binding) {
             disableLocationUpdatesFab.setOnClickListener {
                 locationUpdatesService?.removeLocationUpdates()
-                Toast.makeText(this@EventMapsActivity, "Location updates disabled!", Toast.LENGTH_LONG)
-                    .show()
+                this@EventMapsActivity.showSecondaryColourBackgroundToast(getString(R.string.location_updates_disabled))
             }
 
             enableLocationUpdatesFab.setOnClickListener {
                 if(enableLocationUpdates()) {
-                    Toast.makeText(this@EventMapsActivity, "Location updates enabled!", Toast.LENGTH_LONG)
-                        .show()
+                    this@EventMapsActivity.showSecondaryColourBackgroundToast(getString(R.string.location_updates_enabled))
                 }
             }
 
             resetLocationFab.setOnClickListener {
                 if(prefConfig.readRequestingLocationUpdates()) {
-                    Toast.makeText(this@EventMapsActivity, Constants.canOnlyResetOnNoUpdate, Toast.LENGTH_LONG)
-                        .show()
+                    showWarningToast(getString(R.string.no_update_reset_only))
                     return@setOnClickListener
                 }
 
@@ -378,8 +363,7 @@ class EventMapsActivity : MapsActivity(),
 
                                 // TODO: Replace with null check
                                 if(geoPoint.geoPoint.latitude == 0.0 && geoPoint.geoPoint.longitude == 0.0) {
-                                    Toast.makeText(this@EventMapsActivity, Constants.locationReset, Toast.LENGTH_LONG)
-                                        .show()
+                                    showSuccessToast(getString(R.string.location_reset))
                                 }
                             } else {
                                 viewModel.setUserGeoPoints(arrayListOf())
@@ -529,8 +513,14 @@ class EventMapsActivity : MapsActivity(),
     }
 
     override fun onConnectedServerSocketFail() {
-        runOnUiThread {
-            emergencyActivityExit()
+        Log.w("EventMapsActivity", "Socket connection from current auth user for event maps activity failed!")
+        if(!viewModel.shownSocketError) {
+            viewModel.setShownSocketError(true)
+            runOnUiThread {
+                buildYesNoAlertDialog(getString(R.string.socket_connection_fail), { _: DialogInterface, _: Int ->
+                    emergencyActivityExit()
+                }, null)
+            }
         }
     }
 
@@ -677,8 +667,7 @@ class EventMapsActivity : MapsActivity(),
     }
 
     private fun handleStateError(error: String?, shouldReauth: Boolean) {
-        Toast.makeText(this@EventMapsActivity, error, Toast.LENGTH_LONG)
-            .show()
+        showFailureToast(error ?: getString(R.string.something_wrong))
         if(shouldReauth) {
             emergencyActivityExit(Constants.RESULT_REAUTH)
         }

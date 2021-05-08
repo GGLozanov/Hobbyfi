@@ -14,19 +14,28 @@ import com.example.hobbyfi.shared.invalidateBy
 import com.example.hobbyfi.state.FacebookState
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.viewmodels.base.AuthInclusiveViewModel
+import com.example.hobbyfi.viewmodels.base.TagBundleHolder
+import com.example.hobbyfi.viewmodels.base.TagBundleHolderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @ExperimentalCoroutinesApi
-class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(application) {
-    var tagBundle: TagBundle = TagBundle()
-
+class LoginFragmentViewModel(application: Application) : AuthInclusiveViewModel(application),
+        TagBundleHolder by TagBundleHolderViewModel() {
     init {
         handleIntent()
     }
 
+    private var _sentFbTokenFetch = false
+    fun setSentFbTokenFetch(fetch: Boolean) {
+        _sentFbTokenFetch = fetch
+    }
+    val sentFbTokenFetch get() = _sentFbTokenFetch
+
     private lateinit var facebookStateIntent: StateIntent<FacebookState, FacebookIntent>
+
+    fun resetFacebookState() = facebookStateIntent.setState(FacebookState.Idle)
 
     val facebookState get() = facebookStateIntent.state
 

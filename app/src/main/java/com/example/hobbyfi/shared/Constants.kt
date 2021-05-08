@@ -9,6 +9,8 @@ import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.repositories.Repository
 import com.facebook.AccessToken
 import com.facebook.Profile
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storage
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.text.SimpleDateFormat
@@ -17,78 +19,27 @@ import java.time.format.DateTimeFormatterBuilder
 
 
 object Constants {
-    const val descriptionInputError: String = "Enter a shorter description!"
-    const val usernameInputError: String = "Enter a non-empty/shorter username!"
-    const val nameInputError: String = "Enter a non-empty/shorter name!"
-    const val passwordInputError: String = "Invalid password or doesn't match!"
-    const val confirmPasswordInputError: String = "Enter the same password!"
-    const val emailInputError: String = "Enter a non-empty valid e-mail address!"
-    const val tagNameInputError: String = "Enter a non-empty or shorter tag name!"
-    const val messageInputError: String = "Enter a valid, non-empty message!"
-
-    const val invalidEventInfoError: String = "Please enter information date and set its location!"
-    const val reauthError: String = "Logging out! Your session may have expired!"
-    const val resourceExistsError: String = "This user/thing already exists! Try a different name!"
-    const val invalidDataError: String = "Invalid data format!"
-    const val noConnectionError: String = "Couldn't perform operation! Please check your connection!"
-    const val noConnectionOrAuthTaskRootError: String = "Couldn't enter the chatroom! Please check your connection or login again!"
-    const val invalidCredentialsError: String = "Invalid credentials!"
-    const val invalidBroadcastAction: String = "Invalid action given for registered BroadcastReceiver types!"
-    const val invalidTokenError: String = "Invalid access! Please login again!"
-    const val unauthorisedAccessError: String = "Unauthorised access! Please login again!"
-    const val expiredTokenError: String = "Your session may have expired and you need to (re)authenticate!"
-    const val missingDataError: String = "Missing/invalid data entered!"
-    const val cacheDeletionError: String = "Couldn't clear old (cached) data!"
-    const val serverConnectionError: String = "Failed to connect to server! Something might have gone wrong on our end!"
-    const val internalServerError: String = "Couldn't perform operation! Something might have gone wrong on our end!"
-    const val resourceNotFoundError: String = "Requested resource not found!"
     const val invalidViewTypeError: String = "Invalid view type for ViewHolder!"
     const val invalidStateError: String = "Invalid state to call this method in!"
-    const val firestoreDeletionError: String = "Couldn't delete remote source records needed to have been deleted!"
-    const val firestoreUpdateError: String = "Couldn't update remote source records that needed to have been updated!"
-    const val limitReachedError: String = "Not created! Maximum limit may be reached! (250)"
-    const val requiredPermissionsDeniedError: String = "Cannot partake in this without required permissions!"
     const val incorrectCallToBuildLocationTrackingDialog: String = "Cannot call method buildLocationTrackingDialog in EventMapsActivity without having garnered user location permissions first!"
-    const val showShareDialogFail: String = "Couldn't reroute to Facebook share screen! Please try again!"
-    const val shareDeepLinkCancel: String = "Event share attempt cancelled!"
-    const val shareDeepLinkSuccess: String = "Successfuly shared event to Facebook!"
-    const val shareDeepLinkFail: String = "Couldn't share event to Facebook! Something must have gone wrong on their end!"
-    const val deepLinkGenFail: String = "Couldn't generate an appropriate share format for this event! Please contact a developer!"
-    const val eventDeleted: String = "Event you were tracking was suddenly deleted!"
-    const val invalidAccessError: String = "In order to access this content, you'll need to log in, or sign up and join the chatroom first."
-    const val eventAlreadyDeleted: String = "Linked event seems to already have been deleted by the chatroom owner!"
-    const val notJoinedChatroomError: String = "Can't participate in an event whose chatroom you haven't joined!"
-    const val tapToViewImage: String = "Tap to view sent image"
-    const val emailNotFound: String = "User with this given e-mail wasn't found!"
-    const val emailSendFail: String= "Failed to send e-mail! Please, try again!"
-    const val facebookUserSendAttempt: String = "User with this e-mail is a Facebook user and doesn't need an e-mail sent!"
-    const val searchMessageNotFound: String = "Message you were searching for couldn't be found!"
-    const val userKickFail: String = "Couldn't manage to kick user!"
-    const val userKickSuccess: String = "User successfully kicked!"
-    const val chatroomDeletedMessage: String = "Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!"
-    const val chatroomKickedMessage: String = "Oh no, it looks like you've been kicked from the chatroom by the owner!"
-    const val eventParsingError: String = "Failed to parse event date!"
-    const val socketConnectionError: String = "Couldn't connect to server for realtime capabilities!"
-    const val socketEmissionError: String = "Couldn't receive new messages to display!"
-    fun unknownError(message: String?) = "Unknown error! Please check your connection or contact a developer! $message"
 
-    const val canOnlyResetOnNoUpdate: String = "Can only reset location if you aren't currently partaking in the event with your location!"
-    const val eventAlreadyConcluded: String = "Event has already concluded!"
+    const val CAMERA_URI = "CAMERA_URI"
+    const val CAMERA_CAPTURE: String = "CAMERA_CAPTURE"
 
     const val imagePermissionsRequestCode = 200
     const val imageRequestCode = 777
+    const val cameraPermissionsRequestCode = 499
 
-    const val locationRequestCode: Int = 220
     const val locationPermissionsRequestCode: Int = 888
 
     const val eventLocationRequestCode: Int = 999
     const val eventMapsRequestCode: Int = 666
+    const val externalStorageWriteCode = 323
+    const val cameraRequestCode: Int = 100
     const val RESULT_CHATROOM_DELETE: Int = 423
     const val RESULT_KICKED: Int = 246
     const val RESULT_REAUTH: Int = 111
-
-    const val imageUploadSuccess: String = "Image uploaded successfully!"
-    const val imageUploadFail: String = "Image upload failed!"
+    const val CAMERA_RESULT: Int = 221
 
     // TODO: Put in-memory tags here
     val predefinedTags: List<Tag> = listOf(
@@ -139,8 +90,6 @@ object Constants {
         .toLong()
 
     const val SUCCESS_RESPONSE = "Ok"
-    const val FACEBOOK_EMAIL_FAILED_EXCEPTION = "Couldn't fetch Facebook email!"
-    const val FACEBOOK_TAGS_FAILED_EXCEPTION = "Error with fetching your Facebook tags! Continuing without them!"
     const val INVALID_TOKEN = "invalid"
 
     // enum would've been more concise here but annotations can't have enums call toString()
@@ -187,28 +136,21 @@ object Constants {
     const val profileImageWidth = 175
     const val profileImageHeight = 135
 
-    const val confirmAccountDeletionMessage: String = "Are you certain you want to delete your account?"
-    const val confirmChatroomDeletionMessage: String = "Are you ABSOLUTELY sure you want to delete this chatroom? All messages will be LOST."
-
-    const val noUpdateFields: String = "No fields to update!"
-
-    const val takeMeThere: String = "Get me in the room!"
-    const val noPlease: String = "Nah, let me browse."
-
-    const val locationReset: String = "Location successfuly reset!"
-
-    const val userProfileImageDir = "user_pfps"
-    fun chatroomProfileImageDir(chatroomId: Long): String {
-        return "chatroom_imgs_$chatroomId"
-    }
-    fun chatroomMessagesProfileImageDir(chatroomId: Long) = chatroomProfileImageDir(chatroomId) + "/messages"
-    fun eventProfileImageDir(eventId: Long): String {
-        return "events_imgs_$eventId"
+    fun messageImageBucket(chatroomId: Long, title: String): String {
+        return "chatroom_$chatroomId/messages/$title.jpg"
     }
 
-    const val chatroomTopicPrefix = "chatroom_"
-    fun chatroomTopic(chatroomId: Long): String {
-        return chatroomTopicPrefix + chatroomId
+    fun getFirebaseStorageUrlForLocation(location: String, onSuccess: (link: String) -> Unit, onFailure: (() -> Unit)? = null) {
+        FirebaseStorage.getInstance().reference.child(location).downloadUrl.addOnSuccessListener {
+            onSuccess(it.toString())
+        }.addOnFailureListener {
+            if(onFailure != null) {
+                onFailure()
+            } else {
+                Log.w("Constants", "Couldn't fetch image URL")
+                // TODO: better error handling (? ? ?)
+            }
+        }
     }
 
     // dupped from API and whenever that changes, this needs to as well, but...
@@ -255,6 +197,9 @@ object Constants {
     const val DELETED_MODEL_ID: String = "deleted_model_id"
     const val PARCELABLE_MODEL: String = "parcelable_model"
 
+    const val USER_TYPING = "user_typing"
+    const val USER_CEASE_TYPING = "user_cease_typing"
+
     const val TOKEN: String = "token"
     const val API: String = "API"
 
@@ -263,8 +208,9 @@ object Constants {
     class ImageFetchException(message: String? = null) : Exception(message)
 
     val imageRegex = Regex(
-        Regex.escape(BuildConfig.BASE_URL) +
-                "uploads\\/[^.]+\\.jpg"
+        "(${Regex.escape("https://storage.googleapis.com/${FirebaseStorage.getInstance().reference.bucket}")}|${Regex.escape(
+            "https://firebasestorage.googleapis.com/v0/b/${FirebaseStorage.getInstance().reference.bucket}/o/")})" +
+                "[^.]+" + Regex.escape(".jpg") + ".*"
     )
 
     const val searchMessage: String = "searchMessage"
@@ -295,11 +241,8 @@ object Constants {
     const val UPDATED_LOCATION: String = "UPDATED_LOCATION"
     const val STARTED_UPDATE_LOCATION_FROM_NOTIFICATION: String = "STARTED_UPDATE_LOCATION_FROM_NOTIFICATION"
     const val UPDATED_LOCATION_ACTION: String = "com.example.hobbyfi.UPDATED_LOCATION_ACTION"
-    const val FOREGROUND_REACTIVIATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVIATION_ACTION";
+    const val FOREGROUND_REACTIVATION_ACTION: String = "com.example.hobbyfi.FOREGROUND_REACTIVATION_ACTION";
     const val USER_GEO_POINT: String = "USER_GEO_POINT"
-    const val deepLinkCall: String = "CALLED_FROM_DEEPLINK"
-    const val DEEP_LINK_YEET: String = "DEEP_LINK_YEET"
-    const val DEEP_LINK_EXTRAS: String = "DEEP_LINK_EXTRAS"
 
     const val JOIN_CHATROOM: String = "join_chatroom"
     const val ENTER_MAIN: String = "enter_main"

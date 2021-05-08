@@ -21,10 +21,9 @@ import org.kodein.di.generic.instance
 
 @ExperimentalCoroutinesApi
 class ChatroomCreateFragmentViewModel(application: Application) : StateIntentViewModel<ChatroomState, ChatroomIntent>(application),
-        NameDescriptionBindable by NameDescriptionBindableViewModel(), Base64ImageHolder by Base64ImageHolderViewModel() {
+        NameDescriptionBindable by NameDescriptionBindableViewModel(),
+        Base64ImageHolder by Base64ImageHolderViewModel(), TagBundleHolder by TagBundleHolderViewModel() {
     private val chatroomRepository: ChatroomRepository by instance(tag = "chatroomRepository")
-
-    var tagBundle: TagBundle = TagBundle()
 
     override val mainStateIntent: StateIntent<ChatroomState, ChatroomIntent> = object : StateIntent<ChatroomState, ChatroomIntent>() {
         override val _state: MutableStateFlow<ChatroomState> = MutableStateFlow(ChatroomState.Idle)
@@ -55,19 +54,21 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
 
     private suspend fun createChatroom(ownerId: Long) {
         mainStateIntent.setState(ChatroomState.Loading)
+
         mainStateIntent.setState(try {
             val response = chatroomRepository.createChatroom(
                 name.value!!,
-                description.value!!,
+                description.value,
                 tagBundle.selectedTags
             )
 
+            // image uploaded by WorkManager (provided there is one),
+            // after which associated repo entity is modified in repo & refetched from SSOT on upload success
             val chatroom = Chatroom(
                 response!!.id,
                 name.value!!,
                 description.value,
-                if(base64Image.base64 != null) BuildConfig.BASE_URL + "uploads/" + Constants.chatroomProfileImageDir(response.id)
-                        + "/" + response.id + ".jpg" else null,
+                null,
                 if(tagBundle.selectedTags.isEmpty()) null else tagBundle.selectedTags,
                 ownerId,
                 null

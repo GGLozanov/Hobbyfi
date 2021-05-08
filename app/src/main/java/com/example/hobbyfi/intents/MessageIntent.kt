@@ -8,7 +8,7 @@ sealed class MessageIntent : Intent {
         // created with two-way databinding in viewmodel
     data class CreateMessageImages(val base64s: List<String>, val userSentId: Long, val chatroomSentId: Long) : MessageIntent()
 
-    data class UpdateMessage(val messageUpdateFields: Map<String, String?>) : MessageIntent()
+    data class UpdateMessage(val messageUpdateFields: Map<String, String?>, val editedMessageOriginal: Message) : MessageIntent()
         // message text content received again by databinding. Handle when user enters nothing in message box
     data class DeleteMessage(val messageId: Long) : MessageIntent()
 

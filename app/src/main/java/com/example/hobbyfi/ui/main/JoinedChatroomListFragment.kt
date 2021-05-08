@@ -2,18 +2,18 @@ package com.example.hobbyfi.ui.main
 
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
-import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.chatroom.JoinedChatroomListAdapter
 import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.intents.UserIntent
 import com.example.hobbyfi.models.data.Chatroom
-import com.example.hobbyfi.shared.Callbacks
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.extractListFromCurrentPagingData
+import com.example.hobbyfi.shared.safeNavigate
+import com.example.hobbyfi.shared.showFailureToast
 import com.example.hobbyfi.state.ChatroomListState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -24,15 +24,22 @@ import kotlinx.coroutines.launch
 @ExperimentalPagingApi
 @ExperimentalCoroutinesApi
 class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>() {
-    override val chatroomListAdapter: JoinedChatroomListAdapter = JoinedChatroomListAdapter(onChatroomJoinButton, { _: View, chatroom: Chatroom ->
-        viewModel.setButtonSelectedChatroom(chatroom)
-        lifecycleScope.launch {
-            activityViewModel.sendIntent(
-                UserIntent.UpdateUser(mapOf(
-                    Pair(Constants.LEAVE_CHATROOM_ID, chatroom.id.toString())
-            )))
-        }
-    })
+    override val chatroomListAdapter: JoinedChatroomListAdapter by lazy {
+        JoinedChatroomListAdapter(
+            onChatroomJoinButton,
+            onTagsViewButton,
+            { _: View, chatroom: Chatroom ->
+                viewModel.setButtonSelectedChatroom(chatroom)
+                lifecycleScope.launch {
+                    activityViewModel.sendIntent(
+                        UserIntent.UpdateUser(mapOf(
+                            Pair(Constants.LEAVE_CHATROOM_ID, chatroom.id.toString())
+                        )))
+                }
+            },
+            viewModel.lastOwnedChatroomIds.toMutableList()
+        )
+    }
 
     private fun setChatroomLeaveButtonVisibility() {
         // TODO: findItemFromCurrentPagingData uses method that generates list for current paging data each time
@@ -42,8 +49,10 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
             chatroomListAdapter.extractListFromCurrentPagingData().filter {
                 activityViewModel.authUser.value?.chatroomIds?.contains(it.id) == true
             }.mapNotNull { if (it.ownerId == activityViewModel.authUser.value!!.id) it.id else null }
+        Log.i("JoinedCLFragment", "User chatroom ids: ${userOwnedChatroomIds}")
         chatroomListAdapter.addDistinctUserOwnedChatroomIds(userOwnedChatroomIds)
-        loadStateAdapter?.setUserChatroomOwnership(chatroomListAdapter.userOwnedChatroomIds.isNotEmpty())
+        loadStateAdapter?.setUserChatroomOwnershipIds(chatroomListAdapter.userOwnedChatroomIds)
+        viewModel.setLastOwnedChatroomIds(userOwnedChatroomIds)
     }
 
     override fun observeChatroomsState() {
@@ -74,8 +83,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
                             (requireActivity() as MainActivity).logout()
                         }
 
-                        Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG)
-                            .show()
+                        context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
                     }
                 }
             }
@@ -120,7 +128,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
         super.navigateToChatroom()
         // only called while user is currently joining a chatroom
         Log.i("ChatroomJListFragment", "Navigating to ChatroomActivity. Chatroom selected: ${viewModel.buttonSelectedChatroom}")
-        navController.navigate(
+        navController.safeNavigate(
             JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomActivity(
                 activityViewModel.authUser.value,
                 viewModel.buttonSelectedChatroom,
@@ -130,7 +138,7 @@ class JoinedChatroomListFragment : MainListFragment<JoinedChatroomListAdapter>()
     }
 
     override fun navigateToChatroomCreate() {
-        navController.navigate(
+        navController.safeNavigate(
             JoinedChatroomListFragmentDirections.actionJoinedChatroomListFragmentToChatroomCreateNavGraph(
                 activityViewModel.authUser.value!!
             )

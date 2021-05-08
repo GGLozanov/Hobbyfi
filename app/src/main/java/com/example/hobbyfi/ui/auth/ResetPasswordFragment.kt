@@ -4,26 +4,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.FragmentResetPasswordBinding
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.intents.TokenIntent
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.TextInputLayoutFocusValidatorObserver
-import com.example.hobbyfi.shared.ViewReverseEnablerObserver
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.TokenState
 import com.example.hobbyfi.ui.base.TextFieldInputValidationOnus
 import com.example.hobbyfi.viewmodels.auth.ResetPasswordFragmentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ResetPasswordFragment : AuthFragment() {
+class ResetPasswordFragment : AuthFragment(), TextFieldInputValidationOnus {
 
     companion object {
         fun newInstance() = ResetPasswordFragment()
@@ -50,51 +45,56 @@ class ResetPasswordFragment : AuthFragment() {
                     viewModel!!.sendIntent(TokenIntent.ResetPassword)
                 }
             }
-
-            observeResetPasswordState()
-
             return@onCreateView root
         }
     }
 
+    @ExperimentalCoroutinesApi
+    override fun onStart() {
+        super.onStart()
+        observePredicateValidators()
+    }
+
+    @ExperimentalCoroutinesApi
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeResetPasswordState()
+    }
 
     @ExperimentalCoroutinesApi
     private fun observeResetPasswordState() {
         lifecycleScope.launch {
-            viewModel.mainState.collectLatest {
+            viewModel.mainState.collectLatestWithLoadingAndNonIdleReset(listOf(TokenState.Idle::class),
+                    viewModel::resetTokenState,
+                viewLifecycleOwner, navController,
+                    ResetPasswordFragmentDirections.actionResetPasswordFragmentToLoadingNavGraph(
+                        R.id.resetPasswordFragment), TokenState.Loading::class) {
                 when(it) {
                     is TokenState.Idle -> {
 
                     }
-                    is TokenState.Loading -> {
-                        // TODO: Progressbar
-                    }
                     is TokenState.ResetPasswordSuccess -> {
-                        Toast.makeText(requireContext(), "Successfully sent password reset e-mail!", Toast.LENGTH_LONG)
-                            .show()// TODO: Reformat to actual message in fragment
-                        viewModel.resetTokenState()
+                        context?.showSuccessToast(getString(R.string.sent_password_email))
                         navController.popBackStack()
                     }
                     is TokenState.Error -> {
                         // FIXME: uuuuugh, BAAAAAAAAAAAAAAAAAD... This should be generified with exceptions,
                         // FIXME: not string errorsssssss nor should error transformation happen hereeeee
                         when(it.error) {
-                            Constants.resourceNotFoundError -> {
-                                Toast.makeText(requireContext(), Constants.emailNotFound, Toast.LENGTH_LONG)
-                                    .show()
+                            getString(R.string.resource_not_found_error) -> {
+                                context?.showFailureToast(getString(R.string.user_email_not_found))
                             }
-                            Constants.invalidDataError -> {
-                                Toast.makeText(requireContext(), Constants.emailSendFail, Toast.LENGTH_LONG)
-                                    .show()// TODO: Reformat to actual message in fragment
+                            getString(R.string.invalid_data) -> {
+                                context?.showFailureToast(getString(R.string.email_send_fail))
+                            // TODO: Reformat to actual message in fragment
                             }
-                            Constants.resourceExistsError -> {
-                                Toast.makeText(requireContext(), Constants.facebookUserSendAttempt, Toast.LENGTH_LONG)
-                                    .show()// TODO: Reformat to actual message in fragment
+                            getString(R.string.resource_exists_error) -> {
+                                context?.showFailureToast(getString(R.string.facebook_user_reset_password_email))
+                            // TODO: Reformat to actual message in fragment
                             }
-                            else -> Toast.makeText(requireContext(), Constants.emailSendFail, Toast.LENGTH_LONG)
-                                .show()// TODO: Reformat to actual message in fragment
+                            else -> context?.showFailureToast(getString(R.string.email_send_fail))
+                            // TODO: Reformat to actual message in fragment
                         }
-                        viewModel.resetTokenState()
                     }
                     else -> throw Intent.InvalidIntentException()
                 }
@@ -105,7 +105,7 @@ class ResetPasswordFragment : AuthFragment() {
     @ExperimentalCoroutinesApi
     override fun observePredicateValidators() {
         viewModel.email.invalidity.observe(
-            viewLifecycleOwner, TextInputLayoutFocusValidatorObserver(binding.emailInputField, Constants.emailInputError)
+            viewLifecycleOwner, TextInputLayoutFocusValidatorObserver(binding.emailInputField, getString(R.string.email_input_error))
         )
     }
 

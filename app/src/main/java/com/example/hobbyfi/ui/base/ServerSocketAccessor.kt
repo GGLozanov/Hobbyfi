@@ -65,65 +65,6 @@ interface ServerSocketAccessor: ConnectivityAccessor {
             null
         }
 
-//        try {
-//            val myHostnameVerifier: HostnameVerifier =
-//                HostnameVerifier { hostname, session -> true }
-//            val mySSLContext: SSLContext = SSLContext.getInstance("TLS")
-//            val trustAllCerts: Array<TrustManager> =
-//                arrayOf<TrustManager>(object : X509TrustManager {
-//                    @Throws(CertificateException::class)
-//                    override fun checkClientTrusted(
-//                        chain: Array<X509Certificate?>?,
-//                        authType: String?
-//                    ) {
-//                    }
-//
-//                    @Throws(CertificateException::class)
-//                    override fun checkServerTrusted(
-//                        chain: Array<X509Certificate?>?,
-//                        authType: String?
-//                    ) {
-//                    }
-//
-//                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-//                })
-//            mySSLContext.init(null, trustAllCerts, SecureRandom())
-//            val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-//                .hostnameVerifier(myHostnameVerifier)
-//                .sslSocketFactory(mySSLContext.socketFactory, object : X509TrustManager {
-//                    @Throws(CertificateException::class)
-//                    override fun checkClientTrusted(
-//                        chain: Array<X509Certificate?>?,
-//                        authType: String?
-//                    ) {
-//                    }
-//
-//                    @Throws(CertificateException::class)
-//                    override fun checkServerTrusted(
-//                        chain: Array<X509Certificate?>?,
-//                        authType: String?
-//                    ) {
-//                    }
-//
-//                    override fun getAcceptedIssuers(): Array<X509Certificate?> {
-//                        return arrayOfNulls(0)
-//                    }
-//                })
-//                .build()
-//
-//            val options = SocketOptionBuilder.builder().setForceNew(true).build()
-//            options.callFactory = okHttpClient
-//            options.webSocketFactory = okHttpClient
-//            IO.socket(
-//                BuildConfig.SOCKET_BASE_URL,
-//                options
-//            )
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            onConnectedServerSocketFail()
-//            null
-//        }
-
     @MainThread
     fun onConnectedServerSocketFail()
 

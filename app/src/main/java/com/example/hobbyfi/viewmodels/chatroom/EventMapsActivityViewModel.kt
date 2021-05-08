@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.EventListIntent
 import com.example.hobbyfi.intents.Intent
 import com.example.hobbyfi.models.data.Event
@@ -45,6 +47,13 @@ class EventMapsActivityViewModel(
     }
     val eventsState: StateFlow<EventListState>
         get() = eventsStateIntent.state
+
+    // FIXME: Code dup w/ ChatroomActivityViewModel (can't be abstractd w/ interface though 'cause encapsulation?)
+    private var _shownSocketError: Boolean = false
+    val shownSocketError: Boolean get() = _shownSocketError
+    fun setShownSocketError(shown: Boolean) {
+        _shownSocketError = shown
+    }
 
     suspend fun sendEventsIntent(intent: EventListIntent) = eventsStateIntent.sendIntent(intent)
 
@@ -99,14 +108,16 @@ class EventMapsActivityViewModel(
         eventsStateIntent.setState(EventListState.Loading)
         eventsStateIntent.setState(if(eventRepository.deleteEventsCache(eventIds))
             EventListState.OnData.DeleteEventsCacheResult(eventIds)
-        else EventListState.Error(Constants.cacheDeletionError, true)) // shouldReath = shouldExit here
+        else EventListState.Error(getApplication<MainApplication>()
+            .applicationContext.getString(R.string.cache_deletion_error), true)) // shouldReath = shouldExit here
     }
 
     private suspend fun deleteEventCache(eventId: Long) {
         eventsStateIntent.setState(EventListState.Loading)
         eventsStateIntent.setState(if(eventRepository.deleteEventCache(eventId))
             EventListState.OnData.DeleteAnEventCacheResult(eventId)
-        else EventListState.Error(Constants.cacheDeletionError, true))
+        else EventListState.Error(getApplication<MainApplication>()
+            .applicationContext.getString(R.string.cache_deletion_error), true))
     }
 
     private suspend fun updateAndSaveCurrentEvent(updateFields: Map<String, String?>) {

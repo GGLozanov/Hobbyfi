@@ -1,3 +1,4 @@
+
 package com.example.hobbyfi.viewmodels.chatroom
 
 import android.app.Application
@@ -5,10 +6,13 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.intents.*
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.viewmodels.base.AuthChatroomHolderViewModel
 import com.example.hobbyfi.repositories.EventRepository
+import com.example.hobbyfi.repositories.MessageRepository
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +35,12 @@ class ChatroomActivityViewModel(
     val lastSentJoinChatroomSocketEventId get() = _lastSentJoinChatroomSocketEventId
     fun setLastSentJoinChatroomSocketEventId(lastId: Long) {
         _lastSentJoinChatroomSocketEventId = lastId
+    }
+
+    private var _shownSocketError: Boolean = false
+    val shownSocketError: Boolean get() = _shownSocketError
+    fun setShownSocketError(shown: Boolean) {
+        _shownSocketError = shown
     }
 
     private var _chatroomUsers: MutableLiveData<List<User>> = MutableLiveData(arrayListOf())
@@ -280,7 +290,7 @@ class ChatroomActivityViewModel(
         eventsStateIntent.setState(EventListState.Loading)
 
         eventsStateIntent.setState(try {
-            val response = eventRepository.deleteOldEvents()
+            val response = eventRepository.deleteOldEvents(authChatroom.value!!.id)
                 ?: throw IllegalStateException(Constants.invalidStateError)
 
             deleteOldEventsCache(response.modelList, false)
@@ -333,7 +343,7 @@ class ChatroomActivityViewModel(
         if(setState) {
             eventsStateIntent.setState(if(success)
                 EventListState.OnData.DeleteEventsCacheResult(eventIds)
-            else EventListState.Error(Constants.cacheDeletionError))
+            else EventListState.Error(getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error)))
         }
     }
 
@@ -344,9 +354,10 @@ class ChatroomActivityViewModel(
 
         if(setState) {
             eventStateIntent.setState(if(success) EventState.OnData.DeleteEventCacheResult
-                else EventState.Error(Constants.cacheDeletionError))
+                else EventState.Error(getApplication<MainApplication>().applicationContext.getString(
+                R.string.cache_deletion_error)))
         } else if(!success) {
-            throw Exception(Constants.cacheDeletionError)
+            throw Exception(getApplication<MainApplication>().applicationContext.getString(R.string.cache_deletion_error))
         }
 
         return true
@@ -356,11 +367,11 @@ class ChatroomActivityViewModel(
         // no loading here (no fetch)
         viewModelScope.launch {
             usersStateIntent.setState(try {
-                chatroomRepository.kickUser(userId)
+                chatroomRepository.kickUser(userId, authChatroom.value!!.id)
                 UserListState.OnUserKick(userId)
             } catch(e: Exception) {
                 UserListState.Error(
-                    Constants.userKickFail,
+                    getApplication<MainApplication>().applicationContext.getString(R.string.kick_user_fail),
                     shouldReauth = e.isCritical
                 )
             })

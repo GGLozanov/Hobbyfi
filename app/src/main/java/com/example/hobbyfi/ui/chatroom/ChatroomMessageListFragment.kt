@@ -1,18 +1,18 @@
 package com.example.hobbyfi.ui.chatroom
 
-import android.content.BroadcastReceiver
-import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -21,7 +21,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.PagingData
-import com.example.hobbyfi.BuildConfig
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.message.ChatroomMessageListAdapter
 import com.example.hobbyfi.databinding.FragmentChatroomMessageListBinding
@@ -41,15 +42,13 @@ import com.example.hobbyfi.viewmodels.chatroom.ChatroomMessageListFragmentViewMo
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.kroegerama.imgpicker.BottomSheetImagePicker
 import com.kroegerama.imgpicker.ButtonType
-import io.socket.client.IO
 import io.socket.client.Socket
-import io.socket.client.SocketOptionBuilder
 import io.socket.emitter.Emitter
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collectLatest
+import org.json.JSONObject
 import java.io.FileNotFoundException
-import java.lang.Exception
-import java.net.URISyntaxException
+import java.util.*
+
 
 @ExperimentalCoroutinesApi
 @ExperimentalPagingApi
@@ -61,6 +60,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     public override val viewModel: ChatroomMessageListFragmentViewModel by viewModels()
 
     private lateinit var binding: FragmentChatroomMessageListBinding
+    private var typingTimer: CountDownTimer? = null
 
     // props like these are nullable because Activity onDestroy being called on new app start from push notification
     // and causing crashes for unitialised properties before anything actually happens prior to activity restart
@@ -78,10 +78,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                 })
                 return@ChatroomMessageListAdapter true
             },
-        ) { messageB ->
-            navController.navigate(
+        ) { messageUrl ->
+            navController.safeNavigate(
                 ChatroomMessageListFragmentDirections
-                    .actionChatroomMessageListFragmentToImageViewFragment(messageB.userMessage.text.toString())
+                    .actionChatroomMessageListFragmentToImageViewFragment(messageUrl)
             )
         }
     }
@@ -98,33 +98,31 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         }
     }
 
-    private val onEditSendMessage = { editedMessage: Message ->
+    private val onEditSendMessage = { editedMessageOriginal: Message ->
         View.OnClickListener {
             val messageMap = mutableMapOf<String, String?>()
 
-            if(editedMessage.message != viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
+            // slightly inoptimal
+            if(Constants.imageRegex.replace(editedMessageOriginal.message, "") !=
+                    viewModel.message.value) { // kinda bruh for the two-way databinding but I'm dumb
                 messageMap[Constants.MESSAGE] = viewModel.message.value
             } else {
-                Toast.makeText(
-                    requireContext(),
-                    "You can't edit a message with the same message!",
-                    Toast.LENGTH_LONG
-                ).show()
+                context?.showWarningToast(getString(R.string.dup_message_edit))
                 return@OnClickListener
             }
 
-            messageMap[Constants.ID] = editedMessage.id.toString()
+            messageMap[Constants.ID] = editedMessageOriginal.id.toString()
 
             lifecycleScope.launch {
                 viewModel.sendMessageIntent(
                     MessageIntent.UpdateMessage(
-                        messageMap
+                        messageMap,
+                        editedMessageOriginal
                     )
                 )
             }
         }
     }
-
 
     override val emitterListenerFactory: EmitterListenerFactory by lazy {
         EmitterListenerFactory(requireActivity())
@@ -146,8 +144,8 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         emitterListenerFactory.createEmitterListenerForCreate(
             ::Message,
             { message ->
-                if(prefConfig.readReachedBottomMessagesAfterSearch()) {
-                    if(activityViewModel.authUser.value?.chatroomIds?.contains(message.chatroomSentId) == true) {
+                if (prefConfig.readReachedBottomMessagesAfterSearch()) {
+                    if (activityViewModel.authUser.value?.chatroomIds?.contains(message.chatroomSentId) == true) {
                         // assert user still in chatroom (kick race condition)
                         lifecycleScope.launchWhenCreated {
                             viewModel.messageStateIntent.sendIntent(
@@ -157,10 +155,16 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             )
                         }
                     } else {
-                        Log.wtf("ChatroomActivity", "Received message for INVALID CHATROOM. THIS SHOULDN'T HAPPEN!")
+                        Log.wtf(
+                            "ChatroomActivity",
+                            "Received message for INVALID CHATROOM. THIS SHOULDN'T HAPPEN!"
+                        )
                     }
                 } else {
-                    Log.i("ChatroomActivity", "RECEIVED MESSAGE WHILE BOTTOM GENERATION IS STILL NOT RENDERED")
+                    Log.i(
+                        "ChatroomActivity",
+                        "RECEIVED MESSAGE WHILE BOTTOM GENERATION IS STILL NOT RENDERED"
+                    )
                     viewModel.addSearchDeferredMessage(message)
                 }
             },
@@ -171,8 +175,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     val editMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForEdit(
             { editFields ->
-                if(messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id ==
-                            editFields[Constants.ID]?.toLong() } != null &&
+                if (messageListAdapter.findItemFromCurrentPagingData { msg ->
+                        msg is UIMessage.MessageItem && msg.message.id ==
+                                editFields[Constants.ID]?.toLong()
+                    } != null &&
                     activityViewModel.authUser.value?.chatroomIds?.contains(
                         editFields[Constants.CHATROOM_SENT_ID]?.toLong()) == true) {
                     // only update if item is currently visible in pages
@@ -192,10 +198,10 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     val deleteMessageEmitterListener: Emitter.Listener by lazy {
         emitterListenerFactory.createEmitterListenerForDelete(
             { id ->
-                if(messageListAdapter.findItemFromCurrentPagingData {
-                            msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
+                if (messageListAdapter.findItemFromCurrentPagingData { msg -> msg is UIMessage.MessageItem && msg.message.id == id } != null &&
                     activityViewModel.authUser.value?.chatroomIds?.contains(
-                        activityViewModel.authChatroom.value?.id) == true) {
+                        activityViewModel.authChatroom.value?.id
+                    ) == true) {
                     // only delete if message currently visible
                     lifecycleScope.launchWhenCreated {
                         viewModel.messageStateIntent.sendIntent(
@@ -210,9 +216,20 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         )
     }
 
+    private val userTypingEmitterListener: Emitter.Listener = Emitter.Listener {
+        requireActivity().runOnUiThread {
+            messageListAdapter.addTypingUser((it[0] as JSONObject).getLong(Constants.ID))
+        }
+    }
+
+    private val userStopTyingEmitterListener: Emitter.Listener = Emitter.Listener {
+        requireActivity().runOnUiThread {
+            messageListAdapter.removeTypingUser((it[0] as JSONObject).getLong(Constants.ID))
+        }
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val activity = requireActivity() as ChatroomActivity
 
         connectServerSocketListeners()
     }
@@ -243,13 +260,12 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             }
 
             sendMessageButton.setOnClickListener(onNormalSendMessage)
-            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(
-                onNormalSendMessage
-            )
+            cancelHeader.setOnClickListener { sendMessageButton.setOnClickListener(onNormalSendMessage)
                 viewModel!!.message.setValue(null)
                 editMessageOptionsLayout.isVisible = false
             }
 
+            initTypingListener()
             initMessageListAdapter()
             observeUsers()
             observeMessageState()
@@ -269,12 +285,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onConnectedServerSocketFail() {
-        Toast.makeText(
-            requireContext(),
-            Constants.socketConnectionError,
-            Toast.LENGTH_LONG
-        ).show()
-        (requireActivity() as ChatroomActivity).leaveChatroom()
+        // handled by ChatroomActivity. . . BAD implementation
     }
 
     override fun connectServerSocketListeners() {
@@ -289,6 +300,14 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
         serverSocket?.on(
             Constants.DELETE_MESSAGE_TYPE,
             deleteMessageEmitterListener
+        )
+        serverSocket?.on(
+            Constants.USER_TYPING,
+            userTypingEmitterListener
+        )
+        serverSocket?.on(
+            Constants.USER_CEASE_TYPING,
+            userStopTyingEmitterListener
         )
     }
 
@@ -313,27 +332,31 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
 
     private fun observeMessageState() {
         lifecycleScope.launchWhenCreated {
-            viewModel.messageState.collectLatest {
+            viewModel.messageState.collectLatestWithNonIdleReset(
+                    listOf(MessageState.Idle::class, MessageState.Loading::class), viewModel::resetMessageState) {
                 when(it) {
                     is MessageState.Idle -> {
 
                     }
                     is MessageState.Loading -> {
-                        // TODO: stop button? Or do nothing?
+                        // TODO: stop button? Or do nothing? Or just show the queued up messages as invisible and sending WIP?
                     }
                     is MessageState.OnData.MessageCreateResult -> {
                         viewModel.message.setValue(null) // reset msg
+                        // FIXME: Inefficient?
+                        typingTimer = null
+                        serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+                            Constants.ID to activityViewModel.authUser.value?.id,
+                            Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                        ))) // stop typing
                     }
                     is MessageState.OnData.MessageUpdateResult -> {
                         binding.cancelHeader.callOnClick()
                     }
                     is MessageState.OnData.MessageDeleteResult -> {
-                        Toast.makeText(
-                            requireContext(),
-                            "Successfully deleted message!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        viewModel.resetMessageState()
+                        context?.showSuccessToast(
+                            getString(R.string.delete_messages),
+                        )
                     }
                     is MessageState.Error -> {
                         (requireActivity() as ChatroomActivity).handleAuthActionableError(
@@ -341,7 +364,6 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                             it.shouldExit,
                             context = requireContext()
                         )
-                        viewModel.resetMessageState()
                     }
                 }
             }
@@ -353,7 +375,11 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             ?.observe(viewLifecycleOwner, Observer {
                 Log.i("ChatroomMListFragment", "message received from navcontroller handle: ${it}")
                 it?.let {
-                    messageListAdapter.findItemPositionFromCurrentPagingData(UIMessage.MessageItem(it)).run {
+                    messageListAdapter.findItemPositionFromCurrentPagingData(
+                        UIMessage.MessageItem(
+                            it
+                        )
+                    ).run {
                         Log.i(
                             "ChatroomMListFragment",
                             "POSITION received from navcontroller handle: ${this}"
@@ -362,11 +388,16 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                         when {
                             this != null -> {
                                 binding.messageList.scrollToPosition(this)
-                                Handler(Looper.myLooper() ?: binding.messageList.handler.looper).postDelayed({
-                                    binding.messageList.smoothScrollToPosition(
-                                        this
-                                    )
-                                }, 50)
+                                Handler(
+                                    Looper.myLooper() ?: binding.messageList.handler.looper
+                                ).postDelayed(
+                                    {
+                                        binding.messageList.smoothScrollToPosition(
+                                            this
+                                        )
+                                    },
+                                    50
+                                )
 
                                 navController.currentBackStackEntry?.savedStateHandle?.set(
                                     Constants.searchMessage,
@@ -440,14 +471,75 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
     }
 
     override fun onSharedPreferenceChanged(prefs: SharedPreferences, key: String) {
-        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(key, true)) {
+        if(key == getString(R.string.pref_reached_bottom_messages_after_search) && prefs.getBoolean(
+                key,
+                true
+            )) {
             viewModel.createSearchDeferredMessages()
         }
     }
 
+    private fun initTypingListener() {
+        binding.messageInputField.editText?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable) {
+                if(typingTimer == null) {
+                    serverSocket?.emit(Constants.USER_TYPING, JSONObject(mapOf(
+                        Constants.ID to activityViewModel.authUser.value?.id,
+                        Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                    )))
+                    typingTimer = object : CountDownTimer(5000, 5000) {
+                        override fun onFinish() {
+                            typingTimer = null
+                            serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+                                Constants.ID to activityViewModel.authUser.value?.id,
+                                Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                            )))
+                        }
+
+                        override fun onTick(p0: Long) {
+
+                        }
+                    }.apply {
+                        start()
+                    }
+                } else {
+                    typingTimer?.cancel()
+                    typingTimer?.start()
+                }
+            }
+        })
+
+        binding.messageInputField.editText?.onFocusChangeListener =
+            OnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus) {
+                    serverSocket?.emit(Constants.USER_CEASE_TYPING, JSONObject(mapOf(
+                        Constants.ID to activityViewModel.authUser.value?.id,
+                        Constants.CHATROOM_ID to activityViewModel.authChatroom.value?.id
+                    )))
+                }
+            }
+    }
+    
     override fun initMessageListAdapter() {
         with(binding) {
             messageList.addItemDecoration(VerticalSpaceItemDecoration(15))
+            messageListAdapter.registerAdapterDataObserver(object :
+                RecyclerView.AdapterDataObserver() {
+                override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                    val firstVisiblePosition: Int =
+                        (binding.messageList.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+
+                    Log.i(
+                        "ChatroomMListFragment",
+                        "first visible position: $firstVisiblePosition. Position start: $positionStart"
+                    )
+                    if (firstVisiblePosition == -1 || (firstVisiblePosition == 0 && positionStart == 0)) {
+                        binding.messageList.scrollToPosition(positionStart)
+                    }
+                }
+            })
             messageList.adapter = messageListAdapter.withLoadStateFooter(loadStateAdapter)
         }
     }
@@ -493,13 +585,12 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
                     withContext(Dispatchers.IO) {
                         uris.map {
                             try {
-                                ImageUtils.getEncodedImageFromUri(requireActivity().contentResolver, it)
+                                ImageUtils.getEncodedImageFromUri(
+                                    requireActivity().contentResolver,
+                                    it, ImageUtils.CompressType.MESSAGE_PICTURE
+                                )
                             } catch (ex: FileNotFoundException) {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "File for sending not found! Please verify it exists!",
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                context?.showWarningToast(getString(R.string.file_not_found))
                                 null
                             }
                         }
@@ -516,7 +607,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             viewLifecycleOwner,
             TextInputLayoutFocusValidatorObserver(
                 binding.messageInputField,
-                Constants.messageInputError
+                getString(R.string.message_input_error)
             )
         )
     }
@@ -533,7 +624,7 @@ class ChatroomMessageListFragment : ChatroomMessageFragment(), TextFieldInputVal
             "onEditMessageSelect triggered in message list fragment for $message!"
         )
 
-        viewModel.message.setValue(message.message) // set to edit current message from bottom sheet
+        viewModel.message.setValue(Constants.imageRegex.replace(message.message, "")) // set to edit current message from bottom sheet
         with(binding) {
             messageInputField.editText?.setSelection(binding.messageInputField.editText!!.text.length)
             sendMessageButton.setOnClickListener(onEditSendMessage(message))

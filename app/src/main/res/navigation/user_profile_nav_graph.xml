@@ -7,11 +7,11 @@
     <dialog
         android:id="@+id/changeEmailDialogFragment"
         android:name="com.example.hobbyfi.ui.main.ChangeEmailDialogFragment"
-        android:label="ChangeEmailDialogFragment" />
+        android:label="Your Profile" />
     <dialog
         android:id="@+id/changePasswordDialogFragment"
         android:name="com.example.hobbyfi.ui.main.ChangePasswordDialogFragment"
-        android:label="ChangePasswordDialogFragment" />
+        android:label="Your Profile" />
     <include app:graph="@navigation/tag_nav_graph" />
     <fragment
         android:id="@+id/userProfileFragment"
@@ -36,5 +36,17 @@
                 android:name="tags"
                 app:argType="com.example.hobbyfi.models.data.Tag[]" />
         </action>
+        <action
+            android:id="@+id/action_userProfileFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+        <action
+            android:id="@+id/action_userProfileFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
     </fragment>
+    <include app:graph="@navigation/loading_nav_graph" />
+    <include app:graph="@navigation/camera_capture_nav_graph" />
 </navigation>

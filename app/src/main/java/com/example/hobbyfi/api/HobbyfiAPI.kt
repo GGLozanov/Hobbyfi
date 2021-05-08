@@ -156,7 +156,8 @@ interface HobbyfiAPI {
      */
     @DELETE("api/v${API_VERSION}/chatroom/delete")
     suspend fun deleteChatroom(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.ID) chatroomId: Long
     ): Response?
 
     /**
@@ -192,7 +193,8 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun kickUser(
         @Header(Constants.AUTH_HEADER) token: String?,
-        @Field(Constants.USER_ID) userId: Long
+        @Field(Constants.USER_ID) userId: Long,
+        @Field(Constants.ID) chatroomId: Long
     ): Response?
 
     /**
@@ -264,6 +266,7 @@ interface HobbyfiAPI {
     @FormUrlEncoded
     suspend fun createEvent(
         @Header(Constants.AUTH_HEADER) token: String,
+        @Field(Constants.CHATROOM_ID) chatroomId: Long,
         @Field(Constants.NAME) name: String,
         @Field(Constants.DESCRIPTION) description: String?,
         @Field(Constants.DATE) date: String,
@@ -292,7 +295,8 @@ interface HobbyfiAPI {
      */
     @DELETE("api/v${API_VERSION}/event/delete_old")
     suspend fun deleteOldEvents(
-        @Header(Constants.AUTH_HEADER) token: String
+        @Header(Constants.AUTH_HEADER) token: String,
+        @Query(Constants.CHATROOM_ID) chatroomId: Long,
     ): CacheListResponse<Long>?
 
     /**

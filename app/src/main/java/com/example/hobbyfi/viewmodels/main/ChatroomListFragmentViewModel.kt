@@ -10,6 +10,7 @@ import com.example.hobbyfi.intents.ChatroomListIntent
 import com.example.hobbyfi.models.data.Chatroom
 import com.example.hobbyfi.models.data.StateIntent
 import com.example.hobbyfi.repositories.ChatroomRepository
+import com.example.hobbyfi.shared.addAllDistinct
 import com.example.hobbyfi.state.ChatroomListState
 import com.example.hobbyfi.viewmodels.base.StateIntentViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +32,12 @@ class ChatroomListFragmentViewModel(application: Application) : StateIntentViewM
 
     init {
         handleIntent()
+    }
+
+    private var _lastOwnedChatroomIds: MutableList<Long> = mutableListOf()
+    val lastOwnedChatroomIds: List<Long> get() = _lastOwnedChatroomIds
+    fun setLastOwnedChatroomIds(ownedChatroomIds: List<Long>) {
+        _lastOwnedChatroomIds.addAllDistinct(ownedChatroomIds)
     }
 
     private var _currentChatrooms: Flow<PagingData<Chatroom>>? = null

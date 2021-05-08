@@ -13,7 +13,6 @@
 
     <com.example.hobbyfi.ui.custom.EventCalendarDrawerLayout
         android:id="@+id/drawer_layout"
-        android:background="@drawable/background_secondary_gradient"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -42,7 +41,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:defaultNavHost="true"
-
                     app:navGraph="@navigation/chatroom_nav_graph" />
             </FrameLayout>
 
@@ -53,9 +51,7 @@
                 android:background="@color/colorPrimary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:navigationIconTint="@android:color/white"
-                app:titleTextColor="@android:color/white" />
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -66,9 +62,7 @@
             android:layout_gravity="start"
             android:background="@color/colorPrimary"
             app:headerLayout="@layout/nav_header_admin"
-            app:menu="@menu/chatroom_admin_nav_drawer_menu"
-            app:itemIconTint="@android:color/white"
-            app:itemTextColor="@android:color/white">
+            app:menu="@menu/chatroom_admin_nav_drawer_menu" >
 
         </com.google.android.material.navigation.NavigationView>
 
@@ -89,20 +83,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-
-                    <GridView
-                        android:id="@+id/tags_grid_view"
-                        android:layout_width="match_parent"
-                        android:layout_height="125dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_marginBottom="8dp"
-                        android:clickable="false"
-                        android:numColumns="auto_fit"
-                        android:stretchMode="columnWidth"
-                        android:verticalSpacing="10dp"
-                        android:visibility="@{viewModel.authChatroom.tags == null ? View.GONE : View.VISIBLE}" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/event_schedule_header"
@@ -140,7 +120,6 @@
                         android:showText="true"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@android:color/white"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
 

@@ -2,6 +2,8 @@ package com.example.hobbyfi.ui.main
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -61,13 +63,18 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             lifecycleOwner = this@UserProfileFragment // in case livedata is needed to be observed from binding
 
-            profileImage.setOnClickListener {
+            // FIXME: Code dup w/ other profile selection Fragments
+            profileImage.galleryOption.setOnClickListener {
                 Callbacks.requestImage(this@UserProfileFragment)
+            }
+
+            profileImage.cameraOption.setOnClickListener {
+                navController.navigate(R.id.action_userProfileFragment_to_camera_capture_nav_graph)
             }
 
             settingsButtonBar.leftButton.setOnClickListener { // delete account button
                 requireContext().buildYesNoAlertDialog(
-                    Constants.confirmAccountDeletionMessage,
+                    getString(R.string.confirm_acc_deletion),
                     { dialogInterface: DialogInterface, _: Int ->
                         lifecycleScope.launch {
                             activityViewModel.sendIntent(UserIntent.DeleteUser)
@@ -80,6 +87,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                 )
             }
 
+            askSwitch.isChecked = prefConfig.readChatroomJoinRememberNavigate() == Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
+            askSwitch.setOnCheckedChangeListener { _, checked ->
+                prefConfig.writeChatroomJoinRememberNavigate(if(checked) Constants.NoRememberDualChoice.REMEMBER_YES.ordinal
+                    else Constants.NoRememberDualChoice.NO_REMEMBER.ordinal)
+            }
+
             return@onCreateView root
         }
     }
@@ -90,11 +103,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(binding) {
             if (!Constants.isFacebookUserAuthd()) {
                 authButtonBar.leftButton.setOnClickListener { // change email button
-                    navController.navigate(R.id.action_global_changeEmailDialogFragment)
+                    navController.safeNavigate(R.id.action_global_changeEmailDialogFragment)
                 }
 
                 authButtonBar.rightButton.setOnClickListener { // change password button
-                    navController.navigate(R.id.action_global_changePasswordDialogFragment)
+                    navController.safeNavigate(R.id.action_global_changePasswordDialogFragment)
                 }
             } else {
                 authButtonBar.leftButton.visibility = View.GONE
@@ -106,7 +119,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.tagBundle.selectedTags.toTypedArray(),
                     viewModel!!.tagBundle.tags.toTypedArray()
                 )
-                navController.navigate(action)
+                navController.safeNavigate(action)
             }
 
             lifecycleScope.launch {
@@ -139,8 +152,7 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
 
                 Log.i("UserProfileFragment", "FieldMap update: ${fieldMap}")
                 if (fieldMap.isEmpty()) {
-                    Toast.makeText(requireContext(), Constants.noUpdateFields, Toast.LENGTH_LONG)
-                        .show()
+                    context?.showWarningToast(getString(R.string.no_fields))
                     return@setOnClickListener
                 } else if(fieldMap.size == 1 && fieldMap.containsKey(Constants.IMAGE)) {
                     WorkerUtils.buildAndEnqueueImageUploadWorker(
@@ -171,6 +183,14 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel!!.tagBundle.appendNewSelectedTagsToTags(selectedTags)
                     viewModel!!.tagBundle.setSelectedTags(selectedTags)
                 }
+
+            navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Uri?>(Constants.CAMERA_URI)
+                ?.observe(viewLifecycleOwner) { uri ->
+                    uri?.let {
+                        binding.profileImage.image
+                            .loadUriIntoGlideAndSaveInImageHolder(it, viewModel!!.base64Image)
+                    }
+                }
         }
     }
 
@@ -185,7 +205,6 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
     }
 
     private fun observeAuthUser() {
-        // observe
         activityViewModel.authUser.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 viewModel.description.value = it.description
@@ -195,14 +214,20 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     viewModel.tagBundle.appendNewSelectedTagsToTags(selectedTags)
                 }
 
-                if (it.photoUrl != null) {
+                if (it.photoUrl != null && navController.currentBackStackEntry
+                        ?.savedStateHandle?.get<Uri?>(Constants.CAMERA_URI) == null) {
                     Log.i("UserProfileFragment", "User photo url: ${it.photoUrl}")
-                    Glide.with(this@UserProfileFragment).load(
-                        it.photoUrl!!
-                    ).signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_user_fetch_time)))
-                        .placeholder(binding.profileImage.drawable) // TODO: Hacky fix for always loading image in ANY user update. NEED to fix this beyond UI hack
-                        .into(binding.profileImage)
+                    it.photoUrl!!.asFirebaseStorageReference()?.let { ref ->
+                        ref.metadata.addOnSuccessListener { metadata ->
+                            Log.i("UserProfileFragment", "metadata create time: ${metadata.creationTimeMillis}")
+                            Glide.with(requireContext()).loadReferenceWithMetadataSignature(
+                                ref, metadata
+                            ).placeholder(binding.profileImage.image.drawable)
+                                .into(binding.profileImage.image)
+                        }
+                    }
                 } else {
+                    // receivedCameraImageCapture = false
                     // load default img (needed if img deletion is added)
                 }
             }
@@ -219,12 +244,12 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         with(viewModel) {
             name.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, Constants.nameInputError)
+                TextInputLayoutFocusValidatorObserver(binding.usernameInputField, getString(R.string.name_input_error))
             )
 
             description.invalidity.observe(
                 viewLifecycleOwner,
-                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, Constants.descriptionInputError)
+                TextInputLayoutFocusValidatorObserver(binding.descriptionInputField, getString(R.string.description_input_error))
             )
         }
     }
@@ -238,6 +263,11 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
         observePredicateValidators()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        navController.currentBackStackEntry
+            ?.savedStateHandle?.set(Constants.CAMERA_URI, null)
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -247,10 +277,9 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
             resultCode,
             data
         ) {
-            Glide.with(requireContext())
-                .load(data!!.data!!)
-                .into(binding.profileImage)
-            viewModel.base64Image.setOriginalUri(data.data!!.toString())
+            binding.profileImage.image
+                .loadUriIntoGlideAndSaveInImageHolder(data!!.data!!, viewModel.base64Image)
         }
     }
+
 }

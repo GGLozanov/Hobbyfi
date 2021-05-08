@@ -3,14 +3,11 @@ package com.example.hobbyfi.ui.chatroom
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -21,26 +18,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
-import com.bumptech.glide.signature.ObjectKey
 import com.example.hobbyfi.R
 import com.example.hobbyfi.adapters.user.ChatroomUserListAdapter
 import com.example.hobbyfi.databinding.EventDetailsFragmentBinding
 import com.example.hobbyfi.intents.ChatroomIntent
 import com.example.hobbyfi.intents.UserGeoPointIntent
 import com.example.hobbyfi.models.data.Event
-import com.example.hobbyfi.models.data.UserGeoPoint
-import com.example.hobbyfi.shared.Constants
-import com.example.hobbyfi.shared.combineWith
-import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
-import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.example.hobbyfi.models.data.User
-import com.example.hobbyfi.shared.isConnected
-import com.example.hobbyfi.shared.setParamsBasedOnScreenOrientation
+import com.example.hobbyfi.models.data.UserGeoPoint
+import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.state.State
 import com.example.hobbyfi.state.UserGeoPointState
-import com.example.hobbyfi.ui.base.DeviceRotationViewAware
 import com.example.hobbyfi.ui.base.MapsActivity
 import com.example.hobbyfi.ui.custom.EventCalendarDecorator
+import com.example.hobbyfi.viewmodels.chatroom.EventDetailsFragmentViewModel
+import com.example.hobbyfi.viewmodels.factories.EventViewModelFactory
 import com.example.spendidly.utils.VerticalSpaceItemDecoration
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -56,7 +48,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 
 @ExperimentalCoroutinesApi
-class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
+class EventDetailsFragment : ChatroomModelFragment() {
     // TODO: Abstract DeviceRotationViewAware impl to higher fragments and handle rotation for all views
 
     private val viewModel: EventDetailsFragmentViewModel by viewModels(factoryProducer = {
@@ -73,10 +65,12 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
 
     private val usersSource: LiveData<List<User>> by lazy {
         viewModel.userGeoPoints?.let {
-            activityViewModel.chatroomUsers.combineWith(it) {
-                    users: List<User>?, geoPoints: List<UserGeoPoint>? ->
+            activityViewModel.chatroomUsers.combineWith(it) { users: List<User>?, geoPoints: List<UserGeoPoint>? ->
                 if(users == null || geoPoints == null) {
-                    Log.i("EventDetailsFragment", "usersSource by lazy: users -> $users; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
+                    Log.i(
+                        "EventDetailsFragment",
+                        "usersSource by lazy: users -> $users; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources"
+                    )
                     return@combineWith emptyList<User>()
                 }
 
@@ -164,7 +158,12 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             .snippet(viewModel.relatedEvent.description)
             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
         viewModel.removeAndSetLastMarker(map.addMarker(marker))
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(eventLatLng, MapsActivity.DEFAULT_ZOOM.toFloat()))
+        map.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                eventLatLng,
+                MapsActivity.DEFAULT_ZOOM.toFloat()
+            )
+        )
     }
 
     private fun initCalendar() {
@@ -203,9 +202,8 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                         listOf(CalendarDay.today())
                     )
                 )
-            } catch(ex: IllegalArgumentException) {
-                Toast.makeText(requireContext(), Constants.eventParsingError, Toast.LENGTH_LONG)
-                    .show()
+            } catch (ex: IllegalArgumentException) {
+                context?.showFailureToast(getString(R.string.event_date_parse_fail))
             }
         }
     }
@@ -235,14 +233,16 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     rightButton.setOnClickListener {
                         lifecycleScope.launch innerLaunch@ {
                             if(calculateEventDayDifference()) {
-                                Toast.makeText(requireContext(), Constants.eventAlreadyConcluded, Toast.LENGTH_LONG)
-                                    .show()
+                                context?.showFailureToast(
+                                    getString(R.string.event_already_concluded),
+                                )
                                 return@innerLaunch
                             }
 
                             if(!connectivityManager.isConnected()) {
-                                Toast.makeText(requireContext(), Constants.noConnectionError, Toast.LENGTH_LONG)
-                                    .show()
+                                context?.showFailureToast(
+                                    getString(R.string.no_connection_error),
+                                )
                                 return@innerLaunch
                             }
 
@@ -251,13 +251,21 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                                     UserGeoPointIntent.UpdateUserGeoPoint(
                                         authUserGeoPoint?.username
                                             ?: activityViewModel.authUser.value!!.name,
-                                        (if(authUserGeoPoint?.chatroomIds?.contains(activityViewModel.authChatroom.value!!.id) == true) authUserGeoPoint.chatroomIds
-                                                    else authUserGeoPoint?.chatroomIds?.plus(activityViewModel.authChatroom.value!!.id))
+                                        (if (authUserGeoPoint?.chatroomIds?.contains(
+                                                activityViewModel.authChatroom.value!!.id
+                                            ) == true
+                                        ) authUserGeoPoint.chatroomIds
+                                        else authUserGeoPoint?.chatroomIds?.plus(
+                                            activityViewModel.authChatroom.value!!.id
+                                        ))
                                             ?: listOf(activityViewModel.authChatroom.value!!.id),
-                                        (if(authUserGeoPoint?.eventIds?.contains(viewModel.relatedEvent.id) == true) authUserGeoPoint.eventIds
-                                                    else authUserGeoPoint?.eventIds?.plus(viewModel.relatedEvent.id))
+                                        (if (authUserGeoPoint?.eventIds?.contains(viewModel.relatedEvent.id) == true) authUserGeoPoint.eventIds
+                                        else authUserGeoPoint?.eventIds?.plus(viewModel.relatedEvent.id))
                                             ?: listOf(viewModel.relatedEvent.id),
-                                        authUserGeoPoint?.geoPoint ?: GeoPoint(0.0, 0.0) // default coords
+                                        authUserGeoPoint?.geoPoint ?: GeoPoint(
+                                            0.0,
+                                            0.0
+                                        ) // default coords
                                     )
                                 )
                             } else {
@@ -291,12 +299,15 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
             binding.eventViewButtonBar.leftButton.isVisible = false
             binding.eventViewButtonBar.rightButton.isVisible = false
             binding.daysLeftHeader.text = String.format(
-                Locale.ENGLISH, "Event has already concluded.")
+                Locale.ENGLISH, getString(R.string.event_concluded)
+            )
             return true
         }
 
         binding.daysLeftHeader.text = String.format(
-            Locale.ENGLISH, "%d days and %d hours left", diff.toDays(), diff.toHours()
+            Locale.ENGLISH, "%d ${getString(R.string.days)}, %d ${getString(R.string.hours)}, ${getString(R.string.and)} %d " +
+                    "${getString(R.string.minutes)} ${getString(R.string.left)}", diff.toDays(),
+            diff.toHours() % 24, diff.toMinutes() % 60
         )
         return false
     }
@@ -304,23 +315,25 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
     private fun observeEventUsers(users: LiveData<List<UserGeoPoint>>) {
         users.combineWith(activityViewModel.chatroomUsers) { geoPoints: List<UserGeoPoint>?, chatroomUsers: List<User>? ->
             if(chatroomUsers == null || geoPoints == null) {
-                Log.i("EventDetailsFragment", "usersSource by lazy: users -> $chatroomUsers; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources")
+                Log.i(
+                    "EventDetailsFragment",
+                    "usersSource by lazy: users -> $chatroomUsers; geoPoints: $geoPoints. One of them is null => Sending empty list for user event sources"
+                )
                 return@combineWith emptyList<User>()
             }
 
             val geoPointUsernames = geoPoints.map { gp -> gp.username }
             Log.i("EventDetailsFragment", "GeoPoints: ${geoPointUsernames}")
             Log.i("EventDetailsFragment", "users: ${chatroomUsers}")
-            return@combineWith chatroomUsers.filter {
-                    user -> geoPointUsernames.contains(user.name) &&
+            return@combineWith chatroomUsers.filter { user -> geoPointUsernames.contains(user.name) &&
                         user.name != activityViewModel.authUserGeoPoint.value?.username
             }
         }.observe(viewLifecycleOwner, Observer {
-                Log.i("EventDetailsFragment", "Users from users source: $it")
-                binding.noUsersText.isVisible = it.isEmpty()
-                binding.usersList.isVisible = it.isNotEmpty()
+            Log.i("EventDetailsFragment", "Users from users source: $it")
+            binding.noUsersText.isVisible = it.isEmpty()
+            binding.usersList.isVisible = it.isNotEmpty()
 
-                userListAdapter.setUsers(it)
+            userListAdapter.setUsers(it)
         })
     }
 
@@ -328,20 +341,23 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         activityViewModel.authEvents
             .map { it.find { ev -> ev.id == viewModel.relatedEvent.id } }
             .observe(viewLifecycleOwner, Observer {
-                if(it != null) {
+                if (it != null) {
                     viewModel.setEvent(it)
                     binding.executePendingBindings()
                     it.photoUrl?.let { photoUrl ->
-                        Glide.with(requireContext())
-                            .load(photoUrl)
-                            .placeholder(binding.eventImage.drawable)
-                            .signature(ObjectKey(prefConfig.readLastPrefFetchTime(R.string.pref_last_events_fetch_time))) // TODO: Change
-                            .into(binding.eventImage)
+                        photoUrl.asFirebaseStorageReference()?.let { ref ->
+                            ref.metadata.addOnSuccessListener { metadata ->
+                                Glide.with(requireContext())
+                                    .loadReferenceWithMetadataSignature(ref, metadata)
+                                    .placeholder(binding.eventImage.drawable)
+                                    .into(binding.eventImage)
+                            }
+                        }
                     }
                     setCalendarDateData()
                     map?.let { m -> setMapsData(m) }
                 }
-        })
+            })
     }
 
     private fun observeUserGeoPointState() {
@@ -358,7 +374,7 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                         // after every update, the snapshotlistener is triggered and the new geoPoint is received in activiy VM
                         // therefore, with each geoPoint update here the activity's geoPoint is updated
                         it.setUserGeoPoint.observe(viewLifecycleOwner, Observer { geoPoint ->
-                            if(geoPoint != null && geoPoint.eventIds.contains(viewModel.relatedEvent.id)) {
+                            if (geoPoint != null && geoPoint.eventIds.contains(viewModel.relatedEvent.id)) {
                                 // user joined event
                                 // since it's impossible to change the geopoint inside eventMapsActivity,
                                 // just sending the geoPoint as it is will suffice (only user location is changed)
@@ -375,9 +391,8 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                         observeEventUsers(it.userGeoPoints)
                     }
                     is UserGeoPointState.Error -> {
-                        Toast.makeText(requireContext(), it.error, LENGTH_LONG)
-                            .show()
-                        if(it.shouldReauth) {
+                        context?.showFailureToast(it.error ?: getString(R.string.something_wrong))
+                        if (it.shouldReauth) {
                             navController.popBackStack()
                         }
                     }
@@ -399,39 +414,15 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         }
     }
 
-    override fun setViewParamsOnRotationChange() {
-        with(binding) {
-            // FIXME: Code dup by adding these as extension funcs scoped to the given views
-            mapPreview.setParamsBasedOnScreenOrientation(
-                requireActivity(),
-                3,
-                2,
-                3,
-                2
-            )
-            dateRangeCalendar.setParamsBasedOnScreenOrientation(
-                requireActivity(),
-                3,
-                3,
-                2,
-                3
-            )
-            usersList.setParamsBasedOnScreenOrientation(
-                requireActivity(),
-                3,
-                3,
-                2,
-                3
-            )
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == Constants.eventMapsRequestCode) {
             when(resultCode) {
                 Constants.RESULT_CHATROOM_DELETE, Constants.RESULT_KICKED -> {
-                    Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CHATROOM_DELETE OR RESULT_KICKED! CHECK BACKSTACK!")
+                    Log.i(
+                        "EventDetailsFragment",
+                        "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CHATROOM_DELETE OR RESULT_KICKED! CHECK BACKSTACK!"
+                    )
                     lifecycleScope.launchWhenResumed {
                         activityViewModel.sendChatroomIntent(
                             ChatroomIntent.DeleteChatroomCache(resultCode == Constants.RESULT_KICKED)
@@ -449,9 +440,11 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
                     (requireActivity() as ChatroomActivity).leaveChatroom()
                 }
                 RESULT_CANCELED -> {
-                    Log.i("EventDetailsFragment", "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!")
-                    Toast.makeText(requireContext(), Constants.eventDeleted, LENGTH_LONG)
-                        .show()
+                    Log.i(
+                        "EventDetailsFragment",
+                        "NOTIFICATION FOR DELETE TRIGGERED ONACTIVITYRESULT FOR RESULT_CANCELLED! CHECK BACKSTACK!"
+                    )
+                    context?.showFailureToast(getString(R.string.event_suddenly_deleted))
                     navController.popBackStack()
                 }
             }
@@ -465,11 +458,6 @@ class EventDetailsFragment : ChatroomModelFragment(), DeviceRotationViewAware {
         }.run {
             startActivityForResult(this, Constants.eventMapsRequestCode)
         }
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        setViewParamsOnRotationChange()
     }
 
     override fun onStart() {

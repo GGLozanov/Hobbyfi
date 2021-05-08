@@ -60,27 +60,18 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
 
     suspend fun createMessage(
         chatroomId: Long,
-        message: String,
-        imageMessage: Boolean
+        message: String? = null,
+        base64Message: String? = null
     ): CreateTimeIdResponse? {
         Log.i("MessageRepository", "createMessage -> Creating new message with auth user id")
         return performAuthorisedRequest({
-            return@performAuthorisedRequest if(!imageMessage) {
-                hobbyfiAPI.createMessage(
+            return@performAuthorisedRequest hobbyfiAPI.createMessage(
                     prefConfig.getAuthUserToken()!!,
                     chatroomId,
                     message,
-                    null
+                    base64Message
                 )
-            } else { // send base64 in separate field. . .
-                hobbyfiAPI.createMessage(
-                    prefConfig.getAuthUserToken()!!,
-                    chatroomId,
-                    null,
-                    imageMessage = message,
-                )
-            }
-        }, { createMessage(chatroomId, message, imageMessage) })
+        }, { createMessage(chatroomId, message, base64Message) })
     }
 
     suspend fun deleteMessage(id: Long): Response? {

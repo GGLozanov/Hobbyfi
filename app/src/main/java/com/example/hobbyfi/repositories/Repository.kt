@@ -1,5 +1,8 @@
 package com.example.hobbyfi.repositories
 
+import android.content.res.Resources
+import com.example.hobbyfi.MainApplication
+import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Constants
@@ -52,32 +55,35 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
         // always throws an exception
         fun dissectExceptionAndThrow(ex: Exception, isAuthorisedRequest: Boolean = false): Nothing {
             ex.printStackTrace()
+            val res = MainApplication.applicationContext.resources
             when(ex) {
-                is HobbyfiAPI.NoConnectivityException, is FirebaseException -> throw Exception(Constants.noConnectionError)
+                is HobbyfiAPI.NoConnectivityException, is FirebaseException ->
+                    throw Exception(res.getString(R.string.no_connection_error))
                 is HttpException -> {
                     when (ex.code()) {
                         400 -> { // bad request (missing data)
-                            throw Exception(Constants.missingDataError)
+                            throw Exception(res.getString(R.string.missing_data_error))
                         }
                         401 -> { // unauthorized
-                            throw if (!isAuthorisedRequest) Exception(Constants.invalidTokenError)
-                            else if (AccessToken.getCurrentAccessToken() != null) ReauthenticationException(Constants.reauthError)
-                            else AuthorisedRequestException(Constants.unauthorisedAccessError)
+                            throw if (!isAuthorisedRequest) Exception(res.getString(R.string.invalid_token))
+                            else if (AccessToken.getCurrentAccessToken() != null)
+                                ReauthenticationException(res.getString(R.string.reauth_error))
+                            else AuthorisedRequestException(res.getString(R.string.unathorised_access))
                         }
                         404 -> { // not found
-                            throw ReauthenticationException(Constants.resourceNotFoundError)
+                            throw ReauthenticationException(res.getString(R.string.resource_not_found_error))
                         }
                         406 -> { // not acceptable
-                            throw Exception(Constants.invalidDataError)
+                            throw Exception(res.getString(R.string.invalid_data))
                         }
                         409 -> { // conflict
-                            throw Exception(Constants.resourceExistsError) // FIXME: Generify response for future endpoints with "exist" as response, idfk
+                            throw Exception(res.getString(R.string.resource_exists_error)) // FIXME: Generify response for future endpoints with "exist" as response, idfk
                         }
                         429 -> { // too many
-                            throw Exception(Constants.limitReachedError)
+                            throw Exception(res.getString(R.string.limit_reacher_error))
                         }
                         500 -> { // server error
-                            throw ReauthenticationException(Constants.internalServerError)
+                            throw ReauthenticationException(res.getString(R.string.internal_server_error))
                         }
                     }
 
@@ -85,13 +91,13 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
                 }
                 is ExpiredJwtException -> {
                     throw if (isAuthorisedRequest) AuthorisedRequestException()
-                    else ReauthenticationException(Constants.expiredTokenError)
+                    else ReauthenticationException(res.getString(R.string.expired_token_error))
                 }
                 is ReauthenticationException,
-                TokenUtils.InvalidStoredTokenException, is InstantiationException, is CancellationException -> throw ex
+                TokenUtils.InvalidStoredTokenException(), is InstantiationException, is CancellationException -> throw ex
                 else -> throw if(ex is SocketTimeoutException)
-                    ReauthenticationException(Constants.serverConnectionError)
-                else UnknownErrorException(Constants.unknownError(ex.message))
+                    ReauthenticationException(res.getString(R.string.server_connection_error))
+                else UnknownErrorException(res.getString(R.string.something_wrong) + " $ex.message")
             }
         }
     }

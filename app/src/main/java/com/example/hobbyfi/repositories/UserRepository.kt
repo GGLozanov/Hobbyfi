@@ -117,6 +117,16 @@ class UserRepository @ExperimentalPagingApi constructor(
         }
     }
 
+    suspend fun setUserPhotoUrl(userId: Long, photoUrl: String, shouldWritePrefTime: Boolean = true) {
+        if(shouldWritePrefTime) {
+            prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
+        }
+
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.userDao().updateUserPhotoUrl(userId, photoUrl)
+        }
+    }
+
     suspend fun deleteUserCache(userId: Long, shouldWritePrefTime: Boolean = true): Boolean {
         Log.i("UserRepository", "deleteUser -> deleting auth user w/ id: $userId")
         if(shouldWritePrefTime) {

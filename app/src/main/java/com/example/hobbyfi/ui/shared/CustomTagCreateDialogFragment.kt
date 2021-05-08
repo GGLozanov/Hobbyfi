@@ -68,7 +68,7 @@ class CustomTagCreateDialogFragment : BaseDialogFragment(), TextFieldInputValida
     override fun observePredicateValidators() {
         viewModel.name.invalidity.observe(
             viewLifecycleOwner,
-            TextInputLayoutFocusValidatorObserver(binding.tagNameInputField, Constants.tagNameInputError)
+            TextInputLayoutFocusValidatorObserver(binding.tagNameInputField, getString(R.string.tag_name_input_error))
         )
     }
 

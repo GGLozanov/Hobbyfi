@@ -1,9 +1,11 @@
 package com.example.hobbyfi.repositories
 
+import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.fetchers.NetworkBoundFetcher
@@ -50,7 +52,7 @@ class EventRepository(
                         prefConfig.getAuthUserToken()!!,
                         chatroomId
                     )
-                }, { fetchFromNetwork() })
+                }, ::fetchFromNetwork)
             }
         }.asFlow()
     }
@@ -81,19 +83,20 @@ class EventRepository(
     }
 
     suspend fun createEvent(name: String, description: String?,
-                    date: String, lat: Double, long: Double): StartDateIdResponse? {
+                    date: String, lat: Double, long: Double, chatroomId: Long): StartDateIdResponse? {
         Log.i("EventRepository", "createEvent -> Creating chatroom event w/ data. " +
                 "Name: $name, description: $description, date: $date, lat: $lat, long: $long")
         return performAuthorisedRequest({
             hobbyfiAPI.createEvent(
                 prefConfig.getAuthUserToken()!!,
+                chatroomId,
                 name,
                 description,
                 date,
                 lat,
                 long
             )
-        }, { createEvent(name, description, date, lat, long) })
+        }, { createEvent(name, description, date, lat, long, chatroomId) })
     }
 
     suspend fun deleteEvent(eventId: Long): Response? {
@@ -107,14 +110,15 @@ class EventRepository(
         }, { deleteEvent(eventId) })
     }
 
-    suspend fun deleteOldEvents(): CacheListResponse<Long>? {
+    suspend fun deleteOldEvents(chatroomId: Long): CacheListResponse<Long>? {
         Log.i("EventRepository", "deleteEvent -> Deleting old events!!!")
 
         return performAuthorisedRequest({
             hobbyfiAPI.deleteOldEvents(
-                prefConfig.getAuthUserToken()!!
+                prefConfig.getAuthUserToken()!!,
+                chatroomId
             )
-        }, { deleteOldEvents() })
+        }, { deleteOldEvents(chatroomId) })
     }
 
     suspend fun editEvent(eventUpdateFields: Map<String, String?>): Response? {
@@ -244,8 +248,15 @@ class EventRepository(
                 observer.value = UserGeoPoint(username, chatroomIds, eventIds, location)
             }
             .addOnFailureListener {
-                throw FirebaseException(Constants.firestoreUpdateError)
+                throw FirebaseException(MainApplication.applicationContext.resources.getString(R.string.firestore_update_error))
             }
         return observer
+    }
+
+    suspend fun setEventPhotoUrl(id: Long, photoUrl: String) {
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_events_fetch_time)
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.eventDao().updateEventPhotoUrl(id, photoUrl)
+        }
     }
 }
