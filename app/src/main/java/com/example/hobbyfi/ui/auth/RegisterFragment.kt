@@ -71,7 +71,7 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
             ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
         )
 
-    private val confirmPasswordStep: FormStep get  () =
+    private val confirmPasswordStep: FormStep get() =
         FormStep(getString(R.string.confirm_password), viewLifecycleOwner, getString(R.string.confirm_password_input_error),
             StepperFormInput(
                 getString(R.string.confirm_password_hint),

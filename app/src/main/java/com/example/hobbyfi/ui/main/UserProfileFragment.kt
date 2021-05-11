@@ -220,10 +220,13 @@ class UserProfileFragment : MainFragment(), TextFieldInputValidationOnus {
                     it.photoUrl!!.asFirebaseStorageReference()?.let { ref ->
                         ref.metadata.addOnSuccessListener { metadata ->
                             Log.i("UserProfileFragment", "metadata create time: ${metadata.creationTimeMillis}")
-                            Glide.with(requireContext()).loadReferenceWithMetadataSignature(
-                                ref, metadata
-                            ).placeholder(binding.profileImage.image.drawable)
-                                .into(binding.profileImage.image)
+                            val currentContext = context // crash occured here; circumvention attempts
+                            if(currentContext != null) {
+                                Glide.with(currentContext).loadReferenceWithMetadataSignature(
+                                    ref, metadata
+                                ).placeholder(binding.profileImage.image.drawable)
+                                    .into(binding.profileImage.image)
+                            }
                         }
                     }
                 } else {
