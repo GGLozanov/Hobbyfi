@@ -93,7 +93,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:text="@string/share_to_facebook"
-                        android:visibility="@{ownerDisplay ? View.GONE : View.VISIBLE}" />
+                        android:visibility="@{ownerDisplay ? View.GONE : View.VISIBLE}"
+                        app:backgroundTint="@color/colorPrimaryDark" />
                 </FrameLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
         <variable
@@ -12,21 +13,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center">
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/timeline_message"
-            android:layout_width="200dp"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/rounded_container_layered"
-            android:gravity="center"
-            android:maxHeight="125dp"
-            android:padding="10dp"
-            android:text="@{message.message}"
-            android:textSize="20sp"
-            android:textStyle="bold">
+            android:backgroundTint="@color/colorPrimary"
+            android:padding="8dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="8dp">
 
-        </com.google.android.material.textview.MaterialTextView>
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/timeline_message"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center"
+                android:maxHeight="125dp"
+                android:padding="10dp"
+                android:text="@{message.message}"
+                android:textSize="20sp"
+                android:textStyle="bold">
+
+            </com.google.android.material.textview.MaterialTextView>
+        </com.google.android.material.card.MaterialCardView>
     </androidx.appcompat.widget.LinearLayoutCompat>
-
 </layout>
