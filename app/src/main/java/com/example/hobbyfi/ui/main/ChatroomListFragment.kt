@@ -33,7 +33,6 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                 // this check is required for whenever this observer might be trigger by CreateChatroomFragment
                 val joinChatroomWithDialog = {
                     joinChatroomAndUpdate()
-                    // TODO: Add clear pref option
                     when(prefConfig.readChatroomJoinRememberNavigate()) {
                         Constants.NoRememberDualChoice.NO_REMEMBER.ordinal -> {
                             val dialogBinding = DialogNoRemindBinding.inflate(layoutInflater)
@@ -70,7 +69,7 @@ class ChatroomListFragment : MainListFragment<ChatroomListAdapter>() {
                     if(activityViewModel.deepLinkExtras != null &&
                         viewModel.buttonSelectedChatroom?.id ==
                             activityViewModel.deepLinkExtras?.getDouble(Constants.CHATROOM_ID)?.toLong()) {
-                        joinChatroomWithDialog()
+                        joinChatroomAndUpdate()
                     } else {
                         joinChatroomWithDialog()
                     }

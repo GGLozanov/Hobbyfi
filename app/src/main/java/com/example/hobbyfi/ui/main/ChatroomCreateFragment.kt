@@ -93,8 +93,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                     is ChatroomState.OnData.ChatroomCreateResult -> {
                         activityViewModel.sendIntent(
                             UserIntent.UpdateUserCache(mapOf(
-                                Pair(Constants.CHATROOM_IDS, Constants.jsonConverter.toJson(
-                                    activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id))
+                                Constants.CHATROOM_IDS to Constants.jsonConverter.toJson(
+                                    activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id)
                                 )
                             )
                         )) // trigger for joinedChatroom observer in ChatroomListFragment
@@ -113,7 +113,8 @@ class ChatroomCreateFragment : MainFragment(), TextFieldInputValidationOnus {
                         activityViewModel.setJoinedChatroom(true)
                         prefConfig.writeLastEnteredChatroomId(it.response.id)
                         navController.safeNavigate(ChatroomCreateFragmentDirections.actionChatroomCreateFragmentToChatroomActivity(
-                            activityViewModel.authUser.value,
+                            activityViewModel.authUser.value?.copy(chatroomIds =
+                                activityViewModel.authUser.value!!.chatroomIds?.plus(it.response.id) ?: listOf(it.response.id)), // user still not updated in repo at this point
                             it.response
                         ))
                     }

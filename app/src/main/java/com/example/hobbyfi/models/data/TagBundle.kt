@@ -13,7 +13,6 @@ class TagBundle(initialTags: List<Tag>? = null) {
     private var _selectedTags: List<Tag> = initialTags ?: arrayListOf()
     val selectedTags: List<Tag> get() = _selectedTags
 
-    // FIXME: Code dup with RegisterFragmentViewModel. . .
     fun appendNewSelectedTagsToTags(selectedTags: List<Tag>) {
         _tags.addAllDistinct(selectedTags)
     }

@@ -9,14 +9,13 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
-// TODO: chatroomId change to eventIds List for one-to-many connection
 @Entity(tableName = "users")
 @Keep
 @Parcelize
 data class User(
     @PrimaryKey
     override val id: Long,
-    var email: String?,
+    var email: String?, 
     @SerializedName(Constants.USERNAME)
     override var name: String,
     var description: String?,

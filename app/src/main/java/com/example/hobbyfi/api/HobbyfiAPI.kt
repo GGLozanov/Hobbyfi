@@ -320,7 +320,7 @@ interface HobbyfiAPI {
 
     @POST("api/v${API_VERSION}/user/toggle_push.php")
     @FormUrlEncoded
-    suspend fun togglePushNotificationAllowForChatrooom(
+    suspend fun togglePushNotificationAllowForChatroom(
         @Header(Constants.AUTH_HEADER) token: String,
         @Field(Constants.CHATROOM_ID) chatroomId: Long,
         @Field(Constants.TOGGLE) toggle: Int
@@ -371,8 +371,8 @@ interface HobbyfiAPI {
                 .newBuilder()
                 .addInterceptor(requestInterceptor)
                 .addInterceptor(loggingInterceptor)
-                .readTimeout(120, TimeUnit.SECONDS)
-                .writeTimeout(120, TimeUnit.SECONDS)
+                .readTimeout(90, TimeUnit.SECONDS)
+                .writeTimeout(90, TimeUnit.SECONDS)
                 .build()
 
             return Retrofit.Builder()

@@ -9,7 +9,6 @@ import com.example.hobbyfi.shared.fromJson
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
-// TODO: lastEventId change to eventIds List for one-to-many connection
 @Entity(tableName = "chatrooms")
 @Keep
 @Parcelize

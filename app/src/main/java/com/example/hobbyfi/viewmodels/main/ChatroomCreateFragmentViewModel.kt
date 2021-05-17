@@ -74,7 +74,7 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
                 null
             )
 
-            saveChatroom(chatroom)
+            chatroomRepository.saveChatrooms(listOf(chatroom)) // doesn't work without a list
 
             ChatroomState.OnData.ChatroomCreateResult(
                 chatroom
@@ -87,6 +87,4 @@ class ChatroomCreateFragmentViewModel(application: Application) : StateIntentVie
             )
         })
     }
-
-    private suspend fun saveChatroom(chatroom: Chatroom) = chatroomRepository.saveChatroom(chatroom)
 }

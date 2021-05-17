@@ -307,12 +307,14 @@ class ChatroomActivity : NavigationActivity(),
                     } else {
                         // something is missing (most likely the auth user)
                         sendUserIntentFetchIntentOnCurrentNull()
-                        sendChatroomFetchIntentOnCurrentNull()
+                        sendChatroomFetchIntentOnCurrentNull(
+                            getChatroomIdFromDeepLinkProps(safeLinkProps) ?: prefConfig.readLastEnteredChatroomId())
                     }
                 }
             } else {
                 sendUserIntentFetchIntentOnCurrentNull()
-                sendChatroomFetchIntentOnCurrentNull()
+                sendChatroomFetchIntentOnCurrentNull(
+                    getChatroomIdFromDeepLinkProps() ?: prefConfig.readLastEnteredChatroomId())
             }
         }
 
@@ -573,7 +575,7 @@ class ChatroomActivity : NavigationActivity(),
 
                             if (it.user.chatroomIds?.contains(deepLinkChatroomId) == true && deepLinkChatroomId != null) {
                                 prefConfig.writeLastEnteredChatroomId(deepLinkChatroomId)
-                                sendChatroomFetchIntentOnCurrentNull()
+                                sendChatroomFetchIntentOnCurrentNull(deepLinkChatroomId)
                             } else {
                                 this@ChatroomActivity.showFailureToast(
                                     getString(R.string.not_joined_chatroom_error)
@@ -733,7 +735,8 @@ class ChatroomActivity : NavigationActivity(),
         viewModel.chatroomUsers.distinctUntilChanged().observe(this, Observer {
             Log.i("ChatroomActivity", "auth user in users observe: ${viewModel.authUser.value}")
             Log.i("ChatroomActivity", "observed users: $it")
-            if (it.isNotEmpty() && !it.contains(viewModel.authUser.value)) {
+            if (it.isNotEmpty() && !it.contains(viewModel.authUser.value) &&
+                    viewModel.isAuthUserChatroomOwner.value == false) {
                 leaveChatroomWithDelete()
                 return@Observer
             }
@@ -1001,7 +1004,8 @@ class ChatroomActivity : NavigationActivity(),
                 UserListIntent.FetchUsers
             )
             viewModel.sendChatroomIntent(
-                ChatroomIntent.FetchChatroom(navController.currentDestination?.id)
+                ChatroomIntent.FetchChatroom(prefConfig.readLastEnteredChatroomId(),
+                    navController.currentDestination?.id)
             )
 
             if (viewModel.authChatroom.value?.eventIds != null) {
@@ -1327,10 +1331,12 @@ class ChatroomActivity : NavigationActivity(),
     }
 
     // check notification or deeplink by intent extras
-    private fun sendChatroomFetchIntentOnCurrentNull() {
+    private fun sendChatroomFetchIntentOnCurrentNull(chatroomId: Long) {
         if (viewModel.authChatroom.value == null) {
             lifecycleScope.launch {
-                viewModel.sendChatroomIntent(ChatroomIntent.FetchChatroom(navController.currentDestination?.id))
+                viewModel.sendChatroomIntent(
+                    ChatroomIntent.FetchChatroom(chatroomId, navController.currentDestination?.id)
+                )
             }
         }
     }

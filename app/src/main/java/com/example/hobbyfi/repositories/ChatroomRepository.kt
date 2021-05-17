@@ -79,7 +79,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     }
 
     // fetches chatroom when chatroomactivity is called from deeplink notification (for example)
-    suspend fun getChatroom(): Flow<Chatroom?> {
+    suspend fun getChatroom(chatroomId: Long): Flow<Chatroom?> {
         Log.i("ChatroomRepository", "getChatroom -> getting auth user chatroom")
 
         return object : NetworkBoundFetcher<Chatroom, CacheResponse<Chatroom>>() {
@@ -93,7 +93,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
             }
 
             override suspend fun loadFromDb(): Flow<Chatroom?> =
-                hobbyfiDatabase.chatroomDao().getChatroomById(prefConfig.readLastEnteredChatroomId())
+                hobbyfiDatabase.chatroomDao().getChatroomById(chatroomId)
 
             override suspend fun fetchFromNetwork(): CacheResponse<Chatroom>? {
                 Log.i("ChatroomRepository", "getChatroom -> fetchFromNetwork() -> fetching current auth chatroom from network")
@@ -153,6 +153,15 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
         withContext(Dispatchers.IO) {
             hobbyfiDatabase.chatroomDao().upsert(chatroom)
+        }
+    }
+
+    suspend fun saveChatrooms(chatrooms: List<Chatroom>) {
+        Log.i("ChatroomRepository", "editChatroomCache -> NEW CHATROOMS: ${chatrooms}")
+
+        prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
+        withContext(Dispatchers.IO) {
+            hobbyfiDatabase.chatroomDao().upsert(chatrooms)
         }
     }
 

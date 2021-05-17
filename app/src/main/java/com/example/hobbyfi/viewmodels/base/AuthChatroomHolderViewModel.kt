@@ -63,7 +63,7 @@ abstract class AuthChatroomHolderViewModel(
             chatroomStateIntent.intentAsFlow().collectLatest {
                 when(it) {
                     is ChatroomIntent.FetchChatroom -> {
-                        fetchChatroom(it.currentDestinationId)
+                        fetchChatroom(it.chatroomId, it.currentDestinationId)
                     }
                     is ChatroomIntent.DeleteChatroom -> {
                         deleteChatroom()
@@ -88,13 +88,13 @@ abstract class AuthChatroomHolderViewModel(
         }
     }
 
-    private suspend fun fetchChatroom(currentDestinationId: Int?) {
+    private suspend fun fetchChatroom(chatroomId: Long, currentDestinationId: Int?) {
         // ehhhhhhh, this kinda shouldn't be here
         if(currentDestinationId != null && currentDestinationId == R.id.chatroomMessageListFragment) {
             chatroomStateIntent.setState(ChatroomState.Loading)
         }
 
-        chatroomRepository.getChatroom().catch { e ->
+        chatroomRepository.getChatroom(chatroomId).catch { e ->
             chatroomStateIntent.setState(
                 ChatroomState.Error(
                     e.message,

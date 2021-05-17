@@ -115,8 +115,8 @@ class EventCalendarSelectionBottomSheetDialogFragment : EventSelectionBottomShee
                 "\$og_app_id",
                 getString(R.string.FB_APP_ID)
             )
-            .addControlParameter("event_id", event.id.toString())
-            .addControlParameter("chatroom_id", event.chatroomId.toString())
+            .addControlParameter(Constants.EVENT_ID, event.id.toString())
+            .addControlParameter(Constants.CHATROOM_ID, event.chatroomId.toString())
 
 
         event.photoUrl?.let {

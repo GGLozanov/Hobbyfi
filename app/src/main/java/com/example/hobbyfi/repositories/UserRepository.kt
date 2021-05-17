@@ -208,7 +208,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun togglePushNotificationAllowForChatroomUser(chatroomId: Long, allow: Boolean) {
         Log.i("UserRepository", "togglePushNotificationAllowForChatroomUser -> toggling push notifictation for auth user and chatroom w/ id $chatroomId with toggle status: $allow")
         return performAuthorisedRequest({
-            hobbyfiAPI.togglePushNotificationAllowForChatrooom(
+            hobbyfiAPI.togglePushNotificationAllowForChatroom(
                 prefConfig.getAuthUserToken()!!,
                 chatroomId,
                 if(allow) 1 else 0

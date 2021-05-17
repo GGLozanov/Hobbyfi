@@ -14,7 +14,7 @@ class EmitterListenerFactory(private val activity: Activity) {
     ): Emitter.Listener = Emitter.Listener {
             activity.runOnUiThread {
                 try {
-                    Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                    Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it[0]}")
                     onModelDeserialised(modelFromMap((it[0] as JSONObject).toPlainStringMap()))
                 } catch(ex: Exception) {
                     ex.printStackTrace()
@@ -28,7 +28,7 @@ class EmitterListenerFactory(private val activity: Activity) {
     ): Emitter.Listener = Emitter.Listener {
         activity.runOnUiThread {
             try {
-                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it[0]}")
                 onEditFieldMapReceived((it[0] as JSONObject).toPlainStringMap())
             } catch(ex: Exception) {
                 ex.printStackTrace()
@@ -43,7 +43,7 @@ class EmitterListenerFactory(private val activity: Activity) {
     ): Emitter.Listener = Emitter.Listener {
         activity.runOnUiThread {
             try {
-                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it[0]}")
                 onIdFieldReceived(
                     (it[0] as JSONObject).toPlainStringMap()[idField]?.toLong()
                         ?: throw IllegalArgumentException(
@@ -62,7 +62,7 @@ class EmitterListenerFactory(private val activity: Activity) {
     ): Emitter.Listener = Emitter.Listener {
         activity.runOnUiThread {
             try {
-                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it}")
+                Log.i("EmitterListenerFactory", "data received for createEmitterListenerForCreate: ${it[0]}")
                 onIdFieldArrayReceived(
                     Constants.jsonConverter.fromJson(
                         (it[0] as JSONObject).toPlainStringMap()[idField]
