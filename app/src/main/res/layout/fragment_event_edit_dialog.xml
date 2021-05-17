@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.chatroom.EventEditDialogFragmentViewModel" />
+    </data>
+
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fadeScrollbars="false"
+        android:fillViewport="true"
+        android:visibility="visible"
+        tools:visibility="visible">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".ui.chatroom.EventEditDialogFragment">
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/event_edit_outer_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_container_layered"
+                android:orientation="vertical"
+                android:padding="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <include
+                    android:id="@+id/event_info"
+                    layout="@layout/event_info_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:eventHeaderText="@{@string/event_edit_header}"
+                    app:viewModel="@{viewModel}" />
+
+                <include
+                    android:id="@+id/event_edit_dialog_button_bar"
+                    layout="@layout/button_bar_pair"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    app:leftButtonStartDrawable="@{@drawable/ic_baseline_cancel_24}"
+                    app:leftButtonText="@{@string/cancel}"
+                    app:rightButtonStartDrawable="@{@drawable/ic_baseline_check_24}"
+                    app:rightButtonText="@{@string/confirm}" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</layout>

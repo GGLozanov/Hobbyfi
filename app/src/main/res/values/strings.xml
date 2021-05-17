@@ -1,0 +1,308 @@
+<resources>
+    <string name="app_name">Hobbyfi</string>
+
+    <integer name="google_play_services_version">12451000</integer>
+    <string name="file_provider" translatable="false">com.example.hobbyfi.fileprovider</string>
+
+    <string name="pref_file">com.example.preference_file</string>
+    <string name="pref_login_status">com.example.preference_login_status</string>
+    <string name="pref_token">com.example.preference_token</string> <!--Accounts for both JWT and Facebook-->
+    <string name="pref_refresh_token">com.example.preference_refresh_token</string>
+    <string name="pref_device_token">com.example.preference_device_token</string>
+
+    <!--Rest of caching is handled by RemoteMediators for Paging3 and Cloud Firestore; these are handled by NetworkBoundFetchers-->
+    <string name="pref_last_user_fetch_time">com.example.preference_last_user_fetch_time</string>
+    <string name="pref_last_user_image_fetch_time">com.example.preference_last_user_image_fetch_time</string>
+    <string name="pref_last_events_fetch_time">com.example.preference_last_events_fetch_time</string>
+
+    <string name="pref_last_chatrooms_fetch_time">com.example.preference_last_chatrooms_fetch_time</string>
+    <string name="pref_last_chatroom_image_fetch_time">com.example.preference_last_chatroom_image_fetch_time</string>
+
+    <string name="pref_last_chatroom_users_fetch_time">com.example.preference_last_chatroom_users_fetch_time</string>
+    <string name="pref_last_chatroom_messages_fetch_time">com.example.preference_last_chatroom_messages_fetch_time</string>
+
+    <string name="pref_chatroom_join_remember_navigate">com.example.preference_chatroom_join_remember_navigate</string>
+    <string name="pref_last_entered_chatroom_id">com.example.preference_last_entered_chatroom_id</string>
+    <string name="pref_requesting_location_updates">com.example.preference_requesting_location_updates</string>
+    <string name="pref_restarted_from_chatroom_task_root">com.example.preference_restarted_from_chatroom_task_root</string>
+    <string name="pref_request_location_service_running">com.example.preference_request_location_service_running</string>
+
+    <string name="pref_first_app_boot">com.example.first_app_boot</string>
+    <string name="pref_reached_bottom_messages_after_search">com.example.preference_reached_bottom_messages_after_search</string>
+    <string name="pref_current_token_uploaded">com.example.preference_current_token_uploaded</string>
+
+    <string name="default_notification_channel_id">HOBBYFI_NOTIFICATION_CHANNEL</string>
+
+    <string name="email_hint">Enter E-mail</string>
+    <string name="username_hint">Enter Username</string>
+    <string name="password_hint">Enter Password</string>
+    <string name="description_hint">Enter Description</string>
+    <string name="select_tags_hint">Select Your Tags</string>
+
+    <string name="no_account_hint">Don\'t have an account? Sign Up!</string>
+    <string name="have_account_hint">Have an account? Login!</string>
+
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
+
+    <string name="bn_view_users_title">View Users</string> <!--bn = bottom nav-->
+    <string name="bn_view_self_title">View Self</string>
+
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm_fields">Confirm Fields</string>
+
+    <string name="change_password">Change Password</string>
+    <string name="change_email">Change E-mail</string>
+    <string name="delete_account">Delete Account</string>
+
+    <string name="new_email_hint">Enter New E-mail</string>
+    <string name="new_password_hint">Enter New Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="confirm_new_password_hint">Confirm New Password</string>
+    <string name="title_activity_event_maps">Event Map</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_chatroom">Chatroom</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="tag_name_hint">Enter a tag name</string>
+    <string name="create_custom_tag_header">Create your tag</string>
+    <string name="message_hint">Enter a message</string>
+    <string name="profile">Your Profile</string>
+    <string name="read_external_storage_rationale">We need to access your storage for you to select your profile picture.</string>
+    <string name="camera_rationale">We need to access your camera for you to select your profile picture using it.</string>
+    <string name="chatrooms">Chatrooms</string>
+    <string name="list_error_text">Something went wrong? Try again!</string>
+    <string name="create_chatroom_header">Or… just create your own Chatroom!</string>
+    <string name="chatroom_create_header">Create Chatroom</string>
+    <string name="list_suggest_text">Don\'t find what you\'re looking for? Just create your own Chatroom!</string>
+    <string name="chatroom_name_hint">Enter a chatroom name</string>
+
+    <string name="search">Search</string>
+    <string name="info">Info</string>
+    <string name="edit_chatroom">Edit Chatroom</string>
+    <string name="edit_an_event">Edit an Event</string>
+    <string name="manage_events">Manage Events</string>
+    <string name="create_event">Create Event</string>
+    <string name="delete_chatroom">Delete Chatroom</string>
+    <string name="delete_an_event">Delete an Event</string>
+    <string name="pick_single">Pick only one image</string>
+
+    <string name="create_message_notification_title">New message received!</string>
+    <string name="create_event_notification_title">New event created!</string>
+    <string name="delete_chatroom_notification_title">Chatroom deleted!</string>
+    <string name="delete_chatroom_notification_body">Looks like the chatroom you were apart of was deleted. Don\'t worry, just find (or create) a new one!</string>
+    <string name="join_user_notification_title">New user!</string>
+    <string name="leave_user_notification_title">User left!</string>
+
+    <plurals name="pick_multi">
+        <item quantity="one">One image selected</item>
+        <item quantity="other">%1$d images selected</item>
+    </plurals>
+    <plurals name="pick_multi_more">
+        <item quantity="one">Please select one more image…</item>
+        <item quantity="other">Please select %1$d more images…</item>
+    </plurals>
+    <string name="pick_multi_limit">You have more than %1$d images selected…</string>
+    <string name="no_event_description">You can wait for the owner to create one.</string>
+    <string name="no_event_title">Currently, there\'s no event scheduled.</string>
+    <string name="no_event_description_owner">But you can make one in the admin panel.</string>
+    <string name="users">Users</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="delete_message">Are you sure you want to delete this message?</string>
+    <string name="admin_panel">Admin Panel</string>
+    <string name="admin_description">This is the admin panel. You can edit the chatroom\'s info here.</string>
+    <string name="event_create_header">Create an Event</string>
+    <string name="title_activity_event_choose_location_maps">Map</string>
+    <string name="event_name_hint">Enter an event name</string>
+    <string name="channel_name">Hobbyfi Channel</string>
+    <string name="channel_description">Hobbyfi notification channel. Duh.</string>
+    <string name="access_fine_location_rationale">We need to have access to your location if you want to automatically choose the event location as your current one.</string>
+    <string name="write_external_storage_rationale">We need to have access to your external storage in order to save this image file.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="back_event_choose_maps">Do you want to use the current coordinates as the event\'s location?</string>
+    <string name="your_chatrooms">Your Chatrooms</string>
+    <string name="event_schedule">Event Schedule</string>
+    <string name="no_remind">Don\'t show this again</string>
+    <string name="delete_events_batch">Are you sure you want to delete all old events?</string>
+    <string name="delete_event">Are you sure you want to delete this event?</string>
+    <string name="event_edit_header">Manage Event</string>
+    <string name="no_events">No Events</string>
+    <string name="keep_date">Do you want to keep the currently selected date for the event?</string>
+    <string name="current_events">Current Events</string>
+    <string name="event_info">Event Information</string>
+    <string name="event_details">Event Info</string>
+
+    <string name="request_location_updates">Request location updates</string>
+    <string name="remove_location_updates">Remove location updates</string>
+
+    <string name="location_updated">Location Updated: %1$s</string>
+    <string name="launch_activityG">Go back</string>
+    <string name="location_monitor_permission_explanation">We need to monitor your location while you\'re using the app in order to partake in the event effectively with others. We can take your app settings to enable those permissions or continue without them. You won\'t be tracked and won\'t directly participate alongisde the others but you can enable tracking with the buttons on the right. \nGo to settings screen?</string>
+    <string name="choose_location_maps_CD">Confirm Location</string>
+    <string name="reset_location_CD">Reset Location</string>
+    <string name="go_to_event_CD">Go to Event</string>
+    <string name="disable_location_updates_CD">Disable Location Updates</string>
+    <string name="enable_location_update_CD">Enable Location Updates</string>
+    <string name="location_monitor_ask">Do you want to automatically enable location tracking now to keep in touch with the other users in the event? If you don\'t, you won\'t be shown as a participant in the event!</string>
+    <string name="no_users">No Users</string>
+    <string name="chatroom_leave_button_text">Leave</string>
+    <string name="chatroom_join_button_text">Join</string>
+    <string name="create_chatroom">Create Chatroom</string>
+    <string name="retry">Retry</string>
+    <string name="share_to_facebook">Share</string>
+    <string name="delete_old_events">Delete Old</string>
+    <string name="create_custom">Create Custom</string>
+    <string name="choose_tags">Choose Tags</string>
+    <string name="select_tags">Select Tags</string>
+    <string name="join_event">Join Event</string>
+    <string name="leave_event">Leave Event</string>
+    <string name="set_time">Set Date</string>
+    <string name="set_location">Set Place</string>
+    <string name="enter">Enter</string>
+    <string name="auth">Auth</string>
+    <string name="title_activity_onboarding">OnboardingActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="cont">Continue</string>
+    <string name="finish">Finish</string>
+    <string name="reset_password_hint">Forgot your password? Reset it!</string>
+    <string name="welcome_to_app">Welcome to Hobbyfi: The Hobbyists\' Platform!</string>
+    <string name="app_description">Hobbyfi\'s goal is to allow all kinds of hobbyists—from artists, to sports players, to teachers, and just plain friends—to connect with each other and interact in real time!</string>
+    <string name="auth_explanation">To begin using Hobbyfi, you\'ll first need to either log in from an existing account or create one.</string>
+    <string name="facebook_mention">You may also choose to log in with a Facebook account, if you so desire.</string>
+    <string name="chatrooms_explanation">After customising your account, you may partake in…</string>
+    <string name="app_description_outro">Rooms! You can join rooms and interact with others, join events, and much more!</string>
+    <string name="closing_onboarding">In summary, that\'s it! But Hobbyfi has a lot to offer, so be sure to explore. Thank you for making it this far :)</string>
+    <string name="reset_password_header">Reset Password</string>
+    <string name="reset">Reset</string>
+    <string name="download">Download</string>
+    <string name="search_messages">Search messages…</string>
+    <string name="kick">Kick</string>
+    <string name="kick_user_confirm">Are you certain you want to kick this user?</string>
+    <string name="user_chatroom_owner">Chatroom Admin</string>
+    <string name="push_notification_toggle">Receive notifications from this room?</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="no_tags">No Tags</string>
+    <string name="tags">Tags</string>
+    <string name="imageViewError">Cannot view image for a message that doesn\'t contain an image!</string>
+    <string name="socket_connection_fail">Couldn\'t connect to the server for realtime capabilities! Do you want to leave and try again later?</string>
+    <string name="or">Or</string>
+
+    <string name="delete_messages">Successfully deleted message!</string>
+    <string name="facebook_login_cancel">Facebook login cancelled!</string>
+    <string name="facebook_login_error">Facebook login error!</string>
+    <string name="event_create_success">Event successfully created!</string>
+    <string name="something_wrong">Something went wrong!</string>
+    <string name="no_fields">No fields to update!</string>
+    <string name="chatroom_delete_success">Successfully deleted chatroom!</string>
+    <string name="chatroom_deleted_message">Oh no, it looks like the chatroom was deleted by the owner! We apologise for the inconvenience this may have caused!</string>
+    <string name="chatroom_kicked_message">Oh no, it looks like you\'ve been kicked from the chatroom by the owner!</string>
+    <string name="chatroom_updated">Successfully updated chatroom!</string>
+    <string name="user_kick_success">User successfully kicked!</string>
+    <string name="delete_old_events_success">Successfully deleted old events!</string>
+    <string name="event_delete_success">Event successfully deleted!</string>
+    <string name="event_deleted">Linked event seems to already have been deleted by the chatroom owner!</string>
+    <string name="event_date_parse_fail">Failed to parse event date!</string>
+    <string name="event_suddenly_deleted">Event you were tracking was suddenly deleted!</string>
+    <string name="user_email_not_found">User with this given e-mail wasn\'t found!</string>
+    <string name="email_send_fail">Failed to send e-mail! Please, try again!</string>
+    <string name="facebook_user_reset_password_email">User with this e-mail is a Facebook user and doesn\'t need an e-mail sent!</string>
+    <string name="event_already_concluded">Event has already concluded!</string>
+    <string name="no_connection_error">Couldn\'t perform operation! Please check your connection!</string>
+    <string name="no_connection_or_root_auth_error">Couldn\'t enter the chatroom! Please check your connection or login again!</string>
+    <string name="sent_password_email">Successfully sent password reset e-mail!</string>
+    <string name="password_uniqeness">Passwords must not be the same! Please enter a new, unique password!</string>
+    <string name="enter_original_password">Invalid access! Please enter the correct original password!</string>
+    <string name="reauth_error">Logging out! Your session may have expired!</string>
+    <string name="dup_message_edit">You can\'t edit a message with the same message!</string>
+    <string name="file_not_found">File for sending not found! Please verify it exists!</string>
+    <string name="no_old_event_delete">No old events to delete!</string>
+    <string name="deep_link_gen_fail">Couldn\'t generate an appropriate share format for this event! Please contact a developer!</string>
+    <string name="deep_link_success_share">Successfully shared event to Facebook!</string>
+    <string name="deep_link_cancel_share">Event share attempt cancelled!</string>
+    <string name="deep_link_fail_share">Couldn\'t share event to Facebook! Something must have gone wrong on their end!</string>
+    <string name="share_dialog_fail">Couldn\'t reroute to Facebook share screen! Please try again!</string>
+    <string name="socket_emission_fail">Couldn\'t receive new messages to display!</string>
+    <string name="location_updates_disabled">Location updates disabled!</string>
+    <string name="location_updates_enabled">Location updates enabled!</string>
+    <string name="no_update_reset_only">Can only reset location if you aren\'t currently partaking in the event with your location!</string>
+    <string name="location_reset">Location successfully reset!</string>
+    <string name="same_email_validation">Emails must not be the same! Please enter a new, unique e-mail!</string>
+    <string name="delete_account_success">Successfully deleted account!</string>
+    <string name="update_fields_success">Successfully updated fields!</string>
+    <string name="too_many_custom_tags">Too many custom tags created!</string>
+
+    <string name="description_input_error">Enter a shorter description!</string>
+    <string name="username_input_error">Enter a non-empty/shorter username!</string>
+    <string name="name_input_error">Enter a non-empty/shorter name!</string>
+    <string name="password_input_error">Invalid password or doesn\'t match!</string>
+    <string name="confirm_password_input_error">Enter the same password!</string>
+    <string name="email_input_error">Enter a non-empty valid e-mail address!</string>
+    <string name="tag_name_input_error">Enter a non-empty or shorter tag name!</string>
+    <string name="message_input_error">Enter a valid, non-empty message!</string>
+    <string name="invalid_event_info_error">Please enter information date and set its location!</string>
+    <string name="image_upload_success">Image uploaded successfully!</string>
+    <string name="image_upload_fail">Image upload failed!</string>
+    <string name="resource_exists_error">Requested creation already exists! Try a different name/email!</string>
+    <string name="invalid_data">Invalid data format!</string>
+    <string name="invalid_credentials">Invalid credentials!</string>
+    <string name="invalid_token">Invalid access! Please login again!</string>
+    <string name="unathorised_access">Unauthorised access! Please login again!</string>
+    <string name="expired_token_error">Your session may have expired and you need to (re)authenticate!</string>
+    <string name="missing_data_error">Missing/invalid data entered!</string>
+    <string name="cache_deletion_error">Couldn\'t clear old (cached) data!</string>
+    <string name="server_connection_error">Failed to connect to server! Something might have gone wrong on our end!</string>
+    <string name="internal_server_error">Couldn\'t perform operation! Something might have gone wrong on our end!</string>
+    <string name="resource_not_found_error">Requested resource not found!</string>
+    <string name="firestore_update_error">Couldn\'t update remote source records that needed to have been updated!</string>
+    <string name="limit_reacher_error">Not created! Maximum limit may be reached! (100/250)</string>
+    <string name="invalid_access_error">In order to access this content, you\'ll need to log in, or sign up and join the chatroom first.</string>
+    <string name="not_joined_chatroom_error">Can\'t participate in an event whose chatroom you haven\'t joined!</string>
+    <string name="tap_to_view_image">Tap to view sent image</string>
+    <string name="kick_user_fail">Couldn\'t manage to kick user!</string>
+    <string name="confirm_acc_deletion">Are you certain you want to delete your account?</string>
+    <string name="facebook_email_fail_error">Couldn\'t fetch Facebook email!</string>
+    <string name="facebook_tag_fetch_error">Error with fetching your Facebook tags! Continuing without them!</string>
+    <string name="take_me_there">Get me in the room!</string>
+    <string name="no_please">Nah, let me browse.</string>
+    <string name="confirm_chatroom_delete">Are you ABSOLUTELY sure you want to delete the chatroom? This will delete ALL messages and content!</string>
+
+    <string name="email">Email</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="description">Description</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="photo_capture_success">Photo capture succeeded!</string>
+    <string name="photo_capture_failed">Photo capture failed!</string>
+    <string name="checked">Checked</string>
+    <string name="filled">Filled</string>
+    <string name="event_concluded">Event has already concluded.</string>
+    <string name="days">days</string>
+    <string name="hours">hours</string>
+    <string name="and">and</string>
+    <string name="minutes">minutes</string>
+    <string name="left">left</string>
+    <string name="reset_ask_chatrooms">Skip confirmation on Chatroom joining?</string>
+    <string name="no_remind_header">Do you want to immediately join this Chatroom?</string>
+</resources>

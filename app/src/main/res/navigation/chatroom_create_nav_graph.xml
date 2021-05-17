@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chatroom_create_nav_graph"
+    app:startDestination="@id/chatroomCreateFragment">
+
+    <activity
+        android:id="@+id/chatroomActivity"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomActivity"
+        android:label="ChatroomActivity">
+        <argument
+            android:name="user"
+            android:defaultValue="@null"
+            app:argType="com.example.hobbyfi.models.data.User"
+            app:nullable="true" />
+        <argument
+            android:name="chatroom"
+            android:defaultValue="@null"
+            app:argType="com.example.hobbyfi.models.data.Chatroom"
+            app:nullable="true" />
+    </activity>
+    <fragment
+        android:id="@+id/chatroomCreateFragment"
+        android:name="com.example.hobbyfi.ui.main.ChatroomCreateFragment"
+        tools:layout="@layout/fragment_chatroom_create"
+        android:label="Create Chatroom">
+        <argument
+            android:name="user"
+            app:argType="com.example.hobbyfi.models.data.User" />
+        <action
+            android:id="@+id/action_chatroomCreateFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph">
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+        </action>
+        <action
+            android:id="@+id/action_chatroomCreateFragment_to_chatroomActivity"
+            app:destination="@id/chatroomActivity"
+            app:popUpTo="@id/chatroom_create_nav_graph"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_chatroomCreateFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+        <action
+            android:id="@+id/action_chatroomCreateFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
+    </fragment>
+    <include app:graph="@navigation/tag_nav_graph" />
+    <include app:graph="@navigation/loading_nav_graph" />
+    <include app:graph="@navigation/camera_capture_nav_graph" />
+</navigation>

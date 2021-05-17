@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.main.ChatroomListFragment">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.main.ChatroomListFragmentViewModel" />
+    </data>
+
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swiperefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/colorBackground"
+        android:layout_marginTop="5dp"
+        android:animateLayoutChanges="false">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chatroom_list"
+            android:name="com.example.hobbyfi.ui.main.ChatroomListFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:animateLayoutChanges="false"
+            android:scrollbars="vertical"
+            app:layoutManager="LinearLayoutManager"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            app:reverseLayout="false"
+            tools:listitem="@layout/chatroom_card" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</layout>

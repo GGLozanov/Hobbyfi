@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="orientation"
+            type="int" />
+        <variable
+            name="leftButtonText"
+            type="java.lang.String" />
+        <variable
+            name="rightButtonText"
+            type="java.lang.String" />
+        <variable
+            name="leftButtonStartDrawable"
+            type="android.graphics.drawable.Drawable" />
+        <variable
+            name="rightButtonStartDrawable"
+            type="android.graphics.drawable.Drawable" />
+    </data>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/button_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="@{orientation}"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/description_input_field">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/left_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/rounded_rect"
+            android:text="@{leftButtonText}"
+            android:drawableStart="@{leftButtonStartDrawable}">
+
+        </com.google.android.material.button.MaterialButton>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/right_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_rect"
+            android:text="@{rightButtonText}"
+            android:drawableStart="@{rightButtonStartDrawable}">
+
+        </com.google.android.material.button.MaterialButton>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</layout>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chatroom_nav_graph"
+    app:startDestination="@id/chatroomMessageListFragment">
+
+    <fragment
+        android:id="@+id/chatroomMessageListFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageListFragment">
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_chatroomEditFragment"
+            app:destination="@id/chatroomEditFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_eventCreateFragment"
+            app:destination="@id/event_create_navigation" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_eventDetailsFragment"
+            app:destination="@id/eventDetailsFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_imageViewFragment"
+            app:destination="@id/imageViewFragment"
+            app:popUpTo="@id/chatroomMessageListFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_chatroomMessageSearchViewFragment"
+            app:destination="@id/chatroomMessageSearchViewFragment" />
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+        <action
+            android:id="@+id/action_chatroomMessageListFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatroomEditFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomEditFragment"
+        android:label="Edit Chatroom"
+        tools:layout="@layout/fragment_chatroom_edit" >
+        <action
+            android:id="@+id/action_chatroomEditDialogFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph" >
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+        </action>
+        <action
+            android:id="@+id/action_chatroomEditFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+        <action
+            android:id="@+id/action_chatroomEditFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
+    </fragment>
+    <navigation android:id="@+id/event_create_navigation"
+        app:startDestination="@id/eventCreateFragment">
+        <fragment
+            android:id="@+id/eventCreateFragment"
+            android:name="com.example.hobbyfi.ui.chatroom.EventCreateFragment"
+            android:label="Create Event"
+            tools:layout="@layout/fragment_event_create"/>
+        <action
+            android:id="@+id/action_global_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+        <action
+            android:id="@+id/action_global_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
+    </navigation>
+    <include app:graph="@navigation/tag_nav_graph" />
+    <activity
+        android:id="@+id/eventMapsActivity"
+        android:name="com.example.hobbyfi.ui.chatroom.EventMapsActivity"
+        android:label="activity_event_maps"
+        tools:layout="@layout/activity_event_maps" >
+        <argument
+            android:name="event"
+            app:argType="com.example.hobbyfi.models.data.Event" />
+    </activity>
+    <fragment
+        android:id="@+id/eventDetailsFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.EventDetailsFragment"
+        android:label="Event Info">
+        <action
+            android:id="@+id/action_eventDetailsFragment_to_eventMapsActivity"
+            app:destination="@id/eventMapsActivity" />
+        <argument
+            android:name="event"
+            app:argType="com.example.hobbyfi.models.data.Event" />
+    </fragment>
+    <fragment
+        android:id="@+id/imageViewFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ImageViewFragment"
+        android:label="View Image"
+        tools:layout="@layout/fragment_image_view" >
+        <argument
+            android:name="imageUrl"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatroomMessageSearchViewFragment"
+        android:name="com.example.hobbyfi.ui.chatroom.ChatroomMessageSearchViewFragment"
+        android:label="Search Messages"
+        tools:layout="@layout/fragment_message_search_view" />
+    <include app:graph="@navigation/loading_nav_graph" />
+    <include app:graph="@navigation/camera_capture_nav_graph" />
+</navigation>

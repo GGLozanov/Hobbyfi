@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.main.ChangeEmailDialogFragmentViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/rounded_container_layered"
+        android:padding="15dp"
+        tools:context=".ui.main.ChangeEmailDialogFragment">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/new_email_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/change_email"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/new_email_input_field"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </com.google.android.material.textview.MaterialTextView>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/new_email_input_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:hint="@string/new_email_hint"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@id/password_input_field"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/new_email_header"
+            app:startIconDrawable="@drawable/ic_baseline_email_white_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_input_new_email"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="true"
+                android:inputType="textEmailAddress"
+                android:maxLines="2"
+                android:singleLine="true"
+                android:text="@={viewModel.email}"
+                tools:layout_conversion_absoluteHeight="45dp"
+                tools:layout_conversion_absoluteWidth="20dp"
+                tools:layout_editor_absoluteX="4dp"
+                tools:layout_editor_absoluteY="4dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/password_input_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:hint="@string/password_hint"
+            app:endIconMode="password_toggle"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@id/confirm_password_input_field"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/new_email_input_field"
+            app:startIconDrawable="@drawable/ic_baseline_security_white_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_input_password"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="true"
+                android:inputType="textPassword"
+                android:singleLine="true"
+                android:text="@={viewModel.password}"
+                tools:layout_conversion_absoluteHeight="45dp"
+                tools:layout_conversion_absoluteWidth="20dp"
+                tools:layout_editor_absoluteX="4dp"
+                tools:layout_editor_absoluteY="4dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/confirm_password_input_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:hint="@string/confirm_password_hint"
+            app:endIconMode="password_toggle"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@id/button_bar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/password_input_field"
+            app:startIconDrawable="@drawable/ic_baseline_security_white_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_input_confirm_password"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="true"
+                android:inputType="textPassword"
+                android:singleLine="true"
+                android:text="@={viewModel.confirmPassword}"
+                tools:layout_conversion_absoluteHeight="45dp"
+                tools:layout_conversion_absoluteWidth="20dp"
+                tools:layout_editor_absoluteX="4dp"
+                tools:layout_editor_absoluteY="4dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <include
+            android:id="@+id/button_bar"
+            layout="@layout/button_bar_pair"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:leftButtonStartDrawable="@{@drawable/ic_baseline_cancel_24}"
+            app:rightButtonStartDrawable="@{@drawable/ic_baseline_check_24}"
+            app:leftButtonText="@{@string/cancel}"
+            app:rightButtonText="@{@string/confirm}"
+            app:layout_constraintTop_toBottomOf="@id/confirm_password_input_field"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

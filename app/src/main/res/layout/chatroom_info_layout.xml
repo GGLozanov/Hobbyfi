@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.hobbyfi.viewmodels.base.NameDescriptionBindable" />
+        <variable
+            name="chatroomHeaderText"
+            type="java.lang.String" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".ui.chatroom.ChatroomEditFragment">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/chatroom_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@{chatroomHeaderText}"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/chatroom_image"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </com.google.android.material.textview.MaterialTextView>
+
+        <include
+            android:id="@+id/chatroom_image"
+            layout="@layout/camera_gallery_circle_image"
+            app:defaultDrawable="@{@drawable/chatroom_default_pic}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/name_input_field"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/chatroom_header" />
+
+        <!-- TODO: Update blank fragment layout -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/name_input_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:hint="@string/chatroom_name_hint"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@+id/description_input_field"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/chatroom_image"
+            app:startIconDrawable="@drawable/ic_baseline_chat_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_input_username"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="true"
+                android:inputType="textCapSentences"
+                android:singleLine="true"
+                android:text="@={viewModel.name}"
+                tools:layout_conversion_absoluteHeight="45dp"
+                tools:layout_conversion_absoluteWidth="20dp"
+                tools:layout_editor_absoluteX="4dp"
+                tools:layout_editor_absoluteY="4dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/description_input_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:hint="@string/description_hint"
+            app:endIconMode="clear_text"
+            app:errorEnabled="true"
+            app:hintEnabled="true"
+            app:layout_constraintBottom_toTopOf="@id/button_bar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/name_input_field"
+            app:startIconDrawable="@drawable/ic_baseline_create_24">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_input_description"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="true"
+                android:inputType="textCapSentences"
+                android:maxLines="2"
+                android:singleLine="true"
+                android:text="@={viewModel.description}"
+                tools:layout_conversion_absoluteHeight="45dp"
+                tools:layout_conversion_absoluteWidth="20dp"
+                tools:layout_editor_absoluteX="4dp"
+                tools:layout_editor_absoluteY="4dp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <include
+            android:id="@+id/button_bar"
+            layout="@layout/button_bar_pair"
+            app:leftButtonText="@{@string/choose_tags}"
+            app:rightButtonText="@{@string/confirm}"
+            app:leftButtonStartDrawable="@{@drawable/ic_baseline_tag_faces_24}"
+            app:rightButtonStartDrawable="@{@drawable/ic_baseline_input_24}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/description_input_field" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

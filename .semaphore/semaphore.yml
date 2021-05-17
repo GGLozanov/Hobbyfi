@@ -4,12 +4,51 @@ agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
+  containers:
+    - name: main
+      image: 'registry.semaphoreci.com/android:29'
+global_job_config:
+  secrets:
+    - name: projectHobbyfiSecrets
+  prologue:
+    commands:
+      - checkout
+      - cache restore gradle-wrapper
+      - cache restore gradle-cache
+      - cache restore android-build
 blocks:
-  - name: Gradle
+  - name: Bundle
     task:
       jobs:
-        - name: Build
+        - name: Bundle Project
           commands:
-            - checkout
             - sem-version java 1.8
-            - ./gradlew build
+            - chmod +x gradlew
+            - ./gradlew bundle
+    skip:
+      when: branch = 'master' OR branch = 'dev'
+  - name: Build
+    task:
+      jobs:
+        - name: Build Project
+          commands:
+            - sem-version java 1.8
+            - chmod +x gradlew
+            - ./gradlew build -Dorg.gradle.jvmargs=-Xmx1536m
+      epilogue:
+        on_pass:
+          commands:
+            - cache clear
+            - cache store gradle-wrapper ~/.gradle/wrapper
+            - cache store gradle-cache ~/.gradle/caches
+            - cache store android-build ~/.android/build-cache
+    skip:
+      when: branch =~ '^feature\/'
+  - name: Lint
+    skip:
+      when: pull_request !~ '.*'
+    task:
+      jobs:
+        - name: Analyze Code
+          commands:
+            - ./gradlew lint

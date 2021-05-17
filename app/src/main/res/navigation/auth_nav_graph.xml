@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/auth_nav_graph"
+    app:startDestination="@id/authWrapperFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.hobbyfi.ui.auth.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_mainActivity"
+            app:destination="@id/mainActivity" />
+        <action
+            android:id="@+id/action_loginFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph"
+            app:popUpTo="@id/loginFragment">
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+        </action>
+        <action
+            android:id="@+id/action_loginFragment_to_resetPasswordFragment"
+            app:destination="@id/resetPasswordFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.hobbyfi.ui.auth.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+        <action
+            android:id="@+id/action_registerFragment_to_mainActivity"
+            app:destination="@id/mainActivity"
+            app:popUpTo="@id/authWrapperFragment"
+            app:popUpToInclusive="false" />
+        <action
+            android:id="@+id/action_registerFragment_to_tag_nav_graph"
+            app:destination="@id/tag_nav_graph" >
+            <argument
+                android:name="selectedTags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+            <argument
+                android:name="tags"
+                app:argType="com.example.hobbyfi.models.data.Tag[]" />
+        </action>
+        <action
+            android:id="@+id/action_registerFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+        <action
+            android:id="@+id/action_registerFragment_to_camera_capture_nav_graph"
+            app:destination="@id/camera_capture_nav_graph" />
+    </fragment>
+
+    <activity
+        android:id="@+id/mainActivity"
+        android:name="com.example.hobbyfi.ui.main.MainActivity"
+        android:label="Your Profile"
+        tools:layout="@layout/activity_main">
+
+        <argument
+            android:name="user"
+            app:argType="com.example.hobbyfi.models.data.User"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </activity>
+    <include app:graph="@navigation/tag_nav_graph" />
+    <fragment
+        android:id="@+id/resetPasswordFragment"
+        android:name="com.example.hobbyfi.ui.auth.ResetPasswordFragment"
+        android:label="Reset Password"
+        tools:layout="@layout/fragment_reset_password" >
+        <action
+            android:id="@+id/action_resetPasswordFragment_to_loading_nav_graph"
+            app:destination="@id/loading_nav_graph" >
+            <argument
+                android:name="poptoId"
+                app:argType="reference" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/authWrapperFragment"
+        android:name="com.example.hobbyfi.ui.auth.AuthWrapperFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/fragment_auth_wrapper">
+        <action
+            android:id="@+id/action_authWrapperFragment_to_registerFragment"
+            app:destination="@id/registerFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_authWrapperFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
+    <include app:graph="@navigation/loading_nav_graph" />
+    <include app:graph="@navigation/camera_capture_nav_graph" />
+</navigation>
