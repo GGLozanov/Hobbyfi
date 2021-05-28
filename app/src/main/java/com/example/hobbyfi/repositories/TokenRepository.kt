@@ -6,6 +6,7 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.requests.FetchRegisterTokenRequest
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Constants
@@ -28,11 +29,12 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
         return try {
             hobbyfiAPI.fetchRegistrationToken(
                 facebookToken,
-                email,
-                username,
-                password,
-                description,
-                if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags)
+                FetchRegisterTokenRequest(
+                    email,
+                    username,
+                    password,
+                    description,
+                    if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags))
             )
         } catch(ex: Exception) {
             dissectExceptionAndThrow(ex)

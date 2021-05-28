@@ -9,6 +9,7 @@ import com.example.hobbyfi.adapters.user.UserResponseDeserializer
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.models.data.Tag
+import com.example.hobbyfi.requests.FetchRegisterTokenRequest
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
@@ -31,7 +32,7 @@ const val API_VERSION = "1.0"
 interface HobbyfiAPI {
 
     /**
-     * FormUrlEncoded POST request to create a new User resource with given credentials
+     * POST request to create a new User resource with given credentials
      * @param email - auth user's email address
      * @param username - auth user's username
      * @param password - auth user's password (hashed server-side)
@@ -39,14 +40,9 @@ interface HobbyfiAPI {
      * @return - a Token model containing a JWT and refresh JWT on success and a failed response from the server on failure
      */
     @POST("api/v${API_VERSION}/user/create.php")
-    @FormUrlEncoded
     suspend fun fetchRegistrationToken(
         @Header(Constants.AUTH_HEADER) facebookToken: String?, // potential fb token sent to validate fb create request
-        @Field(Constants.EMAIL) email: String?,
-        @Field(Constants.USERNAME) username: String,
-        @Field(Constants.PASSWORD) password: String?,
-        @Field(Constants.DESCRIPTION) description: String?,
-        @Field(Constants.TAGS + "[]") tags: String?
+        @Body request: FetchRegisterTokenRequest
     ): TokenResponse?
 
     /**
@@ -346,7 +342,10 @@ interface HobbyfiAPI {
 
                     val headers = it.request().headers
                         .newBuilder()
-                        .add("Content-Type", if(it.request().method == "POST") "application/x-www-form-urlencoded"
+                        .add("Content-Type", if(
+                            it.request().method == "POST" &&
+                            !it.request().url.toString().contains("/user/create.php") // exclusion because endpoint is retarded
+                        ) "application/x-www-form-urlencoded"
                         else
                             "application/json")
                         .add("Accept", "*/*")
