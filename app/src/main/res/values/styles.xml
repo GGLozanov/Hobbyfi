@@ -50,6 +50,7 @@
 
     <style name="RubikButtonStyle" parent="@android:style/Widget.Button">
         <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/colorOnSurface</item>
     </style>
 
     <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">

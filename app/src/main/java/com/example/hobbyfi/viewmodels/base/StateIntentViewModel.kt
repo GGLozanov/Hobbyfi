@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 abstract class StateIntentViewModel<T: State, E: Intent>(
     application: Application
 ) : BaseViewModel(application) {
-    // wouldn't have been an abstract val if there had been a way to have inheritance between sealed classes :(
+    // wouldn't have been an abstract val if there had been a way to have proper inheritance between sealed classes :(
     // and I could just reference the base state `Idle` for the MutableStateFlow initialisation
     protected abstract val mainStateIntent: StateIntent<T, E>
 

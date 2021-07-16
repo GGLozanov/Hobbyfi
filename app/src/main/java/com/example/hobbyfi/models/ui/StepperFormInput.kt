@@ -5,10 +5,26 @@ import androidx.databinding.Bindable
 import androidx.lifecycle.MutableLiveData
 import com.example.hobbyfi.shared.PredicateMutableLiveData
 
-data class StepperFormInput(
+open class StepperFormInput<T : String?>(
     val hint: String,
     val startDrawable: Drawable,
     val endIconMode: Int,
     val inputType: Int,
-    val valueTracker: PredicateMutableLiveData<String?>,
+    val valueTracker: PredicateMutableLiveData<T>,
 )
+
+class NullableStepperFormInput(
+    hint: String,
+    startDrawable: Drawable,
+    endIconMode: Int,
+    inputType: Int,
+    valueTracker: PredicateMutableLiveData<String?>
+): StepperFormInput<String?>(hint, startDrawable, endIconMode, inputType, valueTracker)
+
+class NonNullableStepperFormInput(
+    hint: String,
+    startDrawable: Drawable,
+    endIconMode: Int,
+    inputType: Int,
+    valueTracker: PredicateMutableLiveData<String>
+) : StepperFormInput<String>(hint, startDrawable, endIconMode, inputType, valueTracker)

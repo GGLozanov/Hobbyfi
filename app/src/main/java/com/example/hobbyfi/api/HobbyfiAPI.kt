@@ -370,8 +370,8 @@ interface HobbyfiAPI {
                 .newBuilder()
                 .addInterceptor(requestInterceptor)
                 .addInterceptor(loggingInterceptor)
-                .readTimeout(90, TimeUnit.SECONDS)
-                .writeTimeout(90, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
                 .build()
 
             return Retrofit.Builder()

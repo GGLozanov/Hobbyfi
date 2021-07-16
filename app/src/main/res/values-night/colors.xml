@@ -6,15 +6,15 @@
     <color name="colorSecondaryShade">#F12B7E</color>
     <color name="colorAccent">#F9E23C</color>
 
-    <color name="colorBackground">#FFFFFF</color>
-    <color name="colorSurface">#FFFFFF</color>
-    <color name="colorOnBackground">#000000</color>
-    <color name="colorOnSecondary">#000000</color>
-    <color name="colorOnSurface">#000000</color>
-    <color name="onError">#FFFFFF</color>
+    <color name="colorBackground">#202020</color>
+    <color name="colorSurface">#202020</color>
+    <color name="colorOnBackground">#FFFFFF</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+    <color name="colorOnSurface">#FFFFFF</color>
+    <color name="onError">#202020</color>
     <color name="colorError">#B00020</color>
 
-    <color name="colorControlNormal">#FFFFFF</color>
+    <color name="colorControlNormal">#202020</color>
 
     <color name="colorGrey">#9a9a9a</color>
     <color name="colorDarkGrey">#333333</color>

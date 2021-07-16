@@ -15,6 +15,8 @@ import com.example.hobbyfi.databinding.FragmentRegisterBinding
 import com.example.hobbyfi.intents.TokenIntent
 import com.example.hobbyfi.models.data.Tag
 import com.example.hobbyfi.models.data.User
+import com.example.hobbyfi.models.ui.NonNullableStepperFormInput
+import com.example.hobbyfi.models.ui.NullableStepperFormInput
 import com.example.hobbyfi.models.ui.StepperButtonInput
 import com.example.hobbyfi.models.ui.StepperFormInput
 import com.example.hobbyfi.shared.*
@@ -37,55 +39,55 @@ class RegisterFragment : AuthFragment(), StepperFormListener {
 
     private val emailStep: FormStep get() =
         FormStep(getString(R.string.email), viewLifecycleOwner, getString(R.string.email_input_error),
-            StepperFormInput(
+            NonNullableStepperFormInput(
                 getString(R.string.email_hint),
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_email_white_24)
                     ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_CLEAR_TEXT,
                 InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
-                viewModel.email as PredicateMutableLiveData<String?>
+                viewModel.email
             )
         )
 
     private val usernameStep: FormStep get() =
         FormStep(getString(R.string.username), viewLifecycleOwner, getString(R.string.username_input_error),
-            StepperFormInput(
+            NonNullableStepperFormInput(
                 getString(R.string.username_hint),
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_person_24)
                     ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_CLEAR_TEXT,
                 InputType.TYPE_TEXT_FLAG_CAP_WORDS,
-                viewModel.name as PredicateMutableLiveData<String?>
+                viewModel.name
             )
         )
 
     private val passwordStep: FormStep get() =
         FormStep(getString(R.string.password), viewLifecycleOwner, getString(R.string.password_input_error),
-            StepperFormInput(
+            NonNullableStepperFormInput(
                 getString(R.string.password_hint),
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_password_24)
                     ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_PASSWORD_TOGGLE,
                 InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
-                viewModel.password as PredicateMutableLiveData<String?>
+                viewModel.password
             ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
         )
 
     private val confirmPasswordStep: FormStep get() =
         FormStep(getString(R.string.confirm_password), viewLifecycleOwner, getString(R.string.confirm_password_input_error),
-            StepperFormInput(
+            NonNullableStepperFormInput(
                 getString(R.string.confirm_password_hint),
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_password_24)
                     ?: ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_PASSWORD_TOGGLE,
                 InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
-                viewModel.confirmPassword as PredicateMutableLiveData<String?>
+                viewModel.confirmPassword
             ), readableStepDataNotForbidden = false, emptyHint = getString(R.string.filled)
         )
 
     private val descriptionStep: FormStep get() =
         FormStep(getString(R.string.description), viewLifecycleOwner, getString(R.string.description_input_error),
-            StepperFormInput(
+            NullableStepperFormInput(
                 getString(R.string.description_hint),
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_create_24)!!,
                 TextInputLayout.END_ICON_CLEAR_TEXT,

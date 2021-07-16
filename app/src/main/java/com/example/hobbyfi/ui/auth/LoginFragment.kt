@@ -203,7 +203,8 @@ class LoginFragment : AuthFragment(), TextFieldInputValidationOnus {
                         if(connectivityManager.isConnected()) {
                             if ((it.error?.isNotBlank() == true) &&
                                 it.error != getString(R.string.server_connection_error) &&
-                                    !it.error.contains("failed to connect to") && !it.error.contains("Software connection caused")) {
+                                    !it.error.contains("failed to connect to") &&
+                                !it.error.contains("Software connection caused") && !it.error.contains("Couldn't")) {
                                 // TODO: No critical errors as of yet, so we can navigate to tags even if failed, but if the need arises, handle critical failure and cancel login
                                 val action = LoginFragmentDirections.actionLoginFragmentToTagNavGraph(
                                     viewModel.tagBundle.selectedTags.toTypedArray(),

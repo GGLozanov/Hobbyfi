@@ -39,7 +39,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@null"
-                android:src="@drawable/ic_baseline_image_42">
+                android:src="@drawable/ic_menu_gallery">
 
             </androidx.appcompat.widget.AppCompatImageButton>
 

@@ -8,13 +8,14 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.distinctUntilChanged
 import com.example.hobbyfi.databinding.StepperInputFieldBinding
 import com.example.hobbyfi.models.ui.StepperFormInput
+import com.example.hobbyfi.shared.PredicateMutableLiveData
 import ernestoyaquello.com.verticalstepperform.Step
 
 class FormStep(
     title: String,
     private val viewLifecycleOwner: LifecycleOwner,
     private val error: String,
-    private val viewInput: StepperFormInput,
+    private val viewInput: StepperFormInput<*>,
     private val emptyHint: String = "(Empty)",
     private val readableStepDataNotForbidden: Boolean = true
 ) : Step<String>(title) {
@@ -28,8 +29,11 @@ class FormStep(
 
     override fun isStepDataValid(stepData: String?): IsDataValid {
         Log.i("FormStep", "step data: ${stepData}")
-        Log.i("FormStep", "is data valid: ${!viewInput.valueTracker.predicate(stepData)}")
-        return IsDataValid(!viewInput.valueTracker.predicate(stepData), error)
+        Log.i("FormStep", "is data valid: ${!(viewInput.valueTracker as PredicateMutableLiveData<String?>).predicate(stepData)}")
+        return IsDataValid(
+            !(viewInput.valueTracker as PredicateMutableLiveData<String?>).predicate(stepData), // ugh
+            error
+        )
     }
 
     override fun createStepContentLayout(): View {
