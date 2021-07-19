@@ -24,6 +24,9 @@ blocks:
           commands:
             - chmod +x gradlew
             - ./gradlew bundle
+      env_vars:
+        - name: EXT_HOBBYFI_KOTLIN_VERSION
+          value: 1.4.10
     skip:
       when: branch = 'master' OR branch = 'dev'
   - name: Build
@@ -40,6 +43,9 @@ blocks:
             - cache store gradle-wrapper ~/.gradle/wrapper
             - cache store gradle-cache ~/.gradle/caches
             - cache store android-build ~/.android/build-cache
+      env_vars:
+        - name: EXT_HOBBYFI_KOTLIN_VERSION
+          value: 1.4.10
     skip:
       when: branch =~ '^feature\/'
   - name: Lint
@@ -50,3 +56,6 @@ blocks:
         - name: Analyze Code
           commands:
             - ./gradlew lint
+      env_vars:
+        - name: EXT_HOBBYFI_KOTLIN_VERSION
+          value: 1.4.10
