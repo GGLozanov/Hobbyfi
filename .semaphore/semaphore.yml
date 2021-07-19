@@ -32,7 +32,7 @@ blocks:
         - name: Build Project
           commands:
             - chmod +x gradlew
-            - ./gradlew build -Dorg.gradle.jvmargs=-Xmx1536m
+            - ./gradlew build -Dorg.gradle.jvmargs=-Xmx1536m --stacktrace
       epilogue:
         on_pass:
           commands:
