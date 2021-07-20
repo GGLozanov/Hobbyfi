@@ -87,11 +87,13 @@
         </provider>
         <provider
             android:name=".shared.MessageSuggestionsProvider"
-            android:authorities="com.example.hobbyfi.MessageSuggestionsProvider" />
+            android:authorities="com.example.hobbyfi.MessageSuggestionsProvider"
+            android:exported="false" />
 
         <activity
             android:name=".ui.auth.SplashScreenActivity"
             android:noHistory="true"
+            android:exported="true"
             android:theme="@style/SplashScreenTheme"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
@@ -113,6 +115,7 @@
             android:name=".ui.chatroom.ChatroomActivity"
             android:label="@string/title_activity_chatroom"
             android:launchMode="singleTask"
+            android:exported="true"
             android:parentActivityName=".ui.main.MainActivity">
             <intent-filter>
                 <data android:scheme="hobbyfi" />

@@ -6,13 +6,13 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: "androidx.navigation.safeargs.kotlin"
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "com.example.hobbyfi"
         minSdkVersion 21
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -27,6 +27,17 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
+            buildConfigField "String", "BASE_URL", projectHobbyfiProdBaseURL
+            buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiProdSocketIOURL
+            resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
+            resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
+            resValue "string", "MAPS_API_KEY", projectHobbyfiProdGoogleMapsAPIKey
+        }
+
+        releaseDev {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
             buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
             buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiSocketIOURL
             resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
@@ -38,8 +49,19 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
-            buildConfigField "String", "BASE_URL", projectHobbyfiBaseURL
-            buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiSocketIOURL
+            buildConfigField "String", "BASE_URL", projectHobbyfiProdBaseURL
+            buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiProdSocketIOURL
+            resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
+            resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
+            resValue "string", "MAPS_API_KEY", projectHobbyfiProdGoogleMapsAPIKey
+        }
+
+        debugDev {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "String", "JWT_PUBLIC_KEY", projectHobbyfiJWTPublicKey
+            buildConfigField "String", "BASE_URL", projectHobbyfiProdBaseURL
+            buildConfigField "String", "SOCKET_BASE_URL", projectHobbyfiProdSocketIOURL
             resValue "string", "FB_APP_ID", projectHobbyfiFacebookAppID
             resValue "string", "FB_LOGIN_PROTOCOL_SCHEME", projectHobbyfiFacebookLoginProtocolScheme
             resValue "string", "MAPS_API_KEY", projectHobbyfiGoogleMapsAPIKey
@@ -77,7 +99,8 @@ dependencies {
     def room_version = "2.4.0-alpha03"
     def paging_version = "3.0.0"
     def nav_version = "2.3.5"
-    def camerax_version = "1.0.0"
+    def camerax_version = "1.0.0-alpha07"
+    def camerax_lifecycle_version = "1.1.0-alpha06"
     def work_version = "2.6.0-beta01"
 
     // MultiDex
@@ -215,20 +238,20 @@ dependencies {
     // CameraX
     implementation "androidx.camera:camera-core:${camerax_version}"
     implementation "androidx.camera:camera-camera2:${camerax_version}"
-    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
-    implementation "androidx.camera:camera-view:1.0.0-alpha24"
-    implementation "androidx.camera:camera-extensions:1.0.0-alpha24"
+    implementation "androidx.camera:camera-lifecycle:${camerax_lifecycle_version}"
+    implementation "androidx.camera:camera-view:1.0.0-alpha26"
+    implementation "androidx.camera:camera-extensions:1.0.0-alpha26"
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.fragment:fragment-ktx:1.3.3'
+    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.fragment:fragment-ktx:1.3.5'
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
 }

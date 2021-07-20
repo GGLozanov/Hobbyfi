@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "754084444093",
+    "project_id": "hobbyfi-production",
+    "storage_bucket": "hobbyfi-production.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:754084444093:android:5036040d1a60d1ef6d44d4",
+        "android_client_info": {
+          "package_name": "com.example.hobbyfi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "754084444093-gvae65bu3bfn2s7d4id6pm0jsskjhj8o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgj3J1oQ0gfTzOp6_8upxGVGh9GWuO5-o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "754084444093-gvae65bu3bfn2s7d4id6pm0jsskjhj8o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
