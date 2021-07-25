@@ -11,6 +11,7 @@ import com.example.hobbyfi.utils.TokenUtils
 import com.facebook.AccessToken
 import com.google.firebase.FirebaseException
 import io.jsonwebtoken.ExpiredJwtException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -18,7 +19,11 @@ import java.lang.IllegalStateException
 import java.net.SocketTimeoutException
 import kotlin.coroutines.cancellation.CancellationException
 
-abstract class Repository(protected val prefConfig: PrefConfig, protected val hobbyfiAPI: HobbyfiAPI) {
+abstract class Repository(
+    protected val prefConfig: PrefConfig,
+    protected val hobbyfiAPI: HobbyfiAPI,
+    protected val coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
     class AuthorisedRequestException(message: String? = null) : Exception(message)
     class ReauthenticationException(message: String? = null) : Exception(message)
     class NetworkException(message: String? = null) : Exception(message)
@@ -27,7 +32,7 @@ abstract class Repository(protected val prefConfig: PrefConfig, protected val ho
     protected suspend fun getNewTokenWithRefresh(): TokenResponse? {
         return try {
             if (prefConfig.readRefreshToken() != "invalid") {
-                withContext(Dispatchers.IO) {
+                withContext(coroutineDispatcher) {
                     val token = hobbyfiAPI.fetchNewTokenWithRefresh(prefConfig.readRefreshToken()!!)
                     prefConfig.writeToken(token?.jwt!!)
                     token

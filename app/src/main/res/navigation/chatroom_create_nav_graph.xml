@@ -11,12 +11,10 @@
         android:label="ChatroomActivity">
         <argument
             android:name="user"
-            android:defaultValue="@null"
             app:argType="com.example.hobbyfi.models.data.User"
             app:nullable="true" />
         <argument
             android:name="chatroom"
-            android:defaultValue="@null"
             app:argType="com.example.hobbyfi.models.data.Chatroom"
             app:nullable="true" />
     </activity>
@@ -42,7 +40,9 @@
             android:id="@+id/action_chatroomCreateFragment_to_chatroomActivity"
             app:destination="@id/chatroomActivity"
             app:popUpTo="@id/chatroom_create_nav_graph"
-            app:popUpToInclusive="true" />
+            app:popUpToInclusive="true" >
+
+        </action>
         <action
             android:id="@+id/action_chatroomCreateFragment_to_loading_nav_graph"
             app:destination="@id/loading_nav_graph" >

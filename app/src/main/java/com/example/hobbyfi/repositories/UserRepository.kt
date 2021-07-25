@@ -14,6 +14,7 @@ import com.example.hobbyfi.responses.CacheResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.utils.TokenUtils
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -22,8 +23,9 @@ import kotlinx.coroutines.withContext
 // fetches both auth users & chatroom users
 class UserRepository @ExperimentalPagingApi constructor(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
-    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
-): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager,
+    coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
+): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager, coroutineDispatcher) {
 
     suspend fun getUser(): Flow<User?> {
         Log.i("UserRepository", "getUser -> getting current user")
@@ -104,7 +106,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
         }
 
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.userDao().upsert(user)
         }
     }
@@ -112,7 +114,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun saveUsers(users: List<User>) {
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_users_fetch_time)
 
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.userDao().upsert(users)
         }
     }
@@ -122,7 +124,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_user_fetch_time)
         }
 
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.userDao().updateUserPhotoUrl(userId, photoUrl)
         }
     }
@@ -133,7 +135,7 @@ class UserRepository @ExperimentalPagingApi constructor(
             prefConfig.resetLastPrefFetchTime(R.string.pref_last_user_fetch_time)
         }
         
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.withTransaction {
                 val deletedUser = hobbyfiDatabase.userDao().deleteUserById(userId)
                 return@withTransaction deletedUser > 0 // auth user should not have remote keys stored
@@ -145,7 +147,7 @@ class UserRepository @ExperimentalPagingApi constructor(
     suspend fun deleteUsersCache(userId: Long): Boolean { // pass in auth Id from cache user directly to avoid any expired token mishaps
         Log.i("UserRepository", "deleteUsers -> deleting auth users with id: $userId")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_users_fetch_time)
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.withTransaction {
                 val deletedUsers = hobbyfiDatabase.userDao().deleteUsersExceptId(userId)
                 return@withTransaction deletedUsers >= 0 // account for user alone in chatroom (rip); that's why >= 0

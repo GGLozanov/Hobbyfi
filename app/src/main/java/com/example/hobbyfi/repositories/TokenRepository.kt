@@ -14,11 +14,16 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.utils.ColourUtils
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONException
 
-class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Repository(prefConfig, hobbyfiAPI) {
+class TokenRepository(
+    prefConfig: PrefConfig,
+    hobbyfiAPI: HobbyfiAPI,
+    coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : Repository(prefConfig, hobbyfiAPI, coroutineDispatcher) {
     suspend fun getRegisterToken(
         facebookToken: String?,
             email: String?, password: String?, username: String, description: String?,
@@ -60,7 +65,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     suspend fun getFacebookUserEmail(): String? {
         Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user email")
 
-        return withContext(Dispatchers.IO) { // need context due to FB's network calls having something like retrofit's coroutine threading support
+        return withContext(coroutineDispatcher) { // need context due to FB's network calls having something like retrofit's coroutine threading support
             val response = GraphRequest.executeAndWait(
                 GraphRequest(
                     AccessToken.getCurrentAccessToken(),
@@ -79,7 +84,7 @@ class TokenRepository(prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI) : Reposito
     suspend fun getFacebookUserPageTitlesAsTags(): List<Tag> {
         Log.i("TokenRepository", "getFacebookUserEmail -> getting current facebook user page titles as tags")
 
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             val response = GraphRequest.executeAndWait(
                 GraphRequest(
                     AccessToken.getCurrentAccessToken(),

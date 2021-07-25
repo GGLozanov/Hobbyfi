@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navArgs
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.onNavDestinationSelected
 import androidx.navigation.ui.setupWithNavController
 import com.example.hobbyfi.R
 import com.example.hobbyfi.databinding.ActivityMainBinding
@@ -86,10 +87,6 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
             if(savedInstanceState == null) {
                 initNavController()
             } // safeguard for dupping the navcontroller setup
-
-            bottomNav.setOnNavigationItemReselectedListener {
-                // avoid fragment recreation (do nothing here)
-            }
         }
     }
 
@@ -120,33 +117,24 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
     }
 
     override fun initNavController() {
-        binding.bottomNav.setupWithNavController(
-            navGraphIds = listOf(
-                R.navigation.user_profile_nav_graph,
-                R.navigation.joined_chatroom_nav_graph,
-                R.navigation.chatroom_list_nav_graph
-            ),
-            fragmentManager = supportFragmentManager,
-            containerId = R.id.nav_host_fragment,
-            intent = intent
-        ).observe(this@MainActivity, Observer {
-            navController = it
-            binding.toolbar.setupWithNavController(
-                navController, AppBarConfiguration(
-                    setOf(
-                        R.id.userProfileFragment,
-                        R.id.chatroomListFragment,
-                        R.id.joinedChatroomListFragment
-                    )
+        super.initNavController()
+        binding.bottomNav.setupWithNavController(navController)
+
+        binding.toolbar.setupWithNavController(
+            navController, AppBarConfiguration(
+                setOf(
+                    R.id.userProfileFragment,
+                    R.id.chatroomListFragment,
+                    R.id.joinedChatroomListFragment
                 )
             )
-            navController.addOnDestinationChangedListener { _, destination, _ ->
-                binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
-                        destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
-                            && destination.id != R.id.loadingFragment && destination.id != R.id.cameraCaptureFragment
-            }
-            observeUserState()
-        })
+        )
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            binding.bottomNav.isVisible = destination.id != R.id.chatroomCreateFragment &&
+                    destination.id != R.id.tagSelectionFragment && destination.id != R.id.customTagCreateDialogFragment
+                        && destination.id != R.id.loadingFragment && destination.id != R.id.cameraCaptureFragment
+        }
+        observeUserState()
     }
 
     private fun observeUserState() {
@@ -261,7 +249,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
             logout()
         }
 
-        return true
+        return item.onNavDestinationSelected(navController) || super.onOptionsItemSelected(item)
     }
 
     // delegation not allowed in interfaces :(
@@ -315,12 +303,7 @@ class MainActivity : NavigationActivity(), OnAuthStateReset,
             })
             overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
             finish()
-        } else {
-            if(navController.currentBackStackEntry?.destination?.id == R.id.userProfileFragment) {
-                resetAuthProperties()
-                finishAffinity()
-            } else super.onBackPressed()
-        }
+        } else super.onBackPressed()
     }
 
     override fun onStop() {

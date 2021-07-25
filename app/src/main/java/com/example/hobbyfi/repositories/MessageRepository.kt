@@ -14,13 +14,16 @@ import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
 import com.example.hobbyfi.shared.RemoteKeyType
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfig,
-    hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager)
-: CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+class MessageRepository @ExperimentalPagingApi constructor(
+    prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
+    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager,
+    coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager, coroutineDispatcher) {
     @ExperimentalPagingApi
     fun getMessages(
         pagingConfig: PagingConfig = Constants.getDefaultPageConfig(Constants.messagesPageSize),
@@ -86,14 +89,14 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
 
     suspend fun deleteMessageCache(id: Long): Boolean {
         Log.i("MessageRepository", "deleteMessageCache -> deleting cached message w/ id: $id")
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.messageDao().deleteMessageById(id) > 0
         }
     }
 
     suspend fun deleteMessagesCache(chatroomId: Long): Boolean {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatroom_messages_fetch_time)
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.messageDao().deleteMessagesByChatroomAndRemoteKeyType(chatroomId, RemoteKeyType.MESSAGE) > 0 &&
                     hobbyfiDatabase.remoteKeysDao().deleteRemoteKeyByType(RemoteKeyType.MESSAGE) > 0
         }
@@ -112,20 +115,20 @@ class MessageRepository @ExperimentalPagingApi constructor(prefConfig: PrefConfi
     }
 
     suspend fun saveNewMessage(message: Message) =
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             // set to the beginning of the page remote key and wake SQL page shift trigger
             hobbyfiDatabase.messageDao().upsert(message)
         }
 
     // message is the only mutable property (FOR NOW)
     suspend fun updateMessageCache(id: Long, message: String) =
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.messageDao().updateMessageById(id, message)
         }
 
     suspend fun saveMessages(messages: List<Message>) {
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_chatroom_messages_fetch_time)
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.messageDao().upsert(messages)
         }
     }

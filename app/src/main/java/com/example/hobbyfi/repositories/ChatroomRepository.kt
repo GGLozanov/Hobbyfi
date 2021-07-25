@@ -16,6 +16,7 @@ import com.example.hobbyfi.responses.IdResponse
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.shared.*
 import com.example.hobbyfi.shared.Constants.getDefaultPageConfig
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.sendBlocking
@@ -23,8 +24,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 class ChatroomRepository @ExperimentalPagingApi constructor(
-    prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI, hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
-) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+    prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
+    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager,
+    coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager, coroutineDispatcher) {
 
     @ExperimentalCoroutinesApi
     @ExperimentalPagingApi
@@ -151,7 +154,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         Log.i("ChatroomRepository", "editChatroomCache -> NEW CHATROOM: ${chatroom}")
 
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.chatroomDao().upsert(chatroom)
         }
     }
@@ -160,14 +163,14 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
         Log.i("ChatroomRepository", "editChatroomCache -> NEW CHATROOMS: ${chatrooms}")
 
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.chatroomDao().upsert(chatrooms)
         }
     }
 
     suspend fun setChatroomPhotoUrl(chatroomId: Long, photoUrl: String) {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.chatroomDao().updateChatroomPhotoUrl(chatroomId, photoUrl)
         }
     }
@@ -175,7 +178,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     suspend fun deleteChatroomCache(chatroom: Chatroom): Boolean {
         Log.i("ChatroomRepository", "deleteChatroomCache -> deleting auth chatroom with owner id: ${chatroom.ownerId} and id: ${chatroom.id}")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_chatrooms_fetch_time)
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.withTransaction {
                 val deletedChatroom = hobbyfiDatabase.chatroomDao().delete(chatroom)
                 val deletedRemoteKeys = hobbyfiDatabase.remoteKeysDao().deleteRemoteKeysForIdAndType(chatroom.id, RemoteKeyType.CHATROOM)
@@ -196,7 +199,7 @@ class ChatroomRepository @ExperimentalPagingApi constructor(
     }
 
     private suspend fun getUserChatroomIds(userId: Long): Flow<List<Long>?> =
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.userDao().getUserChatroomIds(userId).map {
                 Constants.jsonConverter.fromJson(it)
             }

@@ -21,14 +21,16 @@ import com.example.hobbyfi.shared.PrefConfig
 import com.google.firebase.FirebaseException
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.GeoPoint
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 class EventRepository(
     prefConfig: PrefConfig, hobbyfiAPI: HobbyfiAPI,
-    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager
-): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager) {
+    hobbyfiDatabase: HobbyfiDatabase, connectivityManager: ConnectivityManager,
+    coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO
+): CacheRepository(prefConfig, hobbyfiAPI, hobbyfiDatabase, connectivityManager, coroutineDispatcher) {
     private val _userGeoPoints: MutableLiveData<List<UserGeoPoint>> = MutableLiveData(arrayListOf())
     private val _userGeoPoint: MutableStateFlow<UserGeoPoint?> = MutableStateFlow(null)
 
@@ -142,7 +144,7 @@ class EventRepository(
         Log.i("EventRepository", "saveEventS -> Saving eventS into cache. EventS: $events!")
         prefConfig.writeLastPrefFetchTimeNow(R.string.pref_last_events_fetch_time)
 
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             if(replace) {
                 hobbyfiDatabase.eventDao().deleteEvents()
             }
@@ -154,7 +156,7 @@ class EventRepository(
     suspend fun deleteEventCache(id: Long): Boolean {
         Log.i("EventRepository", "deleteEventCache -> Deleting cached event w/ id: $id!")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_events_fetch_time)
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.eventDao().deleteEventById(id) > 0
         }
     }
@@ -162,7 +164,7 @@ class EventRepository(
     suspend fun deleteEventsCache(ids: List<Long>): Boolean {
         Log.i("EventRepository", "deleteEventCache -> Deleting cached events w/ id: $ids!")
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_events_fetch_time)
-        return withContext(Dispatchers.IO) {
+        return withContext(coroutineDispatcher) {
             hobbyfiDatabase.eventDao().deleteEventById(ids) > 0
         }
     }
@@ -255,7 +257,7 @@ class EventRepository(
 
     suspend fun setEventPhotoUrl(id: Long, photoUrl: String) {
         prefConfig.resetLastPrefFetchTime(R.string.pref_last_events_fetch_time)
-        withContext(Dispatchers.IO) {
+        withContext(coroutineDispatcher) {
             hobbyfiDatabase.eventDao().updateEventPhotoUrl(id, photoUrl)
         }
     }
