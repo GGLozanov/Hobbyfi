@@ -39,7 +39,7 @@ data class Chatroom(
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.NAME -> {
-                    name = value!!
+                    name = value ?: ""
                 }
                 Constants.DESCRIPTION -> {
                     description = value

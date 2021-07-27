@@ -6,17 +6,19 @@ import com.example.hobbyfi.MainApplication
 import com.example.hobbyfi.R
 import com.example.hobbyfi.api.HobbyfiAPI
 import com.example.hobbyfi.models.data.Tag
-import com.example.hobbyfi.requests.FetchRegisterTokenRequest
 import com.example.hobbyfi.responses.Response
 import com.example.hobbyfi.responses.TokenResponse
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.PrefConfig
+import com.example.hobbyfi.shared.addFetchRegisterTokenRequest
 import com.example.hobbyfi.utils.ColourUtils
 import com.facebook.AccessToken
 import com.facebook.GraphRequest
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.FormBody
+import okhttp3.MultipartBody
 import org.json.JSONException
 
 class TokenRepository(
@@ -34,12 +36,12 @@ class TokenRepository(
         return try {
             hobbyfiAPI.fetchRegistrationToken(
                 facebookToken,
-                FetchRegisterTokenRequest(
-                    email,
-                    username,
-                    password,
-                    description,
-                    if(tags.isEmpty()) null else Constants.jsonConverter.toJson(tags))
+                FormBody.Builder()
+                    .addFetchRegisterTokenRequest(
+                        email, password, username,
+                        description, tags
+                    )
+                    .build()
             )
         } catch(ex: Exception) {
             dissectExceptionAndThrow(ex)

@@ -9,7 +9,6 @@ import com.example.hobbyfi.adapters.user.UserResponseDeserializer
 import com.example.hobbyfi.models.*
 import com.example.hobbyfi.models.data.*
 import com.example.hobbyfi.models.data.Tag
-import com.example.hobbyfi.requests.FetchRegisterTokenRequest
 import com.example.hobbyfi.responses.*
 import com.example.hobbyfi.shared.Constants
 import com.example.hobbyfi.shared.isConnected
@@ -18,6 +17,7 @@ import com.google.gson.reflect.TypeToken
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -42,7 +42,7 @@ interface HobbyfiAPI {
     @POST("v${API_VERSION}/user/create.php")
     suspend fun fetchRegistrationToken(
         @Header(Constants.AUTH_HEADER) facebookToken: String?, // potential fb token sent to validate fb create request
-        @Body request: FetchRegisterTokenRequest
+        @Body request: RequestBody
     ): TokenResponse?
 
     /**
@@ -381,7 +381,6 @@ interface HobbyfiAPI {
                 .addConverterFactory(
                     GsonConverterFactory.create(
                         GsonBuilder()
-                            .serializeNulls()
                             .setLenient()
                             .registerTypeAdapter(
                                 TypeToken.getParameterized(

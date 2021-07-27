@@ -46,7 +46,7 @@ data class Event(
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.NAME -> {
-                    name = value!!
+                    name = value ?: ""
                 }
                 Constants.DESCRIPTION -> {
                     description = value
@@ -56,13 +56,13 @@ data class Event(
                     // no need to update it generally because it's always the same but we need to wake up observer and reload it?
                 }
                 Constants.DATE -> {
-                    date = value!!
+                    date = value ?: LocalDateTime.now().toString()
                 }
                 Constants.LONGITUDE -> {
-                    longitude = value!!.toDouble()
+                    longitude = (value ?: "0").toDouble()
                 }
                 Constants.LATITUDE -> {
-                    latitude = value!!.toDouble()
+                    latitude = (value ?: "0").toDouble()
                 }
             }
         }

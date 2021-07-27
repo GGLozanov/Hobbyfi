@@ -40,7 +40,7 @@ data class Message(
         for((key, value) in fieldMap.entries) {
             when(key) {
                 Constants.MESSAGE -> {
-                    this.message = value!!
+                    this.message = value ?: ""
                 }
             }
         }

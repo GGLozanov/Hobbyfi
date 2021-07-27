@@ -840,7 +840,6 @@ class ChatroomActivity : NavigationActivity(),
                         )
                     }
                     is EventState.Error -> {
-                        // TODO: Handle error
                         handleAuthActionableError(it.error, it.shouldReauth)
                     }
                     else -> throw State.InvalidStateException()
